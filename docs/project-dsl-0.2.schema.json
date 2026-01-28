@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cardplay.local/schema/project-dsl-0.2.json",
+  "title": "Cardplay Project DSL",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "metadata", "containers", "cards", "stacks"],
+  "properties": {
+    "version": { "const": "0.2" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "containers": { "type": "array", "items": { "type": "object" } },
+    "cards": { "type": "array", "items": { "type": "object" } },
+    "stacks": { "type": "array", "items": { "type": "object" } },
+    "graph": { "type": "object" },
+    "graphPatches": { "type": "array", "items": { "type": "object" } },
+    "fixLog": { "type": "array", "items": { "type": "object" } },
+    "reports": {},
+    "audioRender": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sampleRate": { "type": "number" },
+        "normalize": { "type": "boolean" },
+        "format": { "enum": ["wav", "mp3", "ogg"] },
+        "bitDepth": { "enum": [16, 24, 32] },
+        "encoding": { "enum": ["pcm", "float"] },
+        "dither": { "type": "boolean" },
+        "noiseShaping": { "enum": ["none", "simple1"] },
+        "stemsBy": { "enum": ["track", "bus"] }
+      }
+    },
+    "registry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventKinds": { "type": "array", "items": { "type": "object" } },
+        "portTypes": { "type": "array", "items": { "type": "object" } },
+        "protocols": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  }
+}
+

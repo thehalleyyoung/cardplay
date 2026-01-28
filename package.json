@@ -1,0 +1,62 @@
+{
+  "name": "@cardplay/core",
+  "version": "0.1.0",
+  "description": "Core type system for Cardplay - parametric music creation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./events": {
+      "import": "./dist/events/index.js",
+      "types": "./dist/events/index.d.ts"
+    },
+    "./wasm": {
+      "import": "./dist/wasm/index.js",
+      "types": "./dist/wasm/index.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext ts",
+    "clean": "rm -rf dist",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/jsdom": "^27.0.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "canvas": "^3.2.1",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^27.4.0",
+    "puppeteer": "^24.36.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vitest": "^1.1.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "keywords": [
+    "music",
+    "daw",
+    "cardplay",
+    "parametric",
+    "typescript"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "tau-prolog": "^0.3.4"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "id": "activity-chords-ambient",
+  "genre": "Ambient",
+  "activityType": "chord-progression",
+  "recommendedTempo": 72,
+  "name": "Make a chord progression (Ambient)",
+  "description": "Create an atmospheric ambient chord progression with lush pads and evolving textures",
+  "starterCards": [
+    {
+      "id": "synth-pad",
+      "type": "Synthesizer",
+      "name": "Pad Synth",
+      "params": {
+        "preset": "ambient-pad",
+        "attack": 800,
+        "release": 2000,
+        "filterCutoff": 2000,
+        "filterResonance": 0.3,
+        "detuneAmount": 0.08,
+        "voices": 3
+      }
+    },
+    {
+      "id": "reverb-card",
+      "type": "Reverb",
+      "name": "Spacious Reverb",
+      "params": {
+        "roomSize": 0.85,
+        "decay": 4.5,
+        "damping": 0.4,
+        "mix": 0.45,
+        "predelay": 20
+      }
+    },
+    {
+      "id": "chorus-card",
+      "type": "Chorus",
+      "name": "Subtle Chorus",
+      "params": {
+        "rate": 0.3,
+        "depth": 0.25,
+        "mix": 0.3
+      }
+    },
+    {
+      "id": "mixer-card",
+      "type": "Mixer",
+      "name": "Mixer",
+      "params": {
+        "gain": 0.75
+      }
+    },
+    {
+      "id": "out-card",
+      "type": "AudioOut",
+      "name": "Audio Out",
+      "params": {}
+    }
+  ],
+  "starterStacks": [
+    {
+      "id": "stack-ambient-chords",
+      "cardIds": ["synth-pad", "chorus-card", "reverb-card", "mixer-card", "out-card"],
+      "behavior": "serial"
+    }
+  ],
+  "hints": [
+    "Ambient chord progressions typically move slowly (72 BPM or slower)",
+    "Use sustained chords with long attack and release times",
+    "Try modal progressions: stay in one key and explore nearby chords",
+    "Common ambient progressions: I-IV-vi-V or vi-IV-I-V in major keys",
+    "Add extensions like 7ths, 9ths, or sus chords for rich harmony",
+    "Let chords overlap and breathe - space is part of the sound",
+    "The reverb and chorus will add depth and movement to static chords"
+  ],
+  "validationSteps": [
+    {
+      "description": "Create at least 3 chord events with different pitches",
+      "check": "has-chord-events"
+    },
+    {
+      "description": "Use at least 3 different pitch classes (varied harmony)",
+      "check": "chord-variety"
+    },
+    {
+      "description": "Set tempo to recommended BPM (around 72)",
+      "check": "tempo-matches"
+    },
+    {
+      "description": "Play the progression and verify the ambient feel",
+      "check": "playback-works"
+    }
+  ]
+}

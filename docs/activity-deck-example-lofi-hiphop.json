@@ -1,0 +1,93 @@
+{
+  "id": "activity-beat-lofi-hiphop",
+  "genre": "Lo-fi hip hop",
+  "activityType": "beat",
+  "recommendedTempo": 85,
+  "name": "Make a beat (Lo-fi hip hop)",
+  "description": "Create a Lo-fi hip hop beat with characteristic laid-back patterns and dusty vintage samples",
+  "starterCards": [
+    {
+      "id": "drum-card",
+      "type": "DrumMachine",
+      "name": "Drum Machine",
+      "params": {
+        "preset": "lofi-hiphop",
+        "tempo": 85,
+        "swing": 0.15,
+        "humanize": 0.12
+      }
+    },
+    {
+      "id": "vinyl-fx-card",
+      "type": "EffectRack",
+      "name": "Vinyl Character",
+      "params": {
+        "effects": [
+          {
+            "type": "VinylCrackle",
+            "mix": 0.25,
+            "intensity": 0.4
+          },
+          {
+            "type": "LowPassFilter",
+            "cutoff": 8000,
+            "resonance": 0.2
+          },
+          {
+            "type": "BitCrusher",
+            "bitDepth": 12,
+            "mix": 0.15
+          }
+        ]
+      }
+    },
+    {
+      "id": "mixer-card",
+      "type": "Mixer",
+      "name": "Mixer",
+      "params": {
+        "gain": 0.8,
+        "pan": 0.0
+      }
+    },
+    {
+      "id": "out-card",
+      "type": "AudioOut",
+      "name": "Audio Out",
+      "params": {}
+    }
+  ],
+  "starterStacks": [
+    {
+      "id": "stack-beat-lofi-hiphop",
+      "cardIds": ["drum-card", "vinyl-fx-card", "mixer-card", "out-card"],
+      "behavior": "serial"
+    }
+  ],
+  "hints": [
+    "Lo-fi hip hop beats are typically around 85 BPM with a laid-back feel",
+    "Key characteristics: dusty, vintage samples with analog warmth",
+    "Start with a basic kick-snare pattern, then add subtle hi-hat variations",
+    "Use the pads panel to record your beat or draw in the piano roll",
+    "Add slight swing and humanization for that organic groove",
+    "The vinyl effects will give your beat that classic lo-fi character"
+  ],
+  "validationSteps": [
+    {
+      "description": "Create a clip with at least 4 drum events",
+      "check": "clip-has-events"
+    },
+    {
+      "description": "Set tempo close to recommended 85 BPM",
+      "check": "tempo-matches"
+    },
+    {
+      "description": "Play the beat and verify timing",
+      "check": "playback-works"
+    },
+    {
+      "description": "Add variation with at least 2 different drum sounds",
+      "check": "has-variety"
+    }
+  ]
+}

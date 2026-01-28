@@ -1,0 +1,122 @@
+{
+  "id": "activity-bassline-house",
+  "genre": "House",
+  "activityType": "bassline",
+  "recommendedTempo": 125,
+  "name": "Make a bassline (House)",
+  "description": "Create a driving house bassline with tight rhythm and punchy low-end",
+  "starterCards": [
+    {
+      "id": "bass-synth",
+      "type": "Synthesizer",
+      "name": "Bass Synth",
+      "params": {
+        "preset": "house-bass",
+        "oscillator": "saw",
+        "attack": 5,
+        "decay": 150,
+        "sustain": 0.4,
+        "release": 50,
+        "filterCutoff": 800,
+        "filterResonance": 0.6,
+        "filterEnvAmount": 0.7,
+        "glide": 20
+      }
+    },
+    {
+      "id": "sidechain-comp",
+      "type": "Compressor",
+      "name": "Sidechain Comp",
+      "params": {
+        "threshold": -20,
+        "ratio": 4,
+        "attack": 1,
+        "release": 100,
+        "sidechainInput": "kick-trigger"
+      }
+    },
+    {
+      "id": "eq-card",
+      "type": "EQ",
+      "name": "Bass EQ",
+      "params": {
+        "lowShelf": {
+          "frequency": 80,
+          "gain": 3
+        },
+        "lowMid": {
+          "frequency": 200,
+          "q": 1.5,
+          "gain": -2
+        },
+        "highPass": {
+          "frequency": 35,
+          "q": 0.7
+        }
+      }
+    },
+    {
+      "id": "saturation-card",
+      "type": "Saturation",
+      "name": "Warmth",
+      "params": {
+        "drive": 1.4,
+        "tone": 0.6,
+        "mix": 0.5
+      }
+    },
+    {
+      "id": "mixer-card",
+      "type": "Mixer",
+      "name": "Mixer",
+      "params": {
+        "gain": 0.85
+      }
+    },
+    {
+      "id": "out-card",
+      "type": "AudioOut",
+      "name": "Audio Out",
+      "params": {}
+    }
+  ],
+  "starterStacks": [
+    {
+      "id": "stack-house-bassline",
+      "cardIds": ["bass-synth", "sidechain-comp", "eq-card", "saturation-card", "mixer-card", "out-card"],
+      "behavior": "serial"
+    }
+  ],
+  "hints": [
+    "House basslines are typically around 125 BPM with tight, punchy notes",
+    "Focus on root notes and fifths of your chord progression",
+    "Keep most notes short (staccato) for that driving house feel",
+    "Add occasional longer notes for tension and release",
+    "Use octave jumps sparingly for emphasis on key moments",
+    "Rhythm is crucial: sync with the kick drum pattern",
+    "The sidechain compression will create that signature pumping effect",
+    "Try patterns on beats 1 and 3, or syncopated 16th note rhythms"
+  ],
+  "validationSteps": [
+    {
+      "description": "Create at least 4 bass note events",
+      "check": "clip-has-events"
+    },
+    {
+      "description": "Use notes in the bass register (C1-C3)",
+      "check": "bass-register"
+    },
+    {
+      "description": "Set tempo close to recommended 125 BPM",
+      "check": "tempo-matches"
+    },
+    {
+      "description": "Create rhythmic variation (not all notes same duration)",
+      "check": "rhythm-variety"
+    },
+    {
+      "description": "Play the bassline and verify groove",
+      "check": "playback-works"
+    }
+  ]
+}

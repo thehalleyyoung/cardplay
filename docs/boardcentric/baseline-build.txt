@@ -1,0 +1,1415 @@
+Wed Jan 28 14:38:30 EST 2026
+--- npm run build ---
+
+> @cardplay/core@0.1.0 build
+> tsc -b && vite build
+
+src/audio/audio-engine-store-bridge.ts(124,34): error TS2345: Argument of type 'TransportSnapshot' is not assignable to parameter of type 'TransportState'.
+src/audio/audio-engine-store-bridge.ts(139,13): error TS2339: Property 'unsubscribeFromStream' does not exist on type 'SharedEventStore'.
+src/audio/audio-engine-store-bridge.ts(162,34): error TS2339: Property 'subscribeToStream' does not exist on type 'SharedEventStore'.
+src/audio/audio-engine-store-bridge.ts(185,11): error TS2339: Property 'unsubscribeFromStream' does not exist on type 'SharedEventStore'.
+src/audio/audio-engine-store-bridge.ts(204,29): error TS2339: Property 'listStreamIds' does not exist on type 'SharedEventStore'.
+src/audio/audio-engine-store-bridge.ts(277,15): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(277,39): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(279,23): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(279,46): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(284,15): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(284,41): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(284,63): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(285,23): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(289,15): error TS2339: Property 'tempo' does not exist on type 'TransportState'.
+  Property 'tempo' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(289,35): error TS2339: Property 'tempo' does not exist on type 'TransportState'.
+  Property 'tempo' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(308,74): error TS2339: Property 'tempo' does not exist on type 'TransportState'.
+  Property 'tempo' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(309,31): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(314,22): error TS2339: Property 'tick' does not exist on type 'Event<unknown>'.
+src/audio/audio-engine-store-bridge.ts(336,16): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(339,52): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(339,81): error TS2339: Property 'tempo' does not exist on type 'TransportState'.
+  Property 'tempo' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(349,11): error TS18048: 'event' is possibly 'undefined'.
+src/audio/audio-engine-store-bridge.ts(350,36): error TS2345: Argument of type 'AudioEngineEvent | undefined' is not assignable to parameter of type 'AudioEngineEvent'.
+  Type 'undefined' is not assignable to type 'AudioEngineEvent'.
+src/audio/audio-engine-store-bridge.ts(358,33): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(start: number, deleteCount?: number | undefined): AudioEngineEvent[]', gave the following error.
+    Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+  Overload 2 of 2, '(start: number, deleteCount: number, ...items: AudioEngineEvent[]): AudioEngineEvent[]', gave the following error.
+    Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/audio/audio-engine-store-bridge.ts(374,24): error TS2339: Property 'tick' does not exist on type 'Event<unknown>'.
+src/audio/audio-engine-store-bridge.ts(375,64): error TS2339: Property 'tempo' does not exist on type 'TransportState'.
+  Property 'tempo' does not exist on type '"recording"'.
+src/audio/audio-engine-store-bridge.ts(392,7): error TS2375: Type '{ pitch: number | undefined; velocity: number | undefined; channel: number; controller: number | undefined; value: number | undefined; duration: number | undefined; sourceStreamId: EventStreamId; }' is not assignable to type '{ [key: string]: unknown; readonly pitch?: number; readonly velocity?: number; readonly channel?: number; readonly controller?: number; readonly value?: number; readonly duration?: number; readonly sourceStreamId?: string; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'pitch' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/audio/audio-engine-store-bridge.ts(430,37): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/audio/automation-lane.ts(19,3): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/audio/automation-lane.ts(26,1): error TS6133: 'getParameterResolver' is declared but its value is never read.
+src/audio/automation-lane.ts(109,33): error TS2339: Property 'subscribeToStream' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(111,8): error TS7006: Parameter 'events' implicitly has an 'any' type.
+src/audio/automation-lane.ts(117,26): error TS2345: Argument of type 'EventStreamRecord<unknown>' is not assignable to parameter of type 'readonly Event<unknown>[]'.
+  Type 'EventStreamRecord<unknown>' is missing the following properties from type 'readonly Event<unknown>[]': length, concat, join, slice, and 20 more.
+src/audio/automation-lane.ts(295,11): error TS2375: Type '{ id: AutomationPointId; tick: Tick; value: number; curveType: CurveType; tension: number | undefined; }' is not assignable to type 'AutomationPoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tension' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/audio/automation-lane.ts(306,7): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'Event<AutomationEventPayload>'.
+src/audio/automation-lane.ts(319,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/automation-lane.ts(323,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(326,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/automation-lane.ts(353,7): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'Event<AutomationEventPayload>'.
+src/audio/automation-lane.ts(366,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(367,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/automation-lane.ts(371,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(374,11): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'Event<AutomationEventPayload>'.
+src/audio/automation-lane.ts(382,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/automation-lane.ts(385,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(386,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/automation-lane.ts(404,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(410,11): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'Event<AutomationEventPayload>'.
+src/audio/automation-lane.ts(418,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/automation-lane.ts(421,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(434,11): error TS2375: Type '{ curveType: CurveType; tension: number | undefined; id: AutomationPointId; tick: Tick; value: number; selected?: boolean; }' is not assignable to type 'AutomationPoint' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tension' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/audio/automation-lane.ts(442,7): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'Event<AutomationEventPayload>'.
+src/audio/automation-lane.ts(451,11): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(452,11): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/automation-lane.ts(462,25): error TS2488: Type 'never[] | EventStreamRecord<unknown>' must have a '[Symbol.iterator]()' method that returns an iterator.
+src/audio/automation-lane.ts(464,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(621,22): error TS2339: Property 'type' does not exist on type 'Event<unknown>'.
+src/audio/automation-lane.ts(680,27): error TS18048: 'point' is possibly 'undefined'.
+src/audio/automation-lane.ts(682,38): error TS18048: 'point' is possibly 'undefined'.
+src/audio/automation-lane.ts(688,40): error TS18048: 'prevPoint' is possibly 'undefined'.
+src/audio/automation-lane.ts(690,17): error TS18048: 'prevPoint' is possibly 'undefined'.
+src/audio/automation-lane.ts(713,50): error TS18048: 'prevPoint' is possibly 'undefined'.
+src/audio/automation-lane.ts(714,64): error TS18048: 'prevPoint' is possibly 'undefined'.
+src/audio/automation-lane.ts(714,85): error TS18048: 'prevPoint' is possibly 'undefined'.
+src/audio/automation-lane.ts(733,13): error TS2339: Property 'unsubscribeFromStream' does not exist on type 'SharedEventStore'.
+src/audio/automation-lane.ts(749,11): error TS6133: 'audioContext' is declared but its value is never read.
+src/audio/deck-routing-store-bridge.ts(17,1): error TS6133: 'Event' is declared but its value is never read.
+src/audio/deck-routing-store-bridge.ts(21,10): error TS6133: 'getSharedEventStore' is declared but its value is never read.
+src/audio/deck-routing-store-bridge.ts(177,34): error TS2345: Argument of type 'TransportSnapshot' is not assignable to parameter of type 'TransportState'.
+src/audio/deck-routing-store-bridge.ts(678,15): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/audio/event-flattener-store-bridge.ts(18,21): error TS6196: 'TickDuration' is declared but never used.
+src/audio/event-flattener-store-bridge.ts(18,35): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/audio/event-flattener-store-bridge.ts(18,35): error TS6196: 'Velocity' is declared but never used.
+src/audio/event-flattener-store-bridge.ts(19,18): error TS6133: 'asTickDuration' is declared but its value is never read.
+src/audio/event-flattener-store-bridge.ts(129,42): error TS2551: Property 'subscribe' does not exist on type 'ClipRegistry'. Did you mean 'unsubscribe'?
+src/audio/event-flattener-store-bridge.ts(141,17): error TS6133: 'streamId' is declared but its value is never read.
+src/audio/event-flattener-store-bridge.ts(224,35): error TS2551: Property 'getAllClipIds' does not exist on type 'ClipRegistry'. Did you mean 'getAllClips'?
+src/audio/event-flattener-store-bridge.ts(339,29): error TS2339: Property 'startTick' does not exist on type 'Event<unknown>'.
+src/audio/event-flattener-store-bridge.ts(392,29): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/audio/event-flattener-store-bridge.ts(411,44): error TS2339: Property 'startTick' does not exist on type 'Event<unknown>'.
+src/audio/event-flattener-store-bridge.ts(464,57): error TS6133: 'layer' is declared but its value is never read.
+src/audio/instrument-interface.ts(373,14): error TS6133: 'pitch' is declared but its value is never read.
+src/audio/instrument-interface.ts(373,29): error TS6133: 'pressure' is declared but its value is never read.
+src/audio/instrument-interface.ts(373,47): error TS6133: 'time' is declared but its value is never read.
+src/audio/instrument-interface.ts(377,19): error TS6133: 'pressure' is declared but its value is never read.
+src/audio/instrument-interface.ts(377,37): error TS6133: 'time' is declared but its value is never read.
+src/audio/instrument-interface.ts(456,11): error TS2375: Type '{ id: string; name: string; category: string | undefined; parameters: Record<string, string | number | boolean>; }' is not assignable to type 'InstrumentPreset' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'category' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/audio/instrument-interface.ts(523,51): error TS2352: Conversion of type 'TickDuration' to type 'Tick' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'TickDuration' is not comparable to type '{ readonly [__brand]: "Tick"; }'.
+    Types of property '[__brand]' are incompatible.
+      Type '"TickDuration"' is not comparable to type '"Tick"'.
+src/audio/sample-pipeline.ts(15,35): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/audio/sample-pipeline.ts(16,10): error TS6133: 'asTick' is declared but its value is never read.
+src/audio/sample-pipeline.ts(16,34): error TS2305: Module '"../types/primitives"' has no exported member 'asVelocity'.
+src/audio/sample-pipeline.ts(16,34): error TS6133: 'asVelocity' is declared but its value is never read.
+src/audio/sample-pipeline.ts(19,3): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/audio/sample-pipeline.ts(20,3): error TS6196: 'ClipId' is declared but never used.
+src/audio/sample-pipeline.ts(25,3): error TS6133: 'getClipRegistry' is declared but its value is never read.
+src/audio/sample-pipeline.ts(336,30): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(374,19): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(384,20): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(384,34): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(385,34): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(387,48): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(391,48): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(404,33): error TS18048: 'j' is possibly 'undefined'.
+src/audio/sample-pipeline.ts(404,37): error TS18048: 'endSample' is possibly 'undefined'.
+src/audio/sample-pipeline.ts(404,48): error TS18048: 'j' is possibly 'undefined'.
+src/audio/sample-pipeline.ts(405,42): error TS2538: Type 'undefined' cannot be used as an index type.
+src/audio/sample-pipeline.ts(412,9): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(413,9): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(414,20): error TS18048: 'startSample' is possibly 'undefined'.
+src/audio/sample-pipeline.ts(415,18): error TS18048: 'endSample' is possibly 'undefined'.
+src/audio/sample-pipeline.ts(447,16): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(518,30): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(588,24): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(588,57): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(590,11): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(637,13): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(637,38): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(637,58): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(673,9): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(695,30): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(708,22): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(731,9): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/audio/sample-pipeline.ts(770,22): error TS2532: Object is possibly 'undefined'.
+src/audio/sample-pipeline.ts(787,11): error TS6133: 'subscriptionId' is declared but its value is never read.
+src/audio/sample-pipeline.ts(796,9): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'CreateEventStreamOptions<unknown>'.
+src/audio/sample-pipeline.ts(814,7): error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'Event<SampleEventPayload>'.
+src/audio/sample-pipeline.ts(826,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/sample-pipeline.ts(831,15): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/sample-pipeline.ts(834,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/audio/sample-pipeline.ts(851,19): error TS2339: Property 'filter' does not exist on type 'never[] | EventStreamRecord<unknown>'.
+  Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/audio/sample-pipeline.ts(851,26): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/audio/sample-pipeline.ts(862,11): error TS2339: Property 'deleteEvent' does not exist on type 'SharedEventStore'.
+src/audio/sample-pipeline.ts(870,11): error TS2339: Property 'clearStream' does not exist on type 'SharedEventStore'.
+src/audio/transport.ts(17,1): error TS6133: 'SubscriptionId' is declared but its value is never read.
+src/audio/transport.ts(142,11): error TS6133: 'timeSignatureChanges' is declared but its value is never read.
+src/audio/transport.ts(152,11): error TS6133: 'lookAheadTime' is declared but its value is never read.
+src/audio/transport.ts(164,11): error TS6133: 'metronomeOscillator' is declared but its value is never read.
+src/audio/transport.ts(392,11): error TS6133: 'oldTempo' is declared but its value is never read.
+src/audio/wavetable-instrument-adapter.ts(379,5): error TS2322: Type '{ id: number; state: VoiceState; pitch: number; velocity: number; startTime: number; releaseTime: number | undefined; }[]' is not assignable to type 'readonly VoiceInfo[]'.
+  Type '{ id: number; state: VoiceState; pitch: number; velocity: number; startTime: number; releaseTime: number | undefined; }' is not assignable to type 'VoiceInfo' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'releaseTime' are incompatible.
+      Type 'number | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+src/audio/wavetable-instrument-adapter.ts(440,11): error TS2375: Type '{ id: string; name: string; category: string | undefined; parameters: { [k: string]: string | number | boolean; }; }' is not assignable to type 'InstrumentPreset' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'category' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/audio/wavetable-instrument-adapter.ts(470,3): error TS2416: Property 'getOutputNode' in type 'WavetableInstrumentAdapter' is not assignable to the same property in base type 'InstrumentCard<unknown>'.
+  Type '() => AudioNode | null' is not assignable to type '() => AudioNode'.
+    Type 'AudioNode | null' is not assignable to type 'AudioNode'.
+      Type 'null' is not assignable to type 'AudioNode'.
+src/audio/wavetable-instrument-adapter.ts(907,22): error TS2532: Object is possibly 'undefined'.
+src/audio/wavetable-instrument-adapter.ts(908,22): error TS2532: Object is possibly 'undefined'.
+src/audio/wavetable-instrument-adapter.ts(958,34): error TS2345: Argument of type 'PeriodicWave | undefined' is not assignable to parameter of type 'PeriodicWave'.
+  Type 'undefined' is not assignable to type 'PeriodicWave'.
+src/audio/wavetable-instrument-adapter.ts(1087,48): error TS2345: Argument of type 'PeriodicWave | undefined' is not assignable to parameter of type 'PeriodicWave'.
+  Type 'undefined' is not assignable to type 'PeriodicWave'.
+src/cards/arranger-phrase-adapter.ts(15,1): error TS6192: All imports in import declaration are unused.
+src/cards/arranger-phrase-adapter.ts(142,9): error TS2353: Object literal may only specify known properties, and 'originalKey' does not exist in type 'PhraseMetadata'.
+src/cards/arranger-phrase-adapter.ts(211,7): error TS2353: Object literal may only specify known properties, and 'decoupled' does not exist in type 'Partial<PhraseRecord<P>>'.
+src/cards/arranger-phrase-adapter.ts(299,43): error TS2339: Property 'originalKey' does not exist on type 'PhraseMetadata'.
+src/cards/arranger-phrase-adapter.ts(300,40): error TS2339: Property 'originalKey' does not exist on type 'PhraseMetadata'.
+src/cards/arranger-phrase-adapter.ts(345,33): error TS2339: Property 'isFavorite' does not exist on type 'PhraseRecord<P>'.
+src/cards/arranger-phrase-adapter.ts(346,44): error TS2353: Object literal may only specify known properties, and 'isFavorite' does not exist in type 'Partial<PhraseRecord<P>>'.
+src/cards/arranger-phrase-adapter.ts(369,34): error TS2353: Object literal may only specify known properties, and 'favoritesOnly' does not exist in type 'PhraseQueryAdvanced'.
+src/cards/arranger-phrase-adapter.ts(482,41): error TS2339: Property 'tick' does not exist on type 'Event<P>'.
+src/cards/arranger-phrase-adapter.ts(489,20): error TS2339: Property 'tick' does not exist on type 'Event<P>'.
+src/cards/arranger-phrase-adapter.ts(520,21): error TS2339: Property 'tick' does not exist on type 'Event<P>'.
+src/cards/arranger-phrase-adapter.ts(543,31): error TS2322: Type '"rhythm"' is not assignable to type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(550,65): error TS2322: Type '"accompaniment"' is not assignable to type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(579,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/cards/arranger-phrase-adapter.ts(585,15): error TS2339: Property 'tick' does not exist on type 'Event<P>'.
+src/cards/arranger-phrase-adapter.ts(595,25): error TS2339: Property 'tick' does not exist on type 'Event<P>'.
+src/cards/arranger-phrase-adapter.ts(615,16): error TS2339: Property 'isFavorite' does not exist on type 'PhraseRecord<P>'.
+src/cards/arranger-phrase-adapter.ts(623,9): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(633,26): error TS2339: Property 'originalTempo' does not exist on type 'PhraseMetadata'.
+src/cards/arranger-phrase-adapter.ts(634,58): error TS2339: Property 'originalTempo' does not exist on type 'PhraseMetadata'.
+src/cards/arranger-phrase-adapter.ts(643,50): error TS2339: Property 'originalKey' does not exist on type 'PhraseMetadata'.
+src/cards/arranger-phrase-adapter.ts(644,59): error TS2339: Property 'originalKey' does not exist on type 'PhraseMetadata'.
+src/cards/arranger-phrase-adapter.ts(686,27): error TS2322: Type '"accompaniment"' is not assignable to type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(688,28): error TS2820: Type '"counter-melody"' is not assignable to type 'LineType'. Did you mean '"countermelody"'?
+src/cards/arranger-phrase-adapter.ts(689,34): error TS2322: Type '"arpeggio"' is not assignable to type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(691,24): error TS2322: Type '"lead"' is not assignable to type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(691,32): error TS2322: Type '"rhythm"' is not assignable to type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(692,28): error TS2322: Type '"arpeggio"' is not assignable to type 'LineType'.
+src/cards/arranger-phrase-adapter.ts(701,17): error TS2322: Type '"contemplative"' is not assignable to type 'MoodTag'.
+src/cards/arranger-phrase-adapter.ts(701,34): error TS2322: Type '"intimate"' is not assignable to type 'MoodTag'.
+src/cards/arranger-phrase-adapter.ts(701,46): error TS2820: Type '"melancholy"' is not assignable to type 'MoodTag'. Did you mean '"melancholic"'?
+src/cards/arranger-phrase-adapter.ts(702,18): error TS2322: Type '"uplifting"' is not assignable to type 'MoodTag'.
+src/cards/arranger-phrase-adapter.ts(703,27): error TS2322: Type '"ethereal"' is not assignable to type 'MoodTag'.
+src/cards/arranger-phrase-adapter.ts(704,17): error TS2322: Type '"ethereal"' is not assignable to type 'MoodTag'.
+src/cards/arranger-phrase-adapter.ts(705,29): error TS2322: Type '"nostalgic"' is not assignable to type 'MoodTag'.
+src/cards/generator-mixin.ts(19,27): error TS6133: 'createEvent' is declared but its value is never read.
+src/cards/generator-mixin.ts(20,30): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/cards/generator-mixin.ts(20,30): error TS6196: 'EventId' is declared but never used.
+src/cards/generator-mixin.ts(20,39): error TS6196: 'SubscriptionId' is declared but never used.
+src/cards/generator-mixin.ts(21,1): error TS6192: All imports in import declaration are unused.
+src/cards/generator-mixin.ts(26,8): error TS6133: 'GeneratorOutputConfig' is declared but its value is never read.
+src/cards/generator-mixin.ts(249,26): error TS18048: 'nearestTone' is possibly 'undefined'.
+src/cards/generator-mixin.ts(713,31): error TS2532: Object is possibly 'undefined'.
+src/cards/generator-mixin.ts(718,31): error TS18048: 'scaleNote' is possibly 'undefined'.
+src/cards/generator-mixin.ts(847,9): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/cards/generator-mixin.ts(947,34): error TS2532: Object is possibly 'undefined'.
+src/cards/generator-output.ts(13,1): error TS6192: All imports in import declaration are unused.
+src/cards/generator-output.ts(14,1): error TS6192: All imports in import declaration are unused.
+src/cards/generator-output.ts(15,10): error TS6133: 'createNoteEvent' is declared but its value is never read.
+src/cards/generator-output.ts(15,27): error TS6133: 'createEvent' is declared but its value is never read.
+src/cards/generator-output.ts(18,3): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/cards/generator-output.ts(23,3): error TS6133: 'getUndoStack' is declared but its value is never read.
+src/cards/generator-output.ts(120,26): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+  Property 'name' is missing in type 'String & { readonly __eventStreamId?: unique symbol; }' but required in type 'CreateEventStreamOptions<unknown>'.
+src/cards/generator-output.ts(127,20): error TS2345: Argument of type 'EventStreamRecord<unknown>' is not assignable to parameter of type 'readonly Event<unknown>[]'.
+  Type 'EventStreamRecord<unknown>' is missing the following properties from type 'readonly Event<unknown>[]': length, concat, join, slice, and 20 more.
+src/cards/generator-output.ts(179,42): error TS6133: 'generatorTag' is declared but its value is never read.
+src/cards/generator-output.ts(187,49): error TS2339: Property 'filter' does not exist on type 'never[] | EventStreamRecord<unknown>'.
+  Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(188,9): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(192,13): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/cards/generator-output.ts(235,47): error TS2339: Property 'filter' does not exist on type 'never[] | EventStreamRecord<unknown>'.
+  Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(236,7): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(239,11): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/cards/generator-output.ts(250,44): error TS2339: Property 'filter' does not exist on type 'never[] | EventStreamRecord<unknown>'.
+  Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(250,51): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(258,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(266,41): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(285,14): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(285,18): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(300,44): error TS2339: Property 'filter' does not exist on type 'never[] | EventStreamRecord<unknown>'.
+  Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(300,51): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(304,46): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(311,18): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(311,22): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(312,46): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/cards/generator-output.ts(320,18): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(320,22): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(321,45): error TS7006: Parameter 'o' implicitly has an 'any' type.
+src/cards/generator-output.ts(328,18): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(328,22): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/generator-output.ts(329,46): error TS7006: Parameter 'f' implicitly has an 'any' type.
+src/cards/generator-output.ts(346,5): error TS2322: Type 'never[] | EventStreamRecord<unknown>' is not assignable to type 'readonly Event<unknown>[]'.
+  Type 'EventStreamRecord<unknown>' is missing the following properties from type 'readonly Event<unknown>[]': length, concat, join, slice, and 20 more.
+src/cards/generator-output.ts(502,12): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/cards/generator-output.ts(502,16): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/cards/legacy-card-adapters.ts(15,1): error TS6192: All imports in import declaration are unused.
+src/cards/legacy-card-adapters.ts(15,35): error TS2305: Module '"../types/primitives"' has no exported member 'MidiNote'.
+src/cards/legacy-card-adapters.ts(15,45): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/cards/legacy-card-adapters.ts(16,34): error TS2305: Module '"../types/primitives"' has no exported member 'asMidiNote'.
+src/cards/legacy-card-adapters.ts(16,34): error TS6133: 'asMidiNote' is declared but its value is never read.
+src/cards/legacy-card-adapters.ts(16,46): error TS2305: Module '"../types/primitives"' has no exported member 'asVelocity'.
+src/cards/legacy-card-adapters.ts(16,46): error TS6133: 'asVelocity' is declared but its value is never read.
+src/cards/legacy-card-adapters.ts(16,58): error TS2305: Module '"../types/primitives"' has no exported member 'asEventId'.
+src/cards/legacy-card-adapters.ts(116,41): error TS2345: Argument of type 'never[]' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+  Property 'name' is missing in type 'never[]' but required in type 'CreateEventStreamOptions<unknown>'.
+src/cards/legacy-card-adapters.ts(120,7): error TS2322: Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/cards/legacy-card-adapters.ts(132,39): error TS2345: Argument of type 'ClipRecord' is not assignable to parameter of type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/cards/legacy-card-adapters.ts(133,28): error TS2345: Argument of type 'ClipRecord' is not assignable to parameter of type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/cards/legacy-card-adapters.ts(136,28): error TS2345: Argument of type 'EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/cards/legacy-card-adapters.ts(139,5): error TS2322: Type 'ClipRecord' is not assignable to type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/cards/legacy-card-adapters.ts(173,55): error TS2554: Expected 1 arguments, but got 2.
+src/cards/legacy-card-adapters.ts(177,17): error TS2551: Property 'removeEvent' does not exist on type 'SharedEventStore'. Did you mean 'removeEvents'?
+src/cards/legacy-card-adapters.ts(184,15): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/cards/legacy-card-adapters.ts(225,50): error TS2554: Expected 1 arguments, but got 2.
+src/cards/legacy-card-adapters.ts(226,29): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/cards/legacy-card-adapters.ts(241,55): error TS2554: Expected 1 arguments, but got 2.
+src/cards/legacy-card-adapters.ts(242,29): error TS2551: Property 'removeEvent' does not exist on type 'SharedEventStore'. Did you mean 'removeEvents'?
+src/cards/legacy-card-adapters.ts(280,53): error TS2554: Expected 1 arguments, but got 2.
+src/cards/legacy-card-adapters.ts(283,11): error TS2353: Object literal may only specify known properties, and 'startTick' does not exist in type 'Partial<Event<unknown>>'.
+src/cards/legacy-card-adapters.ts(293,22): error TS2698: Spread types may only be created from object types.
+src/cards/legacy-card-adapters.ts(431,7): error TS2322: Type '{ muted: boolean; id?: string; name?: string; pitch?: number; volume?: number; }' is not assignable to type 'DrumTrack'.
+  Property 'id' is optional in type '{ muted: boolean; id?: string; name?: string; pitch?: number; volume?: number; }' but required in type 'DrumTrack'.
+src/cards/legacy-card-adapters.ts(501,20): error TS2339: Property 'length' does not exist on type 'ClipRecord'.
+src/cards/legacy-card-adapters.ts(512,7): error TS2353: Object literal may only specify known properties, and 'startTick' does not exist in type 'Event<any>'.
+src/cards/legacy-card-adapters.ts(528,20): error TS2339: Property 'startTick' does not exist on type 'Event<any>'.
+src/cards/legacy-card-adapters.ts(641,8): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/cards/legacy-card-adapters.ts(641,19): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/cards/legacy-card-adapters.ts(678,20): error TS2339: Property 'length' does not exist on type 'ClipRecord'.
+src/cards/legacy-card-adapters.ts(691,7): error TS2353: Object literal may only specify known properties, and 'startTick' does not exist in type 'Event<any>'.
+src/cards/legacy-card-adapters.ts(707,20): error TS2339: Property 'startTick' does not exist on type 'Event<any>'.
+src/cards/legacy-card-adapters.ts(777,20): error TS2339: Property 'length' does not exist on type 'ClipRecord'.
+src/cards/legacy-card-adapters.ts(788,7): error TS2353: Object literal may only specify known properties, and 'startTick' does not exist in type 'Event<any>'.
+src/cards/legacy-card-adapters.ts(804,20): error TS2339: Property 'startTick' does not exist on type 'Event<any>'.
+src/cards/legacy-card-adapters.ts(866,7): error TS2322: Type '{ clipIds: ClipId[]; id?: string; name?: string; startTime?: number; duration?: number; }' is not assignable to type 'ArrangerSection'.
+  Property 'id' is optional in type '{ clipIds: ClipId[]; id?: string; name?: string; startTime?: number; duration?: number; }' but required in type 'ArrangerSection'.
+src/cards/legacy-card-adapters.ts(868,22): error TS2532: Object is possibly 'undefined'.
+src/cards/legacy-card-adapters.ts(912,20): error TS2339: Property 'length' does not exist on type 'ClipRecord'.
+src/cards/legacy-card-adapters.ts(923,7): error TS2353: Object literal may only specify known properties, and 'startTick' does not exist in type 'Event<any>'.
+src/cards/legacy-card-adapters.ts(937,20): error TS2339: Property 'startTick' does not exist on type 'Event<any>'.
+src/cards/phrase-adapter.ts(120,7): error TS6133: '_PITCH_TO_NOTE' is declared but its value is never read.
+src/cards/sampler-instrument-adapter.ts(321,5): error TS2322: Type '{ id: number; state: VoiceState; pitch: number; velocity: number; startTime: number; releaseTime: number | undefined; }[]' is not assignable to type 'readonly VoiceInfo[]'.
+  Type '{ id: number; state: VoiceState; pitch: number; velocity: number; startTime: number; releaseTime: number | undefined; }' is not assignable to type 'VoiceInfo' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'releaseTime' are incompatible.
+      Type 'number | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+src/cards/sampler-instrument-adapter.ts(382,11): error TS2375: Type '{ id: string; name: string; category: string | undefined; parameters: { [k: string]: string | number | boolean; }; }' is not assignable to type 'InstrumentPreset' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'category' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/cards/sampler-instrument-adapter.ts(412,3): error TS2416: Property 'getOutputNode' in type 'SamplerInstrumentAdapter' is not assignable to the same property in base type 'InstrumentCard<unknown>'.
+  Type '() => AudioNode | null' is not assignable to type '() => AudioNode'.
+    Type 'AudioNode | null' is not assignable to type 'AudioNode'.
+      Type 'null' is not assignable to type 'AudioNode'.
+src/containers/chord-track.ts(13,18): error TS6133: 'asTickDuration' is declared but its value is never read.
+src/containers/chord-track.ts(17,3): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/containers/chord-track.ts(22,3): error TS6133: 'getSelectionStore' is declared but its value is never read.
+src/containers/chord-track.ts(136,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/containers/chord-track.ts(137,30): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/containers/chord-track.ts(144,34): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/containers/chord-track.ts(187,3): error TS2375: Type '{ root: NoteName; quality: ChordQuality; extensions: ChordExtension[]; alterations: ChordAlteration[]; bass: NoteName | undefined; }' is not assignable to type 'ChordPayload' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'bass' are incompatible.
+    Type 'NoteName | undefined' is not assignable to type 'NoteName'.
+      Type 'undefined' is not assignable to type 'NoteName'.
+src/containers/chord-track.ts(318,61): error TS2345: Argument of type 'string' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+src/containers/chord-track.ts(321,26): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/containers/chord-track.ts(322,26): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+  Property 'name' is missing in type 'String & { readonly __eventStreamId?: unique symbol; }' but required in type 'CreateEventStreamOptions<unknown>'.
+src/containers/chord-track.ts(325,5): error TS2322: Type 'Readonly<{ streamId: EventStreamId | EventStreamRecord<unknown>; keyRoot: NoteName; keyMode: "major" | "minor"; displayMode: "symbol"; playhead: Tick; }>' is not assignable to type 'ChordTrackState'.
+  Types of property 'streamId' are incompatible.
+    Type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+      Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+        Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/containers/chord-track.ts(334,48): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/containers/chord-track.ts(436,52): error TS2554: Expected 1 arguments, but got 3.
+src/containers/chord-track.ts(481,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/containers/chord-track.ts(481,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/containers/chord-track.ts(488,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/containers/chord-track.ts(488,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/containers/chord-track.ts(494,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/containers/chord-track.ts(494,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/containers/chord-track.ts(541,15): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/containers/chord-track.ts(545,15): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/containers/chord-track.ts(548,15): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/index.ts(26,1): error TS2308: Module './voices' has already exported a member named 'transposePitch'. Consider explicitly re-exporting to resolve the ambiguity.
+src/integration/index.ts(69,3): error TS2305: Module '"../state"' has no exported member 'getRoutingGraphStore'.
+src/integration/index.ts(80,8): error TS2724: '"../state"' has no exported member named 'RoutingNodeId'. Did you mean 'RoutingNode'?
+src/integration/index.ts(87,8): error TS2305: Module '"../state"' has no exported member 'RoutingConnection'.
+src/integration/index.ts(93,3): error TS2724: '"../state/parameter-resolver"' has no exported member named 'ParameterSourceType'. Did you mean 'ParameterSource'?
+src/integration/index.ts(113,8): error TS2305: Module '"../ui/components/piano-roll-store-adapter"' has no exported member 'NoteRectangle'.
+src/integration/index.ts(133,8): error TS2305: Module '"../cards/generator-mixin"' has no exported member 'GeneratorConfig'.
+src/integration/index.ts(147,3): error TS2724: '"../containers/chord-track"' has no exported member named 'createChordTrackAdapter'. Did you mean 'ChordTrackAdapter'?
+src/integration/index.ts(148,3): error TS2305: Module '"../containers/chord-track"' has no exported member 'parseChord'.
+src/integration/index.ts(182,3): error TS2724: '"../ui/session-clip-adapter"' has no exported member named 'createSessionClipAdapter'. Did you mean 'createSessionAdapter'?
+src/integration/index.ts(184,8): error TS2305: Module '"../ui/session-clip-adapter"' has no exported member 'SessionScene'.
+src/integration/index.ts(490,27): error TS2339: Property 'clear' does not exist on type 'InstrumentRegistry'.
+src/midi/midi-input.ts(15,1): error TS6133: 'SubscriptionId' is declared but its value is never read.
+src/midi/midi-input.ts(18,32): error TS2724: '"../state/parameter-resolver"' has no exported member named 'ParameterSourceType'. Did you mean 'ParameterSource'?
+src/midi/midi-input.ts(18,32): error TS6133: 'ParameterSourceType' is declared but its value is never read.
+src/midi/midi-input.ts(230,29): error TS6133: 'event' is declared but its value is never read.
+src/midi/midi-input.ts(304,25): error TS18048: 'status' is possibly 'undefined'.
+src/midi/midi-input.ts(305,21): error TS18048: 'status' is possibly 'undefined'.
+src/midi/midi-input.ts(316,16): error TS18048: 'data2' is possibly 'undefined'.
+src/midi/midi-input.ts(343,7): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/midi/midi-input.ts(344,7): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/midi/midi-input.ts(441,28): error TS2339: Property 'setMidiLearnMode' does not exist on type 'ParameterResolver'.
+src/midi/midi-input.ts(456,28): error TS2339: Property 'cancelMidiLearnMode' does not exist on type 'ParameterResolver'.
+src/midi/midi-input.ts(529,30): error TS2339: Property 'completeMidiLearn' does not exist on type 'ParameterResolver'.
+src/midi/midi-input.ts(595,30): error TS2339: Property 'setMidiValue' does not exist on type 'ParameterResolver'.
+src/midi/midi-input.ts(612,30): error TS2339: Property 'setMidiValue' does not exist on type 'ParameterResolver'.
+src/midi/midi-input.ts(628,30): error TS2339: Property 'setMidiValue' does not exist on type 'ParameterResolver'.
+src/midi/midi-input.ts(724,17): error TS6133: 'key' is declared but its value is never read.
+src/music/scale-overlay.ts(16,1): error TS6133: 'asTick' is declared but its value is never read.
+src/music/scale-overlay.ts(411,5): error TS2322: Type '"1" | "2" | "3" | "4" | "5" | "6" | "7" | "♭2" | "♭3" | "♯4/♭5" | "♯5/♭6" | "♭7" | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/music/scale-overlay.ts(495,5): error TS2322: Type '(PitchClass | undefined)[]' is not assignable to type 'readonly PitchClass[]'.
+  Type 'PitchClass | undefined' is not assignable to type 'PitchClass'.
+    Type 'undefined' is not assignable to type 'PitchClass'.
+src/music/scale-overlay.ts(516,5): error TS2322: Type '(PitchClass | undefined)[]' is not assignable to type 'readonly PitchClass[]'.
+  Type 'PitchClass | undefined' is not assignable to type 'PitchClass'.
+    Type 'undefined' is not assignable to type 'PitchClass'.
+src/music/scale-overlay.ts(538,28): error TS2532: Object is possibly 'undefined'.
+src/music/scale-overlay.ts(539,28): error TS2532: Object is possibly 'undefined'.
+src/music/scale-overlay.ts(575,12): error TS18048: 'best' is possibly 'undefined'.
+src/music/scale-overlay.ts(576,13): error TS18048: 'best' is possibly 'undefined'.
+src/music/scale-overlay.ts(577,19): error TS18048: 'best' is possibly 'undefined'.
+src/music/scale-overlay.ts(697,41): error TS2532: Object is possibly 'undefined'.
+src/music/scale-overlay.ts(703,29): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/notation/notation-store-adapter.ts(13,10): error TS6133: 'pitchToMIDI' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(13,23): error TS6133: 'midiToPitch' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(14,21): error TS6196: 'TickDuration' is declared but never used.
+src/notation/notation-store-adapter.ts(16,36): error TS2459: Module '"../types/event"' declares 'generateEventId' locally, but it is not exported.
+src/notation/notation-store-adapter.ts(16,36): error TS6133: 'generateEventId' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(19,3): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/notation/notation-store-adapter.ts(25,3): error TS6133: 'getUndoStack' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(30,3): error TS6196: 'NotationNote' is declared but never used.
+src/notation/notation-store-adapter.ts(38,3): error TS6133: 'eventToNotation' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(40,3): error TS6133: 'tickDurationToNoteDuration' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(41,3): error TS6133: 'inferAccidental' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(42,8): error TS6133: 'EventToNotationOptions' is declared but its value is never read.
+src/notation/notation-store-adapter.ts(124,7): error TS2554: Expected 1 arguments, but got 3.
+src/notation/notation-store-adapter.ts(147,51): error TS2339: Property 'type' does not exist on type 'NoteDuration'.
+src/notation/notation-store-adapter.ts(159,16): error TS2339: Property 'tuplet' does not exist on type 'NoteDuration'.
+src/notation/notation-store-adapter.ts(161,30): error TS2339: Property 'tuplet' does not exist on type 'NoteDuration'.
+src/notation/notation-store-adapter.ts(161,55): error TS2339: Property 'tuplet' does not exist on type 'NoteDuration'.
+src/notation/notation-store-adapter.ts(234,61): error TS2345: Argument of type 'string' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+src/notation/notation-store-adapter.ts(237,26): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/notation/notation-store-adapter.ts(238,13): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/notation/notation-store-adapter.ts(242,5): error TS2322: Type 'Readonly<{ streamId: EventStreamId | EventStreamRecord<unknown>; timeSignature: TimeSignature; keySignature: KeySignature | { ...; }; ticksPerQuarter: number; visibleMeasures: { ...; }; playhead: Tick; voiceFilter: 0; }>' is not assignable to type 'NotationAdapterState'.
+  Types of property 'streamId' are incompatible.
+    Type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+      Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+        Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/notation/notation-store-adapter.ts(253,48): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/notation/notation-store-adapter.ts(259,66): error TS2554: Expected 1 arguments, but got 2.
+src/notation/notation-store-adapter.ts(280,5): error TS2322: Type 'never[] | EventStreamRecord<unknown>' is not assignable to type 'readonly Event<unknown>[]'.
+  Type 'EventStreamRecord<unknown>' is missing the following properties from type 'readonly Event<unknown>[]': length, concat, join, slice, and 20 more.
+src/notation/notation-store-adapter.ts(315,9): error TS2740: Type 'NotationEvent[]' is missing the following properties from type 'Map<number, NotationEvent[]>': clear, delete, get, has, and 3 more.
+src/notation/notation-store-adapter.ts(329,22): error TS2551: Property 'getSelection' does not exist on type 'SelectionStore'. Did you mean 'setSelection'?
+src/notation/notation-store-adapter.ts(377,7): error TS2554: Expected 1 arguments, but got 3.
+src/notation/notation-store-adapter.ts(436,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/notation/notation-store-adapter.ts(436,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/notation/notation-store-adapter.ts(447,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/notation/notation-store-adapter.ts(447,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/notation/notation-store-adapter.ts(457,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/notation/notation-store-adapter.ts(457,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/notation/notation-store-adapter.ts(512,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/notation/notation-store-adapter.ts(512,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/notation/notation-store-adapter.ts(523,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/notation/notation-store-adapter.ts(523,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/notation/notation-store-adapter.ts(533,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/notation/notation-store-adapter.ts(533,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/notation/notation-store-adapter.ts(556,24): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/notation/notation-store-adapter.ts(558,30): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/notation/notation-store-adapter.ts(567,28): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/notation/playback-transport-bridge.ts(18,35): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/notation/playback-transport-bridge.ts(18,35): error TS6196: 'Velocity' is declared but never used.
+src/notation/playback-transport-bridge.ts(19,18): error TS6133: 'asTickDuration' is declared but its value is never read.
+src/notation/playback-transport-bridge.ts(19,34): error TS2305: Module '"../types/primitives"' has no exported member 'asVelocity'.
+src/notation/playback-transport-bridge.ts(19,34): error TS6133: 'asVelocity' is declared but its value is never read.
+src/notation/playback-transport-bridge.ts(120,11): error TS6133: 'activeClipId' is declared but its value is never read.
+src/notation/playback-transport-bridge.ts(139,34): error TS2345: Argument of type 'TransportSnapshot' is not assignable to parameter of type 'TransportState'.
+src/notation/playback-transport-bridge.ts(165,35): error TS2551: Property 'getAllClipIds' does not exist on type 'ClipRegistry'. Did you mean 'getAllClips'?
+src/notation/playback-transport-bridge.ts(213,54): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/notation/playback-transport-bridge.ts(217,17): error TS2339: Property 'start' does not exist on type 'TransportController'.
+src/notation/playback-transport-bridge.ts(240,20): error TS2339: Property 'seek' does not exist on type 'TransportController'.
+src/notation/playback-transport-bridge.ts(259,20): error TS2339: Property 'seek' does not exist on type 'TransportController'.
+src/notation/playback-transport-bridge.ts(284,51): error TS2554: Expected 2 arguments, but got 3.
+src/notation/playback-transport-bridge.ts(288,22): error TS2554: Expected 2 arguments, but got 1.
+src/notation/playback-transport-bridge.ts(318,40): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/notation/playback-transport-bridge.ts(321,33): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/notation/playback-transport-bridge.ts(322,33): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/notation/playback-transport-bridge.ts(358,31): error TS2339: Property 'startTick' does not exist on type 'Event<unknown>'.
+src/notation/playback-transport-bridge.ts(400,35): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/notation/playback-transport-bridge.ts(401,33): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/notation/playback-transport-bridge.ts(426,17): error TS2339: Property 'start' does not exist on type 'TransportController'.
+src/notation/playback-transport-bridge.ts(474,24): error TS2339: Property 'startTick' does not exist on type 'Event<any>'.
+src/state/clip-registry.ts(10,1): error TS6133: 'Tick' is declared but its value is never read.
+src/state/event-store.ts(11,15): error TS2724: '"../types/event"' has no exported member named 'EventId'. Did you mean 'Event'?
+src/state/event-store.ts(22,3): error TS6133: 'generateEventStreamId' is declared but its value is never read.
+src/state/index.ts(50,3): error TS2305: Module '"./types"' has no exported member 'EventId'.
+src/state/index.ts(56,3): error TS2724: '"./types"' has no exported member named 'RoutingEdge'. Did you mean 'RoutingNode'?
+src/state/index.ts(73,3): error TS2724: '"./event-store"' has no exported member named 'SharedEventStoreCallback'. Did you mean 'SharedEventStore'?
+src/state/index.ts(74,3): error TS2305: Module '"./event-store"' has no exported member 'BatchOperation'.
+src/state/index.ts(79,3): error TS2724: '"./event-store"' has no exported member named 'createSharedEventStore'. Did you mean 'getSharedEventStore'?
+src/state/index.ts(98,3): error TS2305: Module '"./clip-registry"' has no exported member 'ClipRegistryCallback'.
+src/state/index.ts(177,11): error TS2304: Cannot find name 'UndoActionType'.
+src/state/index.ts(185,19): error TS2304: Cannot find name 'UndoActionType'.
+src/state/parameter-resolver.ts(281,27): error TS2339: Property 'length' does not exist on type 'EventStreamRecord<unknown>'.
+src/state/parameter-resolver.ts(285,8): error TS2339: Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/state/parameter-resolver.ts(285,15): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/state/parameter-resolver.ts(286,12): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/state/parameter-resolver.ts(291,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/state/parameter-resolver.ts(291,17): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/state/routing-graph.ts(14,3): error TS2724: '"./types"' has no exported member named 'RoutingEdge'. Did you mean 'RoutingNode'?
+src/state/routing-graph.ts(15,3): error TS6196: 'RoutingGraph' is declared but never used.
+src/state/routing-graph.ts(52,18): error TS2430: Interface 'RoutingNodeInfo' incorrectly extends interface 'RoutingNode'.
+  Types of property 'type' are incompatible.
+    Type 'NodeType' is not assignable to type '"mixer" | "instrument" | "master" | "effect" | "send" | "return"'.
+      Type '"input"' is not assignable to type '"mixer" | "instrument" | "master" | "effect" | "send" | "return"'.
+src/state/routing-graph.ts(282,34): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(282,55): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(286,34): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(290,34): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(302,9): error TS2322: Type '"routing:add-node"' is not assignable to type 'UndoActionType'.
+src/state/routing-graph.ts(326,48): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(326,69): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(330,35): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(330,56): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(334,9): error TS2322: Type '"routing:remove-node"' is not assignable to type 'UndoActionType'.
+src/state/routing-graph.ts(345,39): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(345,60): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(371,9): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(387,9): error TS2322: Type '"routing:connect"' is not assignable to type 'UndoActionType'.
+src/state/routing-graph.ts(390,39): error TS2339: Property 'id' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(403,38): error TS2339: Property 'id' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(408,35): error TS2339: Property 'id' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(412,9): error TS2322: Type '"routing:disconnect"' is not assignable to type 'UndoActionType'.
+src/state/routing-graph.ts(419,39): error TS2339: Property 'id' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(426,48): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(426,69): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(431,35): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(431,56): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(435,9): error TS2322: Type '"routing:disconnect-node"' is not assignable to type 'UndoActionType'.
+src/state/routing-graph.ts(442,39): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(442,60): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(449,48): error TS2339: Property 'id' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(453,7): error TS2322: Type '(RoutingEdgeInfo | { gain: number; type?: EdgeType; sourcePort?: string; targetPort?: string; active?: boolean; })[]' is not assignable to type 'RoutingEdgeInfo[]'.
+  Type 'RoutingEdgeInfo | { gain: number; type?: EdgeType; sourcePort?: string; targetPort?: string; active?: boolean; }' is not assignable to type 'RoutingEdgeInfo' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ gain: number; type?: EdgeType; sourcePort?: string; targetPort?: string; active?: boolean; }' is not assignable to type 'RoutingEdgeInfo'.
+      Property 'type' is optional in type '{ gain: number; type?: EdgeType; sourcePort?: string; targetPort?: string; active?: boolean; }' but required in type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(483,20): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(484,29): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(503,27): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(503,50): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(520,20): error TS2339: Property 'from' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(521,50): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(522,31): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(524,31): error TS2339: Property 'to' does not exist on type 'RoutingEdgeInfo'.
+src/state/routing-graph.ts(582,3): error TS2739: Type '{ id: string; type: "deck"; name: string; position: { x: number; y: number; } | undefined; inputs: { id: string; name: string; type: "midi"; }[]; outputs: ({ id: string; name: string; type: "audio"; channels: number; } | { ...; })[]; bypassed: false; }' is missing the following properties from type 'RoutingNodeInfo': cardId, enabled
+src/state/routing-graph.ts(606,3): error TS2739: Type '{ id: string; type: "instrument"; name: string; position: { x: number; y: number; } | undefined; inputs: { id: string; name: string; type: "midi"; }[]; outputs: { id: string; name: string; type: "audio"; channels: number; }[]; bypassed: false; }' is missing the following properties from type 'RoutingNodeInfo': cardId, enabled
+src/state/routing-graph.ts(630,3): error TS2739: Type '{ id: string; type: "effect"; name: string; position: { x: number; y: number; } | undefined; inputs: { id: string; name: string; type: "audio"; channels: number; }[]; outputs: { id: string; name: string; type: "audio"; channels: number; }[]; bypassed: false; }' is missing the following properties from type 'RoutingNodeInfo': cardId, enabled
+src/state/routing-graph.ts(661,3): error TS2739: Type '{ id: string; type: "mixer"; name: string; position: { x: number; y: number; } | undefined; inputs: PortInfo[]; outputs: { id: string; name: string; type: "audio"; channels: number; }[]; bypassed: false; }' is missing the following properties from type 'RoutingNodeInfo': cardId, enabled
+src/state/selection-state.ts(177,9): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/state/types.ts(97,3): error TS2375: Type '{ id: EventStreamId; name: string; events: readonly Event<P>[]; containerId: ContainerId | undefined; color: string | undefined; muted: boolean; soloed: boolean; locked: boolean; meta: EventStreamMeta | undefined; lastModified: number; }' is not assignable to type 'EventStreamRecord<P>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'containerId' are incompatible.
+    Type 'ContainerId | undefined' is not assignable to type 'ContainerId'.
+      Type 'undefined' is not assignable to type 'ContainerId'.
+        Type 'undefined' is not assignable to type 'string'.
+src/state/types.ts(294,3): error TS2375: Type '{ id: ClipId; name: string; streamId: EventStreamId; duration: Tick; color: string | undefined; loop: boolean; loopStart: Tick | undefined; loopEnd: Tick | undefined; speed: number; pitchShift: number; lastModified: number; }' is not assignable to type 'ClipRecord' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/state/undo-stack.ts(232,14): error TS2532: Object is possibly 'undefined'.
+src/state/undo-stack.ts(237,14): error TS2532: Object is possibly 'undefined'.
+src/state/undo-stack.ts(286,13): error TS2532: Object is possibly 'undefined'.
+src/tracker/effect-processor.ts(10,14): error TS6133: 'getEffectMeta' is declared but its value is never read.
+src/tracker/effect-processor.ts(10,34): error TS6133: 'EffectMeta' is declared but its value is never read.
+src/tracker/effect-processor.ts(13,3): error TS6133: 'asRowIndex' is declared but its value is never read.
+src/tracker/effect-processor.ts(14,3): error TS6133: 'asTick' is declared but its value is never read.
+src/tracker/effect-processor.ts(15,3): error TS6133: 'asMidiNote' is declared but its value is never read.
+src/tracker/effect-processor.ts(16,3): error TS6133: 'asVelocity' is declared but its value is never read.
+src/tracker/effect-processor.ts(18,8): error TS6133: 'EffectCode' is declared but its value is never read.
+src/tracker/effect-processor.ts(19,8): error TS6133: 'EffectParam' is declared but its value is never read.
+src/tracker/effect-processor.ts(20,8): error TS6133: 'PatternId' is declared but its value is never read.
+src/tracker/effect-processor.ts(21,8): error TS6133: 'TrackId' is declared but its value is never read.
+src/tracker/effect-processor.ts(22,8): error TS6133: 'RowIndex' is declared but its value is never read.
+src/tracker/effect-processor.ts(23,8): error TS6133: 'NoteCell' is declared but its value is never read.
+src/tracker/effect-processor.ts(25,8): error TS6133: 'Tick' is declared but its value is never read.
+src/tracker/effect-processor.ts(26,8): error TS6133: 'MidiNote' is declared but its value is never read.
+src/tracker/effect-processor.ts(27,8): error TS6133: 'Velocity' is declared but its value is never read.
+src/tracker/effect-processor.ts(303,5): error TS6133: 'rowIndex' is declared but its value is never read.
+src/tracker/effect-processor.ts(367,5): error TS6133: 'trackId' is declared but its value is never read.
+src/tracker/effect-processor.ts(558,11): error TS2532: Object is possibly 'undefined'.
+src/tracker/effect-processor.ts(685,5): error TS6133: 'ticksPerRow' is declared but its value is never read.
+src/tracker/effect-processor.ts(737,49): error TS18048: 'arpOffset' is possibly 'undefined'.
+src/tracker/effects.ts(17,8): error TS6133: 'EffectCode' is declared but its value is never read.
+src/tracker/effects.ts(18,8): error TS6133: 'EffectParam' is declared but its value is never read.
+src/tracker/effects.ts(20,8): error TS6133: 'Tick' is declared but its value is never read.
+src/tracker/effects.ts(21,8): error TS6133: 'MidiNote' is declared but its value is never read.
+src/tracker/effects.ts(22,8): error TS6133: 'Velocity' is declared but its value is never read.
+src/tracker/event-sync.ts(19,1): error TS6192: All imports in import declaration are unused.
+src/tracker/event-sync.ts(19,35): error TS2305: Module '"../types/primitives"' has no exported member 'MidiNote'.
+src/tracker/event-sync.ts(19,45): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/tracker/event-sync.ts(20,34): error TS2305: Module '"../types/primitives"' has no exported member 'asMidiNote'.
+src/tracker/event-sync.ts(20,46): error TS2305: Module '"../types/primitives"' has no exported member 'asVelocity'.
+src/tracker/event-sync.ts(20,58): error TS2305: Module '"../types/primitives"' has no exported member 'asEventId'.
+src/tracker/event-sync.ts(21,30): error TS6196: 'ClipId' is declared but never used.
+src/tracker/event-sync.ts(21,54): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/tracker/event-sync.ts(22,31): error TS6133: 'getClipRegistry' is declared but its value is never read.
+src/tracker/event-sync.ts(24,3): error TS6196: 'PatternId' is declared but never used.
+src/tracker/event-sync.ts(25,3): error TS6196: 'TrackId' is declared but never used.
+src/tracker/event-sync.ts(26,3): error TS6196: 'RowIndex' is declared but never used.
+src/tracker/event-sync.ts(31,3): error TS6196: 'Pattern' is declared but never used.
+src/tracker/event-sync.ts(32,3): error TS6196: 'TrackConfig' is declared but never used.
+src/tracker/event-sync.ts(33,3): error TS6196: 'TrackData' is declared but never used.
+src/tracker/event-sync.ts(36,3): error TS6133: 'asPatternId' is declared but its value is never read.
+src/tracker/event-sync.ts(37,3): error TS6133: 'asTrackId' is declared but its value is never read.
+src/tracker/event-sync.ts(38,3): error TS6133: 'asRowIndex' is declared but its value is never read.
+src/tracker/event-sync.ts(43,3): error TS6133: 'emptyRow' is declared but its value is never read.
+src/tracker/event-sync.ts(45,3): error TS6133: 'TrackType' is declared but its value is never read.
+src/tracker/event-sync.ts(234,26): error TS2339: Property 'startTick' does not exist on type 'Event<unknown>'.
+src/tracker/event-sync.ts(280,11): error TS2375: Type '{ note: any; instrument: any; volume: any; pan: number | undefined; delay: number | undefined; }' is not assignable to type 'NoteCell' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'pan' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tracker/event-sync.ts(375,31): error TS2339: Property 'startTick' does not exist on type 'Event<any>'.
+src/tracker/event-sync.ts(386,30): error TS2532: Object is possibly 'undefined'.
+src/tracker/event-sync.ts(388,11): error TS2322: Type '{ note: { note: SpecialNote.NoteOff; }; effects?: readonly EffectCell[]; }' is not assignable to type 'TrackerRow'.
+  Property 'effects' is optional in type '{ note: { note: SpecialNote.NoteOff; }; effects?: readonly EffectCell[]; }' but required in type 'TrackerRow'.
+src/tracker/event-sync.ts(426,44): error TS2554: Expected 1 arguments, but got 2.
+src/tracker/event-sync.ts(432,21): error TS2551: Property 'removeEvent' does not exist on type 'SharedEventStore'. Did you mean 'removeEvents'?
+src/tracker/event-sync.ts(452,13): error TS2375: Type '{ type: "note"; pitch: number; velocity: number | undefined; pan: number | undefined; instrument: number | undefined; trackerDelay: number | undefined; sourceEditor: "tracker"; }' is not assignable to type 'TrackerEventPayload' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'velocity' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tracker/event-sync.ts(463,17): error TS2551: Property 'addEvent' does not exist on type 'SharedEventStore'. Did you mean 'addEvents'?
+src/tracker/event-sync.ts(508,46): error TS2554: Expected 1 arguments, but got 2.
+src/tracker/event-sync.ts(514,11): error TS2322: Type 'EffectCommand | undefined' is not assignable to type 'EffectCommand'.
+  Type 'undefined' is not assignable to type 'EffectCommand'.
+src/tracker/event-sync.ts(563,46): error TS2554: Expected 1 arguments, but got 2.
+src/tracker/event-sync.ts(565,19): error TS2551: Property 'removeEvent' does not exist on type 'SharedEventStore'. Did you mean 'removeEvents'?
+src/tracker/event-sync.ts(598,59): error TS2554: Expected 1 arguments, but got 2.
+src/tracker/event-sync.ts(645,56): error TS2554: Expected 1 arguments, but got 2.
+src/tracker/event-sync.ts(719,17): error TS6133: 'streamId' is declared but its value is never read.
+src/tracker/event-sync.ts(770,5): error TS2375: Type '{ type: "note" | "automation" | "trigger" | "control"; pitch: number | undefined; velocity: number | undefined; pan: number | undefined; instrument: number | undefined; sourceEditor: "automation" | ... 5 more ... | undefined; trackerEffects: EffectCommand[] | undefined; trackerDelay: number | undefined; trackerColum...' is not assignable to type 'TrackerEventPayload' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'pitch' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tracker/generator-integration.ts(20,3): error TS6133: 'NoteCell' is declared but its value is never read.
+src/tracker/generator-integration.ts(24,3): error TS6133: 'RowIndex' is declared but its value is never read.
+src/tracker/generator-integration.ts(27,3): error TS6133: 'asRowIndex' is declared but its value is never read.
+src/tracker/generator-integration.ts(31,3): error TS6133: 'effect' is declared but its value is never read.
+src/tracker/generator-integration.ts(32,3): error TS6133: 'SpecialNote' is declared but its value is never read.
+src/tracker/generator-integration.ts(299,7): error TS2322: Type 'TrackerRow | undefined' is not assignable to type 'TrackerRow'.
+  Type 'undefined' is not assignable to type 'TrackerRow'.
+src/tracker/generator-integration.ts(337,30): error TS2532: Object is possibly 'undefined'.
+src/tracker/generator-integration.ts(468,19): error TS2379: Argument of type '{ id: string; type: "note"; time: number; pitch: number | undefined; velocity: number; duration: number; }' is not assignable to parameter of type 'GeneratorEvent' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'pitch' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tracker/generator-integration.ts(531,30): error TS2532: Object is possibly 'undefined'.
+src/tracker/generator-integration.ts(572,6): error TS2322: Type 'T | undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+src/tracker/generator-integration.ts(572,17): error TS2322: Type 'T | undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+src/tracker/generator-integration.ts(588,31): error TS2532: Object is possibly 'undefined'.
+src/tracker/input-handler.ts(19,8): error TS6133: 'PatternId' is declared but its value is never read.
+src/tracker/input-handler.ts(20,8): error TS6133: 'TrackId' is declared but its value is never read.
+src/tracker/input-handler.ts(21,8): error TS6133: 'RowIndex' is declared but its value is never read.
+src/tracker/input-handler.ts(22,8): error TS6133: 'ColumnIndex' is declared but its value is never read.
+src/tracker/input-handler.ts(24,8): error TS6133: 'CursorConfig' is declared but its value is never read.
+src/tracker/input-handler.ts(30,8): error TS6133: 'EditMode' is declared but its value is never read.
+src/tracker/input-handler.ts(33,1): error TS6133: 'getPatternStore' is declared but its value is never read.
+src/tracker/input-handler.ts(154,11): error TS6133: 'onEffectInput' is declared but its value is never read.
+src/tracker/input-handler.ts(257,5): error TS6133: 'state' is declared but its value is never read.
+src/tracker/input-handler.ts(275,5): error TS6133: 'state' is declared but its value is never read.
+src/tracker/input-handler.ts(309,9): error TS2322: Type '"note" | "pan" | "delay" | "instrument" | "volume" | "effect" | undefined' is not assignable to type '"note" | "pan" | "delay" | "instrument" | "volume" | "effect"'.
+  Type 'undefined' is not assignable to type '"note" | "pan" | "delay" | "instrument" | "volume" | "effect"'.
+src/tracker/input-handler.ts(317,52): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/input-handler.ts(321,11): error TS2322: Type 'TrackId | undefined' is not assignable to type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/input-handler.ts(355,9): error TS2322: Type '"note" | "pan" | "delay" | "instrument" | "volume" | "effect" | undefined' is not assignable to type '"note" | "pan" | "delay" | "instrument" | "volume" | "effect"'.
+  Type 'undefined' is not assignable to type '"note" | "pan" | "delay" | "instrument" | "volume" | "effect"'.
+src/tracker/input-handler.ts(365,11): error TS2322: Type 'TrackId | undefined' is not assignable to type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/input-handler.ts(379,10): error TS6133: 'state' is declared but its value is never read.
+src/tracker/input-handler.ts(495,7): error TS2322: Type 'TrackId | undefined' is not assignable to type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/input-handler.ts(503,7): error TS2322: Type 'TrackId | undefined' is not assignable to type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/input-handler.ts(507,44): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/input-handler.ts(606,20): error TS2304: Cannot find name 'getTrackerEventSync'.
+src/tracker/input-handler.ts(633,18): error TS2304: Cannot find name 'getTrackerEventSync'.
+src/tracker/input-handler.ts(750,20): error TS2304: Cannot find name 'getTrackerEventSync'.
+src/tracker/input-handler.ts(775,20): error TS2304: Cannot find name 'getTrackerEventSync'.
+src/tracker/input-handler.ts(798,20): error TS2304: Cannot find name 'getTrackerEventSync'.
+src/tracker/pattern-store.ts(14,3): error TS6133: 'asColumnIndex' is declared but its value is never read.
+src/tracker/pattern-store.ts(19,3): error TS6133: 'emptyNoteCell' is declared but its value is never read.
+src/tracker/pattern-store.ts(20,3): error TS6133: 'emptyEffectCell' is declared but its value is never read.
+src/tracker/pattern-store.ts(44,8): error TS6133: 'SelectionRange' is declared but its value is never read.
+src/tracker/pattern-store.ts(47,8): error TS6133: 'ClipId' is declared but its value is never read.
+src/tracker/pattern-store.ts(417,5): error TS2322: Type '{ note: NoteCell; effects?: readonly EffectCell[]; }' is not assignable to type 'TrackerRow'.
+  Property 'effects' is optional in type '{ note: NoteCell; effects?: readonly EffectCell[]; }' but required in type 'TrackerRow'.
+src/tracker/pattern-store.ts(447,45): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(452,25): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(454,5): error TS2322: Type '{ effects: EffectCell[]; note?: NoteCell; }' is not assignable to type 'TrackerRow'.
+  Property 'note' is optional in type '{ effects: EffectCell[]; note?: NoteCell; }' but required in type 'TrackerRow'.
+src/tracker/pattern-store.ts(480,29): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(539,20): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(542,9): error TS2322: Type '{ note: { note: MidiNote; instrument?: InstrumentSlot; volume?: Velocity; pan?: number; delay?: number; }; effects?: readonly EffectCell[]; }' is not assignable to type 'TrackerRow'.
+  Property 'effects' is optional in type '{ note: { note: MidiNote; instrument?: InstrumentSlot; volume?: Velocity; pan?: number; delay?: number; }; effects?: readonly EffectCell[]; }' but required in type 'TrackerRow'.
+src/tracker/pattern-store.ts(582,20): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(585,9): error TS2322: Type '{ note: { volume: Velocity; note: NoteValue; instrument?: InstrumentSlot; pan?: number; delay?: number; }; effects?: readonly EffectCell[]; }' is not assignable to type 'TrackerRow'.
+  Property 'effects' is optional in type '{ note: { volume: Velocity; note: NoteValue; instrument?: InstrumentSlot; pan?: number; delay?: number; }; effects?: readonly EffectCell[]; }' but required in type 'TrackerRow'.
+src/tracker/pattern-store.ts(626,20): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(629,9): error TS2322: Type '{ note: { delay: number; note: NoteValue; instrument?: InstrumentSlot; volume?: Velocity; pan?: number; }; effects?: readonly EffectCell[]; }' is not assignable to type 'TrackerRow'.
+  Property 'effects' is optional in type '{ note: { delay: number; note: NoteValue; instrument?: InstrumentSlot; volume?: Velocity; pan?: number; }; effects?: readonly EffectCell[]; }' but required in type 'TrackerRow'.
+src/tracker/pattern-store.ts(672,44): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/pattern-store.ts(678,22): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(679,20): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(682,16): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/pattern-store.ts(722,17): error TS6133: 'sourceTrackId' is declared but its value is never read.
+src/tracker/pattern-store.ts(727,36): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/pattern-store.ts(738,24): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(739,22): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(743,30): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(745,13): error TS2322: Type '{ note: { note: NoteValue; instrument?: InstrumentSlot; volume?: Velocity; pan?: number; delay?: number; }; effects?: readonly EffectCell[]; }' is not assignable to type 'TrackerRow'.
+  Property 'effects' is optional in type '{ note: { note: NoteValue; instrument?: InstrumentSlot; volume?: Velocity; pan?: number; delay?: number; }; effects?: readonly EffectCell[]; }' but required in type 'TrackerRow'.
+src/tracker/pattern-store.ts(748,37): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(749,31): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(750,17): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(750,17): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(751,49): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(751,49): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(754,11): error TS2322: Type '{ effects: EffectCell[]; note?: NoteCell; }' is not assignable to type 'TrackerRow'.
+  Property 'note' is optional in type '{ effects: EffectCell[]; note?: NoteCell; }' but required in type 'TrackerRow'.
+src/tracker/pattern-store.ts(758,18): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/pattern-store.ts(801,36): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/pattern-store.ts(808,18): error TS2345: Argument of type 'TrackId | undefined' is not assignable to parameter of type 'TrackId'.
+  Type 'undefined' is not assignable to type 'TrackId'.
+    Type 'undefined' is not assignable to type 'string'.
+src/tracker/pattern-store.ts(969,19): error TS2304: Cannot find name 'getSharedEventStore'.
+src/tracker/pattern-store.ts(970,19): error TS2315: Type 'Event' is not generic.
+src/tracker/pattern-store.ts(976,20): error TS18048: 'row' is possibly 'undefined'.
+src/tracker/pattern-store.ts(984,28): error TS2532: Object is possibly 'undefined'.
+src/tracker/pattern-store.ts(1010,39): error TS2379: Argument of type '{ streamId: EventStreamId | undefined; }' is not assignable to parameter of type 'Partial<TrackConfig>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'streamId' are incompatible.
+    Type 'EventStreamId | undefined' is not assignable to type 'EventStreamId'.
+      Type 'undefined' is not assignable to type 'EventStreamId'.
+        Type 'undefined' is not assignable to type 'string'.
+src/tracker/pattern-store.ts(1024,5): error TS2322: Type 'EventStreamId | undefined' is not assignable to type 'EventStreamId | null'.
+  Type 'undefined' is not assignable to type 'EventStreamId | null'.
+src/tracker/pattern-store.ts(1031,19): error TS2304: Cannot find name 'getSharedEventStore'.
+src/tracker/pattern-store.ts(1044,43): error TS6133: 'row' is declared but its value is never read.
+src/tracker/pattern-store.ts(1044,48): error TS6133: 'i' is declared but its value is never read.
+src/tracker/pattern-store.ts(1054,11): error TS2375: Type '{ note: MidiNote; volume: Velocity | undefined; pan: any; instrument: any; delay: number; }' is not assignable to type 'NoteCell' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'volume' are incompatible.
+    Type 'Velocity | undefined' is not assignable to type 'Velocity'.
+      Type 'undefined' is not assignable to type 'Velocity'.
+        Type 'undefined' is not assignable to type 'number'.
+src/tracker/phrases.ts(21,3): error TS6133: 'asRowIndex' is declared but its value is never read.
+src/tracker/phrases.ts(25,3): error TS6133: 'TrackConfig' is declared but its value is never read.
+src/tracker/phrases.ts(27,3): error TS6133: 'emptyNoteCell' is declared but its value is never read.
+src/tracker/phrases.ts(29,3): error TS6133: 'effectCell' is declared but its value is never read.
+src/tracker/phrases.ts(30,3): error TS6133: 'effect' is declared but its value is never read.
+src/tracker/phrases.ts(31,3): error TS6133: 'SpecialNote' is declared but its value is never read.
+src/tracker/phrases.ts(32,3): error TS6133: 'RowIndex' is declared but its value is never read.
+src/tracker/phrases.ts(34,1): error TS6133: 'FX' is declared but its value is never read.
+src/tracker/phrases.ts(306,5): error TS2532: Object is possibly 'undefined'.
+src/tracker/phrases.ts(306,22): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(317,12): error TS2532: Object is possibly 'undefined'.
+src/tracker/phrases.ts(317,29): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(318,7): error TS2532: Object is possibly 'undefined'.
+src/tracker/phrases.ts(318,24): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(321,5): error TS2532: Object is possibly 'undefined'.
+src/tracker/phrases.ts(321,22): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(467,31): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(528,9): error TS2322: Type 'TrackerRow | undefined' is not assignable to type 'TrackerRow'.
+  Type 'undefined' is not assignable to type 'TrackerRow'.
+src/tracker/phrases.ts(571,20): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(572,9): error TS2532: Object is possibly 'undefined'.
+src/tracker/phrases.ts(572,24): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(572,62): error TS2532: Object is possibly 'undefined'.
+src/tracker/phrases.ts(572,70): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/phrases.ts(602,49): error TS2345: Argument of type 'number' is not assignable to parameter of type 'MidiNote'.
+  Type 'number' is not assignable to type '{ readonly __brand: "MidiNote"; }'.
+src/tracker/phrases.ts(602,60): error TS2532: Object is possibly 'undefined'.
+src/tracker/phrases.ts(635,49): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'MidiNote'.
+  Type 'undefined' is not assignable to type 'MidiNote'.
+    Type 'undefined' is not assignable to type 'number'.
+src/tracker/phrases.ts(661,51): error TS2345: Argument of type 'number' is not assignable to parameter of type 'MidiNote'.
+  Type 'number' is not assignable to type '{ readonly __brand: "MidiNote"; }'.
+src/tracker/renderer.ts(28,3): error TS6133: 'emptyNoteCell' is declared but its value is never read.
+src/tracker/renderer.ts(29,3): error TS6133: 'RowIndex' is declared but its value is never read.
+src/tracker/renderer.ts(30,3): error TS6133: 'asRowIndex' is declared but its value is never read.
+src/tracker/renderer.ts(32,10): error TS6133: 'FX' is declared but its value is never read.
+src/tracker/renderer.ts(140,17): error TS2339: Property 'command' does not exist on type 'EffectCommand'.
+src/tracker/renderer.ts(140,37): error TS2339: Property 'value' does not exist on type 'EffectCommand'.
+src/tracker/renderer.ts(145,22): error TS2339: Property 'command' does not exist on type 'EffectCommand'.
+src/tracker/renderer.ts(146,30): error TS2339: Property 'value' does not exist on type 'EffectCommand'.
+src/tracker/renderer.ts(199,3): error TS6133: 'selection' is declared but its value is never read.
+src/tracker/renderer.ts(215,27): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/renderer.ts(216,28): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/renderer.ts(218,35): error TS2551: Property 'track' does not exist on type 'CursorPosition'. Did you mean 'trackId'?
+src/tracker/renderer.ts(316,35): error TS2339: Property 'command' does not exist on type 'EffectCommand'.
+src/tracker/renderer.ts(326,10): error TS2678: Type '"pan"' is not comparable to type 'EffectCategory'.
+src/tracker/renderer.ts(329,10): error TS2678: Type '"flow"' is not comparable to type 'EffectCategory'.
+src/tracker/renderer.ts(332,10): error TS2678: Type '"cardplay"' is not comparable to type 'EffectCategory'.
+src/tracker/renderer.ts(355,38): error TS2345: Argument of type 'ReadonlyMap<TrackId, TrackData>' is not assignable to parameter of type '{ config: TrackConfig; }[]'.
+  Type 'ReadonlyMap<TrackId, TrackData>' is missing the following properties from type '{ config: TrackConfig; }[]': length, pop, push, concat, and 24 more.
+src/tracker/renderer.ts(359,33): error TS2345: Argument of type 'ReadonlyMap<TrackId, TrackData>' is not assignable to parameter of type '{ config: TrackConfig; }[]'.
+  Type 'ReadonlyMap<TrackId, TrackData>' is missing the following properties from type '{ config: TrackConfig; }[]': length, pop, push, concat, and 24 more.
+src/tracker/renderer.ts(363,46): error TS2339: Property 'length' does not exist on type 'Pattern'.
+src/tracker/renderer.ts(366,25): error TS2339: Property 'rows' does not exist on type 'Pattern'.
+src/tracker/renderer.ts(369,42): error TS2345: Argument of type 'ReadonlyMap<TrackId, TrackData>' is not assignable to parameter of type '{ config: TrackConfig; }[]'.
+  Type 'ReadonlyMap<TrackId, TrackData>' is missing the following properties from type '{ config: TrackConfig; }[]': length, pop, push, concat, and 24 more.
+src/tracker/renderer.ts(379,61): error TS6133: 'config' is declared but its value is never read.
+src/tracker/renderer.ts(383,19): error TS2532: Object is possibly 'undefined'.
+src/tracker/renderer.ts(401,64): error TS6133: 'config' is declared but its value is never read.
+src/tracker/renderer.ts(405,19): error TS2532: Object is possibly 'undefined'.
+src/tracker/renderer.ts(436,27): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/renderer.ts(437,28): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/renderer.ts(438,25): error TS2532: Object is possibly 'undefined'.
+src/tracker/renderer.ts(439,11): error TS6133: 'isCursorTrack' is declared but its value is never read.
+src/tracker/renderer.ts(439,35): error TS2551: Property 'track' does not exist on type 'CursorPosition'. Did you mean 'trackId'?
+src/tracker/renderer.ts(505,13): error TS2367: This comparison appears to be unintentional because the types 'EffectCategory | undefined' and '"cardplay"' have no overlap.
+src/tracker/renderer.ts(608,55): error TS2339: Property 'length' does not exist on type 'Pattern'.
+src/tracker/renderer.ts(613,25): error TS2339: Property 'rows' does not exist on type 'Pattern'.
+src/tracker/renderer.ts(619,22): error TS2339: Property 'map' does not exist on type 'ReadonlyMap<TrackId, TrackData>'.
+src/tracker/renderer.ts(619,26): error TS7006: Parameter 't' implicitly has an 'any' type.
+src/tracker/renderer.ts(646,3): error TS6133: 'displayConfig' is declared but its value is never read.
+src/tracker/renderer.ts(786,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/tracker/renderer.ts(888,27): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/renderer.ts(889,28): error TS2339: Property 'tracks' does not exist on type 'TrackerRow'.
+src/tracker/renderer.ts(893,18): error TS18048: 'config' is possibly 'undefined'.
+src/tracker/tracker-card-integration.ts(12,47): error TS6133: 'TrackerCardOptions' is declared but its value is never read.
+src/tracker/tracker-card-integration.ts(16,61): error TS6133: 'CursorPosition' is declared but its value is never read.
+src/tracker/tracker-card-integration.ts(16,89): error TS6133: 'asPatternId' is declared but its value is never read.
+src/tracker/tracker-card-integration.ts(30,3): error TS2322: Type '"editor"' is not assignable to type 'CardCategory'.
+src/tracker/tracker-card-integration.ts(76,43): error TS2314: Generic type 'CardState<S>' requires 1 type argument(s).
+src/tracker/tracker-card-integration.ts(108,41): error TS2314: Generic type 'Card<A, B>' requires 2 type argument(s).
+src/tracker/tracker-card-integration.ts(114,11): error TS6133: 'eventSync' is declared but its value is never read.
+src/tracker/tracker-card-integration.ts(117,11): error TS6133: 'mounted' is declared but its value is never read.
+src/tracker/tracker-card-integration.ts(130,14): error TS6133: 'ctx' is declared but its value is never read.
+src/tracker/tracker-card-integration.ts(133,55): error TS2345: Argument of type '{ name: string; length: number; }' is not assignable to parameter of type 'string'.
+src/tracker/tracker-card-integration.ts(137,45): error TS2339: Property 'config' does not exist on type 'PatternId'.
+src/tracker/tracker-card-integration.ts(141,27): error TS2339: Property 'addTrack' does not exist on type 'PatternStore'.
+src/tracker/tracker-card-integration.ts(141,44): error TS2339: Property 'config' does not exist on type 'PatternId'.
+src/tracker/tracker-card-integration.ts(152,17): error TS6133: 'ctx' is declared but its value is never read.
+src/tracker/tracker-card-integration.ts(160,7): error TS2739: Type 'TrackerCardState' is missing the following properties from type 'CardState<unknown>': value, version
+src/tracker/tracker-card-integration.ts(176,7): error TS2322: Type 'CursorPosition | null' is not assignable to type 'CursorPosition | undefined'.
+  Type 'null' is not assignable to type 'CursorPosition | undefined'.
+src/tracker/tracker-card-integration.ts(182,33): error TS2540: Cannot assign to 'cursor' because it is a read-only property.
+src/tracker/tracker-card-integration.ts(188,27): error TS2322: Type 'CursorPosition | null' is not assignable to type 'CursorPosition'.
+  Type 'null' is not assignable to type 'CursorPosition'.
+src/tracker/tracker-card-integration.ts(203,9): error TS2531: Object is possibly 'null'.
+src/tracker/tracker-card-integration.ts(203,40): error TS2540: Cannot assign to 'row' because it is a read-only property.
+src/tracker/tracker-card-integration.ts(206,11): error TS2322: Type 'CursorPosition | null' is not assignable to type 'CursorPosition'.
+  Type 'null' is not assignable to type 'CursorPosition'.
+src/tracker/tracker-card-integration.ts(240,9): error TS2345: Argument of type 'KeyboardEvent' is not assignable to parameter of type 'string'.
+src/tracker/tracker-card-integration.ts(250,11): error TS2322: Type 'CursorPosition | null' is not assignable to type 'CursorPosition'.
+  Type 'null' is not assignable to type 'CursorPosition'.
+src/tracker/tracker-card-integration.ts(281,46): error TS2551: Property 'getAllPatterns' does not exist on type 'PatternStore'. Did you mean 'getPattern'?
+src/tracker/tracker-card-integration.ts(282,9): error TS2698: Spread types may only be created from object types.
+src/tracker/tracker-card-integration.ts(317,65): error TS2314: Generic type 'Card<A, B>' requires 2 type argument(s).
+src/tracker/tracker-card.ts(15,3): error TS6133: 'TrackerRow' is declared but its value is never read.
+src/tracker/tracker-card.ts(17,3): error TS6133: 'TrackConfig' is declared but its value is never read.
+src/tracker/tracker-card.ts(21,3): error TS6133: 'DisplayBase' is declared but its value is never read.
+src/tracker/tracker-card.ts(23,3): error TS6133: 'defaultDisplayConfig' is declared but its value is never read.
+src/tracker/tracker-card.ts(25,10): error TS6133: 'FX' is declared but its value is never read.
+src/tracker/tracker-card.ts(25,27): error TS6133: 'getEffectName' is declared but its value is never read.
+src/tracker/tracker-card.ts(762,10): error TS2678: Type '"pan"' is not comparable to type 'EffectCategory'.
+src/tracker/tracker-card.ts(763,10): error TS2678: Type '"flow"' is not comparable to type 'EffectCategory'.
+src/tracker/tracker-card.ts(764,10): error TS2678: Type '"cardplay"' is not comparable to type 'EffectCategory'.
+src/tracker/tracker-card.ts(871,25): error TS2532: Object is possibly 'undefined'.
+src/tracker/tracker-card.ts(871,51): error TS2532: Object is possibly 'undefined'.
+src/tracker/tracker-card.ts(1268,46): error TS2551: Property 'track' does not exist on type 'CursorPosition'. Did you mean 'trackId'?
+src/tracker/tracker-card.ts(1383,9): error TS2532: Object is possibly 'undefined'.
+src/tracker/tracker-card.ts(1421,53): error TS2551: Property 'track' does not exist on type 'CursorPosition'. Did you mean 'trackId'?
+src/tracker/types.ts(183,3): error TS2375: Type '{ note: MidiNote; instrument: InstrumentSlot | undefined; volume: Velocity | undefined; pan: number | undefined; delay: number | undefined; }' is not assignable to type 'NoteCell' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'instrument' are incompatible.
+    Type 'InstrumentSlot | undefined' is not assignable to type 'InstrumentSlot'.
+      Type 'undefined' is not assignable to type 'InstrumentSlot'.
+        Type 'undefined' is not assignable to type 'number'.
+src/tracker/types.ts(190,3): error TS2375: Type '{ note: SpecialNote.NoteOff; delay: number | undefined; }' is not assignable to type 'NoteCell' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'delay' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/tracker/types.ts(197,3): error TS2375: Type '{ note: SpecialNote.NoteCut; delay: number | undefined; }' is not assignable to type 'NoteCell' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'delay' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/ui/arrangement-view.ts(17,3): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/ui/arrangement-view.ts(17,3): error TS6196: 'EventId' is declared but never used.
+src/ui/arrangement-view.ts(25,3): error TS6133: 'getSelectionStore' is declared but its value is never read.
+src/ui/arrangement-view.ts(180,11): error TS6133: 'clipIdCounter' is declared but its value is never read.
+src/ui/arrangement-view.ts(190,19): error TS2379: Argument of type '{ index: number; name: string; color: string | undefined; height: number; muted: boolean; soloed: boolean; armed: boolean; frozen: boolean; automationLanes: never[]; visible: boolean; }' is not assignable to parameter of type 'ArrangementTrack' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/arrangement-view.ts(269,22): error TS2339: Property 'filter' does not exist on type 'never[] | EventStreamRecord<unknown>'.
+  Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/arrangement-view.ts(269,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/arrangement-view.ts(270,23): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/arrangement-view.ts(270,52): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/arrangement-view.ts(270,69): error TS2339: Property 'lengthTicks' does not exist on type 'ClipRecord'.
+src/ui/arrangement-view.ts(308,25): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'ArrangementClip' is not assignable to type '{ color: string | undefined; clipId: ClipId; trackIndex: number; startTick: Tick; displayLength: TickDuration; clipOffset: Tick; muted: boolean; selected: boolean; gain: number; fadeIn: TickDuration; fadeOut: TickDuration; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'color' is optional in type 'ArrangementClip' but required in type '{ color: string | undefined; clipId: ClipId; trackIndex: number; startTick: Tick; displayLength: TickDuration; clipOffset: Tick; muted: boolean; selected: boolean; gain: number; fadeIn: TickDuration; fadeOut: TickDuration; }'.
+src/ui/arrangement-view.ts(310,5): error TS2322: Type 'Readonly<{ clips: ({ color: string | undefined; clipId: ClipId; trackIndex: number; startTick: Tick; displayLength: TickDuration; clipOffset: Tick; muted: boolean; selected: boolean; gain: number; fadeIn: TickDuration; fadeOut: TickDuration; } | null)[]; ... 14 more ...; editMode: "slice" | ... 2 more ... | "draw"; }>' is not assignable to type 'ArrangementState'.
+  Types of property 'clips' are incompatible.
+    Type '({ color: string | undefined; clipId: ClipId; trackIndex: number; startTick: Tick; displayLength: TickDuration; clipOffset: Tick; muted: boolean; selected: boolean; gain: number; fadeIn: TickDuration; fadeOut: TickDuration; } | null)[]' is not assignable to type 'readonly ArrangementClip[]'.
+      Type '{ color: string | undefined; clipId: ClipId; trackIndex: number; startTick: Tick; displayLength: TickDuration; clipOffset: Tick; muted: boolean; selected: boolean; gain: number; fadeIn: TickDuration; fadeOut: TickDuration; } | null' is not assignable to type 'ArrangementClip'.
+        Type 'null' is not assignable to type 'ArrangementClip'.
+src/ui/arrangement-view.ts(344,52): error TS2339: Property 'lengthTicks' does not exist on type 'ClipRecord'.
+src/ui/arrangement-view.ts(527,11): error TS6133: 'oldLength' is declared but its value is never read.
+src/ui/arrangement-view.ts(828,5): error TS2375: Type '{ muted: boolean; index?: number; name?: string; color?: string; height?: number; soloed?: boolean; armed?: boolean; frozen?: boolean; automationLanes?: readonly AutomationLane[]; visible?: boolean; }' is not assignable to type 'ArrangementTrack' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'index' is optional in type '{ muted: boolean; index?: number; name?: string; color?: string; height?: number; soloed?: boolean; armed?: boolean; frozen?: boolean; automationLanes?: readonly AutomationLane[]; visible?: boolean; }' but required in type 'ArrangementTrack'.
+src/ui/arrangement-view.ts(839,5): error TS2375: Type '{ soloed: boolean; index?: number; name?: string; color?: string; height?: number; muted?: boolean; armed?: boolean; frozen?: boolean; automationLanes?: readonly AutomationLane[]; visible?: boolean; }' is not assignable to type 'ArrangementTrack' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'index' is optional in type '{ soloed: boolean; index?: number; name?: string; color?: string; height?: number; muted?: boolean; armed?: boolean; frozen?: boolean; automationLanes?: readonly AutomationLane[]; visible?: boolean; }' but required in type 'ArrangementTrack'.
+src/ui/arrangement-view.ts(850,5): error TS2375: Type '{ height: number; index?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; armed?: boolean; frozen?: boolean; automationLanes?: readonly AutomationLane[]; visible?: boolean; }' is not assignable to type 'ArrangementTrack' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'index' is optional in type '{ height: number; index?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; armed?: boolean; frozen?: boolean; automationLanes?: readonly AutomationLane[]; visible?: boolean; }' but required in type 'ArrangementTrack'.
+src/ui/chord-track-lane.ts(17,15): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/ui/chord-track-lane.ts(17,39): error TS6196: 'SubscriptionId' is declared but never used.
+src/ui/chord-track-lane.ts(18,1): error TS6133: 'executeWithUndo' is declared but its value is never read.
+src/ui/chord-track-lane.ts(21,3): error TS2724: '"../containers/chord-track"' has no exported member named 'createChordTrackAdapter'. Did you mean 'ChordTrackAdapter'?
+src/ui/chord-track-lane.ts(22,3): error TS2305: Module '"../containers/chord-track"' has no exported member 'parseChord'.
+src/ui/chord-track-lane.ts(22,3): error TS6133: 'parseChord' is declared but its value is never read.
+src/ui/chord-track-lane.ts(24,8): error TS6133: 'ChordEvent' is declared but its value is never read.
+src/ui/chord-track-lane.ts(118,3): error TS2353: Object literal may only specify known properties, and 'dominant7' does not exist in type 'Record<ChordQuality, string>'.
+src/ui/chord-track-lane.ts(155,42): error TS2367: This comparison appears to be unintentional because the types '"major" | "diminished" | "augmented" | "sus2" | "sus4" | "power"' and '"minor7"' have no overlap.
+src/ui/chord-track-lane.ts(155,94): error TS2367: This comparison appears to be unintentional because the types '"major" | "augmented" | "sus2" | "sus4" | "power"' and '"halfDiminished7"' have no overlap.
+src/ui/chord-track-lane.ts(156,30): error TS18048: 'numeral' is possibly 'undefined'.
+src/ui/chord-track-lane.ts(158,38): error TS18048: 'numeral' is possibly 'undefined'.
+src/ui/chord-track-lane.ts(170,10): error TS2678: Type '"dominant7"' is not comparable to type 'ChordQuality'.
+src/ui/chord-track-lane.ts(173,10): error TS2678: Type '"major7"' is not comparable to type 'ChordQuality'.
+src/ui/chord-track-lane.ts(176,10): error TS2678: Type '"minor7"' is not comparable to type 'ChordQuality'.
+src/ui/chord-track-lane.ts(179,10): error TS2678: Type '"halfDiminished7"' is not comparable to type 'ChordQuality'.
+src/ui/chord-track-lane.ts(182,10): error TS2678: Type '"diminished7"' is not comparable to type 'ChordQuality'.
+src/ui/chord-track-lane.ts(193,3): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/ui/chord-track-lane.ts(286,33): error TS2551: Property 'getAllChords' does not exist on type 'ChordTrackAdapter'. Did you mean 'getChords'?
+src/ui/chord-track-lane.ts(296,35): error TS2339: Property 'getChordSymbol' does not exist on type 'ChordTrackAdapter'.
+src/ui/chord-track-lane.ts(301,19): error TS2379: Argument of type '{ id: any; x: number; width: number; chord: any; chordSymbol: any; romanNumeral: string | undefined; selected: boolean; color: any; }' is not assignable to parameter of type 'ChordBlock' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'romanNumeral' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/chord-track-lane.ts(309,16): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Record<ChordQuality, string>'.
+src/ui/chord-track-lane.ts(358,36): error TS2551: Property 'getChord' does not exist on type 'ChordTrackAdapter'. Did you mean 'getChords'?
+src/ui/chord-track-lane.ts(376,20): error TS2339: Property 'removeChord' does not exist on type 'ChordTrackAdapter'.
+src/ui/chord-track-lane.ts(387,25): error TS2339: Property 'addChordFromText' does not exist on type 'ChordTrackAdapter'.
+src/ui/chord-track-lane.ts(393,7): error TS2345: Argument of type '{ root: number; quality: ChordQuality; extensions: never[]; bass: number; }' is not assignable to parameter of type 'TickDuration'.
+  Type '{ root: number; quality: ChordQuality; extensions: never[]; bass: number; }' is not assignable to type 'number'.
+src/ui/chord-track-lane.ts(399,32): error TS2551: Property 'getChord' does not exist on type 'ChordTrackAdapter'. Did you mean 'getChords'?
+src/ui/chord-track-lane.ts(412,30): error TS6133: 'y' is declared but its value is never read.
+src/ui/chord-track-lane.ts(436,30): error TS6133: 'y' is declared but its value is never read.
+src/ui/chord-track-lane.ts(443,32): error TS2551: Property 'getChord' does not exist on type 'ChordTrackAdapter'. Did you mean 'getChords'?
+src/ui/chord-track-lane.ts(450,24): error TS2339: Property 'moveChord' does not exist on type 'ChordTrackAdapter'.
+src/ui/chord-track-lane.ts(461,24): error TS2339: Property 'moveChord' does not exist on type 'ChordTrackAdapter'.
+src/ui/chord-track-lane.ts(462,24): error TS2339: Property 'resizeChord' does not exist on type 'ChordTrackAdapter'.
+src/ui/chord-track-lane.ts(470,24): error TS2339: Property 'resizeChord' does not exist on type 'ChordTrackAdapter'.
+src/ui/chord-track-lane.ts(487,39): error TS2345: Argument of type 'NoteName' is not assignable to parameter of type 'number | undefined'.
+  Type 'string' is not assignable to type 'number'.
+src/ui/chord-track-lane.ts(495,32): error TS2551: Property 'getChord' does not exist on type 'ChordTrackAdapter'. Did you mean 'getChords'?
+src/ui/chord-track-lane.ts(569,41): error TS2322: Type 'number' is not assignable to type 'NoteName'.
+src/ui/chord-track-lane.ts(569,85): error TS2322: Type 'number' is not assignable to type 'NoteName'.
+src/ui/chord-track-lane.ts(622,34): error TS2551: Property 'getChord' does not exist on type 'ChordTrackAdapter'. Did you mean 'getChords'?
+src/ui/chord-track-lane.ts(625,22): error TS2339: Property 'moveChord' does not exist on type 'ChordTrackAdapter'.
+src/ui/components/piano-roll-store-adapter.ts(16,18): error TS6133: 'asTickDuration' is declared but its value is never read.
+src/ui/components/piano-roll-store-adapter.ts(20,3): error TS2305: Module '"../../state/types"' has no exported member 'EventId'.
+src/ui/components/piano-roll-store-adapter.ts(26,3): error TS6133: 'getUndoStack' is declared but its value is never read.
+src/ui/components/piano-roll-store-adapter.ts(30,3): error TS6196: 'PianoRollState' is declared but never used.
+src/ui/components/piano-roll-store-adapter.ts(31,3): error TS2305: Module '"./piano-roll-panel"' has no exported member 'PianoRollConfig'.
+src/ui/components/piano-roll-store-adapter.ts(35,10): error TS2305: Module '"./piano-roll-panel"' has no exported member 'createPianoRollConfig'.
+src/ui/components/piano-roll-store-adapter.ts(35,33): error TS6133: 'createPianoRollState' is declared but its value is never read.
+src/ui/components/piano-roll-store-adapter.ts(124,61): error TS2345: Argument of type 'string' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(127,26): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/ui/components/piano-roll-store-adapter.ts(128,13): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/ui/components/piano-roll-store-adapter.ts(132,5): error TS2322: Type 'Readonly<{ config: any; scrollX: Tick; scrollPitch: 60; playhead: Tick; visibleRange: { start: Tick; end: Tick; }; mode: "select"; streamId: EventStreamId | EventStreamRecord<...>; ghostTracks: readonly EventStreamId[]; }>' is not assignable to type 'PianoRollSharedState'.
+  Types of property 'streamId' are incompatible.
+    Type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+      Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+        Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/ui/components/piano-roll-store-adapter.ts(144,48): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/ui/components/piano-roll-store-adapter.ts(150,66): error TS2554: Expected 1 arguments, but got 2.
+src/ui/components/piano-roll-store-adapter.ts(174,5): error TS2322: Type 'never[] | EventStreamRecord<unknown>' is not assignable to type 'readonly Event<unknown>[]'.
+  Type 'EventStreamRecord<unknown>' is missing the following properties from type 'readonly Event<unknown>[]': length, concat, join, slice, and 20 more.
+src/ui/components/piano-roll-store-adapter.ts(183,35): error TS2551: Property 'getSelection' does not exist on type 'SelectionStore'. Did you mean 'setSelection'?
+src/ui/components/piano-roll-store-adapter.ts(186,5): error TS2322: Type 'Readonly<{ eventId: EventId; pitch: number; start: Tick; duration: TickDuration; x: number; y: number; width: number; height: any; velocity: number; selected: any; muted: false; color: string; }>[]' is not assignable to type 'readonly NoteRect[]'.
+  Property 'editing' is missing in type 'Readonly<{ eventId: EventId; pitch: number; start: Tick; duration: TickDuration; x: number; y: number; width: number; height: any; velocity: number; selected: any; muted: false; color: string; }>' but required in type 'NoteRect'.
+src/ui/components/piano-roll-store-adapter.ts(200,30): error TS2352: Conversion of type 'TickDuration' to type 'Tick' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'TickDuration' is not comparable to type '{ readonly [__brand]: "Tick"; }'.
+    Types of property '[__brand]' are incompatible.
+      Type '"TickDuration"' is not comparable to type '"Tick"'.
+src/ui/components/piano-roll-store-adapter.ts(216,35): error TS2551: Property 'getSelection' does not exist on type 'SelectionStore'. Did you mean 'setSelection'?
+src/ui/components/piano-roll-store-adapter.ts(219,5): error TS2322: Type 'Readonly<{ eventId: EventId; x: number; width: number; height: number; velocity: number; selected: any; }>[]' is not assignable to type 'readonly VelocityBar[]'.
+  Type 'Readonly<{ eventId: EventId; x: number; width: number; height: number; velocity: number; selected: any; }>' is missing the following properties from type 'VelocityBar': noteId, color
+src/ui/components/piano-roll-store-adapter.ts(228,42): error TS2352: Conversion of type 'TickDuration' to type 'Tick' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'TickDuration' is not comparable to type '{ readonly [__brand]: "Tick"; }'.
+    Types of property '[__brand]' are incompatible.
+      Type '"TickDuration"' is not comparable to type '"Tick"'.
+src/ui/components/piano-roll-store-adapter.ts(253,25): error TS2345: Argument of type 'Readonly<{ eventId: any; pitch: number; start: Tick; duration: any; x: number; y: number; width: number; height: any; velocity: number; selected: false; muted: false; color: "rgba(128, 128, 128, 0.3)"; }>' is not assignable to parameter of type 'NoteRect'.
+  Property 'editing' is missing in type 'Readonly<{ eventId: any; pitch: number; start: Tick; duration: any; x: number; y: number; width: number; height: any; velocity: number; selected: false; muted: false; color: "rgba(128, 128, 128, 0.3)"; }>' but required in type 'NoteRect'.
+src/ui/components/piano-roll-store-adapter.ts(327,21): error TS6133: 'scrollPitch' is declared but its value is never read.
+src/ui/components/piano-roll-store-adapter.ts(437,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(437,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(447,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(447,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(456,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(456,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(481,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(481,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(488,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(488,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(494,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(494,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(523,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(523,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(532,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(532,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(540,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(540,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(569,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(569,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(580,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(580,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(590,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/piano-roll-store-adapter.ts(590,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/piano-roll-store-adapter.ts(613,24): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/piano-roll-store-adapter.ts(615,30): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/piano-roll-store-adapter.ts(639,28): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/piano-roll-store-adapter.ts(647,28): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/piano-roll-store-adapter.ts(655,22): error TS2551: Property 'getSelection' does not exist on type 'SelectionStore'. Did you mean 'setSelection'?
+src/ui/components/piano-roll-store-adapter.ts(721,32): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/piano-roll-store-adapter.ts(728,32): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/piano-roll-store-adapter.ts(733,32): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/sample-flow.ts(14,34): error TS6196: 'SampleMetadata' is declared but never used.
+src/ui/components/sample-flow.ts(14,50): error TS6196: 'SampleSlice' is declared but never used.
+src/ui/components/sample-flow.ts(252,10): error TS6133: 'createDropZoneIndicator' is declared but its value is never read.
+src/ui/components/sample-flow.ts(547,11): error TS2375: Type '{ success: true; targetType: DropTargetType; targetId: string; data: SampleDragData; context: Record<string, unknown> | undefined; }' is not assignable to type 'DropResult' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'context' are incompatible.
+    Type 'Record<string, unknown> | undefined' is not assignable to type 'Record<string, unknown>'.
+      Type 'undefined' is not assignable to type 'Record<string, unknown>'.
+src/ui/components/sample-flow.ts(586,11): error TS18048: 'file' is possibly 'undefined'.
+src/ui/components/sample-flow.ts(590,21): error TS18048: 'file' is possibly 'undefined'.
+src/ui/components/sample-flow.ts(636,3): error TS2375: Type '{ type: "slice" | "sample" | "region"; sampleId: any; sliceId: SliceId | undefined; startTime: number | undefined; endTime: number | undefined; fileName: string; duration: number; sampleRate: number; waveformPreview: number[] | undefined; }' is not assignable to type 'SampleDragData' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'sliceId' are incompatible.
+    Type 'SliceId | undefined' is not assignable to type 'SliceId'.
+      Type 'undefined' is not assignable to type 'SliceId'.
+        Type 'undefined' is not assignable to type 'string'.
+src/ui/components/sample-flow.ts(638,22): error TS2339: Property 'id' does not exist on type 'LoadedSample'.
+src/ui/components/sample-flow.ts(646,28): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'readonly number[]'.
+  Type 'Float32Array<ArrayBufferLike>' is missing the following properties from type 'readonly number[]': concat, flatMap, flat, [Symbol.unscopables]
+src/ui/components/sample-flow.ts(669,28): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/ui/components/tracker-store-adapter.ts(16,15): error TS6196: 'Tick' is declared but never used.
+src/ui/components/tracker-store-adapter.ts(21,3): error TS2305: Module '"../../state/types"' has no exported member 'EventId'.
+src/ui/components/tracker-store-adapter.ts(27,3): error TS6133: 'getUndoStack' is declared but its value is never read.
+src/ui/components/tracker-store-adapter.ts(31,3): error TS6196: 'TrackerPanelState' is declared but never used.
+src/ui/components/tracker-store-adapter.ts(115,61): error TS2345: Argument of type 'string' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+src/ui/components/tracker-store-adapter.ts(118,26): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/ui/components/tracker-store-adapter.ts(119,13): error TS2551: Property 'setStream' does not exist on type 'SharedEventStore'. Did you mean 'getStream'?
+src/ui/components/tracker-store-adapter.ts(126,5): error TS2322: Type 'Readonly<{ config: TrackerPanelConfig; cursor: { row: number; trackId: string; column: string; }; scrollRow: 0; scrollX: 0; playheadRow: 0; streamId: EventStreamId | EventStreamRecord<...>; }>' is not assignable to type 'TrackerSharedState'.
+  The types of 'cursor.column' are incompatible between these types.
+    Type 'string' is not assignable to type 'ColumnType'.
+src/ui/components/tracker-store-adapter.ts(140,48): error TS2345: Argument of type 'EventStreamId | EventStreamRecord<unknown>' is not assignable to parameter of type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+    Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/ui/components/tracker-store-adapter.ts(146,66): error TS2554: Expected 1 arguments, but got 2.
+src/ui/components/tracker-store-adapter.ts(146,67): error TS7006: Parameter 'selectedIds' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(168,5): error TS2322: Type 'never[] | EventStreamRecord<unknown>' is not assignable to type 'readonly Event<unknown>[]'.
+  Type 'EventStreamRecord<unknown>' is missing the following properties from type 'readonly Event<unknown>[]': length, concat, join, slice, and 20 more.
+src/ui/components/tracker-store-adapter.ts(352,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(352,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(362,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(362,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(371,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(371,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(400,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(400,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(407,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(407,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(413,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(413,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(445,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(445,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(454,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(454,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(462,16): error TS2339: Property 'map' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/components/tracker-store-adapter.ts(462,20): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/components/tracker-store-adapter.ts(495,28): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/tracker-store-adapter.ts(498,5): error TS2322: Type 'Readonly<{ selection: { startRow: number; endRow: number; startTrack: string; endTrack: string; startColumn: string; endColumn: string; isBlock: boolean; }; config: TrackerPanelConfig; ... 4 more ...; streamId: EventStreamId; }>' is not assignable to type 'TrackerSharedState'.
+  The types of 'selection.startColumn' are incompatible between these types.
+    Type 'string' is not assignable to type 'ColumnType'.
+src/ui/components/tracker-store-adapter.ts(518,28): error TS2345: Argument of type 'EventStreamId' is not assignable to parameter of type 'readonly string[]'.
+  Type 'String & { readonly __eventStreamId?: unique symbol; }' is missing the following properties from type 'readonly string[]': join, every, some, forEach, and 12 more.
+src/ui/components/tracker-store-adapter.ts(520,5): error TS2375: Type 'Readonly<{ selection: undefined; config: TrackerPanelConfig; cursor: TrackerCursor; scrollRow: number; scrollX: number; playheadRow: number; streamId: EventStreamId; }>' is not assignable to type 'TrackerSharedState' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'selection' are incompatible.
+    Type 'undefined' is not assignable to type 'TrackerSelection'.
+src/ui/components/tracker-store-adapter.ts(532,22): error TS2551: Property 'getSelection' does not exist on type 'SelectionStore'. Did you mean 'setSelection'?
+src/ui/components/tracker-store-adapter.ts(541,9): error TS2375: Type 'Readonly<{ selection: undefined; config: TrackerPanelConfig; cursor: TrackerCursor; scrollRow: number; scrollX: number; playheadRow: number; streamId: EventStreamId; }>' is not assignable to type 'TrackerSharedState' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'selection' are incompatible.
+    Type 'undefined' is not assignable to type 'TrackerSelection'.
+src/ui/components/tracker-store-adapter.ts(560,5): error TS2322: Type 'Readonly<{ selection: { startRow: number; endRow: number; startTrack: string; endTrack: string; startColumn: string; endColumn: string; isBlock: boolean; }; config: TrackerPanelConfig; ... 4 more ...; streamId: EventStreamId; }>' is not assignable to type 'TrackerSharedState'.
+  The types of 'selection.startColumn' are incompatible between these types.
+    Type 'string' is not assignable to type 'ColumnType'.
+src/ui/deck-layout.ts(14,1): error TS6133: 'Event' is declared but its value is never read.
+src/ui/deck-layout.ts(15,1): error TS6192: All imports in import declaration are unused.
+src/ui/deck-layout.ts(15,35): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/ui/deck-layout.ts(16,1): error TS6192: All imports in import declaration are unused.
+src/ui/deck-layout.ts(19,3): error TS6196: 'ClipId' is declared but never used.
+src/ui/deck-layout.ts(20,3): error TS2724: '"../state/types"' has no exported member named 'RoutingNodeId'. Did you mean 'RoutingNode'?
+src/ui/deck-layout.ts(21,3): error TS6196: 'RoutingConnection' is declared but never used.
+src/ui/deck-layout.ts(26,3): error TS6133: 'getClipRegistry' is declared but its value is never read.
+src/ui/deck-layout.ts(27,3): error TS2305: Module '"../state"' has no exported member 'getRoutingGraphStore'.
+src/ui/deck-layout.ts(28,3): error TS6133: 'getSelectionStore' is declared but its value is never read.
+src/ui/deck-layout.ts(30,1): error TS6133: 'getParameterResolver' is declared but its value is never read.
+src/ui/deck-layout.ts(144,5): error TS2375: Type 'Readonly<{ id: DeckId; name: string; color: string | undefined; rows: number; cols: number; slots: never[]; outputStreamId: EventStreamId; audioOutputId: RoutingNodeId; parameters: Map<any, any>; ... 4 more ...; pan: 0; }>' is not assignable to type 'DeckState' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/deck-layout.ts(179,9): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'CreateEventStreamOptions<unknown>'.
+src/ui/deck-layout.ts(610,9): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/ui/deck-layout.ts(615,17): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/ui/deck-layout.ts(616,14): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/ui/deck-layout.ts(619,17): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/ui/deck-layout.ts(620,14): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/ui/deck-layout.ts(753,11): error TS6133: 'subscriptions' is declared but its value is never read.
+src/ui/ghost-notes.ts(14,1): error TS6133: 'Event' is declared but its value is never read.
+src/ui/ghost-notes.ts(15,35): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/ui/ghost-notes.ts(16,18): error TS6133: 'asTickDuration' is declared but its value is never read.
+src/ui/ghost-notes.ts(20,3): error TS6196: 'ClipRecord' is declared but never used.
+src/ui/ghost-notes.ts(116,11): error TS6133: 'contextClipId' is declared but its value is never read.
+src/ui/ghost-notes.ts(194,27): error TS2339: Property 'subscribeToStream' does not exist on type 'SharedEventStore'.
+src/ui/ghost-notes.ts(214,29): error TS2339: Property 'unsubscribeFromStream' does not exist on type 'SharedEventStore'.
+src/ui/ghost-notes.ts(248,31): error TS2339: Property 'unsubscribeFromStream' does not exist on type 'SharedEventStore'.
+src/ui/ghost-notes.ts(271,16): error TS2339: Property 'trackIndex' does not exist on type 'ClipRecord'.
+src/ui/ghost-notes.ts(272,24): error TS2379: Argument of type '{ type: "clip"; id: ClipId; name: string; color: string | undefined; enabled: true; }' is not assignable to parameter of type 'GhostNoteSource' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/ghost-notes.ts(291,38): error TS2339: Property 'trackIndex' does not exist on type 'ClipRecord'.
+src/ui/ghost-notes.ts(293,24): error TS2379: Argument of type '{ type: "clip"; id: ClipId; name: string; color: string | undefined; enabled: true; }' is not assignable to parameter of type 'GhostNoteSource' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/ghost-notes.ts(311,16): error TS2488: Type 'EventStreamRecord<unknown>' must have a '[Symbol.iterator]()' method that returns an iterator.
+src/ui/ghost-notes.ts(447,17): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/ghost-notes.ts(447,73): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/ghost-notes.ts(452,43): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/ghost-notes.ts(453,45): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/ghost-notes.ts(453,74): error TS2339: Property 'lengthTicks' does not exist on type 'ClipRecord'.
+src/ui/index.ts(237,8): error TS2300: Duplicate identifier 'PanelVisibility'.
+src/ui/index.ts(533,3): error TS2300: Duplicate identifier 'openMenu'.
+src/ui/index.ts(534,3): error TS2300: Duplicate identifier 'closeMenu'.
+src/ui/index.ts(1253,8): error TS2300: Duplicate identifier 'PanelVisibility'.
+src/ui/index.ts(1400,3): error TS2300: Duplicate identifier 'openMenu'.
+src/ui/index.ts(1401,3): error TS2300: Duplicate identifier 'closeMenu'.
+src/ui/piano-roll-integration.ts(10,1): error TS6192: All imports in import declaration are unused.
+src/ui/piano-roll-integration.ts(10,35): error TS2305: Module '"../types/primitives"' has no exported member 'Velocity'.
+src/ui/piano-roll-integration.ts(11,1): error TS6192: All imports in import declaration are unused.
+src/ui/piano-roll-integration.ts(28,8): error TS2305: Module '"../ui/components/piano-roll-store-adapter"' has no exported member 'NoteRectangle'.
+src/ui/piano-roll-integration.ts(157,58): error TS6133: 'scale' is declared but its value is never read.
+src/ui/piano-roll-integration.ts(230,40): error TS2379: Argument of type '{ type: "clip"; id: ClipId; name: string; color: string | undefined; enabled: true; }' is not assignable to parameter of type 'GhostNoteSource' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/piano-roll-integration.ts(257,40): error TS2339: Property 'notes' does not exist on type 'PianoRollSharedState'.
+src/ui/piano-roll-integration.ts(257,50): error TS7006: Parameter 'note' implicitly has an 'any' type.
+src/ui/piano-roll-integration.ts(340,19): error TS2379: Argument of type '{ note: number; isBlack: boolean; inScale: boolean; isRoot: boolean; isChordTone: boolean; color: string; label: string | undefined; }' is not assignable to parameter of type 'PianoKeyInfo' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'label' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/piano-roll-integration.ts(457,11): error TS6198: All destructured elements are unused.
+src/ui/reveal-panel-audio.ts(210,48): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'Float32Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/ui/reveal-panel-audio.ts(220,47): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'Float32Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/ui/reveal-panel-audio.ts(233,48): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'Float32Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/ui/reveal-panel-audio.ts(240,49): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'Float32Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/ui/reveal-panel-audio.ts(278,46): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'Float32Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/ui/reveal-panel-audio.ts(279,47): error TS2345: Argument of type 'Float32Array<ArrayBufferLike>' is not assignable to parameter of type 'Float32Array<ArrayBuffer>'.
+  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.
+      Types of property '[Symbol.toStringTag]' are incompatible.
+        Type '"SharedArrayBuffer"' is not assignable to type '"ArrayBuffer"'.
+src/ui/reveal-panel-audio.ts(289,18): error TS18048: 'l' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(290,19): error TS18048: 'r' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(291,21): error TS18048: 'l' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(291,25): error TS18048: 'r' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(292,20): error TS18048: 'l' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(292,24): error TS18048: 'l' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(293,21): error TS18048: 'r' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(293,25): error TS18048: 'r' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(320,17): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(320,40): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(373,14): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(373,24): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(491,22): error TS18048: 'v' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(527,27): error TS18048: 'db' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(695,22): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(696,22): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(790,62): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(809,60): error TS18048: 'col' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(810,27): error TS18048: 'col' is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(810,27): error TS2532: Object is possibly 'undefined'.
+src/ui/reveal-panel-audio.ts(864,17): error TS6133: 'context' is declared but its value is never read.
+src/ui/reveal-panel-audio.ts(872,17): error TS6133: 'context' is declared but its value is never read.
+src/ui/reveal-panel-audio.ts(880,17): error TS6133: 'context' is declared but its value is never read.
+src/ui/reveal-panel-audio.ts(888,17): error TS6133: 'context' is declared but its value is never read.
+src/ui/session-clip-adapter.ts(14,21): error TS6196: 'TickDuration' is declared but never used.
+src/ui/session-clip-adapter.ts(15,10): error TS6133: 'asTick' is declared but its value is never read.
+src/ui/session-clip-adapter.ts(18,3): error TS2305: Module '"../state/types"' has no exported member 'EventId'.
+src/ui/session-clip-adapter.ts(18,3): error TS6196: 'EventId' is declared but never used.
+src/ui/session-clip-adapter.ts(26,3): error TS6133: 'getSelectionStore' is declared but its value is never read.
+src/ui/session-clip-adapter.ts(27,3): error TS6133: 'executeWithUndo' is declared but its value is never read.
+src/ui/session-clip-adapter.ts(29,15): error TS6196: 'ClipSlot' is declared but never used.
+src/ui/session-clip-adapter.ts(29,67): error TS2440: Import declaration conflicts with local declaration of 'SceneHeader'.
+src/ui/session-clip-adapter.ts(66,19): error TS1354: 'readonly' type modifier is only permitted on array and tuple literal types.
+src/ui/session-clip-adapter.ts(137,19): error TS2379: Argument of type '{ trackIndex: number; name: string; color: string | undefined; muted: boolean; soloed: boolean; armed: boolean; volume: number; pan: number; }' is not assignable to parameter of type 'TrackHeader' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/session-clip-adapter.ts(153,19): error TS2379: Argument of type '{ sceneIndex: number; name: string; color: string | undefined; tempo: number | undefined; timeSignature: { numerator: number; denominator: number; } | undefined; }' is not assignable to parameter of type 'SceneHeader' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/ui/session-clip-adapter.ts(176,5): error TS2322: Type 'Readonly<{ trackCount: number; sceneCount: number; tracks: TrackHeader[]; scenes: SceneHeader[]; slots: (readonly SessionSlot[])[]; playingScene: null; queuedScene: null; selectedSlots: never[]; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly SessionSlot[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly SessionSlot[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(230,22): error TS2339: Property 'filter' does not exist on type 'never[] | EventStreamRecord<unknown>'.
+  Property 'filter' does not exist on type 'EventStreamRecord<unknown>'.
+src/ui/session-clip-adapter.ts(230,29): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/ui/session-clip-adapter.ts(231,23): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/session-clip-adapter.ts(231,52): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/session-clip-adapter.ts(231,69): error TS2339: Property 'lengthTicks' does not exist on type 'ClipRecord'.
+src/ui/session-clip-adapter.ts(266,53): error TS6133: 'trackIndex' is declared but its value is never read.
+src/ui/session-clip-adapter.ts(267,29): error TS6133: 'sceneIndex' is declared but its value is never read.
+src/ui/session-clip-adapter.ts(290,5): error TS2322: Type 'Readonly<{ slots: (readonly (SessionSlot | { clipId: undefined; state: ClipSlotState; name: undefined; color: undefined; position: GridPosition; selected: boolean; } | { ...; })[])[]; ... 6 more ...; selectedSlots: readonly GridPosition[]; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly (SessionSlot | { clipId: undefined; state: ClipSlotState; name: undefined; color: undefined; position: GridPosition; selected: boolean; } | { ...; })[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly (SessionSlot | { clipId: undefined; state: ClipSlotState; name: undefined; color: undefined; position: GridPosition; selected: boolean; } | { ...; })[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(318,5): error TS2322: Type 'ClipRecord' is not assignable to type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/ui/session-clip-adapter.ts(320,7): error TS2554: Expected 1 arguments, but got 5.
+src/ui/session-clip-adapter.ts(338,28): error TS2488: Type 'SessionSlot[] | undefined' must have a '[Symbol.iterator]()' method that returns an iterator.
+src/ui/session-clip-adapter.ts(344,5): error TS4104: The type 'readonly any[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(346,5): error TS2322: Type 'Readonly<{ slots: (readonly SessionSlot[])[]; trackCount: number; sceneCount: number; tracks: readonly TrackHeader[]; scenes: readonly SceneHeader[]; playingScene: number | null; queuedScene: number | null; selectedSlots: readonly GridPosition[]; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly SessionSlot[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly SessionSlot[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(370,5): error TS4104: The type 'readonly any[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(372,5): error TS2322: Type 'Readonly<{ slots: (readonly SessionSlot[])[]; trackCount: number; sceneCount: number; tracks: readonly TrackHeader[]; scenes: readonly SceneHeader[]; playingScene: number | null; queuedScene: number | null; selectedSlots: readonly GridPosition[]; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly SessionSlot[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly SessionSlot[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(393,7): error TS2554: Expected 1 arguments, but got 5.
+src/ui/session-clip-adapter.ts(393,18): error TS2339: Property 'startTick' does not exist on type 'ClipRecord'.
+src/ui/session-clip-adapter.ts(394,18): error TS2339: Property 'lengthTicks' does not exist on type 'ClipRecord'.
+src/ui/session-clip-adapter.ts(399,27): error TS2345: Argument of type 'ClipRecord' is not assignable to parameter of type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/ui/session-clip-adapter.ts(499,5): error TS4104: The type 'readonly any[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(501,5): error TS2322: Type 'Readonly<{ slots: (readonly SessionSlot[])[]; trackCount: number; sceneCount: number; tracks: readonly TrackHeader[]; scenes: readonly SceneHeader[]; playingScene: number | null; queuedScene: number | null; selectedSlots: readonly GridPosition[]; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly SessionSlot[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly SessionSlot[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(534,5): error TS2322: Type 'Readonly<{ slots: (readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[])[]; selectedSlots: GridPosition[]; ... 5 more ...; queuedScene: number | null; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(550,5): error TS2322: Type 'Readonly<{ slots: (readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[])[]; selectedSlots: never[]; trackCount: number; ... 4 more ...; queuedScene: number | null; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(581,5): error TS2322: Type 'Readonly<{ slots: (readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[])[]; selectedSlots: GridPosition[]; ... 5 more ...; queuedScene: number | null; }>' is not assignable to type 'SessionSharedState'.
+  Types of property 'slots' are incompatible.
+    Type '(readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[])[]' is not assignable to type 'readonly SessionSlot[][]'.
+      The type 'readonly { selected: boolean; position: GridPosition; clipId?: ClipId; state: ClipSlotState; color?: string; name?: string; }[]' is 'readonly' and cannot be assigned to the mutable type 'SessionSlot[]'.
+src/ui/session-clip-adapter.ts(598,5): error TS2375: Type '{ muted: boolean; trackIndex?: number; name?: string; color?: string; soloed?: boolean; armed?: boolean; volume?: number; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' is not assignable to type 'TrackHeader' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'trackIndex' is optional in type '{ muted: boolean; trackIndex?: number; name?: string; color?: string; soloed?: boolean; armed?: boolean; volume?: number; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' but required in type 'TrackHeader'.
+src/ui/session-clip-adapter.ts(612,5): error TS2375: Type '{ soloed: boolean; trackIndex?: number; name?: string; color?: string; muted?: boolean; armed?: boolean; volume?: number; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' is not assignable to type 'TrackHeader' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'trackIndex' is optional in type '{ soloed: boolean; trackIndex?: number; name?: string; color?: string; muted?: boolean; armed?: boolean; volume?: number; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' but required in type 'TrackHeader'.
+src/ui/session-clip-adapter.ts(626,5): error TS2375: Type '{ armed: boolean; trackIndex?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; volume?: number; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' is not assignable to type 'TrackHeader' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'trackIndex' is optional in type '{ armed: boolean; trackIndex?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; volume?: number; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' but required in type 'TrackHeader'.
+src/ui/session-clip-adapter.ts(640,5): error TS2375: Type '{ volume: number; trackIndex?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; armed?: boolean; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' is not assignable to type 'TrackHeader' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'trackIndex' is optional in type '{ volume: number; trackIndex?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; armed?: boolean; pan?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' but required in type 'TrackHeader'.
+src/ui/session-clip-adapter.ts(654,5): error TS2375: Type '{ pan: number; trackIndex?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; armed?: boolean; volume?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' is not assignable to type 'TrackHeader' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'trackIndex' is optional in type '{ pan: number; trackIndex?: number; name?: string; color?: string; muted?: boolean; soloed?: boolean; armed?: boolean; volume?: number; io?: TrackIO; sends?: readonly TrackSend[]; meter?: TrackMeter; }' but required in type 'TrackHeader'.
+src/ui/session-view-store-bridge.ts(17,1): error TS6133: 'Event' is declared but its value is never read.
+src/ui/session-view-store-bridge.ts(18,1): error TS6133: 'Tick' is declared but its value is never read.
+src/ui/session-view-store-bridge.ts(23,3): error TS6196: 'SubscriptionId' is declared but never used.
+src/ui/session-view-store-bridge.ts(30,3): error TS6133: 'executeWithUndo' is declared but its value is never read.
+src/ui/session-view-store-bridge.ts(158,42): error TS2551: Property 'subscribe' does not exist on type 'ClipRegistry'. Did you mean 'unsubscribe'?
+src/ui/session-view-store-bridge.ts(165,34): error TS2345: Argument of type 'TransportSnapshot' is not assignable to parameter of type 'TransportState'.
+src/ui/session-view-store-bridge.ts(222,41): error TS2345: Argument of type 'never[]' is not assignable to parameter of type 'CreateEventStreamOptions<unknown>'.
+  Property 'name' is missing in type 'never[]' but required in type 'CreateEventStreamOptions<unknown>'.
+src/ui/session-view-store-bridge.ts(227,7): error TS2322: Type 'EventStreamRecord<unknown>' is not assignable to type 'EventStreamId'.
+  Type 'EventStreamRecord<unknown>' is not assignable to type 'string'.
+src/ui/session-view-store-bridge.ts(236,34): error TS2345: Argument of type 'ClipRecord' is not assignable to parameter of type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/ui/session-view-store-bridge.ts(237,25): error TS2345: Argument of type 'ClipRecord' is not assignable to parameter of type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/ui/session-view-store-bridge.ts(240,5): error TS2322: Type 'ClipRecord' is not assignable to type 'ClipId'.
+  Type 'ClipRecord' is not assignable to type 'string'.
+src/ui/session-view-store-bridge.ts(296,7): error TS2322: Type 'ClipRecord | undefined' is not assignable to type 'ClipRecord | null'.
+  Type 'undefined' is not assignable to type 'ClipRecord | null'.
+src/ui/session-view-store-bridge.ts(346,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/ui/session-view-store-bridge.ts(347,20): error TS2339: Property 'length' does not exist on type 'ClipRecord'.
+src/ui/session-view-store-bridge.ts(348,25): error TS2339: Property 'loopEnabled' does not exist on type 'ClipRecord'.
+src/ui/session-view-store-bridge.ts(363,71): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/ui/session-view-store-bridge.ts(471,5): error TS2375: Type '{ id?: string; name?: string; color?: string; armed?: boolean; muted?: boolean; soloed?: boolean; volume?: number; pan?: number; }' is not assignable to type 'SessionTrackConfig' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Property 'id' is optional in type '{ id?: string; name?: string; color?: string; armed?: boolean; muted?: boolean; soloed?: boolean; volume?: number; pan?: number; }' but required in type 'SessionTrackConfig'.
+src/ui/session-view-store-bridge.ts(568,15): error TS2339: Property 'isPlaying' does not exist on type 'TransportState'.
+  Property 'isPlaying' does not exist on type '"recording"'.
+src/ui/session-view-store-bridge.ts(569,33): error TS2339: Property 'currentTick' does not exist on type 'TransportState'.
+  Property 'currentTick' does not exist on type '"recording"'.
+src/ui/session-view-store-bridge.ts(589,14): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/ui/session-view-store-bridge.ts(589,26): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+EXIT_CODE=1

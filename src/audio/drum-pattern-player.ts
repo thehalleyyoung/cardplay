@@ -1,0 +1,759 @@
+/**
+ * @fileoverview Drum Pattern Player
+ * 
+ * Integrates drum patterns with the sampler for real-time playback:
+ * - Schedule patterns to AudioContext time
+ * - Apply groove and swing in real-time
+ * - Humanization and feel adjustments
+ * - Pattern chaining and variations
+ * - Tempo sync and transport control
+ * 
+ * @module @cardplay/core/audio/drum-pattern-player
+ */
+
+import {
+  type DrumPattern,
+  type DrumHit,
+  type GrooveSettings,
+  SWING,
+  VEL,
+  applySwing,
+  getPatternById,
+  ALL_PATTERNS,
+} from './drum-patterns';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * Transport state for pattern playback.
+ */
+export type TransportState = 'stopped' | 'playing' | 'paused' | 'recording';
+
+/**
+ * A scheduled note event.
+ */
+export interface ScheduledNote {
+  /** MIDI note number */
+  note: number;
+  /** Velocity (0-127) */
+  velocity: number;
+  /** Start time in seconds (AudioContext time) */
+  startTime: number;
+  /** Duration in seconds */
+  duration: number;
+  /** Original pattern hit reference */
+  hit: DrumHit;
+}
+
+/**
+ * Pattern playback options.
+ */
+export interface PatternPlaybackOptions {
+  /** Tempo in BPM (overrides pattern suggestion) */
+  tempo?: number;
+  /** Loop the pattern */
+  loop?: boolean;
+  /** Number of times to loop (0 = infinite) */
+  loopCount?: number;
+  /** Start from this beat (1-based) */
+  startBeat?: number;
+  /** End at this beat (1-based) */
+  endBeat?: number;
+  /** Override groove settings */
+  groove?: Partial<GrooveSettings>;
+  /** Velocity multiplier (0-2) */
+  velocityScale?: number;
+  /** Quantize to grid (beats, 0 = no quantize) */
+  quantize?: number;
+}
+
+/**
+ * A clip containing one or more patterns.
+ */
+export interface DrumClip {
+  /** Unique clip ID */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Patterns in the clip (in order) */
+  patterns: Array<{
+    pattern: DrumPattern;
+    options?: PatternPlaybackOptions;
+  }>;
+  /** Total length in beats */
+  lengthBeats: number;
+  /** Time signature */
+  timeSignature: [number, number];
+  /** Base tempo */
+  tempo: number;
+  /** Global groove override */
+  groove?: Partial<GrooveSettings>;
+}
+
+/**
+ * Voice trigger callback signature.
+ * Called when a note should be triggered on the sampler.
+ */
+export type VoiceTriggerCallback = (
+  note: number,
+  velocity: number,
+  duration: number,
+  startTime: number
+) => void;
+
+/**
+ * Pattern player state.
+ */
+export interface PatternPlayerState {
+  /** Current transport state */
+  transport: TransportState;
+  /** Current tempo */
+  tempo: number;
+  /** Current beat position (1-based) */
+  beat: number;
+  /** Current bar number */
+  bar: number;
+  /** Is looping enabled */
+  looping: boolean;
+  /** Time signature */
+  timeSignature: [number, number];
+  /** Currently playing pattern ID */
+  currentPatternId?: string;
+  /** Currently playing clip ID */
+  currentClipId?: string;
+}
+
+/**
+ * Drum pattern player configuration.
+ */
+export interface PatternPlayerConfig {
+  /** Audio context for timing */
+  audioContext: BaseAudioContext;
+  /** Callback to trigger voices on sampler */
+  triggerVoice: VoiceTriggerCallback;
+  /** Look-ahead time for scheduling (seconds) */
+  lookAhead?: number;
+  /** Schedule interval (milliseconds) */
+  scheduleInterval?: number;
+  /** Default humanization amount (0-1) */
+  defaultHumanize?: number;
+}
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/** Default look-ahead time (seconds) */
+const DEFAULT_LOOK_AHEAD = 0.1;
+
+/** Default schedule interval (milliseconds) */
+const DEFAULT_SCHEDULE_INTERVAL = 25;
+
+/** Maximum humanize timing offset (seconds) */
+const MAX_HUMANIZE_TIME = 0.015;
+
+/** Maximum humanize velocity variation */
+const MAX_HUMANIZE_VELOCITY = 10;
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Convert beats to seconds at a given tempo.
+ */
+export function beatsToSeconds(beats: number, tempo: number): number {
+  return (beats * 60) / tempo;
+}
+
+/**
+ * Convert seconds to beats at a given tempo.
+ */
+export function secondsToBeats(seconds: number, tempo: number): number {
+  return (seconds * tempo) / 60;
+}
+
+/**
+ * Apply humanization to a scheduled note.
+ */
+export function humanizeNote(
+  note: ScheduledNote,
+  amount: number,
+  seed?: number
+): ScheduledNote {
+  if (amount <= 0) return note;
+  
+  // Use seed or random
+  const rand1 = seed !== undefined 
+    ? Math.sin(seed * 12.9898 + note.startTime * 78.233) * 43758.5453 % 1
+    : Math.random();
+  const rand2 = seed !== undefined
+    ? Math.sin(seed * 78.233 + note.startTime * 12.9898) * 43758.5453 % 1
+    : Math.random();
+  
+  // Apply timing jitter
+  const timeOffset = (rand1 - 0.5) * 2 * MAX_HUMANIZE_TIME * amount;
+  
+  // Apply velocity variation (keep within 1-127)
+  const velOffset = Math.round((rand2 - 0.5) * 2 * MAX_HUMANIZE_VELOCITY * amount);
+  const newVelocity = Math.max(1, Math.min(127, note.velocity + velOffset));
+  
+  return {
+    ...note,
+    startTime: note.startTime + timeOffset,
+    velocity: newVelocity,
+  };
+}
+
+/**
+ * Apply feel (push/pull) timing to a beat.
+ */
+export function applyFeel(beatTime: number, feelMs: number): number {
+  return beatTime + feelMs / 1000;
+}
+
+/**
+ * Apply groove settings to pattern hits.
+ */
+export function applyGroove(
+  hits: DrumHit[],
+  groove: GrooveSettings,
+  tempo: number,
+  startTime: number
+): ScheduledNote[] {
+  const notes: ScheduledNote[] = [];
+  
+  for (const hit of hits) {
+    // Apply swing to beat position
+    let adjustedBeat = hit.beat;
+    if (groove.swing !== SWING.STRAIGHT) {
+      adjustedBeat = applySwing(hit.beat, groove.swing, groove.swingTarget);
+    }
+    
+    // Convert to time
+    let noteTime = startTime + beatsToSeconds(adjustedBeat - 1, tempo);
+    
+    // Apply feel (push/pull)
+    noteTime = applyFeel(noteTime, groove.feel);
+    
+    // Scale velocity
+    let velocity = Math.round(hit.velocity * groove.velocityScale);
+    velocity = Math.max(1, Math.min(127, velocity));
+    
+    // Default duration for drums
+    const duration = hit.duration 
+      ? beatsToSeconds(hit.duration, tempo)
+      : 0.1;
+    
+    notes.push({
+      note: hit.note,
+      velocity,
+      startTime: noteTime,
+      duration,
+      hit,
+    });
+  }
+  
+  // Apply humanization
+  if (groove.humanize > 0) {
+    return notes.map((note, i) => humanizeNote(note, groove.humanize, i * 0.1));
+  }
+  
+  return notes;
+}
+
+/**
+ * Merge groove settings with defaults.
+ */
+export function mergeGroove(
+  base: GrooveSettings,
+  override?: Partial<GrooveSettings>
+): GrooveSettings {
+  const result: GrooveSettings = {
+    swing: override?.swing ?? base.swing,
+    swingTarget: override?.swingTarget ?? base.swingTarget,
+    velocityScale: override?.velocityScale ?? base.velocityScale,
+    humanize: override?.humanize ?? base.humanize,
+    feel: override?.feel ?? base.feel,
+  };
+  if (base.template !== undefined || override?.template !== undefined) {
+    const templateValue = override?.template ?? base.template;
+    if (templateValue !== undefined) {
+      result.template = templateValue;
+    }
+  }
+  return result;
+}
+
+// ============================================================================
+// CLIP CREATION
+// ============================================================================
+
+/**
+ * Create a clip from a single pattern.
+ */
+export function createClipFromPattern(
+  pattern: DrumPattern,
+  options?: PatternPlaybackOptions
+): DrumClip {
+  const patternEntry: { pattern: DrumPattern; options?: PatternPlaybackOptions } = 
+    options !== undefined ? { pattern, options } : { pattern };
+  const clipData: DrumClip = {
+    id: `clip-${pattern.id}`,
+    name: pattern.name,
+    patterns: [patternEntry],
+    lengthBeats: pattern.lengthBeats,
+    timeSignature: [pattern.timeSignatureNumerator, pattern.timeSignatureDenominator],
+    tempo: options?.tempo ?? pattern.suggestedTempo,
+  };
+  if (options?.groove !== undefined) {
+    clipData.groove = options.groove;
+  }
+  return clipData;
+}
+
+/**
+ * Create a clip from multiple patterns (chained).
+ */
+export function createClipFromPatterns(
+  name: string,
+  patterns: Array<{ pattern: DrumPattern; options?: PatternPlaybackOptions }>,
+  tempo?: number
+): DrumClip {
+  let totalBeats = 0;
+  for (const { pattern } of patterns) {
+    totalBeats += pattern.lengthBeats;
+  }
+  
+  const firstPattern = patterns[0]?.pattern;
+  
+  return {
+    id: `clip-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+    name,
+    patterns,
+    lengthBeats: totalBeats,
+    timeSignature: firstPattern 
+      ? [firstPattern.timeSignatureNumerator, firstPattern.timeSignatureDenominator]
+      : [4, 4],
+    tempo: tempo ?? firstPattern?.suggestedTempo ?? 120,
+  };
+}
+
+/**
+ * Create a clip with pattern variations (intro, verse, chorus, etc.)
+ */
+export function createArrangementClip(
+  name: string,
+  arrangement: Array<{ patternId: string; bars?: number }>,
+  tempo?: number
+): DrumClip | null {
+  const patterns: Array<{ pattern: DrumPattern; options?: PatternPlaybackOptions }> = [];
+  
+  for (const item of arrangement) {
+    const pattern = getPatternById(item.patternId);
+    if (!pattern) {
+      console.warn(`Pattern not found: ${item.patternId}`);
+      continue;
+    }
+    
+    // Repeat pattern for specified bars
+    const repeats = item.bars ? Math.ceil(item.bars * 4 / pattern.lengthBeats) : 1;
+    for (let i = 0; i < repeats; i++) {
+      patterns.push({ pattern });
+    }
+  }
+  
+  if (patterns.length === 0) return null;
+  
+  return createClipFromPatterns(name, patterns, tempo);
+}
+
+// ============================================================================
+// PATTERN PLAYER CLASS
+// ============================================================================
+
+/**
+ * Drum pattern player with transport control and scheduling.
+ */
+export class DrumPatternPlayer {
+  private audioContext: BaseAudioContext;
+  private triggerVoice: VoiceTriggerCallback;
+  private lookAhead: number;
+  private scheduleInterval: number;
+  private defaultHumanize: number;
+  
+  private state: PatternPlayerState;
+  private currentClip: DrumClip | null = null;
+  private scheduledNotes: ScheduledNote[] = [];
+  private schedulerTimer: ReturnType<typeof setInterval> | null = null;
+  private patternStartTime: number = 0;
+  private loopStartTime: number = 0;
+  // private nextScheduleTime: number = 0; // TODO: implement lookahead scheduling
+  private currentLoop: number = 0;
+  private maxLoops: number = 0;
+  
+  constructor(config: PatternPlayerConfig) {
+    this.audioContext = config.audioContext;
+    this.triggerVoice = config.triggerVoice;
+    this.lookAhead = config.lookAhead ?? DEFAULT_LOOK_AHEAD;
+    this.scheduleInterval = config.scheduleInterval ?? DEFAULT_SCHEDULE_INTERVAL;
+    this.defaultHumanize = config.defaultHumanize ?? 0.05;
+    
+    this.state = {
+      transport: 'stopped',
+      tempo: 120,
+      beat: 1,
+      bar: 1,
+      looping: false,
+      timeSignature: [4, 4],
+    };
+  }
+  
+  /**
+   * Get current player state.
+   */
+  getState(): Readonly<PatternPlayerState> {
+    return { ...this.state };
+  }
+  
+  /**
+   * Set tempo.
+   */
+  setTempo(tempo: number): void {
+    if (tempo < 20 || tempo > 999) {
+      throw new Error(`Invalid tempo: ${tempo}`);
+    }
+    this.state.tempo = tempo;
+  }
+  
+  /**
+   * Load a pattern for playback.
+   */
+  loadPattern(pattern: DrumPattern, options?: PatternPlaybackOptions): void {
+    this.stop();
+    this.currentClip = createClipFromPattern(pattern, options);
+    this.state.tempo = options?.tempo ?? pattern.suggestedTempo;
+    this.state.timeSignature = [pattern.timeSignatureNumerator, pattern.timeSignatureDenominator];
+    this.state.currentPatternId = pattern.id;
+    this.state.currentClipId = this.currentClip.id;
+  }
+  
+  /**
+   * Load a pattern by ID.
+   */
+  loadPatternById(patternId: string, options?: PatternPlaybackOptions): boolean {
+    const pattern = getPatternById(patternId);
+    if (!pattern) {
+      console.warn(`Pattern not found: ${patternId}`);
+      return false;
+    }
+    this.loadPattern(pattern, options);
+    return true;
+  }
+  
+  /**
+   * Load a clip for playback.
+   */
+  loadClip(clip: DrumClip): void {
+    this.stop();
+    this.currentClip = clip;
+    this.state.tempo = clip.tempo;
+    this.state.timeSignature = clip.timeSignature;
+    this.state.currentClipId = clip.id;
+    delete this.state.currentPatternId;
+  }
+  
+  /**
+   * Play the loaded pattern/clip.
+   */
+  play(options?: { loop?: boolean; loopCount?: number }): void {
+    if (!this.currentClip) {
+      console.warn('No pattern or clip loaded');
+      return;
+    }
+    
+    // Resume audio context if needed
+    if (this.audioContext.state === 'suspended') {
+      (this.audioContext as AudioContext).resume?.();
+    }
+    
+    this.state.transport = 'playing';
+    this.state.looping = options?.loop ?? false;
+    this.maxLoops = options?.loopCount ?? 0;
+    this.currentLoop = 0;
+    
+    // Schedule from current audio time
+    this.patternStartTime = this.audioContext.currentTime + 0.05;
+    this.loopStartTime = this.patternStartTime;
+    // this.nextScheduleTime = this.patternStartTime;
+    this.state.beat = 1;
+    this.state.bar = 1;
+    
+    // Schedule initial notes
+    this.scheduleNotes();
+    
+    // Start scheduler loop
+    this.startScheduler();
+  }
+  
+  /**
+   * Stop playback.
+   */
+  stop(): void {
+    this.state.transport = 'stopped';
+    this.state.beat = 1;
+    this.state.bar = 1;
+    this.stopScheduler();
+    this.scheduledNotes = [];
+  }
+  
+  /**
+   * Pause playback.
+   */
+  pause(): void {
+    if (this.state.transport === 'playing') {
+      this.state.transport = 'paused';
+      this.stopScheduler();
+    }
+  }
+  
+  /**
+   * Resume from pause.
+   */
+  resume(): void {
+    if (this.state.transport === 'paused') {
+      this.state.transport = 'playing';
+      // this.nextScheduleTime = this.audioContext.currentTime + 0.05;
+      this.startScheduler();
+    }
+  }
+  
+  /**
+   * Schedule notes for the look-ahead window.
+   */
+  private scheduleNotes(): void {
+    if (!this.currentClip || this.state.transport !== 'playing') return;
+    
+    const now = this.audioContext.currentTime;
+    const scheduleEnd = now + this.lookAhead;
+    
+    // Get all notes that should be scheduled
+    const clipDuration = beatsToSeconds(this.currentClip.lengthBeats, this.state.tempo);
+    
+    // Calculate current position in clip
+    let currentPatternOffset = 0;
+    
+    for (const { pattern, options } of this.currentClip.patterns) {
+      const patternDuration = beatsToSeconds(pattern.lengthBeats, this.state.tempo);
+      const patternStart = this.loopStartTime + beatsToSeconds(currentPatternOffset, this.state.tempo);
+      const patternEnd = patternStart + patternDuration;
+      
+      // Check if this pattern falls within our schedule window
+      if (patternEnd >= now && patternStart < scheduleEnd) {
+        // Apply groove settings
+        const groove = mergeGroove(
+          pattern.groove,
+          {
+            ...this.currentClip.groove,
+            ...options?.groove,
+            humanize: options?.groove?.humanize ?? this.defaultHumanize,
+          }
+        );
+        
+        // Get notes with groove applied
+        const notes = applyGroove(
+          pattern.hits,
+          groove,
+          this.state.tempo,
+          patternStart
+        );
+        
+        // Filter to only notes in our schedule window that haven't been scheduled
+        for (const note of notes) {
+          if (note.startTime >= now && note.startTime < scheduleEnd) {
+            // Check if already scheduled
+            const alreadyScheduled = this.scheduledNotes.some(
+              n => Math.abs(n.startTime - note.startTime) < 0.001 && n.note === note.note
+            );
+            
+            if (!alreadyScheduled) {
+              // Apply velocity scaling from options
+              const velocityScale = options?.velocityScale ?? 1;
+              const scaledVelocity = Math.max(1, Math.min(127, 
+                Math.round(note.velocity * velocityScale)
+              ));
+              
+              // Trigger the voice
+              this.triggerVoice(
+                note.note,
+                scaledVelocity,
+                note.duration,
+                note.startTime
+              );
+              
+              this.scheduledNotes.push(note);
+            }
+          }
+        }
+      }
+      
+      currentPatternOffset += pattern.lengthBeats;
+    }
+    
+    // Update beat/bar position
+    const elapsedTime = now - this.loopStartTime;
+    const elapsedBeats = secondsToBeats(elapsedTime, this.state.tempo);
+    const [beatsPerBar] = this.state.timeSignature;
+    
+    this.state.beat = (elapsedBeats % beatsPerBar) + 1;
+    this.state.bar = Math.floor(elapsedBeats / beatsPerBar) + 1;
+    
+    // Check for loop
+    if (now >= this.loopStartTime + clipDuration) {
+      if (this.state.looping) {
+        this.currentLoop++;
+        
+        // Check if we've hit the loop limit
+        if (this.maxLoops > 0 && this.currentLoop >= this.maxLoops) {
+          this.stop();
+          return;
+        }
+        
+        // Reset for next loop
+        this.loopStartTime = this.loopStartTime + clipDuration;
+        this.scheduledNotes = [];
+        this.state.beat = 1;
+        this.state.bar = 1;
+      } else {
+        // Pattern finished, stop
+        this.stop();
+      }
+    }
+    
+    // Cleanup old scheduled notes
+    this.scheduledNotes = this.scheduledNotes.filter(n => n.startTime >= now - 1);
+    
+    // this.nextScheduleTime = scheduleEnd;
+  }
+  
+  /**
+   * Start the scheduler timer.
+   */
+  private startScheduler(): void {
+    this.stopScheduler();
+    this.schedulerTimer = setInterval(() => {
+      this.scheduleNotes();
+    }, this.scheduleInterval);
+  }
+  
+  /**
+   * Stop the scheduler timer.
+   */
+  private stopScheduler(): void {
+    if (this.schedulerTimer !== null) {
+      clearInterval(this.schedulerTimer);
+      this.schedulerTimer = null;
+    }
+  }
+  
+  /**
+   * Trigger a single pattern hit immediately (for preview/audition).
+   */
+  triggerHit(note: number, velocity: number = VEL.mf): void {
+    this.triggerVoice(note, velocity, 0.1, this.audioContext.currentTime);
+  }
+  
+  /**
+   * Get all available pattern IDs.
+   */
+  static getAvailablePatterns(): string[] {
+    return ALL_PATTERNS.map(p => p.id);
+  }
+  
+  /**
+   * Get pattern info by ID.
+   */
+  static getPatternInfo(patternId: string): DrumPattern | undefined {
+    return getPatternById(patternId);
+  }
+}
+
+// ============================================================================
+// SAMPLER INTEGRATION
+// ============================================================================
+
+/**
+ * Configuration for sampler drum pattern integration.
+ */
+export interface SamplerPatternIntegration {
+  /** Create a voice trigger callback for a sampler */
+  createTriggerCallback: (
+    playNote: (note: number, velocity: number, time: number, duration: number) => void
+  ) => VoiceTriggerCallback;
+}
+
+/**
+ * Create a voice trigger callback that works with the sampler.
+ */
+export function createSamplerTrigger(
+  playNote: (note: number, velocity: number, time: number, duration: number) => void
+): VoiceTriggerCallback {
+  return (note, velocity, duration, startTime) => {
+    playNote(note, velocity, startTime, duration);
+  };
+}
+
+/**
+ * Quick play a pattern by ID with minimal setup.
+ * Useful for one-shot pattern playback.
+ */
+export function quickPlayPattern(
+  patternId: string,
+  audioContext: BaseAudioContext,
+  triggerVoice: VoiceTriggerCallback,
+  options?: PatternPlaybackOptions & { loop?: boolean }
+): DrumPatternPlayer | null {
+  const pattern = getPatternById(patternId);
+  if (!pattern) {
+    console.warn(`Pattern not found: ${patternId}`);
+    return null;
+  }
+  
+  const player = new DrumPatternPlayer({
+    audioContext,
+    triggerVoice,
+  });
+  
+  player.loadPattern(pattern, options);
+  player.play({ loop: options?.loop ?? false });
+  
+  return player;
+}
+
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
+export default {
+  // Classes
+  DrumPatternPlayer,
+  
+  // Clip creation
+  createClipFromPattern,
+  createClipFromPatterns,
+  createArrangementClip,
+  
+  // Utility functions
+  beatsToSeconds,
+  secondsToBeats,
+  humanizeNote,
+  applyFeel,
+  applyGroove,
+  mergeGroove,
+  
+  // Sampler integration
+  createSamplerTrigger,
+  quickPlayPattern,
+};
