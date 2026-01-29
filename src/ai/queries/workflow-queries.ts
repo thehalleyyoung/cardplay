@@ -114,6 +114,37 @@ export interface IssueExplanation {
 }
 
 // =============================================================================
+// Types – Workflow Interruption & Resume (N016)
+// =============================================================================
+
+/** Policy for handling a workflow interruption. */
+export interface WorkflowInterruptPolicy {
+  readonly goal: string;
+  readonly policy: string;
+}
+
+/** Snapshot of a suspended workflow. */
+export interface WorkflowSuspendedState {
+  readonly goal: string;
+  readonly persona: string;
+  readonly totalSteps: string[];
+  readonly completedStepIndex: number;
+  readonly interruptPolicy: string;
+  readonly skippableSteps: string[];
+  readonly checkpointSteps: string[];
+  readonly suspendedAt: number;
+}
+
+/** Plan for resuming a suspended workflow. */
+export interface WorkflowResumePlan {
+  readonly goal: string;
+  readonly resumeFromIndex: number;
+  readonly remainingSteps: string[];
+  readonly skippedSteps: string[];
+  readonly strategy: string;
+}
+
+// =============================================================================
 // Workflow Planning Queries (N001-N050)
 // =============================================================================
 
@@ -1227,3 +1258,343 @@ export async function optimizeConfiguration(
 
   return { goal, changes, syncRules };
 }
+
+// =============================================================================
+// Workflow Interruption & Resume (N016)
+// =============================================================================
+
+/**
+ * N016: Get the interrupt policy for a workflow goal.
+ */
+export async function getWorkflowInterruptPolicy(
+  goal: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<WorkflowInterruptPolicy | null> {
+  await ensureWorkflowKB(adapter);
+  const result = await adapter.querySingle(
+    `workflow_interrupt_policy(${goal}, Policy)`
+  );
+  if (!result) return null;
+  return { goal, policy: String(result.Policy) };
+}
+
+/**
+ * N016: Get steps that can be safely skipped on resume for a goal.
+ */
+export async function getWorkflowSkippableSteps(
+  goal: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string[]> {
+  await ensureWorkflowKB(adapter);
+  const results = await adapter.queryAll(
+    `workflow_skip_on_resume(${goal}, Step)`
+  );
+  return results.map((r) => String(r.Step));
+}
+
+/**
+ * N016: Get checkpoint steps (steps that produce saveable state).
+ */
+export async function getWorkflowCheckpointSteps(
+  goal: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string[]> {
+  await ensureWorkflowKB(adapter);
+  const results = await adapter.queryAll(
+    `workflow_checkpoint_step(${goal}, Step)`
+  );
+  return results.map((r) => String(r.Step));
+}
+
+/**
+ * N016: Suspend a running workflow, capturing its state.
+ *
+ * @param goal - The workflow goal (e.g., 'make_beat').
+ * @param persona - The persona executing the workflow.
+ * @param completedStepIndex - Index of the last completed step (0-based).
+ */
+export async function suspendWorkflow(
+  goal: string,
+  persona: string,
+  completedStepIndex: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<WorkflowSuspendedState | null> {
+  await ensureWorkflowKB(adapter);
+
+  // Get the full plan
+  const plan = await planWorkflow(goal, persona, adapter);
+  if (!plan) return null;
+
+  // Get interrupt policy
+  const policyResult = await getWorkflowInterruptPolicy(goal, adapter);
+  const interruptPolicy = policyResult?.policy ?? 'save_state';
+
+  // Get skippable and checkpoint steps
+  const skippable = await getWorkflowSkippableSteps(goal, adapter);
+  const checkpoints = await getWorkflowCheckpointSteps(goal, adapter);
+
+  return {
+    goal,
+    persona,
+    totalSteps: plan.steps,
+    completedStepIndex: Math.min(completedStepIndex, plan.steps.length - 1),
+    interruptPolicy,
+    skippableSteps: skippable,
+    checkpointSteps: checkpoints,
+    suspendedAt: Date.now(),
+  };
+}
+
+/**
+ * N016: Create a resume plan from a suspended workflow state.
+ *
+ * Determines which remaining steps to execute, which can be skipped,
+ * and the overall resume strategy.
+ */
+export function resumeWorkflow(
+  suspended: WorkflowSuspendedState
+): WorkflowResumePlan {
+  const { goal, totalSteps, completedStepIndex, skippableSteps } = suspended;
+
+  const resumeFromIndex = completedStepIndex + 1;
+  const remainingSteps = totalSteps.slice(resumeFromIndex);
+
+  // Determine which remaining steps can be skipped (already persisted state)
+  const skippedSteps = remainingSteps.filter((step) =>
+    skippableSteps.includes(step)
+  );
+
+  // Filter to only non-skippable remaining steps
+  const actualSteps = remainingSteps.filter(
+    (step) => !skippableSteps.includes(step)
+  );
+
+  return {
+    goal,
+    resumeFromIndex,
+    remainingSteps: actualSteps,
+    skippedSteps,
+    strategy: 'resume_from_step',
+  };
+}
+
+// =============================================================================
+// N015: Workflow Template Library
+// =============================================================================
+
+/** A workflow template representing a common goal with pre-defined steps. */
+export interface WorkflowTemplate {
+  readonly templateId: string;
+  readonly goal: string;
+  readonly description: string;
+  readonly persona: string;
+  readonly category: WorkflowTemplateCategory;
+  readonly estimatedSteps: number;
+  readonly requiredDecks: readonly string[];
+  readonly tags: readonly string[];
+}
+
+/** Categories for workflow templates. */
+export type WorkflowTemplateCategory =
+  | 'composition'
+  | 'production'
+  | 'mixing'
+  | 'mastering'
+  | 'sound-design'
+  | 'performance'
+  | 'arrangement'
+  | 'general';
+
+/**
+ * N015: Get the complete workflow template library.
+ * Returns pre-defined workflow templates for common goals, indexed by persona.
+ */
+export function getWorkflowTemplateLibrary(): readonly WorkflowTemplate[] {
+  return WORKFLOW_TEMPLATE_LIBRARY;
+}
+
+/**
+ * N015: Get workflow templates for a specific persona.
+ */
+export function getWorkflowTemplatesForPersona(persona: string): readonly WorkflowTemplate[] {
+  return WORKFLOW_TEMPLATE_LIBRARY.filter(t => t.persona === persona || t.persona === 'any');
+}
+
+/**
+ * N015: Get workflow templates by category.
+ */
+export function getWorkflowTemplatesByCategory(category: WorkflowTemplateCategory): readonly WorkflowTemplate[] {
+  return WORKFLOW_TEMPLATE_LIBRARY.filter(t => t.category === category);
+}
+
+/**
+ * N015: Search workflow templates by query.
+ */
+export function searchWorkflowTemplates(query: string): readonly WorkflowTemplate[] {
+  const q = query.toLowerCase();
+  return WORKFLOW_TEMPLATE_LIBRARY.filter(
+    t =>
+      t.goal.toLowerCase().includes(q) ||
+      t.description.toLowerCase().includes(q) ||
+      t.tags.some(tag => tag.toLowerCase().includes(q))
+  );
+}
+
+/**
+ * N015: Get a specific workflow template by ID.
+ */
+export function getWorkflowTemplateById(templateId: string): WorkflowTemplate | null {
+  return WORKFLOW_TEMPLATE_LIBRARY.find(t => t.templateId === templateId) ?? null;
+}
+
+/** N015: Pre-defined workflow template library. */
+const WORKFLOW_TEMPLATE_LIBRARY: readonly WorkflowTemplate[] = [
+  // === Composition Templates ===
+  {
+    templateId: 'wf_compose_score',
+    goal: 'compose_score',
+    description: 'Compose a score from scratch: set instruments, key, write melody, add harmony, orchestrate.',
+    persona: 'notation_composer',
+    category: 'composition',
+    estimatedSteps: 7,
+    requiredDecks: ['notation-deck', 'instruments-deck', 'harmony-deck'],
+    tags: ['notation', 'orchestration', 'classical', 'score'],
+  },
+  {
+    templateId: 'wf_write_fugue',
+    goal: 'write_fugue',
+    description: 'Write a fugue: define subject, counter-subject, exposition, episodes.',
+    persona: 'notation_composer',
+    category: 'composition',
+    estimatedSteps: 8,
+    requiredDecks: ['notation-deck', 'harmony-deck'],
+    tags: ['fugue', 'counterpoint', 'baroque', 'form'],
+  },
+  {
+    templateId: 'wf_film_cue',
+    goal: 'compose_film_cue',
+    description: 'Compose a film cue: analyse scene, choose palette, write themes, sync to picture.',
+    persona: 'notation_composer',
+    category: 'composition',
+    estimatedSteps: 6,
+    requiredDecks: ['notation-deck', 'instruments-deck', 'arrangement-deck'],
+    tags: ['film', 'scoring', 'cinematic', 'sync'],
+  },
+  // === Beat Making Templates ===
+  {
+    templateId: 'wf_make_beat_tracker',
+    goal: 'make_beat',
+    description: 'Make a beat using the tracker: program drums, add bass, apply effects.',
+    persona: 'tracker_user',
+    category: 'production',
+    estimatedSteps: 8,
+    requiredDecks: ['pattern-deck', 'samples-deck', 'effects-deck', 'mixer-deck'],
+    tags: ['beat', 'drums', 'hip-hop', 'tracker'],
+  },
+  {
+    templateId: 'wf_make_beat_producer',
+    goal: 'make_beat',
+    description: 'Make a beat using session view: create tracks, load drums, program, mix.',
+    persona: 'producer',
+    category: 'production',
+    estimatedSteps: 9,
+    requiredDecks: ['session-deck', 'samples-deck', 'mixer-deck'],
+    tags: ['beat', 'production', 'session', 'arrangement'],
+  },
+  // === Sound Design Templates ===
+  {
+    templateId: 'wf_design_patch',
+    goal: 'design_sound_patch',
+    description: 'Design a synth patch: choose synthesis, shape oscillators, add modulation, apply FX.',
+    persona: 'sound_designer',
+    category: 'sound-design',
+    estimatedSteps: 6,
+    requiredDecks: ['dsp-chain', 'effects-deck', 'properties-deck'],
+    tags: ['synthesis', 'patch', 'preset', 'modular'],
+  },
+  {
+    templateId: 'wf_layer_sound',
+    goal: 'layer_sounds',
+    description: 'Layer multiple sounds: select sources, balance frequency, apply stereo placement.',
+    persona: 'sound_designer',
+    category: 'sound-design',
+    estimatedSteps: 5,
+    requiredDecks: ['dsp-chain', 'mixer-deck', 'properties-deck'],
+    tags: ['layering', 'frequency', 'mixing', 'sound-design'],
+  },
+  // === Mixing Templates ===
+  {
+    templateId: 'wf_mix_session',
+    goal: 'mix_session',
+    description: 'Full mix workflow: gain staging, EQ, compression, spatial, automation, reference.',
+    persona: 'producer',
+    category: 'mixing',
+    estimatedSteps: 10,
+    requiredDecks: ['mixer-deck', 'dsp-chain', 'automation-deck'],
+    tags: ['mixing', 'eq', 'compression', 'automation', 'reference'],
+  },
+  {
+    templateId: 'wf_bus_setup',
+    goal: 'setup_bus_routing',
+    description: 'Set up bus routing: group tracks, create send buses, configure parallel processing.',
+    persona: 'producer',
+    category: 'mixing',
+    estimatedSteps: 6,
+    requiredDecks: ['mixer-deck', 'routing-deck'],
+    tags: ['bus', 'routing', 'parallel', 'stems'],
+  },
+  // === Mastering Templates ===
+  {
+    templateId: 'wf_master_track',
+    goal: 'master_track',
+    description: 'Master a track: analyse loudness, apply EQ, compress, limit to target LUFS.',
+    persona: 'producer',
+    category: 'mastering',
+    estimatedSteps: 7,
+    requiredDecks: ['mixer-deck', 'dsp-chain', 'properties-deck'],
+    tags: ['mastering', 'loudness', 'LUFS', 'limiting', 'eq'],
+  },
+  // === Arrangement Templates ===
+  {
+    templateId: 'wf_arrange_song',
+    goal: 'arrange_song',
+    description: 'Arrange a full song: intro, verse, chorus, bridge, outro with transitions.',
+    persona: 'producer',
+    category: 'arrangement',
+    estimatedSteps: 8,
+    requiredDecks: ['arrangement-deck', 'session-deck', 'mixer-deck'],
+    tags: ['arrangement', 'structure', 'song', 'transitions'],
+  },
+  // === Performance Templates ===
+  {
+    templateId: 'wf_setup_live_set',
+    goal: 'setup_live_set',
+    description: 'Set up a live performance set: prepare scenes, map controls, configure MIDI.',
+    persona: 'tracker_user',
+    category: 'performance',
+    estimatedSteps: 6,
+    requiredDecks: ['session-deck', 'mixer-deck', 'effects-deck'],
+    tags: ['live', 'performance', 'scenes', 'midi', 'controls'],
+  },
+  // === General Templates ===
+  {
+    templateId: 'wf_explore_harmony',
+    goal: 'explore_harmony',
+    description: 'Explore harmonic possibilities: browse chord progressions, try modulations, find cadences.',
+    persona: 'any',
+    category: 'general',
+    estimatedSteps: 4,
+    requiredDecks: ['harmony-deck'],
+    tags: ['harmony', 'chords', 'exploration', 'theory'],
+  },
+  {
+    templateId: 'wf_learn_board',
+    goal: 'learn_board',
+    description: 'Learn a new board: follow tutorial, explore decks, try basic operations.',
+    persona: 'any',
+    category: 'general',
+    estimatedSteps: 5,
+    requiredDecks: ['ai-advisor-deck'],
+    tags: ['tutorial', 'learning', 'onboarding', 'beginner'],
+  },
+];

@@ -453,4 +453,113 @@ function injectMixerStyles(): void {
 // EXPORTS
 // ============================================================================
 
-export type { MixerPanelConfig, MixerTrack };
+// Types exported at top of file
+
+// ============================================================================
+// STREAM/CLIP INTEGRATION (E046)
+// ============================================================================
+
+/**
+ * Derives mixer tracks from SharedEventStore streams.
+ * 
+ * E046: Mixer panel deriving strips from streams/clips consistently.
+ */
+export function deriveMixerTracksFromStreams(
+  streams: ReadonlyMap<string, { id: string; name?: string }>,
+  options?: {
+    defaultVolume?: number;
+    defaultPan?: number;
+  }
+): MixerTrack[] {
+  const tracks: MixerTrack[] = [];
+  
+  for (const [streamId, stream] of streams) {
+    const track: MixerTrack = {
+      id: streamId,
+      name: stream.name ?? `Track ${tracks.length + 1}`,
+      volume: options?.defaultVolume ?? 0.8,
+      pan: options?.defaultPan ?? 0,
+      mute: false,
+      solo: false,
+      arm: false,
+      meterLevel: 0,
+      clipLevel: 0,
+    };
+    tracks.push(track);
+  }
+  
+  return tracks;
+}
+
+/**
+ * Derives mixer tracks from ClipRegistry clips.
+ * Groups clips by track and creates a mixer strip per track.
+ * 
+ * E046: Mixer panel deriving strips from streams/clips consistently.
+ */
+export function deriveMixerTracksFromClips(
+  clips: ReadonlyArray<{
+    id: string;
+    name: string;
+    streamId?: string;
+    trackId?: string;
+    color?: string;
+  }>,
+  options?: {
+    defaultVolume?: number;
+    defaultPan?: number;
+  }
+): MixerTrack[] {
+  // Group clips by track ID (or use clip's streamId as track ID)
+  const trackMap = new Map<string, { name: string; color: string | undefined }>();
+  
+  for (const clip of clips) {
+    const trackId = clip.trackId ?? clip.streamId ?? clip.id;
+    if (!trackMap.has(trackId)) {
+      trackMap.set(trackId, {
+        name: clip.name,
+        color: clip.color ?? undefined,
+      });
+    }
+  }
+  
+  const tracks: MixerTrack[] = [];
+  for (const [trackId, trackInfo] of trackMap) {
+    const track: MixerTrack = {
+      id: trackId,
+      name: trackInfo.name,
+      ...(trackInfo.color !== undefined && { color: trackInfo.color }),
+      volume: options?.defaultVolume ?? 0.8,
+      pan: options?.defaultPan ?? 0,
+      mute: false,
+      solo: false,
+      arm: false,
+      meterLevel: 0,
+      clipLevel: 0,
+    };
+    tracks.push(track);
+  }
+  
+  return tracks;
+}
+
+/**
+ * Updates mixer track meters from audio engine state.
+ * 
+ * E046: Mixer panel meters integration.
+ */
+export function updateMixerTrackMeters(
+  tracks: MixerTrack[],
+  meterData: Map<string, { level: number; clip: number }>
+): MixerTrack[] {
+  return tracks.map(track => {
+    const data = meterData.get(track.id);
+    if (!data) return track;
+    
+    return {
+      ...track,
+      meterLevel: data.level,
+      clipLevel: data.clip,
+    };
+  });
+}

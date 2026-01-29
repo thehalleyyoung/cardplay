@@ -166,6 +166,7 @@ export type DeckType =
   | 'session-deck'          // Session view clips
   | 'arrangement-deck'      // Timeline arrangement
   | 'instruments-deck'      // Instrument rack
+  | 'dsp-chain'             // DSP effect chain (E042)
   | 'effects-deck'          // Effect rack
   | 'samples-deck'          // Sample browser
   | 'phrases-deck'          // Phrase library
@@ -175,6 +176,8 @@ export type DeckType =
   | 'routing-deck'          // Routing graph
   | 'automation-deck'       // Automation lanes
   | 'properties-deck'       // Properties inspector
+  | 'transport-deck'        // Transport controls (E060)
+  | 'arranger-deck'         // Arranger sections (E057)
   | 'ai-advisor-deck';      // AI Advisor panel (L299)
 
 /**

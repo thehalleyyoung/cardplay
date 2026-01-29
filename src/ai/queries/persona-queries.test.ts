@@ -54,6 +54,9 @@ import {
   getRandomizationConstraints,
   getSoundDesignerBoardPresets,
   getSoundDesignerBoardDecks,
+  // M210: MIDI controller mapping
+  mapMIDIController,
+  getAllMIDIControllerMappings,
   // Producer
   suggestArrangementStructure,
   getGenreTemplate,
@@ -94,6 +97,42 @@ import {
   // Sound designer extras
   analyzeFrequencyBalance,
   suggestStereoPlacement,
+  // M102: Pattern resize
+  getPatternResizeRules,
+  suggestResizeOperation,
+  resizePatternNotes,
+  // M103: Quantization & swing
+  getQuantizationPresets,
+  getSwingPresets,
+  suggestQuantization,
+  quantizeWithSwing,
+  // M287-M292: Loudness & dynamics
+  getReferenceMatchingTechniques,
+  getLoudnessTargets,
+  getDynamicRangeTargets,
+  diagnoseLoudness,
+  analyzeLoudnessMultiPlatform,
+  suggestDynamicsProcessing,
+  // N130: Advanced features override
+  enableAdvancedFeaturesOverride,
+  disableAdvancedFeaturesOverride,
+  isAdvancedFeaturesOverrideActive,
+  getVisibleFeaturesWithOverride,
+  // M138-M139: Tracker macro assignments & automation
+  getTrackerMacroAssignments,
+  getTrackerMacroTrackTypes,
+  getAutomationRecordingModes,
+  suggestAutomationMode,
+  getAutomationTargets,
+  recordMacroAutomation,
+  // M148: Scene launch controls
+  getSceneLaunchControls,
+  getSceneTransitionRules,
+  suggestSceneTransition,
+  // M399: Persona feature matrix
+  getPersonaFeatureMatrix,
+  getFeaturesForPersona,
+  getFeaturesByCategory,
 } from './persona-queries';
 
 describe('Persona-Specific Query Functions', () => {
@@ -861,6 +900,48 @@ describe('Persona-Specific Query Functions', () => {
   });
 
   // ===========================================================================
+  // M210: MIDI Controller Mapping
+  // ===========================================================================
+
+  describe('Sound Designer: MIDI Controller Mapping (M210)', () => {
+    it('M210: maps mod_wheel to pad parameters', async () => {
+      const mapping = await mapMIDIController('mod_wheel', 'pad');
+      expect(mapping).not.toBeNull();
+      expect(mapping!.controller).toBe('mod_wheel');
+      expect(mapping!.soundType).toBe('pad');
+      expect(mapping!.targets).toContain('filter_cutoff');
+      expect(mapping!.targets).toContain('lfo_depth');
+    });
+
+    it('M210: maps aftertouch to lead parameters', async () => {
+      const mapping = await mapMIDIController('aftertouch', 'lead');
+      expect(mapping).not.toBeNull();
+      expect(mapping!.targets).toContain('vibrato_depth');
+    });
+
+    it('M210: returns null for unmapped controller/sound combination', async () => {
+      const mapping = await mapMIDIController('sustain_pedal', 'drum');
+      expect(mapping).toBeNull();
+    });
+
+    it('M210: gets all MIDI mappings for a sound type', async () => {
+      const mappings = await getAllMIDIControllerMappings('pad');
+      expect(mappings.length).toBeGreaterThanOrEqual(2);
+      const controllers = mappings.map(m => m.controller);
+      expect(controllers).toContain('mod_wheel');
+      expect(controllers).toContain('aftertouch');
+    });
+
+    it('M214: all mappings have valid controller types', async () => {
+      const mappings = await getAllMIDIControllerMappings('lead');
+      for (const m of mappings) {
+        expect(m.controller).toBeTruthy();
+        expect(m.targets.length).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  // ===========================================================================
   // M279: Bus Routing Setup
   // ===========================================================================
 
@@ -1002,6 +1083,436 @@ describe('Persona-Specific Query Functions', () => {
         expect(b.toWorkflow).toBeDefined();
         expect(b.bridgeAction).toBeDefined();
       }
+    });
+  });
+
+  // ===========================================================================
+  // M102: Pattern Resize
+  // ===========================================================================
+
+  describe('Tracker: Pattern Resize (M102)', () => {
+    it('M113: gets pattern resize rules from KB', async () => {
+      const rules = await getPatternResizeRules();
+      expect(rules.length).toBeGreaterThan(0);
+      for (const r of rules) {
+        expect(r.operation).toBeTruthy();
+        expect(r.description).toBeTruthy();
+        expect(r.noteAdjustment).toBeTruthy();
+      }
+    });
+
+    it('M113: suggests resize operation for a genre', async () => {
+      const op = await suggestResizeOperation('techno');
+      expect(typeof op).toBe('string');
+      expect(op.length).toBeGreaterThan(0);
+    });
+
+    it('M113: double operation spreads note positions', () => {
+      const notes = [
+        { position: 0, duration: 2, pitch: 60, velocity: 100 },
+        { position: 4, duration: 2, pitch: 64, velocity: 80 },
+      ];
+      const result = resizePatternNotes(notes, 8, 'double');
+      expect(result.newLength).toBe(16);
+      expect(result.notes[0]!.position).toBe(0);
+      expect(result.notes[0]!.duration).toBe(4);
+      expect(result.notes[1]!.position).toBe(8);
+    });
+
+    it('M113: halve operation compresses positions and merges overlaps', () => {
+      const notes = [
+        { position: 0, duration: 4, pitch: 60, velocity: 100 },
+        { position: 1, duration: 4, pitch: 60, velocity: 80 }, // same pitch as first after halve
+        { position: 4, duration: 2, pitch: 64, velocity: 90 },
+      ];
+      const result = resizePatternNotes(notes, 8, 'halve');
+      expect(result.newLength).toBe(4);
+      // Position 0 and 1 halved → 0 and 0; same pitch → merged
+      const pitch60Notes = result.notes.filter((n) => n.pitch === 60);
+      expect(pitch60Notes.length).toBe(1); // merged
+    });
+
+    it('M113: double_repeat duplicates content', () => {
+      const notes = [
+        { position: 0, duration: 2, pitch: 60, velocity: 100 },
+      ];
+      const result = resizePatternNotes(notes, 8, 'double_repeat');
+      expect(result.newLength).toBe(16);
+      expect(result.notes.length).toBe(2); // original + copy
+      expect(result.notes[1]!.position).toBe(8); // offset by original length
+    });
+
+    it('M113: halve_truncate removes second half', () => {
+      const notes = [
+        { position: 0, duration: 2, pitch: 60, velocity: 100 },
+        { position: 6, duration: 2, pitch: 64, velocity: 80 },
+      ];
+      const result = resizePatternNotes(notes, 8, 'halve_truncate');
+      expect(result.newLength).toBe(4);
+      expect(result.notes.length).toBe(1); // only position 0 survives
+    });
+  });
+
+  // ===========================================================================
+  // M103: Quantization & Swing
+  // ===========================================================================
+
+  describe('Tracker: Quantization & Swing (M103)', () => {
+    it('M114: gets quantization presets from KB', async () => {
+      const presets = await getQuantizationPresets();
+      expect(presets.length).toBeGreaterThan(0);
+      for (const p of presets) {
+        expect(p.id).toBeTruthy();
+        expect(p.stepDivision).toBeGreaterThan(0);
+        expect(p.description).toBeTruthy();
+      }
+    });
+
+    it('M114: gets swing presets from KB', async () => {
+      const presets = await getSwingPresets();
+      expect(presets.length).toBeGreaterThan(0);
+      const straight = presets.find((p) => p.id === 'straight');
+      expect(straight).toBeDefined();
+      expect(straight!.swingPercent).toBe(50);
+    });
+
+    it('M114: suggests quantization for a genre', async () => {
+      const suggestion = await suggestQuantization('lofi');
+      expect(suggestion.grid).toBeTruthy();
+      expect(suggestion.swing).toBeTruthy();
+    });
+
+    it('M114: quantizeWithSwing snaps to grid with straight timing', () => {
+      const positions = [0.03, 0.27, 0.48, 0.76];
+      const quantized = quantizeWithSwing(positions, 4, 50); // straight
+      // Should snap to 0, 0.25, 0.5, 0.75
+      expect(quantized[0]).toBeCloseTo(0, 1);
+      expect(quantized[1]).toBeCloseTo(0.25, 1);
+      expect(quantized[2]).toBeCloseTo(0.5, 1);
+      expect(quantized[3]).toBeCloseTo(0.75, 1);
+    });
+
+    it('M114: quantizeWithSwing applies swing to odd grid points', () => {
+      const positions = [0.0, 0.25]; // on-grid
+      const swung = quantizeWithSwing(positions, 4, 67); // triplet swing
+      // Position 0 (even index) → no swing
+      expect(swung[0]).toBeCloseTo(0, 1);
+      // Position 0.25 (odd index = 1) → shifted forward
+      expect(swung[1]!).toBeGreaterThan(0.25);
+    });
+  });
+
+  // ===========================================================================
+  // M138-M139: Tracker Macro Assignments & Automation
+  // ===========================================================================
+
+  describe('Tracker: Macro Assignments (M138)', () => {
+    it('M138: returns macro assignments for synth_track', async () => {
+      const layout = await getTrackerMacroAssignments('synth_track');
+      expect(layout).not.toBeNull();
+      expect(layout!.trackType).toBe('synth_track');
+      expect(layout!.macros.length).toBe(4);
+      expect(layout!.macros[0]!.macroIndex).toBe(1);
+      expect(layout!.macros[0]!.name).toBe('cutoff');
+      expect(layout!.macros[0]!.targets).toContain('filter_cutoff');
+    });
+
+    it('M138: returns macro assignments for drum_track', async () => {
+      const layout = await getTrackerMacroAssignments('drum_track');
+      expect(layout).not.toBeNull();
+      expect(layout!.macros.length).toBe(4);
+      // drum_track macro 1 = tone, targets pitch + filter_cutoff
+      expect(layout!.macros[0]!.name).toBe('tone');
+    });
+
+    it('M138: returns null for unknown track type', async () => {
+      const layout = await getTrackerMacroAssignments('unknown_track');
+      expect(layout).toBeNull();
+    });
+
+    it('M138: lists all track types with macro assignments', async () => {
+      const types = await getTrackerMacroTrackTypes();
+      expect(types.length).toBeGreaterThanOrEqual(5);
+      expect(types).toContain('synth_track');
+      expect(types).toContain('drum_track');
+      expect(types).toContain('bass_track');
+      expect(types).toContain('pad_track');
+      expect(types).toContain('sample_track');
+    });
+
+    it('M143: macro assignments target relevant parameters', async () => {
+      const layout = await getTrackerMacroAssignments('synth_track');
+      expect(layout).not.toBeNull();
+      // Each macro should have at least one target parameter
+      for (const m of layout!.macros) {
+        expect(m.targets.length).toBeGreaterThan(0);
+      }
+      // send_levels macro should include reverb_send and delay_send
+      const sendsMacro = layout!.macros.find(m => m.name === 'send_levels');
+      expect(sendsMacro).toBeDefined();
+      expect(sendsMacro!.targets).toContain('reverb_send');
+      expect(sendsMacro!.targets).toContain('delay_send');
+    });
+  });
+
+  describe('Tracker: Automation Recording (M139)', () => {
+    it('M139: returns automation recording modes', async () => {
+      const modes = await getAutomationRecordingModes();
+      expect(modes.length).toBe(4);
+      const ids = modes.map(m => m.id);
+      expect(ids).toContain('latch');
+      expect(ids).toContain('touch');
+      expect(ids).toContain('write');
+      expect(ids).toContain('trim');
+    });
+
+    it('M139: suggests touch mode for filter_cutoff', async () => {
+      const mode = await suggestAutomationMode('filter_cutoff');
+      expect(mode).toBe('touch');
+    });
+
+    it('M139: suggests latch mode for volume', async () => {
+      const mode = await suggestAutomationMode('volume');
+      expect(mode).toBe('latch');
+    });
+
+    it('M139: returns automation targets for a macro', async () => {
+      const targets = await getAutomationTargets('synth_track', 'cutoff');
+      expect(targets).toContain('filter_cutoff');
+      expect(targets).toContain('filter_resonance');
+    });
+
+    it('M144: recordMacroAutomation captures events correctly', () => {
+      const snapshots = [
+        { tick: 0, value: 0.5 },
+        { tick: 48, value: 0.7 },
+        { tick: 96, value: 0.3 },
+      ];
+      const lane = recordMacroAutomation(
+        'synth_track', 'cutoff', 'filter_cutoff', 'touch', snapshots,
+      );
+      expect(lane.trackType).toBe('synth_track');
+      expect(lane.macroName).toBe('cutoff');
+      expect(lane.paramName).toBe('filter_cutoff');
+      expect(lane.recordingMode).toBe('touch');
+      expect(lane.events.length).toBe(3);
+      expect(lane.events[0]!.tick).toBe(0);
+      expect(lane.events[0]!.value).toBe(0.5);
+      expect(lane.events[2]!.tick).toBe(96);
+      expect(lane.events[2]!.value).toBe(0.3);
+    });
+
+    it('M144: empty snapshots produce empty lane', () => {
+      const lane = recordMacroAutomation(
+        'drum_track', 'tone', 'pitch', 'write', [],
+      );
+      expect(lane.events.length).toBe(0);
+    });
+  });
+
+  // ===========================================================================
+  // M148: Scene Launch Controls
+  // ===========================================================================
+
+  describe('Tracker: Scene Launch Controls (M148)', () => {
+    it('M148: returns scene launch control actions', async () => {
+      const controls = await getSceneLaunchControls();
+      expect(controls.length).toBeGreaterThanOrEqual(6);
+      const actions = controls.map(c => c.action);
+      expect(actions).toContain('launch_scene');
+      expect(actions).toContain('stop_scene');
+      expect(actions).toContain('queue_scene');
+    });
+
+    it('M148: returns scene transition rules', async () => {
+      const transitions = await getSceneTransitionRules();
+      expect(transitions.length).toBeGreaterThanOrEqual(4);
+      const ids = transitions.map(t => t.id);
+      expect(ids).toContain('crossfade');
+      expect(ids).toContain('cut');
+      const cut = transitions.find(t => t.id === 'cut');
+      expect(cut!.bars).toBe(0);
+    });
+
+    it('M148: suggests cut transition for techno', async () => {
+      const t = await suggestSceneTransition('techno');
+      expect(t).toBe('cut');
+    });
+
+    it('M148: suggests crossfade transition for ambient', async () => {
+      const t = await suggestSceneTransition('ambient');
+      expect(t).toBe('crossfade');
+    });
+  });
+
+  // ===========================================================================
+  // M287-M292: Loudness & Dynamics
+  // ===========================================================================
+
+  describe('Producer: Loudness & Dynamics (M287-M292)', () => {
+    it('M296: gets reference matching techniques', async () => {
+      const techniques = await getReferenceMatchingTechniques();
+      expect(techniques.length).toBeGreaterThan(0);
+      for (const t of techniques) {
+        expect(t.technique).toBeTruthy();
+        expect(t.description).toBeTruthy();
+      }
+    });
+
+    it('M297: gets loudness targets for all platforms', async () => {
+      const targets = await getLoudnessTargets();
+      expect(targets.length).toBeGreaterThan(0);
+      const streaming = targets.find((t) => t.platform === 'streaming');
+      expect(streaming).toBeDefined();
+      expect(streaming!.targetLUFS).toBe(-14);
+    });
+
+    it('M297: gets dynamic range targets', async () => {
+      const targets = await getDynamicRangeTargets();
+      expect(targets.length).toBeGreaterThan(0);
+      const jazz = targets.find((t) => t.genre === 'jazz');
+      expect(jazz).toBeDefined();
+      expect(jazz!.targetDR).toBe(15);
+    });
+
+    it('M297: diagnoses loudness for a platform', async () => {
+      const diagnosis = await diagnoseLoudness('streaming', -10);
+      expect(diagnosis).not.toBeNull();
+      expect(diagnosis!.status).toBe('too_loud');
+      expect(diagnosis!.targetLUFS).toBe(-14);
+    });
+
+    it('M297: multi-platform loudness analysis', async () => {
+      const results = await analyzeLoudnessMultiPlatform(-14);
+      expect(results.length).toBeGreaterThan(0);
+      const streaming = results.find((r) => r.platform === 'streaming');
+      expect(streaming!.status).toBe('on_target');
+      const club = results.find((r) => r.platform === 'club');
+      expect(club!.status).toBe('too_quiet');
+    });
+
+    it('M298: suggests dynamics processing', async () => {
+      const suggestions = await suggestDynamicsProcessing('pop', 20);
+      expect(suggestions.length).toBeGreaterThan(0);
+      // 20 dB DR for pop (target 6) → should suggest compression
+      const hasCompression = suggestions.some((s) => s.action === 'add_compression');
+      expect(hasCompression).toBe(true);
+    });
+
+    it('M298: dynamics suggestions are conservative for on-target DR', async () => {
+      const suggestions = await suggestDynamicsProcessing('pop', 6);
+      // DR 6 is on-target for pop → should suggest fine_tune, not add_compression
+      const hasFine = suggestions.some((s) => s.action === 'fine_tune');
+      expect(hasFine).toBe(true);
+    });
+  });
+
+  // ===========================================================================
+  // N130: Advanced Features Override
+  // ===========================================================================
+
+  describe('Advanced Features Override (N130)', () => {
+    it('starts disabled', () => {
+      expect(isAdvancedFeaturesOverrideActive()).toBe(false);
+    });
+
+    it('shows all features when override is active', async () => {
+      await enableAdvancedFeaturesOverride();
+      expect(isAdvancedFeaturesOverrideActive()).toBe(true);
+
+      const features = await getVisibleFeaturesWithOverride('beginner');
+      // With override, ALL features should be visible even for beginners
+      expect(features.length).toBeGreaterThan(0);
+      // Should include expert-level features
+      const hasExpert = features.some(
+        (f) => f === 'twelve_tone' || f === 'spectral_harmony' || f === 'generative_composition'
+      );
+      expect(hasExpert).toBe(true);
+
+      await disableAdvancedFeaturesOverride();
+      expect(isAdvancedFeaturesOverrideActive()).toBe(false);
+    });
+
+    it('respects skill level when override is disabled', async () => {
+      await disableAdvancedFeaturesOverride();
+      const beginnerFeatures = await getVisibleFeaturesWithOverride('beginner');
+      const expertFeatures = await getVisibleFeaturesWithOverride('expert');
+      // Expert should see more features than beginner
+      expect(expertFeatures.length).toBeGreaterThanOrEqual(beginnerFeatures.length);
+    });
+  });
+
+  // ===========================================================================
+  // M399: Persona Feature Matrix
+  // ===========================================================================
+
+  describe('persona feature matrix (M399)', () => {
+    it('returns a non-empty feature matrix', () => {
+      const matrix = getPersonaFeatureMatrix();
+      expect(matrix.length).toBeGreaterThan(30);
+    });
+
+    it('covers all main categories', () => {
+      const matrix = getPersonaFeatureMatrix();
+      const categories = new Set(matrix.map(f => f.category));
+      expect(categories.has('Composition')).toBe(true);
+      expect(categories.has('Pattern Editing')).toBe(true);
+      expect(categories.has('Sound Design')).toBe(true);
+      expect(categories.has('Production')).toBe(true);
+      expect(categories.has('AI & Learning')).toBe(true);
+      expect(categories.has('Workflow')).toBe(true);
+    });
+
+    it('filters features for notation composer', () => {
+      const features = getFeaturesForPersona('notation-composer');
+      // Notation composer should have composition features
+      expect(features.some(f => f.featureId === 'score-layout')).toBe(true);
+      // But not pattern editing
+      expect(features.some(f => f.featureId === 'pattern-editor')).toBe(false);
+    });
+
+    it('filters features for tracker user', () => {
+      const features = getFeaturesForPersona('tracker-user');
+      expect(features.some(f => f.featureId === 'pattern-editor')).toBe(true);
+      expect(features.some(f => f.featureId === 'groove-templates')).toBe(true);
+    });
+
+    it('filters features for sound designer', () => {
+      const features = getFeaturesForPersona('sound-designer');
+      expect(features.some(f => f.featureId === 'synthesis-recommendations')).toBe(true);
+      expect(features.some(f => f.featureId === 'modulation-routing')).toBe(true);
+    });
+
+    it('filters features for producer', () => {
+      const features = getFeaturesForPersona('producer');
+      expect(features.some(f => f.featureId === 'arrangement-structure')).toBe(true);
+      expect(features.some(f => f.featureId === 'mastering-targets')).toBe(true);
+    });
+
+    it('all personas have workflow features available', () => {
+      const workflow = getFeaturesByCategory('Workflow');
+      for (const f of workflow) {
+        expect(f.notationComposer).toBe('available');
+        expect(f.trackerUser).toBe('available');
+        expect(f.soundDesigner).toBe('available');
+        expect(f.producer).toBe('available');
+      }
+    });
+
+    it('all personas have AI & Learning features available', () => {
+      const ai = getFeaturesByCategory('AI & Learning');
+      for (const f of ai) {
+        expect(f.notationComposer).toBe('available');
+        expect(f.trackerUser).toBe('available');
+        expect(f.soundDesigner).toBe('available');
+        expect(f.producer).toBe('available');
+      }
+    });
+
+    it('filters features by category', () => {
+      const composition = getFeaturesByCategory('Composition');
+      expect(composition.length).toBeGreaterThan(0);
+      expect(composition.every(f => f.category === 'Composition')).toBe(true);
     });
   });
 });

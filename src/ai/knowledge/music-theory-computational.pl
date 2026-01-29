@@ -1038,3 +1038,203 @@ key_drift_score([K1, K2|Rest], Score) :-
   Diff is min(abs(K2 - K1), 12 - abs(K2 - K1)),
   key_drift_score([K2|Rest], RestScore),
   Score is RestScore + Diff.
+
+%% ============================================================================
+%% SCHEMA FINGERPRINT (C233-C234)
+%% ============================================================================
+
+%% schema_fingerprint(+Schema, -Fingerprint)
+%% Fingerprint = fp(BassDegrees, UpperDegrees, CadenceType)
+schema_fingerprint(Schema, fp(Bass, Upper, Cadence)) :-
+  galant_schema(Schema),
+  schema_pattern(Schema, bass, pat(Bass, _, _)),
+  schema_pattern(Schema, upper, pat(_, Upper, _)),
+  ( schema_cadence(Schema, Cadence) -> true ; Cadence = unknown ).
+%% Fallback: use role degrees directly
+schema_fingerprint(Schema, fp(Bass, Upper, unknown)) :-
+  galant_schema(Schema),
+  schema_role(Schema, bass, Bass),
+  schema_role(Schema, upper, Upper),
+  \+ schema_pattern(Schema, bass, _).
+
+%% schema_similarity(+SchemaA, +SchemaB, -Score)
+%% Score 0-100 measuring overlap of fingerprints.
+schema_similarity(A, B, Score) :-
+  schema_fingerprint(A, fp(BassA, UpperA, CadA)),
+  schema_fingerprint(B, fp(BassB, UpperB, CadB)),
+  list_overlap(BassA, BassB, BassScore),
+  list_overlap(UpperA, UpperB, UpperScore),
+  ( CadA = CadB -> CadScore is 20 ; CadScore is 0 ),
+  Score is BassScore * 40 + UpperScore * 40 + CadScore.
+
+list_overlap([], _, 0).
+list_overlap(_, [], 0).
+list_overlap(A, B, Score) :-
+  A \= [], B \= [],
+  intersection(A, B, Common),
+  length(Common, NC),
+  length(A, NA),
+  length(B, NB),
+  MaxLen is max(NA, NB),
+  ( MaxLen > 0 -> Score is NC / MaxLen ; Score is 0 ).
+
+%% ============================================================================
+%% RAGA FINGERPRINT (C235-C236)
+%% ============================================================================
+
+%% raga_fingerprint(+Raga, -Fingerprint)
+%% Fingerprint = rfp(PitchClasses, Emphasis, Direction)
+raga_fingerprint(Raga, rfp(PCs, Emphasis, Direction)) :-
+  raga_pcs(Raga, PCs),
+  findall(S-W, raga_emphasis(Raga, S, W), Emphasis),
+  ( raga_arohana(Raga, Aro), raga_avarohana(Raga, Ava) ->
+      ( Aro = Ava -> Direction = symmetric ; Direction = asymmetric )
+  ; Direction = unknown
+  ).
+
+%% raga_similarity(+RagaA, +RagaB, -Score)
+%% Score 0-100 based on pitch class overlap and emphasis similarity.
+raga_similarity(A, B, Score) :-
+  raga_pcs(A, PcsA),
+  raga_pcs(B, PcsB),
+  intersection(PcsA, PcsB, Common),
+  length(Common, NC),
+  length(PcsA, NA),
+  length(PcsB, NB),
+  MaxLen is max(NA, NB),
+  ( MaxLen > 0 -> PcScore is (NC / MaxLen) * 70 ; PcScore is 0 ),
+  %% Emphasis overlap
+  findall(S, (raga_emphasis(A, S, WA), WA >= 0.5, raga_emphasis(B, S, WB), WB >= 0.5), SharedEmph),
+  length(SharedEmph, NE),
+  EmphScore is min(30, NE * 10),
+  Score is PcScore + EmphScore.
+
+%% ============================================================================
+%% MODE FINGERPRINT (C237-C238)
+%% ============================================================================
+
+%% mode_fingerprint(+Mode, -Fingerprint)
+%% Fingerprint = mfp(Intervals, LeadingTone)
+mode_fingerprint(Mode, mfp(Intervals, LeadingTone)) :-
+  mode_intervals(Mode, Intervals),
+  ( member(1, Intervals) -> LeadingTone = yes ; LeadingTone = no ).
+
+%% mode_similarity(+ModeA, +ModeB, -Score)
+%% Score 0-100 based on shared intervals and leading-tone behavior.
+mode_similarity(A, B, Score) :-
+  mode_fingerprint(A, mfp(IntA, LtA)),
+  mode_fingerprint(B, mfp(IntB, LtB)),
+  intersection(IntA, IntB, Common),
+  length(Common, NC),
+  length(IntA, NA),
+  ( NA > 0 -> IntScore is (NC / NA) * 80 ; IntScore is 0 ),
+  ( LtA = LtB -> LtScore is 20 ; LtScore is 0 ),
+  Score is IntScore + LtScore.
+
+%% mode_intervals/2 - semitone intervals for standard modes
+mode_intervals(major, [2, 2, 1, 2, 2, 2, 1]).
+mode_intervals(natural_minor, [2, 1, 2, 2, 1, 2, 2]).
+mode_intervals(harmonic_minor, [2, 1, 2, 2, 1, 3, 1]).
+mode_intervals(melodic_minor, [2, 1, 2, 2, 2, 2, 1]).
+mode_intervals(dorian, [2, 1, 2, 2, 2, 1, 2]).
+mode_intervals(phrygian, [1, 2, 2, 2, 1, 2, 2]).
+mode_intervals(lydian, [2, 2, 2, 1, 2, 2, 1]).
+mode_intervals(mixolydian, [2, 2, 1, 2, 2, 1, 2]).
+mode_intervals(locrian, [1, 2, 2, 1, 2, 2, 2]).
+mode_intervals(whole_tone, [2, 2, 2, 2, 2, 2]).
+
+%% ============================================================================
+%% TONAL CENTROID (C239-C241)
+%% ============================================================================
+
+%% tonal_centroid(+Profile, -Centroid)
+%% 6D centroid from DFT bins K=1,2,3 (Re+Im for each).
+%% Centroid = centroid(R1,I1,R2,I2,R3,I3)
+tonal_centroid(Profile, centroid(R1,I1,R2,I2,R3,I3)) :-
+  dft_bin(Profile, 1, c(R1, I1), _),
+  dft_bin(Profile, 2, c(R2, I2), _),
+  dft_bin(Profile, 3, c(R3, I3), _).
+
+%% centroid_distance(+CentroidA, +CentroidB, -Distance)
+%% Euclidean distance in 6D centroid space.
+centroid_distance(
+  centroid(R1a,I1a,R2a,I2a,R3a,I3a),
+  centroid(R1b,I1b,R2b,I2b,R3b,I3b),
+  Distance
+) :-
+  D1 is (R1a - R1b) ** 2 + (I1a - I1b) ** 2,
+  D2 is (R2a - R2b) ** 2 + (I2a - I2b) ** 2,
+  D3 is (R3a - R3b) ** 2 + (I3a - I3b) ** 2,
+  Distance is sqrt(D1 + D2 + D3).
+
+%% ============================================================================
+%% SEGMENT KEY DETECTION (C244)
+%% ============================================================================
+
+%% segment_key(+SegmentEvents, +Model, -Key, -Confidence)
+%% Detect key for a segment of events using specified model.
+segment_key(Events, ks_profile, Key, Confidence) :-
+  pc_profile(Events, Profile),
+  ks_best_key(Profile, Key, _),
+  ks_key_score(Profile, Key, _, RawScore),
+  Confidence is min(100, max(0, RawScore)).
+
+segment_key(Events, dft_phase, Key, Confidence) :-
+  pc_profile(Events, Profile),
+  dft_phase_key(Profile, Key, Conf0),
+  Confidence is min(100, max(0, Conf0 * 100)).
+
+segment_key(Events, spiral_array, Key, Confidence) :-
+  pc_profile(Events, Profile),
+  ks_best_key(Profile, Key, _),  %% spiral_best_key uses chords, fallback to KS
+  Confidence is 60.  %% Lower confidence for fallback
+
+%% ============================================================================
+%% MOTIF LABEL AND OCCURRENCE (C230)
+%% ============================================================================
+
+:- dynamic(motif_label/2).  %% motif_label(Fingerprint, Label)
+
+%% motif_occurs(+Events, +Library, -Label, -Position)
+%% Search for known motifs in a sequence of events.
+motif_occurs(Events, Library, Label, Position) :-
+  member(motif(Label, RefFingerprint), Library),
+  subsequence_at(Events, SubSeq, Position),
+  motif_fingerprint(SubSeq, TestFP),
+  motif_similarity(RefFingerprint, TestFP, Score),
+  Score >= 70.
+
+%% subsequence_at(+List, -SubList, -StartIndex)
+%% Extract a subsequence with its starting position (1-based).
+subsequence_at(List, Sub, Pos) :-
+  append(Prefix, Rest, List),
+  length(Prefix, PrefLen),
+  Pos is PrefLen + 1,
+  append(Sub, _, Rest),
+  Sub \= [],
+  length(Sub, SubLen),
+  SubLen >= 3,
+  SubLen =< 12.
+
+%% ============================================================================
+%% COMPARE TONALITY MODELS (C213-C214)
+%% ============================================================================
+
+%% compare_tonality_models(+Profile, -Results)
+%% Results = list of model_result(Model, Key, Confidence)
+compare_tonality_models(Profile, Results) :-
+  %% KS model
+  ( ks_best_key(Profile, KsKey, KsMode) ->
+      ks_key_score(Profile, KsKey, KsMode, KsRaw),
+      KsConf is min(100, max(0, KsRaw))
+  ; KsKey = unknown, KsConf = 0
+  ),
+  %% DFT model
+  ( dft_phase_key(Profile, DftKey, DftConf0) ->
+      DftConf is min(100, max(0, DftConf0 * 100))
+  ; DftKey = unknown, DftConf = 0
+  ),
+  Results = [
+    model_result(ks_profile, KsKey, KsConf),
+    model_result(dft_phase, DftKey, DftConf)
+  ].

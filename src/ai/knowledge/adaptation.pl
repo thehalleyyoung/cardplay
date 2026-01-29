@@ -349,3 +349,17 @@ corrective_suggestion(excessive_range, 'Transpose the passage or reassign to a m
 corrective_suggestion(clipping_output, 'Reduce channel or bus levels until peak stays below -1dBFS').
 corrective_suggestion(feedback_loop, 'Break the routing cycle by removing one send or changing the target').
 corrective_suggestion(tempo_mismatch, 'Time-stretch the sample to match project tempo or adjust project tempo').
+
+%% ---------------------------------------------------------------------------
+%% N130: Advanced features override
+%%
+%% When advanced_override_active/0 is asserted, all features become visible
+%% regardless of skill level. This is controlled from TypeScript.
+%% ---------------------------------------------------------------------------
+%% :- dynamic advanced_override_active/0.  % Asserted/retracted at runtime
+
+%% Override version of should_disclose: when override is active, everything is visible
+should_disclose_override(_, _) :-
+    advanced_override_active, !.
+should_disclose_override(Feature, SkillLevel) :-
+    should_disclose(Feature, SkillLevel).

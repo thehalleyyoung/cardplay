@@ -69,6 +69,68 @@ export interface DeckState {
   
   /** Search/filter state per deck */
   filterState: Record<string, string>;
+  
+  /** Per-deck custom settings (E030: notation zoom, page config, etc.) */
+  deckSettings: Record<string, DeckSettings>;
+}
+
+/**
+ * Per-deck custom settings.
+ */
+export interface DeckSettings {
+  /** Notation deck settings (E030) */
+  notation?: NotationDeckSettings;
+  
+  /** Mixer deck settings (E046) */
+  mixer?: MixerDeckSettings;
+  
+  /** Other deck-specific settings can be added here */
+  [key: string]: unknown;
+}
+
+/**
+ * Notation deck engraving settings.
+ * E030: Persist zoom, page config, staff config per board.
+ */
+export interface NotationDeckSettings {
+  /** Zoom level (percentage, default 100) */
+  zoom?: number;
+  
+  /** Page width in pixels */
+  pageWidth?: number;
+  
+  /** Page height in pixels */
+  pageHeight?: number;
+  
+  /** Staff spacing in pixels */
+  staffSpacing?: number;
+  
+  /** Show measure numbers */
+  showMeasureNumbers?: boolean;
+  
+  /** Show bar lines */
+  showBarLines?: boolean;
+  
+  /** Clef type per staff */
+  clefs?: string[];
+}
+
+/**
+ * Mixer deck settings.
+ * E046: Track strip visibility and layout preferences.
+ */
+export interface MixerDeckSettings {
+  /** Visible meter types (peak, RMS, etc.) */
+  meterTypes?: string[];
+  
+  /** Show automation lanes */
+  showAutomation?: boolean;
+  
+  /** Compact mode */
+  compactMode?: boolean;
+  
+  /** Strip width in pixels */
+  stripWidth?: number;
 }
 
 // ============================================================================
@@ -105,6 +167,7 @@ export const DEFAULT_DECK_STATE: DeckState = {
   scrollPositions: {},
   focusedItems: {},
   filterState: {},
+  deckSettings: {},
 };
 
 // ============================================================================

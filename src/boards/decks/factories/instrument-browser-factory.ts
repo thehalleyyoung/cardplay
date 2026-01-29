@@ -24,8 +24,6 @@ export const instrumentBrowserFactory: DeckFactory = {
   deckType: 'instruments-deck',
 
   create(deckDef: BoardDeck, _ctx: DeckFactoryContext): DeckInstance {
-    let containerElement: HTMLElement | null = null;
-
     const instance: DeckInstance = {
       id: deckDef.id,
       type: deckDef.type,
@@ -99,12 +97,11 @@ export const instrumentBrowserFactory: DeckFactory = {
 
         container.appendChild(list);
 
-        containerElement = container;
         return container;
       },
 
       destroy: () => {
-        containerElement = null;
+        // Cleanup if needed
       },
     };
 

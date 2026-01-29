@@ -5,7 +5,11 @@
 
 export * from './runtime-types';
 export * from './factory-types';
-export * from './factory-registry';
+export { 
+  DeckFactoryRegistry, 
+  getDeckFactoryRegistry,
+  validateBoardFactories as validateBoardFactoriesRegistry 
+} from './factory-registry';
 export * from './deck-container';
 export * from './deck-factories';
 export * from './factories';

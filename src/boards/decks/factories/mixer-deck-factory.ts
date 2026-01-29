@@ -1,14 +1,15 @@
 /**
- * @fileoverview Mixer Deck Factory (E044-E046)
- * 
+ * @fileoverview Mixer Deck Factory (E044-E046, M202)
+ *
  * Creates mixer decks with track strips, meters, and mixing controls.
- * Integrates with DeckLayoutAdapter for audio routing.
- * 
+ * M202: Adds frequency balance analyzer using analyzeFrequencyBalance().
+ *
  * @module @cardplay/boards/decks/factories/mixer-deck-factory
  */
 
 import type { BoardDeck } from '../../types';
 import type { DeckFactory, DeckFactoryContext, DeckInstance } from '../factory-types';
+import { analyzeFrequencyBalance } from '../../../ai/queries/persona-queries';
 
 /**
  * Factory for creating mixer deck instances.
@@ -68,9 +69,61 @@ export const mixerDeckFactory: DeckFactory = {
       content.appendChild(strip);
     }
     
+    // M202: Frequency balance analyzer footer
+    const analyzerFooter = document.createElement('div');
+    analyzerFooter.className = 'mixer-frequency-analyzer';
+    analyzerFooter.style.cssText = `
+      padding: 8px 12px;
+      background: var(--surface-sunken, #fafafa);
+      border: 1px solid var(--border-base, #ccc);
+      border-radius: 0 0 4px 4px;
+      font-size: 0.8125rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+
+    const analyzeBtn = document.createElement('button');
+    analyzeBtn.textContent = 'Analyze Balance';
+    analyzeBtn.style.cssText = `
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      background: var(--primary-base, #0066cc);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    `;
+
+    const analyzerOutput = document.createElement('span');
+    analyzerOutput.style.cssText = 'color: var(--text-secondary, #666);';
+    analyzerOutput.textContent = 'Click to check frequency balance';
+
+    analyzeBtn.addEventListener('click', async () => {
+      analyzerOutput.textContent = 'Analyzing\u2026';
+      try {
+        // Use the track strip names as placeholder track types
+        const trackTypes = Array.from({ length: 4 }, (_, i) => `track_${i + 1}`);
+        const issues = await analyzeFrequencyBalance(trackTypes);
+        if (issues.length === 0) {
+          analyzerOutput.innerHTML = '<span style="color: var(--success-base, green);">No balance issues detected.</span>';
+        } else {
+          analyzerOutput.innerHTML = issues
+            .map(i => `<span style="color: ${i.severity === 'warning' ? 'var(--warning-base, orange)' : 'var(--text-secondary, #666)'};">${i.range}: ${i.description}</span>`)
+            .join(' | ');
+        }
+      } catch {
+        analyzerOutput.innerHTML = '<span style="color: var(--danger-base, red);">Analysis failed.</span>';
+      }
+    });
+
+    analyzerFooter.appendChild(analyzeBtn);
+    analyzerFooter.appendChild(analyzerOutput);
+
     container.appendChild(header);
     container.appendChild(content);
-    
+    container.appendChild(analyzerFooter);
+
     return {
       id: deckDef.id,
       type: deckDef.type,

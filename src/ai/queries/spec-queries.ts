@@ -1440,3 +1440,2809 @@ export async function detectModulations(
     modulations.length > 0 ? 70 : 90
   );
 }
+
+// ============================================================================
+// FILM PROGRESSION RECOMMENDATION (C398)
+// ============================================================================
+
+/**
+ * Film chord progression recommendation.
+ */
+export interface FilmProgressionResult {
+  readonly mood: FilmMood;
+  readonly chords: ChordInfo[];
+  readonly reasons: readonly string[];
+}
+
+/**
+ * Recommend a chord progression for a film mood.
+ */
+export async function recommendFilmProgression(
+  mood: FilmMood,
+  keyRoot: RootName,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<FilmProgressionResult | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `recommend_film_progression(${mood}, ${keyRoot}, Chords, Reasons).`
+  );
+
+  if (!result || !result['Chords']) {
+    return explainable(null, [`No progression found for ${mood} mood`], 0);
+  }
+
+  const chordsRaw = result['Chords'] as Array<Record<string, string>>;
+  const reasons = (result['Reasons'] as string[]) ?? [];
+
+  const chords: ChordInfo[] = chordsRaw.map(c => ({
+    root: (c['root'] ?? c[0] ?? 'c') as RootName,
+    quality: String(c['quality'] ?? c[1] ?? 'major'),
+  }));
+
+  return explainable(
+    { mood, chords, reasons: reasons.map(String) },
+    reasons.map(String),
+    80
+  );
+}
+
+// ============================================================================
+// SCHEMA CHAIN RECOMMENDATION (C336)
+// ============================================================================
+
+/**
+ * Recommend a chain of galant schemata for a phrase.
+ */
+export async function recommendSchemaChain(
+  spec: MusicSpec,
+  length: number = 3,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string[]>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const result = await adapter.querySingle(
+      `current_spec(Spec), recommend_schema_chain(Spec, ${length}, Chain, Reasons).`
+    );
+
+    if (!result || !result['Chain']) {
+      return explainable(
+        [],
+        ['No schema chain could be generated for this spec'],
+        0
+      );
+    }
+
+    const chain = result['Chain'] as string[];
+    const reasons = (result['Reasons'] as string[]) ?? [];
+
+    return explainable(
+      chain,
+      reasons.map(String),
+      75
+    );
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// SCHEMA FIT QUERY (C292)
+// ============================================================================
+
+/**
+ * Schema fit result.
+ */
+export interface SchemaFitResult {
+  readonly schema: string;
+  readonly score: number;
+}
+
+/**
+ * Evaluate how well soprano and bass degree sequences fit galant schemata.
+ */
+export async function evaluateSchemaFit(
+  sopranoDegreees: number[],
+  bassDegrees: number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<SchemaFitResult[]>> {
+  await ensureLoaded(adapter);
+
+  const sopStr = `[${sopranoDegreees.join(',')}]`;
+  const bassStr = `[${bassDegrees.join(',')}]`;
+
+  const solutions = await adapter.queryAll(
+    `schema_fit(${sopStr}, ${bassStr}, Schema, Score).`
+  );
+
+  const fits: SchemaFitResult[] = solutions
+    .filter(s => s?.['Schema'] && s?.['Score'])
+    .map(s => ({
+      schema: s['Schema'] as string,
+      score: s['Score'] as number,
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const reasons = fits.length > 0
+    ? [`Best schema fit: ${fits[0]?.schema} (${Math.round(fits[0]?.score ?? 0)}%)`]
+    : ['No matching schemata for degree sequences'];
+
+  return explainable(fits, reasons, fits[0]?.score ?? 0);
+}
+
+// ============================================================================
+// PIVOT CHORD SEARCH (C247-C248)
+// ============================================================================
+
+/**
+ * Pivot chord for modulation.
+ */
+export interface PivotChordResult {
+  readonly chord: ChordInfo;
+  readonly score: number;
+  readonly reasons: readonly string[];
+}
+
+/**
+ * Find pivot chords between two keys for modulation.
+ */
+export async function findPivotChords(
+  fromKey: RootName,
+  fromMode: ModeName,
+  toKey: RootName,
+  toMode: ModeName,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<PivotChordResult[]>> {
+  await ensureLoaded(adapter);
+
+  const solutions = await adapter.queryAll(
+    `pivot_chord(${fromKey}, ${fromMode}, ${toKey}, ${toMode}, chord(Root, Quality), Score, Reasons).`
+  );
+
+  const pivots: PivotChordResult[] = solutions
+    .filter(s => s?.['Root'] && s?.['Quality'] && s?.['Score'])
+    .map(s => ({
+      chord: {
+        root: s['Root'] as RootName,
+        quality: String(s['Quality']),
+      },
+      score: s['Score'] as number,
+      reasons: ((s['Reasons'] as string[]) ?? []).map(String),
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const reasons = pivots.length > 0
+    ? [`Found ${pivots.length} pivot chord(s) between ${fromKey} ${fromMode} and ${toKey} ${toMode}`]
+    : [`No pivot chords found between ${fromKey} ${fromMode} and ${toKey} ${toMode}`];
+
+  return explainable(pivots, reasons, pivots.length > 0 ? 80 : 0);
+}
+
+// ============================================================================
+// GTTM BOUNDARY DETAILS (C180)
+// ============================================================================
+
+/**
+ * Detailed boundary analysis with per-cue breakdown.
+ */
+export interface BoundaryCue {
+  readonly name: string;
+  readonly strength: number;
+  readonly weight: number;
+}
+
+/**
+ * Get detailed GTTM boundary analysis between events.
+ */
+export async function getGTTMBoundaryDetails(
+  prev: GTTMEvent,
+  curr: GTTMEvent,
+  next: GTTMEvent,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ score: number; cues: BoundaryCue[] }>> {
+  await ensureLoaded(adapter);
+
+  const query = `gttm_boundary_score_detailed(
+    evt(${prev.startTicks}, ${prev.durationTicks}, ${prev.pitch}),
+    evt(${curr.startTicks}, ${curr.durationTicks}, ${curr.pitch}),
+    evt(${next.startTicks}, ${next.durationTicks}, ${next.pitch}),
+    Score, CueBreakdown
+  ).`;
+
+  const result = await adapter.querySingle(query);
+
+  if (!result) {
+    return explainable(
+      { score: 0, cues: [] },
+      ['Boundary analysis failed'],
+      0
+    );
+  }
+
+  const score = (result['Score'] as number) ?? 0;
+  const cuesRaw = (result['CueBreakdown'] as Array<Record<string, unknown>>) ?? [];
+
+  const cues: BoundaryCue[] = cuesRaw.map(c => ({
+    name: String(c['name'] ?? c[0] ?? 'unknown'),
+    strength: (c['strength'] ?? c[1] ?? 0) as number,
+    weight: (c['weight'] ?? c[2] ?? 0) as number,
+  }));
+
+  return explainable(
+    { score, cues },
+    [`Boundary score: ${Math.round(score)}/100 from ${cues.length} cues`],
+    Math.round(score)
+  );
+}
+
+// ============================================================================
+// TONAL DRIFT (C220-C221)
+// ============================================================================
+
+/**
+ * Measure tonal drift across windowed pitch class profiles.
+ */
+export async function measureTonalDrift(
+  profiles: number[][],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  if (profiles.length < 2) {
+    return explainable(0, ['Need at least 2 profiles to measure drift'], 100);
+  }
+
+  const profilesStr = profiles
+    .map(p => `[${p.join(',')}]`)
+    .join(', ');
+
+  const result = await adapter.querySingle(
+    `tonal_drift([${profilesStr}], DriftScore, Reasons).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Tonal drift calculation failed'], 50);
+  }
+
+  const drift = result['DriftScore'] as number;
+  const reasons = ((result['Reasons'] as string[]) ?? []).map(String);
+
+  return explainable(drift, reasons, 80);
+}
+
+// ============================================================================
+// KONNAKOL QUERIES (C502-C503)
+// ============================================================================
+
+/**
+ * Convert a rhythmic pattern to konnakol syllables.
+ */
+export async function toKonnakol(
+  pattern: number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string[]>> {
+  await ensureLoaded(adapter);
+
+  const patternStr = `[${pattern.join(',')}]`;
+  const result = await adapter.querySingle(
+    `konnakol_phrase(${patternStr}, Syllables).`
+  );
+
+  if (!result || !result['Syllables']) {
+    return explainable([], ['Could not generate konnakol for pattern'], 0);
+  }
+
+  const syllables = result['Syllables'] as string[];
+  return explainable(
+    syllables,
+    [`Konnakol: ${syllables.join(' ')}`],
+    90
+  );
+}
+
+// ============================================================================
+// MELAKARTA LOOKUP (C525-C596)
+// ============================================================================
+
+/**
+ * Melakarta raga information.
+ */
+export interface MelakartaInfo {
+  readonly number: number;
+  readonly name: string;
+  readonly swaras: string[];
+  readonly pitchClasses: number[];
+}
+
+/**
+ * Get melakarta raga information by number (1-72).
+ */
+export async function getMelakartaInfo(
+  num: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<MelakartaInfo | null> {
+  await ensureLoaded(adapter);
+
+  if (num < 1 || num > 72) return null;
+
+  const nameResult = await adapter.querySingle(
+    `melakarta_name(${num}, Name).`
+  );
+  const swarasResult = await adapter.querySingle(
+    `melakarta_swaras(${num}, Swaras).`
+  );
+
+  if (!nameResult || !swarasResult) return null;
+
+  const name = nameResult['Name'] as string;
+  const swaras = swarasResult['Swaras'] as string[];
+
+  const pcsResult = await adapter.querySingle(
+    `melakarta_pcs(${name}, PCs).`
+  );
+
+  return {
+    number: num,
+    name,
+    swaras,
+    pitchClasses: (pcsResult?.['PCs'] as number[]) ?? [],
+  };
+}
+
+/**
+ * List all 72 melakarta ragas.
+ */
+export async function listMelakartaRagas(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Array<{ number: number; name: string }>> {
+  await ensureLoaded(adapter);
+
+  const solutions = await adapter.queryAll(
+    'melakarta_name(Num, Name).'
+  );
+
+  return solutions
+    .map(s => ({
+      number: s['Num'] as number,
+      name: s['Name'] as string,
+    }))
+    .sort((a, b) => a.number - b.number);
+}
+
+// ============================================================================
+// SCENE ARC TEMPLATE (C451-C452)
+// ============================================================================
+
+/**
+ * Section in a scene arc.
+ */
+export interface SceneSection {
+  readonly name: string;
+  readonly energy: string;
+}
+
+/**
+ * Get a scene arc template for narrative structure.
+ */
+export async function getSceneArcTemplate(
+  arcType: 'rising_action' | 'tension_release' | 'slow_burn' | 'bookend' | 'stinger',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<SceneSection[]>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `scene_arc_template(${arcType}, Sections, Reasons).`
+  );
+
+  if (!result || !result['Sections']) {
+    return explainable([], [`No arc template found for ${arcType}`], 0);
+  }
+
+  const sectionsRaw = result['Sections'] as Array<Record<string, string>>;
+  const reasons = ((result['Reasons'] as string[]) ?? []).map(String);
+
+  const sections: SceneSection[] = sectionsRaw.map(s => ({
+    name: String(s['name'] ?? s[0] ?? 'unknown'),
+    energy: String(s['energy'] ?? s[1] ?? 'medium'),
+  }));
+
+  return explainable(sections, reasons, 85);
+}
+
+// ============================================================================
+// CADENCE STRENGTH (C256-C257)
+// ============================================================================
+
+/**
+ * Get the strength of a cadence type in the current musical context.
+ */
+export async function getCadenceStrength(
+  cadenceType: string,
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const result = await adapter.querySingle(
+      `current_spec(Spec), cadence_strength_culture(${cadenceType}, Spec, Strength).`
+    );
+
+    if (!result) {
+      return explainable(50, ['Unable to calculate cadence strength'], 50);
+    }
+
+    const strength = result['Strength'] as number;
+    return explainable(
+      strength,
+      [`${cadenceType} cadence has strength ${strength} in ${spec.culture} context`],
+      80
+    );
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// WEIGHTED PROFILE QUERIES (C134)
+// ============================================================================
+
+/**
+ * Weighted note for pitch class profile construction.
+ */
+export interface WeightedNote {
+  readonly pitch: number;
+  readonly duration: number;
+  readonly velocity: number;
+}
+
+/**
+ * Detect key using a duration/velocity-weighted pitch class profile.
+ */
+export async function detectKeyWeighted(
+  notes: WeightedNote[],
+  weightType: 'duration' | 'velocity' | 'combined' = 'combined',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<KeyDetectionResult> | null> {
+  await ensureLoaded(adapter);
+
+  if (notes.length === 0) return null;
+
+  const notesStr = notes
+    .map(n => `wn(${n.pitch}, ${n.duration}, ${n.velocity})`)
+    .join(', ');
+
+  const profileResult = await adapter.querySingle(
+    `pc_profile_weighted([${notesStr}], ${weightType}, Profile).`
+  );
+
+  if (!profileResult || !profileResult['Profile']) return null;
+
+  const profile = profileResult['Profile'] as number[];
+  return detectKeyKS(profile, adapter);
+}
+
+// ============================================================================
+// SCHEMA FINGERPRINT & SIMILARITY (C233-C234)
+// ============================================================================
+
+/**
+ * Schema fingerprint result.
+ */
+export interface SchemaFingerprint {
+  readonly bassDegrees: number[];
+  readonly upperDegrees: number[];
+  readonly cadenceType: string;
+}
+
+/**
+ * Get the fingerprint for a galant schema.
+ */
+export async function getSchemaFingerprint(
+  schema: GalantSchemaName,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<SchemaFingerprint | null> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `schema_fingerprint(${schema}, fp(Bass, Upper, Cadence)).`
+  );
+
+  if (!result) return null;
+
+  return {
+    bassDegrees: result['Bass'] as number[],
+    upperDegrees: result['Upper'] as number[],
+    cadenceType: String(result['Cadence']),
+  };
+}
+
+/**
+ * Compare similarity between two schemata.
+ */
+export async function getSchemaSimilarity(
+  schemaA: GalantSchemaName,
+  schemaB: GalantSchemaName,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `schema_similarity(${schemaA}, ${schemaB}, Score).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Unable to compute schema similarity'], 50);
+  }
+
+  const score = result['Score'] as number;
+  return explainable(
+    score,
+    [`Similarity between ${schemaA} and ${schemaB}: ${score}`],
+    80
+  );
+}
+
+// ============================================================================
+// RAGA FINGERPRINT & SIMILARITY (C235-C236)
+// ============================================================================
+
+/**
+ * Compare similarity between two ragas.
+ */
+export async function getRagaSimilarity(
+  ragaA: string,
+  ragaB: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `raga_similarity(${ragaA}, ${ragaB}, Score).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Unable to compute raga similarity'], 50);
+  }
+
+  const score = result['Score'] as number;
+  return explainable(
+    score,
+    [`Similarity between ragas ${ragaA} and ${ragaB}: ${score}`],
+    75
+  );
+}
+
+// ============================================================================
+// MODE SIMILARITY (C237-C238)
+// ============================================================================
+
+/**
+ * Compare similarity between two modes.
+ */
+export async function getModeSimilarity(
+  modeA: string,
+  modeB: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `mode_similarity(${modeA}, ${modeB}, Score).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Unable to compute mode similarity'], 50);
+  }
+
+  const score = result['Score'] as number;
+  return explainable(
+    score,
+    [`Similarity between modes ${modeA} and ${modeB}: ${score}`],
+    80
+  );
+}
+
+// ============================================================================
+// TONAL CENTROID (C239-C241)
+// ============================================================================
+
+/**
+ * 6D tonal centroid from DFT bins K=1,2,3.
+ */
+export interface TonalCentroid {
+  readonly r1: number;
+  readonly i1: number;
+  readonly r2: number;
+  readonly i2: number;
+  readonly r3: number;
+  readonly i3: number;
+}
+
+/**
+ * Compute tonal centroid for a pitch class profile.
+ */
+export async function getTonalCentroid(
+  profile: number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<TonalCentroid | null> {
+  await ensureLoaded(adapter);
+
+  const profileStr = `[${profile.join(',')}]`;
+  const result = await adapter.querySingle(
+    `tonal_centroid(${profileStr}, centroid(R1,I1,R2,I2,R3,I3)).`
+  );
+
+  if (!result) return null;
+
+  return {
+    r1: result['R1'] as number,
+    i1: result['I1'] as number,
+    r2: result['R2'] as number,
+    i2: result['I2'] as number,
+    r3: result['R3'] as number,
+    i3: result['I3'] as number,
+  };
+}
+
+/**
+ * Compute distance between two tonal centroids.
+ */
+export async function getCentroidDistance(
+  a: TonalCentroid,
+  b: TonalCentroid,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<number> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `centroid_distance(centroid(${a.r1},${a.i1},${a.r2},${a.i2},${a.r3},${a.i3}), centroid(${b.r1},${b.i1},${b.r2},${b.i2},${b.r3},${b.i3}), Distance).`
+  );
+
+  if (!result) return Infinity;
+  return result['Distance'] as number;
+}
+
+// ============================================================================
+// COMPARE TONALITY MODELS (C213-C214)
+// ============================================================================
+
+/**
+ * Result from comparing tonality models.
+ */
+export interface TonalityModelComparison {
+  readonly model: TonalityModel;
+  readonly key: string;
+  readonly confidence: number;
+}
+
+/**
+ * Compare KS, DFT, and Spiral Array models on the same profile.
+ */
+export async function compareTonalityModels(
+  profile: number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<TonalityModelComparison[]>> {
+  await ensureLoaded(adapter);
+
+  const profileStr = `[${profile.join(',')}]`;
+  const result = await adapter.querySingle(
+    `compare_tonality_models(${profileStr}, Results).`
+  );
+
+  if (!result || !result['Results']) {
+    return explainable([], ['Unable to compare tonality models'], 50);
+  }
+
+  const results = (result['Results'] as Array<Record<string, unknown>>).map(r => ({
+    model: String(r['Model'] ?? r['arg1'] ?? 'unknown') as TonalityModel,
+    key: String(r['Key'] ?? r['arg2'] ?? 'unknown'),
+    confidence: (r['Confidence'] ?? r['arg3'] ?? 0) as number,
+  }));
+
+  return explainable(
+    results,
+    ['Tonality models compared on input profile'],
+    85
+  );
+}
+
+// ============================================================================
+// SEGMENT KEY DETECTION (C244)
+// ============================================================================
+
+/**
+ * Detect key for a segment of events using specified model.
+ */
+export async function detectSegmentKey(
+  events: Array<{ start: number; duration: number; pitch: number }>,
+  model: TonalityModel = 'ks_profile',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<KeyDetectionResult> | null> {
+  await ensureLoaded(adapter);
+
+  if (events.length === 0) return null;
+
+  const eventsStr = events
+    .map(e => `e(${e.start}, ${e.duration}, ${e.pitch})`)
+    .join(', ');
+
+  const result = await adapter.querySingle(
+    `segment_key([${eventsStr}], ${model}, Key, Confidence).`
+  );
+
+  if (!result) return null;
+
+  const key = String(result['Key']);
+  const confidence = result['Confidence'] as number;
+
+  return explainable(
+    {
+      root: key as RootName,
+      mode: 'major' as ModeName, // segment_key returns root only
+      confidence,
+      model,
+    },
+    [`Segment key: ${key} (${model}, confidence ${confidence})`],
+    confidence
+  );
+}
+
+// ============================================================================
+// RECOMMEND GALANT SCHEMA (C300)
+// ============================================================================
+
+/**
+ * Get ranked schema recommendations for the current spec.
+ */
+export async function recommendGalantSchema(
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<GalantSchemaName[]>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const result = await adapter.querySingle(
+      'current_spec(Spec), recommend_galant_schema(Spec, SchemaList, Reasons).'
+    );
+
+    if (!result || !result['SchemaList']) {
+      return explainable([], ['No schema recommendations available'], 50);
+    }
+
+    const schemas = (result['SchemaList'] as string[]).map(s => String(s) as GalantSchemaName);
+    const reasons = (result['Reasons'] as string[]) || ['Schema recommendations generated'];
+
+    return explainable(schemas, reasons.map(String), 80);
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// DECK TEMPLATE RECOMMENDATION (C866-C867)
+// ============================================================================
+
+/**
+ * Deck template recommendation result.
+ */
+export interface DeckTemplateRecommendation {
+  readonly templateId: string;
+  readonly reasons: readonly string[];
+}
+
+/**
+ * Recommend deck templates for the current spec.
+ */
+export async function recommendDeckTemplates(
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<DeckTemplateRecommendation[]>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const solutions = await adapter.queryAll(
+      'current_spec(Spec), recommend_template(Spec, TemplateId, Reasons).'
+    );
+
+    const recs: DeckTemplateRecommendation[] = solutions.map(s => ({
+      templateId: String(s['TemplateId']),
+      reasons: ((s['Reasons'] as string[]) || []).map(String),
+    }));
+
+    return explainable(
+      recs,
+      [`${recs.length} deck template(s) recommended`],
+      85
+    );
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// ROLE ALLOCATION (C897-C898)
+// ============================================================================
+
+/**
+ * Orchestration role allocation result.
+ */
+export interface RoleAllocation {
+  readonly role: string;
+  readonly family: string;
+}
+
+/**
+ * Allocate orchestration roles for a section.
+ */
+export async function allocateRoles(
+  spec: MusicSpec,
+  section: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<RoleAllocation[]>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const result = await adapter.querySingle(
+      `current_spec(Spec), allocate_roles(Spec, ${section}, Roles, Reasons).`
+    );
+
+    if (!result || !result['Roles']) {
+      return explainable([], ['Unable to allocate roles'], 50);
+    }
+
+    const roles = (result['Roles'] as Array<Record<string, unknown>>).map(r => ({
+      role: String(r['arg1'] ?? r['Role'] ?? 'unknown'),
+      family: String(r['arg2'] ?? r['Family'] ?? 'unknown'),
+    }));
+
+    const reasons = ((result['Reasons'] as string[]) || []).map(String);
+
+    return explainable(roles, reasons, 80);
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// ARRANGER STYLE RECOMMENDATION (C891-C892)
+// ============================================================================
+
+/**
+ * Recommend arranger style based on spec.
+ */
+export async function recommendArrangerStyle(
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const result = await adapter.querySingle(
+      'current_spec(Spec), recommend_arranger_style(Spec, Style, Reasons).'
+    );
+
+    if (!result) {
+      return explainable('standard', ['No specific style recommendation'], 50);
+    }
+
+    const style = String(result['Style']);
+    const reasons = ((result['Reasons'] as string[]) || []).map(String);
+
+    return explainable(style, reasons, 80);
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// FILL GENERATION (C936-C937)
+// ============================================================================
+
+/**
+ * Fill generation result.
+ */
+export interface GeneratedFill {
+  readonly type: string;
+  readonly pattern: string[];
+}
+
+/**
+ * Generate a fill of the specified type.
+ */
+export async function generateFill(
+  fillType: 'drum_fill' | 'melodic_fill' | 'riser_fill',
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<GeneratedFill | null>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const result = await adapter.querySingle(
+      `current_spec(Spec), generate_fill(${fillType}, Spec, fill(Type, Pattern), Reasons).`
+    );
+
+    if (!result) {
+      return explainable(null, ['Unable to generate fill'], 50);
+    }
+
+    return explainable(
+      {
+        type: String(result['Type']),
+        pattern: (result['Pattern'] as string[]).map(String),
+      },
+      ((result['Reasons'] as string[]) || []).map(String),
+      75
+    );
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// RECOMMEND TONALITY MODEL (C215-C216)
+// ============================================================================
+
+/**
+ * Recommend tonality model based on spec context.
+ */
+export async function recommendTonalityModel(
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<TonalityModel>> {
+  await ensureLoaded(adapter);
+  await clearSpec(adapter);
+  await pushSpec(spec, adapter);
+
+  try {
+    const result = await adapter.querySingle(
+      'current_spec(Spec), recommend_tonality_model(Spec, Model, Reasons).'
+    );
+
+    if (!result) {
+      return explainable('ks_profile' as TonalityModel, ['Default: KS profile'], 50);
+    }
+
+    const model = String(result['Model']) as TonalityModel;
+    const reasons = ((result['Reasons'] as string[]) || []).map(String);
+
+    return explainable(model, reasons, 85);
+  } finally {
+    await clearSpec(adapter);
+  }
+}
+
+// ============================================================================
+// HIT POINT PLACEMENT (C418-C419)
+// ============================================================================
+
+/**
+ * Recommend a chord for a hit point.
+ */
+export async function getHitPointChord(
+  hitType: 'accent' | 'stinger' | 'transition' | 'reveal',
+  key: RootName,
+  mood: FilmMood,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `place_hit_chord(${hitType}, ${key}, ${mood}, Chord).`
+  );
+
+  if (!result) {
+    return explainable('I', ['Default tonic chord for hit point'], 50);
+  }
+
+  const chord = String(result['Chord']);
+  return explainable(
+    chord,
+    [`${hitType} hit in ${mood} mood: ${chord}`],
+    80
+  );
+}
+
+// ============================================================================
+// ORCHESTRATION BUDGET (C454-C455)
+// ============================================================================
+
+/**
+ * Get orchestration budget for a complexity level.
+ */
+export async function getOrchestrationBudget(
+  level: 'minimal' | 'standard' | 'full' | 'epic',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `orchestration_budget(${level}, MaxVoices, Reasons).`
+  );
+
+  if (!result) {
+    return explainable(6, ['Default standard budget'], 50);
+  }
+
+  const maxVoices = result['MaxVoices'] as number;
+  const reasons = ((result['Reasons'] as string[]) || []).map(String);
+
+  return explainable(maxVoices, reasons, 90);
+}
+
+// ============================================================================
+// CUE ENDING RECOMMENDATION (C462)
+// ============================================================================
+
+/**
+ * Recommend a cue ending strategy for a film mood.
+ */
+export async function recommendCueEnding(
+  mood: FilmMood,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `recommend_cue_ending(${mood}, EndingStrategy, Reasons).`
+  );
+
+  if (!result) {
+    return explainable('fade_out', ['Default ending strategy'], 50);
+  }
+
+  const strategy = String(result['EndingStrategy']);
+  const reasons = ((result['Reasons'] as string[]) || []).map(String);
+
+  return explainable(strategy, reasons, 85);
+}
+
+// ============================================================================
+// VOICE LEADING PROFILE (C940-C941)
+// ============================================================================
+
+/**
+ * Get culture-specific voice leading profile.
+ */
+export async function getVoiceLeadingProfile(
+  culture: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `voice_leading_profile(${culture}, Rules).`
+  );
+
+  if (!result) {
+    return explainable('standard', ['Default Western voice leading'], 50);
+  }
+
+  return explainable(
+    String(result['Rules']),
+    [`Voice leading profile for ${culture} culture`],
+    85
+  );
+}
+
+// ============================================================================
+// LYDIAN CHROMATIC CONCEPT QUERIES (C1101-C1200)
+// ============================================================================
+
+/**
+ * Tonal gravity analysis result.
+ */
+export interface TonalGravityResult {
+  readonly note: string;
+  readonly level: number;
+  readonly direction: 'ingoing' | 'outgoing';
+}
+
+/**
+ * Analyze a melody's tonal gravity relative to a Lydian tonic.
+ */
+export async function analyzeLCCGravity(
+  notes: string[],
+  lydianRoot: RootName,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<TonalGravityResult[]>> {
+  await ensureLoaded(adapter);
+
+  const notesStr = notes.map(n => `${n}`).join(', ');
+  const result = await adapter.querySingle(
+    `analyze_melody_gravity([${notesStr}], ${lydianRoot}, GravityProfile).`
+  );
+
+  if (!result || !result['GravityProfile']) {
+    return explainable([], ['Unable to analyze LCC gravity'], 50);
+  }
+
+  const profile = (result['GravityProfile'] as Array<Record<string, unknown>>).map(g => ({
+    note: String(g['arg1'] ?? g['Note'] ?? 'unknown'),
+    level: (g['arg2'] ?? g['Level'] ?? 12) as number,
+    direction: String(g['arg3'] ?? g['Direction'] ?? 'outgoing') as 'ingoing' | 'outgoing',
+  }));
+
+  return explainable(
+    profile,
+    [`LCC gravity analysis relative to ${lydianRoot} Lydian tonic`],
+    80
+  );
+}
+
+/**
+ * LCC scale recommendation result.
+ */
+export interface LCCScaleRecommendation {
+  readonly root: string;
+  readonly scaleName: string;
+  readonly gravityFit: number;
+}
+
+/**
+ * Recommend LCC-based scales for a chord.
+ */
+export async function recommendLCCScale(
+  chordRoot: RootName,
+  chordType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<LCCScaleRecommendation[]>> {
+  await ensureLoaded(adapter);
+
+  const solutions = await adapter.queryAll(
+    `recommend_lcc_scale(chord(${chordRoot}, ${chordType}), scale(Root, ScaleName), GravityFit, Reasons).`
+  );
+
+  const recs: LCCScaleRecommendation[] = solutions.map(s => ({
+    root: String(s['Root']),
+    scaleName: String(s['ScaleName']),
+    gravityFit: s['GravityFit'] as number,
+  }));
+
+  return explainable(
+    recs,
+    [`${recs.length} LCC scale(s) recommended for ${chordRoot} ${chordType}`],
+    85
+  );
+}
+
+/**
+ * Get the parent scale for a chord using LCC principles.
+ */
+export async function getChordParentScale(
+  chordRoot: RootName,
+  chordType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ root: string; scale: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `chord_parent_scale(chord(${chordRoot}, ${chordType}), scale(Root, Scale), Reasons).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No parent scale found'], 50);
+  }
+
+  const reasons = ((result['Reasons'] as string[]) || []).map(String);
+
+  return explainable(
+    { root: String(result['Root']), scale: String(result['Scale']) },
+    reasons,
+    90
+  );
+}
+
+// ============================================================================
+// JAZZ VOICING QUERIES (C1201-C1240)
+// ============================================================================
+
+/**
+ * Jazz voicing result.
+ */
+export interface JazzVoicing {
+  readonly type: string;
+  readonly notes: number[];
+}
+
+/**
+ * Get shell voicing for a chord type.
+ */
+export async function getShellVoicing(
+  chordType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<JazzVoicing | null> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `shell_voicing(${chordType}, VoiceSet, Inversion).`
+  );
+
+  if (!result) return null;
+
+  return {
+    type: `shell_${String(result['Inversion'])}`,
+    notes: result['VoiceSet'] as number[],
+  };
+}
+
+/**
+ * Get rootless voicing for a chord type.
+ */
+export async function getRootlessVoicing(
+  chordType: string,
+  voicingType: 'a' | 'b' = 'a',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<JazzVoicing | null> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `rootless_voicing(${chordType}, ${voicingType}, Notes, Register).`
+  );
+
+  if (!result) return null;
+
+  return {
+    type: `rootless_${voicingType}`,
+    notes: result['Notes'] as number[],
+  };
+}
+
+/**
+ * Compute voice leading score between two voicings.
+ */
+export async function getVoiceLeadingScore(
+  voicing1: number[],
+  voicing2: number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const v1 = `[${voicing1.join(',')}]`;
+  const v2 = `[${voicing2.join(',')}]`;
+
+  const result = await adapter.querySingle(
+    `voice_leading_score(${v1}, ${v2}, Score, Moves).`
+  );
+
+  if (!result) {
+    return explainable(Infinity, ['Unable to compute voice leading score'], 50);
+  }
+
+  const score = result['Score'] as number;
+  return explainable(
+    score,
+    [`Voice leading motion: ${score} semitones total`],
+    85
+  );
+}
+
+/**
+ * Get tritone substitution for a dominant chord.
+ */
+export async function getTritoneSubstitution(
+  chordRoot: RootName,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `tritone_sub(chord(${chordRoot}, dominant7), chord(SubRoot, dominant7), Reasons).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No tritone sub available'], 50);
+  }
+
+  const subRoot = String(result['SubRoot']);
+  const reasons = ((result['Reasons'] as string[]) || []).map(String);
+
+  return explainable(subRoot, reasons, 90);
+}
+
+// ============================================================================
+// REHARMONIZATION STRENGTH & MELODY COMPATIBILITY (C1337-C1339)
+// ============================================================================
+
+/**
+ * Result of substitution strength analysis.
+ */
+export interface SubstitutionStrength {
+  readonly strength: number;
+  readonly compatibility: string;
+}
+
+/**
+ * Rate how strong a reharmonization substitution is.
+ * C1337: sub_strength/4
+ */
+export async function getSubstitutionStrength(
+  originalRoot: RootName,
+  originalType: string,
+  subRoot: RootName,
+  subType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<SubstitutionStrength | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `sub_strength(chord(${originalRoot}, ${originalType}), chord(${subRoot}, ${subType}), Strength, Compatibility).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Could not evaluate substitution strength'], 50);
+  }
+
+  return explainable(
+    { strength: Number(result['Strength']), compatibility: String(result['Compatibility']) },
+    [`Strength: ${result['Strength']}, Compatibility: ${result['Compatibility']}`],
+    85
+  );
+}
+
+/**
+ * Result of melody compatibility check.
+ */
+export interface MelodyCompatibility {
+  readonly score: number;
+  readonly conflicts: Array<{ index: number; note: string; pc: number }>;
+}
+
+/**
+ * Check whether a melody is compatible with a reharmonization chord.
+ * C1338-C1339: melody_compatible/4
+ */
+export async function checkMelodyCompatibility(
+  melodyNotes: RootName[],
+  chordRoot: RootName,
+  chordType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<MelodyCompatibility | null>> {
+  await ensureLoaded(adapter);
+
+  const noteList = `[${melodyNotes.join(',')}]`;
+  const result = await adapter.querySingle(
+    `melody_compatible(${noteList}, chord(${chordRoot}, ${chordType}), Score, Conflicts).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Could not check melody compatibility'], 50);
+  }
+
+  const score = Number(result['Score']);
+  const conflicts = Array.isArray(result['Conflicts'])
+    ? (result['Conflicts'] as unknown[]).map((c) => {
+        const cs = String(c);
+        return { index: 0, note: cs, pc: 0 };
+      })
+    : [];
+
+  return explainable(
+    { score, conflicts },
+    [`Compatibility score: ${score.toFixed(1)}%`],
+    80
+  );
+}
+
+// ============================================================================
+// JAZZ IMPROVISATION VOCABULARY (C1351-C1390)
+// ============================================================================
+
+/**
+ * Get a bebop scale for a given type and root.
+ * C1352-C1353: bebop_scale/3
+ */
+export async function getBebopScale(
+  type: 'dominant' | 'major' | 'minor' | 'dorian',
+  root: RootName,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string[]>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `bebop_scale(${type}, ${root}, Notes).`
+  );
+
+  if (!result) {
+    return explainable([], ['No bebop scale found'], 50);
+  }
+
+  const notes = Array.isArray(result['Notes'])
+    ? (result['Notes'] as unknown[]).map(String)
+    : [];
+
+  return explainable(notes, [`Bebop ${type} scale from ${root}`], 95);
+}
+
+/**
+ * Enclosure pattern result.
+ */
+export interface EnclosurePattern {
+  readonly notes: string[];
+  readonly rhythm: string[];
+}
+
+/**
+ * Generate an enclosure pattern around a target note.
+ * C1354-C1355: enclosure/4
+ */
+export async function getEnclosure(
+  target: RootName,
+  type: string = 'chromatic_above_below',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<EnclosurePattern | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `enclosure(${target}, ${type}, Notes, Rhythm).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No enclosure pattern found'], 50);
+  }
+
+  const notes = Array.isArray(result['Notes'])
+    ? (result['Notes'] as unknown[]).map(String) : [];
+  const rhythm = Array.isArray(result['Rhythm'])
+    ? (result['Rhythm'] as unknown[]).map(String) : [];
+
+  return explainable({ notes, rhythm }, [`Enclosure ${type} → ${target}`], 90);
+}
+
+/**
+ * Generate a digital pattern over a chord.
+ * C1356-C1357: digital_pattern/4
+ */
+export async function getDigitalPattern(
+  chordRoot: RootName,
+  chordType: string,
+  patternType: string = '1235',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string[]>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `digital_pattern(chord(${chordRoot}, ${chordType}), '${patternType}', Notes, Direction).`
+  );
+
+  if (!result) {
+    return explainable([], ['No digital pattern found'], 50);
+  }
+
+  const notes = Array.isArray(result['Notes'])
+    ? (result['Notes'] as unknown[]).map(String) : [];
+
+  return explainable(notes, [`Digital pattern ${patternType} on ${chordRoot} ${chordType}`], 90);
+}
+
+/**
+ * Generate a guide tone line through a chord progression.
+ * C1372-C1373: guide_tone_line/3
+ */
+export async function getGuideToneLine(
+  chords: Array<{ root: RootName; type: string }>,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<Array<{ third: string; seventh: string }>>> {
+  await ensureLoaded(adapter);
+
+  const chordList = `[${chords.map((c) => `chord(${c.root}, ${c.type})`).join(',')}]`;
+  const result = await adapter.querySingle(
+    `guide_tone_line(${chordList}, GuideTones, _VL).`
+  );
+
+  if (!result) {
+    return explainable([], ['Could not generate guide tone line'], 50);
+  }
+
+  const guideTones = Array.isArray(result['GuideTones'])
+    ? (result['GuideTones'] as unknown[]).map((g) => {
+        const gs = String(g);
+        return { third: gs, seventh: '' };
+      })
+    : [];
+
+  return explainable(guideTones, ['Guide tone line through chord changes'], 85);
+}
+
+/**
+ * Analyze a jazz phrase for vocabulary patterns.
+ * C1402: analyze_jazz_phrase/3
+ */
+export async function analyzeJazzPhrase(
+  notes: RootName[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ vocabulary: string; patternCount: number }>> {
+  await ensureLoaded(adapter);
+
+  const noteList = `[${notes.join(',')}]`;
+  const result = await adapter.querySingle(
+    `analyze_jazz_phrase(${noteList}, _Patterns, Vocabulary).`
+  );
+
+  if (!result) {
+    return explainable(
+      { vocabulary: 'unknown', patternCount: 0 },
+      ['Could not analyze phrase'],
+      50
+    );
+  }
+
+  return explainable(
+    { vocabulary: String(result['Vocabulary']), patternCount: 0 },
+    [`Jazz vocabulary level: ${result['Vocabulary']}`],
+    80
+  );
+}
+
+/**
+ * Get a jazz practice exercise.
+ * C1389: jazz_practice_exercise/4
+ */
+export async function getJazzPracticeExercise(
+  concept: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ exercise: string; instructions: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `jazz_practice_exercise(${concept}, Exercise, _Chords, Instructions).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No exercise found for concept'], 50);
+  }
+
+  const instructions = Array.isArray(result['Instructions'])
+    ? (result['Instructions'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { exercise: String(result['Exercise']), instructions },
+    [`Practice exercise for ${concept}`],
+    85
+  );
+}
+
+// ============================================================================
+// SPECTRAL MUSIC & COMPUTATIONAL ORCHESTRATION (C1451-C1530)
+// ============================================================================
+
+/**
+ * Spectral analysis result.
+ */
+export interface SpectralModel {
+  readonly partials: Array<{ n: number; freq: number; amp: number }>;
+}
+
+/**
+ * Calculate the spectral centroid (brightness measure) of a spectrum.
+ * C1455: spectral_centroid/2
+ */
+export async function calculateSpectralCentroid(
+  fundamental: number,
+  numPartials: number = 16,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `harmonic_series(${fundamental}, ${numPartials}, Partials), spectral_centroid(Partials, Centroid).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Could not calculate spectral centroid'], 50);
+  }
+
+  const centroid = Number(result['Centroid']);
+  return explainable(centroid, [`Spectral centroid: ${centroid.toFixed(1)} Hz`], 90);
+}
+
+/**
+ * Morph between two spectra at parameter t (0-1).
+ * C1462: spectral_morphing/4
+ */
+export async function morphSpectrum(
+  fund1: number,
+  fund2: number,
+  t: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `harmonic_series(${fund1}, 8, S1), harmonic_series(${fund2}, 8, S2), spectral_morphing(S1, S2, ${t}, Interpolated).`
+  );
+
+  if (!result) {
+    return explainable('', ['Could not morph spectra'], 50);
+  }
+
+  return explainable(
+    String(result['Interpolated']),
+    [`Morphed spectrum at t=${t} between ${fund1}Hz and ${fund2}Hz`],
+    85
+  );
+}
+
+/**
+ * Get the Forte number for a pitch-class set.
+ * C1512: forte_number/2
+ */
+export async function getForteNumber(
+  pitchClasses: number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string | null>> {
+  await ensureLoaded(adapter);
+
+  const pcList = `[${pitchClasses.join(',')}]`;
+  const result = await adapter.querySingle(
+    `forte_number(${pcList}, ForteNumber).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Forte number not found for this set'], 50);
+  }
+
+  return explainable(String(result['ForteNumber']), ['Forte catalog lookup'], 95);
+}
+
+/**
+ * Get the interval vector for a pitch-class set.
+ * C1513: interval_vector/2
+ */
+export async function getIntervalVector(
+  pitchClasses: number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number[]>> {
+  await ensureLoaded(adapter);
+
+  const pcList = `[${pitchClasses.join(',')}]`;
+  const result = await adapter.querySingle(
+    `interval_vector(${pcList}, Vector).`
+  );
+
+  if (!result) {
+    return explainable([], ['Could not compute interval vector'], 50);
+  }
+
+  const vector = Array.isArray(result['Vector'])
+    ? (result['Vector'] as unknown[]).map(Number) : [];
+
+  return explainable(vector, ['Interval vector computed'], 95);
+}
+
+/**
+ * Apply a neo-Riemannian PLR transformation.
+ * C1523: neo_riemannian_plr/3
+ */
+export async function applyNeoRiemannian(
+  root: RootName,
+  quality: 'major' | 'minor',
+  operation: 'p' | 'l' | 'r',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ root: string; quality: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `neo_riemannian_plr(triad(${root}, ${quality}), ${operation}, triad(NewRoot, NewQuality)).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Could not apply transformation'], 50);
+  }
+
+  return explainable(
+    { root: String(result['NewRoot']), quality: String(result['NewQuality']) },
+    [`${operation.toUpperCase()} transformation: ${root} ${quality} → ${result['NewRoot']} ${result['NewQuality']}`],
+    95
+  );
+}
+
+/**
+ * Compute Tonnetz distance between two triads.
+ * C1524: tonnetz_distance/3
+ */
+export async function getTonnetzDistance(
+  root1: RootName,
+  quality1: 'major' | 'minor',
+  root2: RootName,
+  quality2: 'major' | 'minor',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `tonnetz_distance(triad(${root1}, ${quality1}), triad(${root2}, ${quality2}), Distance).`
+  );
+
+  if (!result) {
+    return explainable(-1, ['Could not compute Tonnetz distance'], 50);
+  }
+
+  return explainable(
+    Number(result['Distance']),
+    [`Tonnetz distance: ${result['Distance']} PLR operations`],
+    90
+  );
+}
+
+/**
+ * Find parsimonious voice leading between two triads.
+ * C1525: parsimonious_voice_leading/3
+ */
+export async function findParsimoniousPath(
+  root1: RootName,
+  quality1: 'major' | 'minor',
+  root2: RootName,
+  quality2: 'major' | 'minor',
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ totalMotion: number }>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `parsimonious_voice_leading(triad(${root1}, ${quality1}), triad(${root2}, ${quality2}), vl(_Moves, TotalMotion)).`
+  );
+
+  if (!result) {
+    return explainable({ totalMotion: -1 }, ['Could not find voice leading'], 50);
+  }
+
+  return explainable(
+    { totalMotion: Number(result['TotalMotion']) },
+    [`Minimal voice leading motion: ${result['TotalMotion']} semitones`],
+    90
+  );
+}
+
+/**
+ * Compute orchestral weight for a set of instruments at a dynamic level.
+ * C1494: orchestral_weight/3
+ */
+export async function getOrchestralWeight(
+  instruments: string[],
+  dynamic: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const instrList = `[${instruments.join(',')}]`;
+  const result = await adapter.querySingle(
+    `orchestral_weight(${instrList}, ${dynamic}, Weight).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Could not compute orchestral weight'], 50);
+  }
+
+  return explainable(
+    Number(result['Weight']),
+    [`Orchestral weight at ${dynamic}: ${result['Weight']}`],
+    85
+  );
+}
+
+// ============================================================================
+// FILM SCORING & EMOTION (C1551-C1700)
+// ============================================================================
+
+/**
+ * Emotion vector from Russell's circumplex model.
+ */
+export interface EmotionVector {
+  readonly label: string;
+  readonly valence: string;
+  readonly arousal: string;
+}
+
+/**
+ * Map musical features to an emotion using the Russell circumplex model.
+ * C1594: composite_emotion_model/3
+ */
+export async function mapMusicToEmotion(
+  features: Array<{ key: string; value: string | number }>,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<EmotionVector | null>> {
+  await ensureLoaded(adapter);
+
+  const featureList = `[${features.map((f) => `${f.key}(${f.value})`).join(',')}]`;
+  const result = await adapter.querySingle(
+    `composite_emotion_model(${featureList}, russell, emotion(Label, valence(V), arousal(A))).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Could not map to emotion'], 50);
+  }
+
+  return explainable(
+    { label: String(result['Label']), valence: String(result['V']), arousal: String(result['A']) },
+    [`Emotion: ${result['Label']} (valence=${result['V']}, arousal=${result['A']})`],
+    80
+  );
+}
+
+/**
+ * Convert a target emotion into musical constraints.
+ * C1595: emotion_to_music_params/3
+ */
+export async function emotionToMusicParams(
+  emotion: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ constraints: string[]; spec: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `emotion_to_music_params(${emotion}, Constraints, Spec).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No music params for this emotion'], 50);
+  }
+
+  const constraints = Array.isArray(result['Constraints'])
+    ? (result['Constraints'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { constraints, spec: String(result['Spec']) },
+    [`Musical params for ${emotion}`],
+    85
+  );
+}
+
+/**
+ * Calculate a variable click track to hit sync points.
+ * C1564: click_track_calculation/4
+ */
+export async function calculateClickTrack(
+  hitPoints: Array<{ timecode: number; event: string }>,
+  minTempo: number,
+  maxTempo: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string>> {
+  await ensureLoaded(adapter);
+
+  const hpList = `[${hitPoints.map((hp) => `hit(${hp.timecode}, ${hp.event})`).join(',')}]`;
+  const result = await adapter.querySingle(
+    `click_track_calculation(${hpList}, range(${minTempo}, ${maxTempo}), moderate, ClickTrack).`
+  );
+
+  if (!result) {
+    return explainable('', ['Could not calculate click track'], 50);
+  }
+
+  return explainable(
+    String(result['ClickTrack']),
+    [`Click track spanning ${minTempo}-${maxTempo} BPM`],
+    80
+  );
+}
+
+/**
+ * Get horror scoring techniques.
+ * C1621: horror_scoring_technique/3
+ */
+export async function getHorrorScoringTechnique(
+  technique: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ implementation: string[]; effect: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `horror_scoring_technique(${technique}, Implementation, Effect).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No horror technique found'], 50);
+  }
+
+  const implementation = Array.isArray(result['Implementation'])
+    ? (result['Implementation'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { implementation, effect: String(result['Effect']) },
+    [`Horror technique: ${technique} → ${result['Effect']}`],
+    90
+  );
+}
+
+/**
+ * Match a cue to a composer's style.
+ * C1687: composer_style_match/3
+ */
+export async function matchComposerStyle(
+  cueFeatures: string[],
+  composer: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const cueList = `[${cueFeatures.join(',')}]`;
+  const result = await adapter.querySingle(
+    `composer_style_match(${cueList}, ${composer}, Score).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Could not match composer style'], 50);
+  }
+
+  return explainable(
+    Number(result['Score']),
+    [`Style match with ${composer}: ${result['Score']} features`],
+    80
+  );
+}
+
+/**
+ * Predict chill-inducing probability for a musical pattern.
+ * C1613: chill_inducing_pattern/2
+ */
+export async function predictChillResponse(
+  pattern: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<number>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `chill_inducing_pattern(${pattern}, Probability).`
+  );
+
+  if (!result) {
+    return explainable(0, ['Pattern not in chill database'], 50);
+  }
+
+  return explainable(
+    Number(result['Probability']),
+    [`Chill probability: ${(Number(result['Probability']) * 100).toFixed(0)}%`],
+    75
+  );
+}
+
+// ============================================================================
+// WORLD MUSIC — INDIAN (C1701-C1750)
+// ============================================================================
+
+/**
+ * Raga details from the Indian classical music KB.
+ */
+export interface RagaDetails {
+  readonly aroha: string[];
+  readonly avaroha: string[];
+  readonly vadi: string;
+  readonly samvadi: string;
+  readonly rasa: string;
+  readonly thaat: string;
+}
+
+/**
+ * Get full details for a raga.
+ * C1702, C1706, C1707: raga_database/5, raga_rasa/2, raga_family/2
+ */
+export async function getRagaDetails(
+  ragaName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<RagaDetails | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `raga_database(${ragaName}, Aroha, Avaroha, Vadi, Samvadi).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Raga not found in database'], 50);
+  }
+
+  const aroha = Array.isArray(result['Aroha'])
+    ? (result['Aroha'] as unknown[]).map(String) : [];
+  const avaroha = Array.isArray(result['Avaroha'])
+    ? (result['Avaroha'] as unknown[]).map(String) : [];
+
+  // Get additional data
+  const rasaResult = await adapter.querySingle(`raga_rasa(${ragaName}, Rasa).`);
+  const thaatResult = await adapter.querySingle(`raga_family(${ragaName}, Thaat).`);
+
+  return explainable(
+    {
+      aroha,
+      avaroha,
+      vadi: String(result['Vadi']),
+      samvadi: String(result['Samvadi']),
+      rasa: rasaResult ? String(rasaResult['Rasa']) : 'unknown',
+      thaat: thaatResult ? String(thaatResult['Thaat']) : 'unknown',
+    },
+    [`Raga ${ragaName}: vadi=${result['Vadi']}, samvadi=${result['Samvadi']}`],
+    90
+  );
+}
+
+/**
+ * Calculate a tihai and check if it lands on sam.
+ * C1720: tihai_calculation/4
+ */
+export async function calculateTihai(
+  patternLength: number,
+  gap: number,
+  cycleLength: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ total: number; valid: boolean }>> {
+  await ensureLoaded(adapter);
+
+  // Build a dummy pattern of given length for the Prolog query
+  const patternList = `[${Array(patternLength).fill('x').join(',')}]`;
+  const result = await adapter.querySingle(
+    `tihai_calculation(${patternList}, ${gap}, ${cycleLength}, tihai(_, _, Total, Valid)).`
+  );
+
+  if (!result) {
+    return explainable(
+      { total: 0, valid: false },
+      ['Could not calculate tihai'],
+      50
+    );
+  }
+
+  const valid = String(result['Valid']) === 'true';
+  return explainable(
+    { total: Number(result['Total']), valid },
+    [valid ? 'Tihai lands on sam!' : 'Tihai does NOT land on sam'],
+    95
+  );
+}
+
+// ============================================================================
+// WORLD MUSIC — ARABIC/MIDDLE EASTERN (C1751-C1790)
+// ============================================================================
+
+/**
+ * Maqam details.
+ */
+export interface MaqamDetails {
+  readonly jins1: string;
+  readonly jins2: string;
+  readonly ghammaz: string;
+  readonly family: string;
+  readonly emotions: string[];
+}
+
+/**
+ * Get maqam details.
+ * C1752, C1755, C1784: maqam_definition/4, maqam_family/2, maqam_emotion/2
+ */
+export async function getMaqamDetails(
+  maqamName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<MaqamDetails | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `maqam_definition(${maqamName}, Jins1, Jins2, Ghammaz).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Maqam not found'], 50);
+  }
+
+  const familyResult = await adapter.querySingle(`maqam_family(${maqamName}, Family).`);
+  const emotionResult = await adapter.querySingle(`maqam_emotion(${maqamName}, Emotions).`);
+
+  const emotions = emotionResult && Array.isArray(emotionResult['Emotions'])
+    ? (emotionResult['Emotions'] as unknown[]).map(String) : [];
+
+  return explainable(
+    {
+      jins1: String(result['Jins1']),
+      jins2: String(result['Jins2']),
+      ghammaz: String(result['Ghammaz']),
+      family: familyResult ? String(familyResult['Family']) : 'unknown',
+      emotions,
+    },
+    [`Maqam ${maqamName}: ${result['Jins1']} + ${result['Jins2']}`],
+    90
+  );
+}
+
+/**
+ * Get maqam modulation path.
+ * C1754: maqam_modulation/3
+ */
+export async function getMaqamModulation(
+  fromMaqam: string,
+  toMaqam: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `maqam_modulation(${fromMaqam}, ${toMaqam}, PivotNote).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No modulation path found'], 50);
+  }
+
+  return explainable(
+    String(result['PivotNote']),
+    [`Modulate ${fromMaqam} → ${toMaqam} via pivot ${result['PivotNote']}`],
+    85
+  );
+}
+
+// ============================================================================
+// WORLD MUSIC — AFRICAN (C1831-C1860)
+// ============================================================================
+
+/**
+ * Get an African timeline/bell pattern.
+ * C1832: african_rhythm_timeline/3
+ */
+export async function getAfricanTimeline(
+  patternName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ timeline: number[]; tradition: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `african_rhythm_timeline(${patternName}, Timeline, Tradition).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Timeline pattern not found'], 50);
+  }
+
+  const timeline = Array.isArray(result['Timeline'])
+    ? (result['Timeline'] as unknown[]).map(Number) : [];
+
+  return explainable(
+    { timeline, tradition: String(result['Tradition']) },
+    [`African timeline: ${patternName} (${result['Tradition']})`],
+    90
+  );
+}
+
+/**
+ * Generate a polyrhythm from two layers.
+ * C1834: polyrhythm_layer/4
+ */
+export async function generatePolyrhythm(
+  layer1: number,
+  layer2: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ resultant: number[] | string; relation: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `polyrhythm_layer(${layer1}, ${layer2}, Resultant, PhaseRelation).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Polyrhythm combination not found'], 50);
+  }
+
+  const resultant = Array.isArray(result['Resultant'])
+    ? (result['Resultant'] as unknown[]).map(Number)
+    : String(result['Resultant']);
+
+  return explainable(
+    { resultant, relation: String(result['PhaseRelation']) },
+    [`${layer1}:${layer2} polyrhythm — ${result['PhaseRelation']}`],
+    85
+  );
+}
+
+// ============================================================================
+// WORLD MUSIC — LATIN AMERICAN (C1861-C1900)
+// ============================================================================
+
+/**
+ * Get a clave pattern.
+ * C1862: clave_pattern/3
+ */
+export async function getClavePattern(
+  claveName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ pattern: number[]; style: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `clave_pattern(${claveName}, Pattern, Style).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Clave pattern not found'], 50);
+  }
+
+  const pattern = Array.isArray(result['Pattern'])
+    ? (result['Pattern'] as unknown[]).map(Number) : [];
+
+  return explainable(
+    { pattern, style: String(result['Style']) },
+    [`Clave: ${claveName} (${result['Style']})`],
+    95
+  );
+}
+
+/**
+ * Get a samba rhythm pattern by instrument.
+ * C1871: samba_pattern/3
+ */
+export async function getSambaPattern(
+  instrument: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ pattern: Array<number | string>; style: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `samba_pattern(${instrument}, Pattern, Style).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Samba pattern not found'], 50);
+  }
+
+  const pattern = Array.isArray(result['Pattern'])
+    ? (result['Pattern'] as unknown[]).map((v) => {
+        const n = Number(v);
+        return isNaN(n) ? String(v) : n;
+      })
+    : [];
+
+  return explainable(
+    { pattern, style: String(result['Style']) },
+    [`Samba ${instrument}: ${result['Style']}`],
+    90
+  );
+}
+
+/**
+ * Get flamenco compás pattern.
+ * C1886: flamenco_compas/3
+ */
+export async function getFlamencoCompas(
+  paloName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ beats: number; accents: number[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `flamenco_compas(${paloName}, Beats, Accents).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Flamenco palo not found'], 50);
+  }
+
+  const accents = Array.isArray(result['Accents'])
+    ? (result['Accents'] as unknown[]).map(Number) : [];
+
+  return explainable(
+    { beats: Number(result['Beats']), accents },
+    [`Flamenco ${paloName}: ${result['Beats']} beats`],
+    90
+  );
+}
+
+// ============================================================================
+// ROCK MUSIC QUERIES (C1901-C1930)
+// ============================================================================
+
+/**
+ * Get rock progression by style.
+ * C1903: rock_progression/3
+ */
+export async function getRockProgression(
+  styleName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ chords: string[]; feel: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `rock_progression(${styleName}, Chords, Feel).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Rock progression not found'], 50);
+  }
+
+  const chords = Array.isArray(result['Chords'])
+    ? (result['Chords'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { chords, feel: String(result['Feel']) },
+    [`Rock ${styleName}: ${chords.join('-')} (${result['Feel']})`],
+    90
+  );
+}
+
+/**
+ * Get rock drum pattern.
+ * C1907: rock_drum_pattern/3
+ */
+export async function getRockDrumPattern(
+  patternName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ pattern: string[]; genre: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `rock_drum_pattern(${patternName}, Pattern, Genre).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Rock drum pattern not found'], 50);
+  }
+
+  const pattern = Array.isArray(result['Pattern'])
+    ? (result['Pattern'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { pattern, genre: String(result['Genre']) },
+    [`Rock drum ${patternName}: ${result['Genre']}`],
+    90
+  );
+}
+
+/**
+ * Get rock subgenre characteristics.
+ * C1912: rock_subgenre/3
+ */
+export async function getRockSubgenre(
+  genreName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ era: string; characteristics: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `rock_subgenre(${genreName}, Era, Characteristics).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Rock subgenre not found'], 50);
+  }
+
+  const characteristics = Array.isArray(result['Characteristics'])
+    ? (result['Characteristics'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { era: String(result['Era']), characteristics },
+    [`Rock subgenre ${genreName}: ${result['Era']}`],
+    90
+  );
+}
+
+/**
+ * Get guitar tone chain for a style.
+ * C1916: guitar_tone_chain/3
+ */
+export async function getGuitarToneChain(
+  styleName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ chain: string[]; sound: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `guitar_tone_chain(${styleName}, Chain, Sound).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Guitar tone chain not found'], 50);
+  }
+
+  const chain = Array.isArray(result['Chain'])
+    ? (result['Chain'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { chain, sound: String(result['Sound']) },
+    [`Guitar tone ${styleName}: ${chain.join(' → ')}`],
+    90
+  );
+}
+
+/**
+ * Get drop tuning info.
+ * C1914: drop_tuning/3
+ */
+export async function getDropTuning(
+  tuningName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ strings: string[]; genre: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `drop_tuning(${tuningName}, Strings, Genre).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Drop tuning not found'], 50);
+  }
+
+  const strings = Array.isArray(result['Strings'])
+    ? (result['Strings'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { strings, genre: String(result['Genre']) },
+    [`Tuning ${tuningName}: ${strings.join(' ')} (${result['Genre']})`],
+    90
+  );
+}
+
+// ============================================================================
+// POP MUSIC QUERIES (C1931-C1970)
+// ============================================================================
+
+/**
+ * Get pop chord progression.
+ * C1931: pop_chord_progression/3
+ */
+export async function getPopChordProgression(
+  progressionName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ chords: string[]; usage: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `pop_chord_progression(${progressionName}, Chords, Usage).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Pop progression not found'], 50);
+  }
+
+  const chords = Array.isArray(result['Chords'])
+    ? (result['Chords'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { chords, usage: String(result['Usage']) },
+    [`Pop progression ${progressionName}: ${chords.join('-')}`],
+    90
+  );
+}
+
+/**
+ * Get pop melody contour.
+ * C1933: pop_melody_contour/3
+ */
+export async function getPopMelodyContour(
+  contourName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ shape: string; effect: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `pop_melody_contour(${contourName}, Shape, Effect).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Pop melody contour not found'], 50);
+  }
+
+  return explainable(
+    { shape: String(result['Shape']), effect: String(result['Effect']) },
+    [`Pop melody ${contourName}: ${result['Shape']}`],
+    90
+  );
+}
+
+/**
+ * Get pop song form.
+ * C1937: pop_song_form/3
+ */
+export async function getPopSongForm(
+  formName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ sections: string[]; era: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `pop_song_form(${formName}, Sections, Era).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Pop song form not found'], 50);
+  }
+
+  const sections = Array.isArray(result['Sections'])
+    ? (result['Sections'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { sections, era: String(result['Era']) },
+    [`Pop form ${formName}: ${sections.join(' → ')}`],
+    90
+  );
+}
+
+/**
+ * Get hook placement strategy.
+ * C1934: hook_placement/3
+ */
+export async function getHookPlacement(
+  hookType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ location: string; technique: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `hook_placement(${hookType}, Location, Technique).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Hook placement not found'], 50);
+  }
+
+  return explainable(
+    { location: String(result['Location']), technique: String(result['Technique']) },
+    [`Hook ${hookType}: placed at ${result['Location']}`],
+    90
+  );
+}
+
+/**
+ * Get earworm characteristics.
+ * C1935: earworm_characteristics/2
+ */
+export async function getEarwormCharacteristics(
+  featureName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ description: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `earworm_characteristics(${featureName}, Description).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Earworm feature not found'], 50);
+  }
+
+  return explainable(
+    { description: String(result['Description']) },
+    [`Earworm feature ${featureName}: ${result['Description']}`],
+    90
+  );
+}
+
+// ============================================================================
+// EDM QUERIES (C2002-C2041)
+// ============================================================================
+
+/**
+ * Get four-on-the-floor pattern for a tempo.
+ * C2002: four_on_floor/3
+ */
+export async function getFourOnFloor(
+  tempo: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ subgenre: string; variations: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `four_on_floor(${tempo}, Subgenre, Variations).`
+  );
+
+  if (!result) {
+    return explainable(null, ['No four-on-floor pattern at this tempo'], 50);
+  }
+
+  const variations = Array.isArray(result['Variations'])
+    ? (result['Variations'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { subgenre: String(result['Subgenre']), variations },
+    [`Four-on-floor at ${tempo} BPM: ${result['Subgenre']}`],
+    90
+  );
+}
+
+/**
+ * Get breakbeat pattern.
+ * C2003: breakbeat_pattern/3
+ */
+export async function getBreakbeatPattern(
+  patternName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ pattern: string[]; genre: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `breakbeat_pattern(${patternName}, Pattern, Genre).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Breakbeat pattern not found'], 50);
+  }
+
+  const pattern = Array.isArray(result['Pattern'])
+    ? (result['Pattern'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { pattern, genre: String(result['Genre']) },
+    [`Breakbeat ${patternName}: ${result['Genre']}`],
+    90
+  );
+}
+
+/**
+ * Get drop type characteristics.
+ * C2005: drop_types/3
+ */
+export async function getDropType(
+  dropType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ characteristics: string[]; genre: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `drop_types(${dropType}, Characteristics, Genre).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Drop type not found'], 50);
+  }
+
+  const characteristics = Array.isArray(result['Characteristics'])
+    ? (result['Characteristics'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { characteristics, genre: String(result['Genre']) },
+    [`Drop ${dropType}: ${characteristics.join(', ')} (${result['Genre']})`],
+    90
+  );
+}
+
+/**
+ * Get synth bass type.
+ * C2009: synth_bass_type/3
+ */
+export async function getSynthBassType(
+  bassType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ synthesis: string[]; genre: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `synth_bass_type(${bassType}, Synthesis, Genre).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Synth bass type not found'], 50);
+  }
+
+  const synthesis = Array.isArray(result['Synthesis'])
+    ? (result['Synthesis'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { synthesis, genre: String(result['Genre']) },
+    [`Synth bass ${bassType}: ${synthesis.join(', ')}`],
+    90
+  );
+}
+
+/**
+ * Get EDM subgenre info.
+ * C2015: edm_subgenre/3
+ */
+export async function getEdmSubgenre(
+  genreName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ bpmRange: { min: number; max: number }; characteristics: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `edm_subgenre(${genreName}, BPM, Characteristics).`
+  );
+
+  if (!result) {
+    return explainable(null, ['EDM subgenre not found'], 50);
+  }
+
+  const characteristics = Array.isArray(result['Characteristics'])
+    ? (result['Characteristics'] as unknown[]).map(String) : [];
+
+  // BPM comes as range(min, max) compound term
+  const bpmStr = String(result['BPM']);
+  const rangeMatch = bpmStr.match(/range\((\d+),\s*(\d+)\)/);
+  const bpmRange = rangeMatch
+    ? { min: Number(rangeMatch[1]), max: Number(rangeMatch[2]) }
+    : { min: 0, max: 0 };
+
+  return explainable(
+    { bpmRange, characteristics },
+    [`EDM ${genreName}: ${bpmRange.min}-${bpmRange.max} BPM`],
+    90
+  );
+}
+
+/**
+ * Get house music substyle.
+ * C2016: house_style/3
+ */
+export async function getHouseStyle(
+  substyle: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ features: string[]; artists: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `house_style(${substyle}, Features, Artists).`
+  );
+
+  if (!result) {
+    return explainable(null, ['House substyle not found'], 50);
+  }
+
+  const features = Array.isArray(result['Features'])
+    ? (result['Features'] as unknown[]).map(String) : [];
+  const artists = Array.isArray(result['Artists'])
+    ? (result['Artists'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { features, artists },
+    [`House ${substyle}: ${features.join(', ')}`],
+    90
+  );
+}
+
+/**
+ * Get buildup technique info.
+ * C2006: buildup_techniques/3
+ */
+export async function getBuildupTechnique(
+  technique: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ duration: string; intensity: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `buildup_techniques(${technique}, Duration, Intensity).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Buildup technique not found'], 50);
+  }
+
+  return explainable(
+    { duration: String(result['Duration']), intensity: String(result['Intensity']) },
+    [`Buildup ${technique}: ${result['Duration']} (${result['Intensity']})`],
+    90
+  );
+}
+
+/**
+ * Get sidechain compression settings.
+ * C2008: sidechain_compression/3
+ */
+export async function getSidechainCompression(
+  source: string,
+  target: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ settings: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `sidechain_compression(${source}, ${target}, Settings).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Sidechain settings not found'], 50);
+  }
+
+  const settings = Array.isArray(result['Settings'])
+    ? (result['Settings'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { settings },
+    [`Sidechain ${source}→${target}: ${settings.join(', ')}`],
+    90
+  );
+}

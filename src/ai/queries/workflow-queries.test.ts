@@ -51,6 +51,18 @@ import {
   measureComplexity,
   // N024: configuration optimization
   optimizeConfiguration,
+  // N016: workflow interruption/resume
+  getWorkflowInterruptPolicy,
+  getWorkflowSkippableSteps,
+  getWorkflowCheckpointSteps,
+  suspendWorkflow,
+  resumeWorkflow,
+  // N015: workflow template library
+  getWorkflowTemplateLibrary,
+  getWorkflowTemplatesForPersona,
+  getWorkflowTemplatesByCategory,
+  searchWorkflowTemplates,
+  getWorkflowTemplateById,
 } from './workflow-queries';
 
 describe('Workflow Planning Queries', () => {
@@ -398,6 +410,138 @@ describe('Workflow Planning Queries', () => {
         pattern_editor: ['tempo'],
       });
       expect(result.syncRules.length).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  // ===========================================================================
+  // N016: Workflow Interruption & Resume
+  // ===========================================================================
+
+  describe('Workflow Interruption & Resume (N016)', () => {
+    it('N017: gets interrupt policy for known goals', async () => {
+      const policy = await getWorkflowInterruptPolicy('make_beat');
+      expect(policy).not.toBeNull();
+      expect(policy!.goal).toBe('make_beat');
+      expect(typeof policy!.policy).toBe('string');
+    });
+
+    it('N017: returns null for unknown goals', async () => {
+      const policy = await getWorkflowInterruptPolicy('nonexistent_goal');
+      expect(policy).toBeNull();
+    });
+
+    it('N017: gets skippable steps', async () => {
+      const steps = await getWorkflowSkippableSteps('make_beat');
+      expect(Array.isArray(steps)).toBe(true);
+      // make_beat has skippable steps in the KB
+      expect(steps.length).toBeGreaterThan(0);
+    });
+
+    it('N017: gets checkpoint steps', async () => {
+      const steps = await getWorkflowCheckpointSteps('make_beat');
+      expect(Array.isArray(steps)).toBe(true);
+      expect(steps.length).toBeGreaterThan(0);
+    });
+
+    it('N017: suspends a workflow', async () => {
+      const suspended = await suspendWorkflow('make_beat', 'tracker_user', 2);
+      expect(suspended).not.toBeNull();
+      expect(suspended!.goal).toBe('make_beat');
+      expect(suspended!.completedStepIndex).toBe(2);
+      expect(suspended!.totalSteps.length).toBeGreaterThan(0);
+      expect(typeof suspended!.interruptPolicy).toBe('string');
+      expect(typeof suspended!.suspendedAt).toBe('number');
+    });
+
+    it('N018: resumes a workflow from suspended state', async () => {
+      const suspended = await suspendWorkflow('make_beat', 'tracker_user', 2);
+      expect(suspended).not.toBeNull();
+
+      const resumed = resumeWorkflow(suspended!);
+      expect(resumed.goal).toBe('make_beat');
+      expect(resumed.resumeFromIndex).toBe(3);
+      expect(resumed.strategy).toBe('resume_from_step');
+      expect(resumed.remainingSteps.length).toBeGreaterThan(0);
+    });
+
+    it('N018: skipped steps are excluded from remaining steps', async () => {
+      const suspended = await suspendWorkflow('make_beat', 'tracker_user', 0);
+      expect(suspended).not.toBeNull();
+
+      const resumed = resumeWorkflow(suspended!);
+      // Skippable steps should not appear in remainingSteps
+      for (const step of resumed.skippedSteps) {
+        expect(resumed.remainingSteps).not.toContain(step);
+      }
+    });
+  });
+
+  // ===========================================================================
+  // N015: Workflow Template Library
+  // ===========================================================================
+
+  describe('workflow template library (N015)', () => {
+    it('returns a non-empty template library', () => {
+      const templates = getWorkflowTemplateLibrary();
+      expect(templates.length).toBeGreaterThanOrEqual(10);
+    });
+
+    it('all templates have valid structure', () => {
+      const templates = getWorkflowTemplateLibrary();
+      for (const t of templates) {
+        expect(t.templateId).toBeTruthy();
+        expect(t.goal).toBeTruthy();
+        expect(t.description).toBeTruthy();
+        expect(t.persona).toBeTruthy();
+        expect(t.category).toBeTruthy();
+        expect(t.estimatedSteps).toBeGreaterThan(0);
+        expect(t.requiredDecks.length).toBeGreaterThan(0);
+        expect(t.tags.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('filters templates by persona', () => {
+      const trackerTemplates = getWorkflowTemplatesForPersona('tracker_user');
+      expect(trackerTemplates.length).toBeGreaterThan(0);
+      // Should include tracker-specific + "any" persona templates
+      expect(trackerTemplates.some(t => t.persona === 'tracker_user')).toBe(true);
+      expect(trackerTemplates.some(t => t.persona === 'any')).toBe(true);
+    });
+
+    it('filters templates by category', () => {
+      const mixingTemplates = getWorkflowTemplatesByCategory('mixing');
+      expect(mixingTemplates.length).toBeGreaterThan(0);
+      expect(mixingTemplates.every(t => t.category === 'mixing')).toBe(true);
+    });
+
+    it('searches templates by query', () => {
+      const results = searchWorkflowTemplates('beat');
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.every(t =>
+        t.goal.toLowerCase().includes('beat') ||
+        t.description.toLowerCase().includes('beat') ||
+        t.tags.some(tag => tag.includes('beat'))
+      )).toBe(true);
+    });
+
+    it('retrieves template by ID', () => {
+      const t = getWorkflowTemplateById('wf_mix_session');
+      expect(t).not.toBeNull();
+      expect(t!.goal).toBe('mix_session');
+    });
+
+    it('returns null for unknown template ID', () => {
+      expect(getWorkflowTemplateById('nonexistent')).toBeNull();
+    });
+
+    it('covers common workflow categories', () => {
+      const templates = getWorkflowTemplateLibrary();
+      const categories = new Set(templates.map(t => t.category));
+      expect(categories.has('composition')).toBe(true);
+      expect(categories.has('production')).toBe(true);
+      expect(categories.has('mixing')).toBe(true);
+      expect(categories.has('mastering')).toBe(true);
+      expect(categories.has('sound-design')).toBe(true);
     });
   });
 });

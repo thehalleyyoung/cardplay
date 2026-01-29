@@ -90,6 +90,7 @@ export class DeckContainer {
     menuBtn.textContent = '⋮';
     menuBtn.title = 'More actions';
     menuBtn.setAttribute('aria-label', 'More actions');
+    menuBtn.onclick = (e) => this.showContextMenu(e);
     actions.appendChild(menuBtn);
 
     // Close button
@@ -106,6 +107,108 @@ export class DeckContainer {
     header.appendChild(actions);
 
     return header;
+  }
+
+  /**
+   * Shows context menu for deck actions.
+   * E009: Deck-level context menu (move to panel, reset state).
+   */
+  private showContextMenu(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Remove any existing context menu
+    const existingMenu = document.querySelector('.deck-context-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
+
+    // Create context menu
+    const menu = document.createElement('div');
+    menu.className = 'deck-context-menu';
+    menu.style.position = 'fixed';
+    menu.style.left = `${event.clientX}px`;
+    menu.style.top = `${event.clientY}px`;
+
+    // Menu items
+    const menuItems = [
+      {
+        label: 'Move to Left Panel',
+        action: () => this.moveDeckToPanel('left'),
+      },
+      {
+        label: 'Move to Right Panel',
+        action: () => this.moveDeckToPanel('right'),
+      },
+      {
+        label: 'Move to Bottom Panel',
+        action: () => this.moveDeckToPanel('bottom'),
+      },
+      { separator: true },
+      {
+        label: 'Reset State',
+        action: () => this.resetDeckState(),
+      },
+      {
+        label: 'Reset Layout',
+        action: () => this.resetDeckLayout(),
+      },
+    ];
+
+    menuItems.forEach(item => {
+      if ('separator' in item) {
+        const separator = document.createElement('div');
+        separator.className = 'deck-context-menu-separator';
+        menu.appendChild(separator);
+      } else {
+        const menuItem = document.createElement('div');
+        menuItem.className = 'deck-context-menu-item';
+        menuItem.textContent = item.label;
+        menuItem.onclick = () => {
+          item.action();
+          menu.remove();
+        };
+        menu.appendChild(menuItem);
+      }
+    });
+
+    // Add to document
+    document.body.appendChild(menu);
+
+    // Close menu on outside click
+    const closeMenu = (e: MouseEvent) => {
+      if (!menu.contains(e.target as Node)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu), 0);
+  }
+
+  private moveDeckToPanel(panel: 'left' | 'right' | 'bottom'): void {
+    console.log(`Moving deck ${this.options.deck.id} to ${panel} panel`);
+    // This would be implemented by the board host
+    // For now, just log the action
+  }
+
+  private resetDeckState(): void {
+    console.log(`Resetting state for deck ${this.options.deck.id}`);
+    // Reset to default state
+    if (this.options.onStateChange) {
+      this.options.onStateChange({
+        scrollTop: 0,
+        scrollLeft: 0,
+        focusedItemId: null,
+        searchQuery: '',
+        zoom: 1.0,
+      });
+    }
+  }
+
+  private resetDeckLayout(): void {
+    console.log(`Resetting layout for deck ${this.options.deck.id}`);
+    // Re-render with default layout
+    this.renderDeckContent();
   }
 
   private renderDeckContent(): void {
@@ -365,6 +468,50 @@ export class DeckContainer {
     if (this.options.onStateChange) {
       this.options.onStateChange(state);
     }
+  }
+
+  /**
+   * Gets current deck state for persistence.
+   * E010: Persist deck UI state via BoardStateStore.perBoardDeckState.
+   */
+  public getState(): DeckRuntimeState {
+    return this.options.state;
+  }
+
+  /**
+   * Restores deck state from persisted data.
+   * E010: Persist deck UI state via BoardStateStore.perBoardDeckState.
+   */
+  public restoreState(state: Partial<DeckRuntimeState>): void {
+    this.updateState(state);
+
+    // Re-render if needed
+    if (state.activeTabId !== undefined || state.zoom !== undefined) {
+      this.renderDeckContent();
+    }
+
+    // Restore scroll position
+    if (state.scrollTop !== undefined || state.scrollLeft !== undefined) {
+      this.bodyElement.scrollTop = state.scrollTop ?? 0;
+      this.bodyElement.scrollLeft = state.scrollLeft ?? 0;
+    }
+  }
+
+  /**
+   * Captures current UI state for persistence.
+   * E010: Persist deck UI state via BoardStateStore.perBoardDeckState.
+   */
+  public captureCurrentState(): Partial<DeckRuntimeState> {
+    return {
+      scrollTop: this.bodyElement.scrollTop,
+      scrollLeft: this.bodyElement.scrollLeft,
+      activeTabId: this.options.state.activeTabId,
+      zoom: this.options.state.zoom,
+      searchQuery: this.options.state.searchQuery,
+      filters: this.options.state.filters,
+      collapsedSections: this.options.state.collapsedSections,
+      timestamp: Date.now(),
+    };
   }
 }
 

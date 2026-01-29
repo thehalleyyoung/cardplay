@@ -13,6 +13,7 @@ export * from './validate-tool-config';
 export * from './registry';
 export * from './recommendations';
 export * from './policy';
+export * from './init';
 
 // Store
 export * from './store/types';
@@ -43,6 +44,8 @@ export * from './layout/guards';
 export * from './decks/runtime-types';
 export * from './decks/factory-types';
 export * from './decks/factory-registry';
+export { createDeckInstances, createStubFactory } from './decks/deck-factories';
+export * from './decks/deck-container';
 
 // Builtins
 export * from './builtins';

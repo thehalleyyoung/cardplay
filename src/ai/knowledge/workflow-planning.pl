@@ -257,3 +257,53 @@ routing_optimization(merge_serial_effects, 'Combine serial effect chains into si
 routing_optimization(share_send_effects, 'Use shared send/return for common effects (reverb, delay)').
 routing_optimization(remove_unused_buses, 'Delete buses with no active sends').
 routing_optimization(simplify_parallel, 'Merge parallel paths with identical processing').
+
+%% ---------------------------------------------------------------------------
+%% N016: Workflow interruption & resume rules
+%%   workflow_interrupt_policy/2 – (Goal, Policy)
+%%     Describes what to do when a workflow is interrupted.
+%%   workflow_resume_strategy/3 – (Goal, InterruptPoint, Strategy)
+%%     Describes how to resume a workflow from a given step.
+%% ---------------------------------------------------------------------------
+workflow_interrupt_policy(make_beat, save_pattern_state).
+workflow_interrupt_policy(compose_score, save_score_state).
+workflow_interrupt_policy(design_sound, save_preset_draft).
+workflow_interrupt_policy(mix_track, save_mix_snapshot).
+workflow_interrupt_policy(master_track, save_master_chain).
+workflow_interrupt_policy(arrange_song, save_arrangement_state).
+workflow_interrupt_policy(record_audio, stop_recording_save_take).
+workflow_interrupt_policy(live_performance, queue_safe_stop).
+
+%% Resume strategies: for each goal, define how to resume at an
+%% arbitrary step index.
+workflow_resume_strategy(make_beat, StepIndex, resume_from_step) :-
+    StepIndex >= 0.
+workflow_resume_strategy(compose_score, StepIndex, resume_from_step) :-
+    StepIndex >= 0.
+workflow_resume_strategy(design_sound, StepIndex, resume_from_step) :-
+    StepIndex >= 0.
+workflow_resume_strategy(mix_track, StepIndex, resume_from_step) :-
+    StepIndex >= 0.
+workflow_resume_strategy(master_track, StepIndex, resume_from_step) :-
+    StepIndex >= 0.
+
+%% Steps that can be safely skipped on resume (already persisted)
+workflow_skip_on_resume(compose_score, set_instrumentation).
+workflow_skip_on_resume(compose_score, set_key_and_tempo).
+workflow_skip_on_resume(make_beat, open_pattern_editor).
+workflow_skip_on_resume(make_beat, load_drum_samples).
+workflow_skip_on_resume(design_sound, choose_synthesis_type).
+workflow_skip_on_resume(mix_track, import_stems).
+workflow_skip_on_resume(mix_track, set_gain_staging).
+
+%% Checkpoint: which steps produce saveable state?
+workflow_checkpoint_step(make_beat, program_kick_pattern).
+workflow_checkpoint_step(make_beat, add_bass_line).
+workflow_checkpoint_step(make_beat, adjust_levels).
+workflow_checkpoint_step(compose_score, enter_melody).
+workflow_checkpoint_step(compose_score, add_harmony).
+workflow_checkpoint_step(compose_score, add_dynamics).
+workflow_checkpoint_step(design_sound, shape_with_filter).
+workflow_checkpoint_step(design_sound, add_modulation).
+workflow_checkpoint_step(mix_track, apply_eq_per_track).
+workflow_checkpoint_step(mix_track, apply_compression).

@@ -377,3 +377,66 @@ automation_lane_suggestion(master, volume, 1).
 %% suggest_automation_lanes/2 – Get lane suggestions sorted by priority
 suggest_automation_lanes(TrackType, Params) :-
     findall(param(P, Pr), automation_lane_suggestion(TrackType, P, Pr), Params).
+
+%% ---------------------------------------------------------------------------
+%% M287: reference_matching_technique/2 – A/B comparison techniques
+%% ---------------------------------------------------------------------------
+reference_matching_technique(frequency_comparison, 'Compare frequency spectrum (EQ curve) between mix and reference').
+reference_matching_technique(loudness_comparison, 'Compare integrated LUFS and short-term loudness contours').
+reference_matching_technique(dynamic_range_comparison, 'Compare dynamic range (crest factor, peak-to-LUFS ratio)').
+reference_matching_technique(stereo_width_comparison, 'Compare stereo correlation and mid/side balance').
+reference_matching_technique(transient_comparison, 'Compare transient sharpness and attack characteristics').
+
+%% ---------------------------------------------------------------------------
+%% M288: loudness_analysis_rule/2 – LUFS targets by platform
+%% ---------------------------------------------------------------------------
+loudness_target(streaming, -14, 'Streaming platforms (Spotify, Apple Music) target -14 LUFS integrated').
+loudness_target(club, -8, 'Club playback targets -6 to -8 LUFS for maximum impact').
+loudness_target(broadcast, -23, 'EBU R128 broadcast standard targets -23 LUFS').
+loudness_target(film, -24, 'Film dialogue targets -24 LUFS per ATSC A/85').
+loudness_target(podcast, -16, 'Podcast targets -16 LUFS for consistent listening').
+loudness_target(vinyl, -12, 'Vinyl mastering targets -12 LUFS with limited peak level').
+
+%% ---------------------------------------------------------------------------
+%% M289: dynamic_range_target/2 – Dynamic range targets per genre
+%% ---------------------------------------------------------------------------
+dynamic_range_target(pop, 6, 'Pop: ~6 dB dynamic range for consistent loudness').
+dynamic_range_target(rock, 8, 'Rock: ~8 dB dynamic range with punchy drums').
+dynamic_range_target(jazz, 15, 'Jazz: ~15 dB dynamic range for expressiveness').
+dynamic_range_target(classical, 20, 'Classical: ~20 dB+ dynamic range for full dynamics').
+dynamic_range_target(edm, 4, 'EDM: ~4 dB dynamic range for maximum loudness').
+dynamic_range_target(hiphop, 6, 'Hip-hop: ~6 dB dynamic range for impact').
+dynamic_range_target(ambient, 18, 'Ambient: ~18 dB dynamic range for space and subtlety').
+dynamic_range_target(cinematic, 20, 'Cinematic: ~20 dB dynamic range for dramatic contrast').
+
+%% ---------------------------------------------------------------------------
+%% M290-M292: Loudness analysis and dynamics suggestion rules
+%% ---------------------------------------------------------------------------
+
+%% Loudness diagnosis based on target and measured LUFS
+loudness_diagnosis(Platform, MeasuredLUFS, too_loud) :-
+    loudness_target(Platform, TargetLUFS, _),
+    MeasuredLUFS > TargetLUFS + 2.
+loudness_diagnosis(Platform, MeasuredLUFS, too_quiet) :-
+    loudness_target(Platform, TargetLUFS, _),
+    MeasuredLUFS < TargetLUFS - 2.
+loudness_diagnosis(Platform, MeasuredLUFS, on_target) :-
+    loudness_target(Platform, TargetLUFS, _),
+    MeasuredLUFS >= TargetLUFS - 2,
+    MeasuredLUFS =< TargetLUFS + 2.
+
+%% Dynamics processing suggestions based on genre and current dynamic range
+dynamics_suggestion(Genre, CurrentDR, add_compression) :-
+    dynamic_range_target(Genre, TargetDR, _),
+    CurrentDR > TargetDR + 4.
+dynamics_suggestion(Genre, CurrentDR, reduce_compression) :-
+    dynamic_range_target(Genre, TargetDR, _),
+    CurrentDR < TargetDR - 4.
+dynamics_suggestion(Genre, CurrentDR, fine_tune) :-
+    dynamic_range_target(Genre, TargetDR, _),
+    CurrentDR >= TargetDR - 4,
+    CurrentDR =< TargetDR + 4.
+dynamics_suggestion(_, CurrentDR, add_limiter) :-
+    CurrentDR < 3.
+dynamics_suggestion(_, _, check_ok) :-
+    true.

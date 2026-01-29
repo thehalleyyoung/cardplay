@@ -18,6 +18,7 @@ import type { Event } from '../../types/event';
 import type { Tick, TickDuration } from '../../types/primitives';
 import { asTick, asTickDuration } from '../../types/primitives';
 import type { Stream } from '../../streams';
+import type { SelectionStore } from '../../state/selection-state';
 
 // ============================================================================
 // TYPES
@@ -4402,4 +4403,79 @@ export function importMarkersFromFile(
   }
   
   return newState;
+}
+
+// ============================================================================
+// SELECTION STORE INTEGRATION (E033)
+// ============================================================================
+
+/**
+ * Syncs clip selection to SelectionStore.
+ * 
+ * When clips are selected in timeline, this updates the shared SelectionStore
+ * so other views (piano roll, notation) can reflect the same selection.
+ * 
+ * E033: Timeline selection integration with SelectionStore.
+ */
+export function syncClipSelectionToStore(
+  state: ArrangementPanelState,
+  selectionStore: SelectionStore
+): void {
+  // Get clip IDs that map to event stream IDs
+  // Note: Clips reference streams, so we select by clip ID which can be
+  // mapped to event IDs by the consuming code
+  const selectedClipIds = state.selectedClipIds;
+  
+  if (selectedClipIds.length === 0) {
+    selectionStore.clearSelection();
+  } else {
+    // Set selection using clip IDs as branded ClipId type
+    // The SelectionStore treats these as event-like selections
+    selectionStore.setSelection(selectedClipIds as readonly string[]);
+  }
+}
+
+/**
+ * Updates arrangement panel selection from SelectionStore.
+ * 
+ * When selection changes in other views, this updates the timeline
+ * to reflect the shared selection state.
+ * 
+ * E033: Timeline selection integration with SelectionStore.
+ */
+export function syncSelectionFromStore(
+  state: ArrangementPanelState,
+  selectionStore: SelectionStore
+): ArrangementPanelState {
+  const selectionState = selectionStore.getState();
+  const selectedIds = Array.from(selectionState.selected);
+  
+  // Map selected IDs to clip IDs
+  // Filter to only include IDs that correspond to clips in this arrangement
+  const clipIds = selectedIds.filter(id => 
+    state.clips.some(clip => clip.id === id)
+  );
+  
+  return selectMultipleClips(state, clipIds, false);
+}
+
+/**
+ * Subscribes to SelectionStore changes and updates arrangement panel.
+ * 
+ * E033: Timeline selection integration with SelectionStore.
+ * 
+ * @returns Unsubscribe function
+ */
+export function subscribeToSelectionStore(
+  selectionStore: SelectionStore,
+  onSelectionChange: (selectedClipIds: readonly string[]) => void
+): () => void {
+  const subscriptionId = selectionStore.subscribe((newState, _prevState) => {
+    const selectedIds = Array.from(newState.selected);
+    onSelectionChange(selectedIds);
+  });
+  
+  return () => {
+    selectionStore.unsubscribe(subscriptionId);
+  };
 }

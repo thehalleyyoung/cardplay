@@ -1439,6 +1439,156 @@ export function resetLearnedPatterns(): void {
 }
 
 // ============================================================================
+// N145: EXPORT / IMPORT FULL LEARNING DATA (Backup)
+// ============================================================================
+
+/**
+ * Full learning data export shape.
+ * Includes both the PreferenceStore data and all enhanced learning stores.
+ */
+export interface LearningDataExport {
+  readonly version: 2;
+  readonly exportedAt: string;
+  readonly preferences: string | null;
+  readonly deckOpenings: Array<{ deckType: string; taskContext: string; count: number }>;
+  readonly parameterAdjustments: Array<{
+    paramName: string;
+    value: unknown;
+    deckType: string;
+    frequency: number;
+  }>;
+  readonly routingPatterns: Array<{
+    from: string;
+    to: string;
+    purpose: string;
+    frequency: number;
+  }>;
+  readonly boardConfigurations: Array<{
+    boardId: string;
+    deckTypes: string[];
+    count: number;
+  }>;
+  readonly deckOpeningLog: Array<{ deckType: string; timestamp: number }>;
+  readonly errorPatterns: Array<{
+    errorType: string;
+    count: number;
+    lastSeen: number;
+    contexts: string[];
+  }>;
+}
+
+/**
+ * N145: Export all learning data as a JSON-serialisable object for backup.
+ *
+ * Combines the PreferenceStore serialisation with all enhanced learning
+ * stores (deck openings, parameter adjustments, routing patterns, etc.).
+ */
+export function exportLearningData(): LearningDataExport {
+  return {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    preferences: exportPreferences(),
+    deckOpenings: [...deckOpenings.values()],
+    parameterAdjustments: [...parameterAdjustments.values()],
+    routingPatterns: [...routingPatterns.values()],
+    boardConfigurations: [...boardConfigurations.values()],
+    deckOpeningLog: [...deckOpeningLog],
+    errorPatterns: [...errorPatternCounts.values()],
+  };
+}
+
+/**
+ * N145: Export learning data as a JSON string.
+ */
+export function exportLearningDataJSON(): string {
+  return JSON.stringify(exportLearningData(), null, 2);
+}
+
+/**
+ * N145: Import learning data from a previously exported object.
+ *
+ * Merges imported data into current stores (additive — does not clear
+ * existing data). To start fresh, call `resetLearnedPatterns()` first.
+ */
+export function importLearningData(data: LearningDataExport): void {
+  if (data.version !== 2) {
+    throw new Error(`Unsupported learning data version: ${data.version}`);
+  }
+
+  // Import preferences
+  if (data.preferences) {
+    importPreferences(data.preferences);
+  }
+
+  // Import deck openings
+  for (const entry of data.deckOpenings) {
+    const key = `${entry.deckType}::${entry.taskContext}`;
+    const existing = deckOpenings.get(key);
+    if (existing) {
+      deckOpenings.set(key, { ...existing, count: existing.count + entry.count });
+    } else {
+      deckOpenings.set(key, { ...entry });
+    }
+  }
+
+  // Import parameter adjustments
+  for (const entry of data.parameterAdjustments) {
+    const key = `${entry.deckType}::${entry.paramName}`;
+    const existing = parameterAdjustments.get(key);
+    if (existing) {
+      parameterAdjustments.set(key, {
+        ...existing,
+        frequency: existing.frequency + entry.frequency,
+      });
+    } else {
+      parameterAdjustments.set(key, { ...entry });
+    }
+  }
+
+  // Import routing patterns
+  for (const entry of data.routingPatterns) {
+    const key = `${entry.from}->${entry.to}`;
+    const existing = routingPatterns.get(key);
+    if (existing) {
+      routingPatterns.set(key, { ...existing, frequency: existing.frequency + entry.frequency });
+    } else {
+      routingPatterns.set(key, { ...entry });
+    }
+  }
+
+  // Import board configurations
+  for (const entry of data.boardConfigurations) {
+    const key = entry.boardId;
+    const existing = boardConfigurations.get(key);
+    if (existing) {
+      boardConfigurations.set(key, { ...existing, count: existing.count + entry.count });
+    } else {
+      boardConfigurations.set(key, { ...entry });
+    }
+  }
+
+  // Import deck opening log (append)
+  for (const entry of data.deckOpeningLog) {
+    deckOpeningLog.push(entry);
+  }
+
+  // Import error patterns
+  for (const entry of data.errorPatterns) {
+    const existing = errorPatternCounts.get(entry.errorType);
+    if (existing) {
+      errorPatternCounts.set(entry.errorType, {
+        ...existing,
+        count: existing.count + entry.count,
+        lastSeen: Math.max(existing.lastSeen, entry.lastSeen),
+        contexts: [...existing.contexts, ...entry.contexts],
+      });
+    } else {
+      errorPatternCounts.set(entry.errorType, { ...entry });
+    }
+  }
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -1490,4 +1640,8 @@ export default {
   trackErrorPattern,
   getErrorPatterns,
   getProactiveCorrections,
+  // N145: Full learning data export/import
+  exportLearningData,
+  exportLearningDataJSON,
+  importLearningData,
 };

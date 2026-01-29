@@ -794,3 +794,109 @@ schema_pop_analogue(monte, 'IV-V-vi-V',
   'Monte ascending pattern maps to ascending pop energy build').
 schema_pop_analogue(do_re_mi, 'I-V/vi-vi',
   'Do-Re-Mi opening gesture maps to common pop verse opening').
+
+%% ============================================================================
+%% SCHEMA HARMONIC RHYTHM (C313)
+%% ============================================================================
+
+%% schema_harmonic_rhythm(+Schema, -ChordsPerBar)
+%% Default harmonic rhythm for each schema type.
+schema_harmonic_rhythm(prinner, 2).
+schema_harmonic_rhythm(fonte, 2).
+schema_harmonic_rhythm(monte, 2).
+schema_harmonic_rhythm(romanesca, 1).
+schema_harmonic_rhythm(quiescenza, 2).
+schema_harmonic_rhythm(do_re_mi, 1).
+schema_harmonic_rhythm(ponte, 1).
+schema_harmonic_rhythm(passo_indietro, 2).
+schema_harmonic_rhythm(circolo, 2).
+schema_harmonic_rhythm(cadential_64, 2).
+schema_harmonic_rhythm(indugio, 1).
+schema_harmonic_rhythm(lament_bass, 1).
+schema_harmonic_rhythm(ascending_56, 2).
+schema_harmonic_rhythm(descending_76, 2).
+schema_harmonic_rhythm(omnibus, 1).
+schema_harmonic_rhythm(rocket, 1).
+schema_harmonic_rhythm(mannheim_sigh, 2).
+schema_harmonic_rhythm(mannheim_roller, 2).
+
+%% ============================================================================
+%% GALANT VOICE LEADING (C316-C317)
+%% ============================================================================
+
+%% galant_voice_leading_ok(+SopranoLine, +BassLine, -Issues)
+%% Check voice leading quality for galant texture (outer voices priority).
+%% Returns empty list if OK, otherwise list of issues.
+galant_voice_leading_ok(Soprano, Bass, Issues) :-
+  check_galant_vl(Soprano, Bass, [], Issues).
+
+check_galant_vl([], _, Acc, Acc).
+check_galant_vl([_], _, Acc, Acc).
+check_galant_vl([S1, S2|Ss], [B1, B2|Bs], Acc, Issues) :-
+  SMotion is S2 - S1,
+  BMotion is B2 - B1,
+  %% Check parallel unisons
+  ( S1 =:= B1, S2 =:= B2 ->
+      append(Acc, ['Parallel unisons'], Acc2)
+  ;
+  %% Check parallel fifths/octaves
+  Interval1 is abs(S1 - B1) mod 12,
+  Interval2 is abs(S2 - B2) mod 12,
+  ( Interval1 =:= 7, Interval2 =:= 7, SMotion =\= 0 ->
+      append(Acc, ['Parallel fifths'], Acc2)
+  ; Interval1 =:= 0, Interval2 =:= 0, SMotion =\= 0 ->
+      append(Acc, ['Parallel octaves'], Acc2)
+  ;
+  %% Check voice crossing
+  ( S2 < B2 ->
+      append(Acc, ['Voice crossing'], Acc2)
+  ;
+  %% Check large leaps (> octave)
+  ( abs(SMotion) > 12 ->
+      append(Acc, ['Soprano leap > octave'], Acc2)
+  ; abs(BMotion) > 12 ->
+      append(Acc, ['Bass leap > octave'], Acc2)
+  ; Acc2 = Acc
+  ))))),
+  check_galant_vl([S2|Ss], [B2|Bs], Acc2, Issues).
+
+%% ============================================================================
+%% RECOMMEND GALANT SCHEMA (C300 wrapper predicate)
+%% ============================================================================
+
+%% recommend_galant_schema(+Spec, -SchemaList, -Reasons)
+%% Returns ranked list of recommended schemata for the current spec.
+recommend_galant_schema(Spec, SchemaList, Reasons) :-
+  Spec = music_spec(_, _, _, _, _, Culture, constraints(Cs)),
+  ( Culture = western ; Culture = hybrid ),
+  %% Gather all schema recommendations
+  findall(schema_rec(Schema, Score), (
+    galant_schema(Schema),
+    schema_score_for_spec(Schema, Cs, Score),
+    Score > 0
+  ), AllRecs),
+  sort(2, @>=, AllRecs, Sorted),
+  maplist(extract_schema, Sorted, SchemaList),
+  Reasons = [because('Schemata ranked by fit with current spec constraints')].
+
+extract_schema(schema_rec(S, _), S).
+
+schema_score_for_spec(Schema, Constraints, Score) :-
+  %% Base score
+  BaseScore is 50,
+  %% Cadence match bonus
+  ( member(cadence(CadType), Constraints),
+    schema_cadence(Schema, CadType) ->
+      CadBonus is 30
+  ; CadBonus is 0
+  ),
+  %% Tag match bonus (opening/cadential based on position constraints)
+  ( member(position(opening), Constraints),
+    schema_tag(Schema, opening) ->
+      PosBonus is 20
+  ; member(position(cadential), Constraints),
+    schema_tag(Schema, cadential) ->
+      PosBonus is 20
+  ; PosBonus is 0
+  ),
+  Score is BaseScore + CadBonus + PosBonus.

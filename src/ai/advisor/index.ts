@@ -37,3 +37,25 @@ export {
   queryMasteringLoudness,
   type BoardQueryContext,
 } from './board-specific-queries.js';
+
+// L311-L314: Advisor telemetry & feedback
+export {
+  enableAdvisorTelemetry,
+  disableAdvisorTelemetry,
+  isAdvisorTelemetryEnabled,
+  recordAdvisorQuestion,
+  reportIncorrectAnswer,
+  getAdvisorCategoryStats,
+  deriveAdvisorPatternWeights,
+  getAdvisorFeedbackLog,
+  getAdvisorFeedbackPriorities,
+  getAdvisorTelemetrySummary,
+  exportAdvisorTelemetry,
+  importAdvisorTelemetry,
+  resetAdvisorTelemetry,
+  type QuestionEvent,
+  type CategoryStats,
+  type AnswerFeedback,
+  type PatternWeight,
+  type TelemetrySummary,
+} from './advisor-telemetry.js';

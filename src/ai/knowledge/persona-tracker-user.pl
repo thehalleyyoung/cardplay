@@ -267,3 +267,169 @@ suggest_launch_quantization(Genre, Mode) :-
     genre_launch_quantization(Genre, Mode).
 suggest_launch_quantization(Genre, bar) :-
     \+ genre_launch_quantization(Genre, _).
+
+%% ---------------------------------------------------------------------------
+%% M102: Pattern doubling/halving rules
+%%   pattern_resize_rule/3 – (Operation, Description, NoteAdjustment)
+%% ---------------------------------------------------------------------------
+pattern_resize_rule(double, 'Double pattern length (half speed): each note duration doubles, positions spread out', spread_positions).
+pattern_resize_rule(halve, 'Halve pattern length (double speed): each note duration halves, positions compress', compress_positions).
+pattern_resize_rule(double_repeat, 'Double length by repeating pattern content', repeat_content).
+pattern_resize_rule(halve_truncate, 'Halve length by truncating second half', truncate_half).
+
+%% Note adjustment strategies when resizing
+resize_note_adjustment(spread_positions, 'Multiply each note position by 2; double each note duration').
+resize_note_adjustment(compress_positions, 'Divide each note position by 2; halve each note duration; merge overlapping notes').
+resize_note_adjustment(repeat_content, 'Copy existing notes, then append shifted copies at original_length offset').
+resize_note_adjustment(truncate_half, 'Remove notes whose position >= half of original length').
+
+%% Recommended resize operation by genre context
+genre_resize_preference(chiptune, halve).          % Chiptune patterns are short, halving is common
+genre_resize_preference(techno, double_repeat).     % Techno repeats patterns for variation
+genre_resize_preference(house, double_repeat).
+genre_resize_preference(breakbeat, double).         % Breakbeats spread out for fills
+genre_resize_preference(dnb, double).
+genre_resize_preference(hiphop, double_repeat).
+genre_resize_preference(lofi, double_repeat).
+genre_resize_preference(ambient, double).           % Ambient benefits from slower spread
+genre_resize_preference(pop, double_repeat).
+
+%% suggest_resize_operation/2 – Which resize op to use for a genre
+suggest_resize_operation(Genre, Op) :-
+    genre_resize_preference(Genre, Op).
+suggest_resize_operation(_Genre, double) :-
+    true.
+
+%% ---------------------------------------------------------------------------
+%% M103: Pattern quantization with swing presets
+%%   quantization_preset/3 – (Id, StepDivision, Description)
+%% ---------------------------------------------------------------------------
+quantization_preset(q_1_1, 1, 'Whole note quantization').
+quantization_preset(q_1_2, 2, 'Half note quantization').
+quantization_preset(q_1_4, 4, 'Quarter note quantization').
+quantization_preset(q_1_8, 8, 'Eighth note quantization').
+quantization_preset(q_1_16, 16, 'Sixteenth note quantization').
+quantization_preset(q_1_32, 32, 'Thirty-second note quantization').
+quantization_preset(q_1_8t, 12, 'Eighth note triplet quantization').
+quantization_preset(q_1_16t, 24, 'Sixteenth note triplet quantization').
+
+%% swing_preset/3 – (Id, SwingPercent, Description)
+%%   SwingPercent 50 = straight, 67 = triplet swing, etc.
+swing_preset(straight, 50, 'No swing — perfectly straight timing').
+swing_preset(light_swing, 54, 'Light swing feel (MPC 54%)').
+swing_preset(medium_swing, 58, 'Medium swing (MPC 58%)').
+swing_preset(heavy_swing, 62, 'Heavy swing (MPC 62%)').
+swing_preset(triplet_swing, 67, 'Full triplet swing (67%)').
+swing_preset(hard_swing, 71, 'Hard swing (MPC 71%)').
+swing_preset(lazy_swing, 75, 'Lazy, behind-the-beat swing (75%)').
+
+%% Genre-default quantization and swing
+genre_quantization_default(chiptune, q_1_16, straight).
+genre_quantization_default(techno, q_1_16, straight).
+genre_quantization_default(house, q_1_16, light_swing).
+genre_quantization_default(breakbeat, q_1_16, medium_swing).
+genre_quantization_default(dnb, q_1_16, straight).
+genre_quantization_default(hiphop, q_1_16, heavy_swing).
+genre_quantization_default(lofi, q_1_8, triplet_swing).
+genre_quantization_default(jazz, q_1_8, triplet_swing).
+genre_quantization_default(ambient, q_1_8, straight).
+genre_quantization_default(pop, q_1_16, light_swing).
+
+%% suggest_quantization/3 – Suggest quantization + swing for genre
+suggest_quantization(Genre, Grid, Swing) :-
+    genre_quantization_default(Genre, Grid, Swing).
+suggest_quantization(_Genre, q_1_16, straight) :-
+    true.
+
+%% ---------------------------------------------------------------------------
+%% M138: tracker_macro_assignment/3 – Macro assignments for common tracker params
+%%   tracker_macro_assignment(TrackType, MacroIndex, macro(Name, Targets))
+%% ---------------------------------------------------------------------------
+tracker_macro_assignment(synth_track, 1, macro(cutoff, [filter_cutoff, filter_resonance])).
+tracker_macro_assignment(synth_track, 2, macro(envelope, [amp_attack, amp_decay, amp_release])).
+tracker_macro_assignment(synth_track, 3, macro(modulation, [lfo_rate, lfo_depth])).
+tracker_macro_assignment(synth_track, 4, macro(send_levels, [reverb_send, delay_send])).
+
+tracker_macro_assignment(drum_track, 1, macro(tone, [pitch, filter_cutoff])).
+tracker_macro_assignment(drum_track, 2, macro(snap, [amp_attack, transient_shape])).
+tracker_macro_assignment(drum_track, 3, macro(decay, [amp_decay, amp_release])).
+tracker_macro_assignment(drum_track, 4, macro(send_levels, [reverb_send, delay_send])).
+
+tracker_macro_assignment(sample_track, 1, macro(playback, [sample_start, sample_end])).
+tracker_macro_assignment(sample_track, 2, macro(filter, [filter_cutoff, filter_resonance])).
+tracker_macro_assignment(sample_track, 3, macro(amplitude, [volume, pan])).
+tracker_macro_assignment(sample_track, 4, macro(send_levels, [reverb_send, delay_send])).
+
+tracker_macro_assignment(bass_track, 1, macro(cutoff, [filter_cutoff, filter_resonance, drive])).
+tracker_macro_assignment(bass_track, 2, macro(sub_level, [sub_osc_level, volume])).
+tracker_macro_assignment(bass_track, 3, macro(envelope, [amp_attack, amp_decay])).
+tracker_macro_assignment(bass_track, 4, macro(send_levels, [reverb_send, delay_send])).
+
+tracker_macro_assignment(pad_track, 1, macro(brightness, [filter_cutoff, harmonic_content])).
+tracker_macro_assignment(pad_track, 2, macro(movement, [lfo_rate, lfo_depth, chorus_depth])).
+tracker_macro_assignment(pad_track, 3, macro(space, [reverb_send, delay_send])).
+tracker_macro_assignment(pad_track, 4, macro(volume, [volume, pan])).
+
+%% suggest_tracker_macros/2 – Get macro assignments for a tracker track type
+suggest_tracker_macros(TrackType, Macros) :-
+    findall(
+        macro(Idx, Name, Targets),
+        (tracker_macro_assignment(TrackType, Idx, macro(Name, Targets))),
+        Macros
+    ),
+    Macros \= [].
+suggest_tracker_macros(_, []).
+
+%% ---------------------------------------------------------------------------
+%% M139: tracker_automation_target/3 – Automatable parameters from macros
+%%   tracker_automation_target(TrackType, MacroName, Params)
+%% ---------------------------------------------------------------------------
+tracker_automation_target(TrackType, MacroName, Params) :-
+    tracker_macro_assignment(TrackType, _, macro(MacroName, Params)).
+
+%% automation_recording_mode/2 – Recording modes for macro automation
+automation_recording_mode(latch, 'Record from first touch until stop; holds last value').
+automation_recording_mode(touch, 'Record while touching; return to previous value on release').
+automation_recording_mode(write, 'Overwrite existing automation from playback start').
+automation_recording_mode(trim, 'Offset existing automation by relative adjustment').
+
+%% suggest_automation_mode/2 – Default automation mode for parameter type
+suggest_automation_mode(filter_cutoff, touch).
+suggest_automation_mode(filter_resonance, touch).
+suggest_automation_mode(volume, latch).
+suggest_automation_mode(pan, latch).
+suggest_automation_mode(reverb_send, touch).
+suggest_automation_mode(delay_send, touch).
+suggest_automation_mode(lfo_rate, touch).
+suggest_automation_mode(lfo_depth, touch).
+suggest_automation_mode(pitch, write).
+suggest_automation_mode(_, latch).
+
+%% ---------------------------------------------------------------------------
+%% M148: scene_launch_control/3 – Scene launch behaviour rules
+%%   scene_launch_control(SceneAction, Description, QuantizationDefault)
+%% ---------------------------------------------------------------------------
+scene_launch_control(launch_scene, 'Launch all patterns in the scene row', bar).
+scene_launch_control(stop_scene, 'Stop all patterns in the scene row', beat).
+scene_launch_control(queue_scene, 'Queue scene for launch at next quantization boundary', bar).
+scene_launch_control(toggle_scene, 'Toggle scene: launch if stopped, stop if playing', bar).
+scene_launch_control(solo_scene, 'Launch scene and stop all other scenes', bar).
+scene_launch_control(record_scene, 'Arm recording into scene slot', none).
+
+%% scene_transition_rule/3 – How to transition between scenes
+scene_transition_rule(crossfade, 'Crossfade between outgoing and incoming scenes', 2).  % bars
+scene_transition_rule(cut, 'Hard cut to next scene at quantization point', 0).
+scene_transition_rule(fade_out_in, 'Fade out current, then fade in next', 4).
+scene_transition_rule(tail_overlap, 'Let current scene tail ring over incoming scene', 1).
+
+%% suggest_scene_transition/2 – Default transition for genre
+suggest_scene_transition(ambient, crossfade).
+suggest_scene_transition(techno, cut).
+suggest_scene_transition(house, cut).
+suggest_scene_transition(dnb, cut).
+suggest_scene_transition(breakbeat, cut).
+suggest_scene_transition(hiphop, crossfade).
+suggest_scene_transition(lofi, crossfade).
+suggest_scene_transition(chiptune, cut).
+suggest_scene_transition(pop, fade_out_in).
+suggest_scene_transition(_, cut).

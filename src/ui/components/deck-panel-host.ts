@@ -55,7 +55,7 @@ export class DeckPanelHost {
   private renderPanels(): void {
     // E018: Render decks based on BoardLayoutRuntime
     // For now, simple layout: all decks in a grid
-    const layout = this.options.board.layout;
+    // const layout = this.options.board.layout;
 
     // Create panel container
     const panelContainer = document.createElement('div');

@@ -72,6 +72,27 @@ export interface CommandContext {
 const commandRegistry = new Map<string, Command>();
 
 /**
+ * M331: Recently-used command IDs, most-recent first (capped at 20).
+ */
+const recentCommandIds: string[] = [];
+const MAX_RECENT_COMMANDS = 20;
+
+/**
+ * M333: Undo stack for command palette actions.
+ * Each entry stores the undo function from the last executed command.
+ */
+const undoStack: UndoEntry[] = [];
+const MAX_UNDO_ENTRIES = 50;
+
+/** An undo entry from a command execution. */
+export interface UndoEntry {
+  readonly commandId: string;
+  readonly label: string;
+  readonly timestamp: string;
+  readonly undo: () => void | Promise<void>;
+}
+
+/**
  * Registers a command in the global registry.
  */
 export function registerCommand(command: Command): void {
@@ -93,10 +114,123 @@ export function getAllCommands(): readonly Command[] {
 }
 
 /**
+ * M330: Gets context-aware commands based on active deck context.
+ * Ranks commands relevant to the current context higher.
+ */
+export function getContextAwareCommands(context?: CommandContext): readonly Command[] {
+  const all = getAllCommands();
+  const hasContext = context && (context.boardType || (context.deckTypes && context.deckTypes.length > 0));
+  const hasRecents = recentCommandIds.length > 0;
+
+  if (!hasContext && !hasRecents) {
+    return all;
+  }
+
+  // Score commands by context relevance (includes recent-use bonus)
+  return [...all].sort((a, b) => {
+    const scoreA = getContextRelevanceScore(a, context ?? {});
+    const scoreB = getContextRelevanceScore(b, context ?? {});
+    return scoreB - scoreA;
+  });
+}
+
+/**
+ * M330: Calculate how relevant a command is to the current context.
+ */
+function getContextRelevanceScore(command: Command, context: CommandContext): number {
+  let score = 0;
+  const keywords = command.keywords ?? [];
+  const label = command.label.toLowerCase();
+  const category = (command.category ?? '').toLowerCase();
+
+  // Board type match
+  if (context.boardType) {
+    const bt = context.boardType.toLowerCase();
+    if (label.includes(bt) || keywords.some(k => k.toLowerCase().includes(bt))) score += 100;
+    if (category.includes(bt)) score += 50;
+  }
+
+  // Deck type match
+  if (context.deckTypes) {
+    for (const dt of context.deckTypes) {
+      const dtLower = dt.toLowerCase().replace(/-/g, ' ').replace('deck', '').trim();
+      if (label.includes(dtLower)) score += 80;
+      if (keywords.some(k => k.toLowerCase().includes(dtLower))) score += 60;
+      if (category.includes(dtLower)) score += 40;
+    }
+  }
+
+  // Recently used bonus
+  const recentIndex = recentCommandIds.indexOf(command.id);
+  if (recentIndex >= 0) {
+    score += Math.max(0, 30 - recentIndex * 3); // More recent = higher bonus
+  }
+
+  return score;
+}
+
+/**
+ * M331: Record a command as recently used.
+ */
+export function recordRecentCommand(commandId: string): void {
+  const idx = recentCommandIds.indexOf(commandId);
+  if (idx >= 0) recentCommandIds.splice(idx, 1);
+  recentCommandIds.unshift(commandId);
+  if (recentCommandIds.length > MAX_RECENT_COMMANDS) {
+    recentCommandIds.length = MAX_RECENT_COMMANDS;
+  }
+}
+
+/**
+ * M331: Get recently used command IDs.
+ */
+export function getRecentCommandIds(): readonly string[] {
+  return [...recentCommandIds];
+}
+
+/**
+ * M331: Get recently used commands (resolved from registry).
+ */
+export function getRecentCommands(): readonly Command[] {
+  return recentCommandIds
+    .map(id => commandRegistry.get(id))
+    .filter((cmd): cmd is Command => cmd != null);
+}
+
+/**
+ * M333: Push an undo entry onto the stack.
+ */
+export function pushUndoEntry(entry: UndoEntry): void {
+  undoStack.unshift(entry);
+  if (undoStack.length > MAX_UNDO_ENTRIES) {
+    undoStack.length = MAX_UNDO_ENTRIES;
+  }
+}
+
+/**
+ * M333: Undo the last command palette action.
+ */
+export async function undoLastCommand(): Promise<UndoEntry | null> {
+  const entry = undoStack.shift();
+  if (!entry) return null;
+  await entry.undo();
+  return entry;
+}
+
+/**
+ * M333: Get the undo stack (most recent first).
+ */
+export function getUndoStack(): readonly UndoEntry[] {
+  return [...undoStack];
+}
+
+/**
  * Clears all registered commands (useful for testing).
  */
 export function clearCommands(): void {
   commandRegistry.clear();
+  recentCommandIds.length = 0;
+  undoStack.length = 0;
 }
 
 // ============================================================================
@@ -327,7 +461,11 @@ export class CommandPalette extends LitElement {
   private input!: HTMLInputElement;
 
   private get filteredCommands(): Command[] {
-    return filterAndSortCommands(this.search, getAllCommands());
+    // M330: Use context-aware commands when no search query
+    const commands = this.search
+      ? getAllCommands()
+      : getContextAwareCommands(this.context);
+    return filterAndSortCommands(this.search, commands);
   }
 
   override connectedCallback(): void {
@@ -392,7 +530,22 @@ export class CommandPalette extends LitElement {
 
   private async executeCommand(command: Command): Promise<void> {
     try {
-      await command.action(this.context);
+      // M333: Execute and capture potential undo function
+      const result = await command.action(this.context);
+
+      // M331: Record as recently used
+      recordRecentCommand(command.id);
+
+      // M333: If action returned an undo function, push onto undo stack
+      if (typeof result === 'function') {
+        pushUndoEntry({
+          commandId: command.id,
+          label: command.label,
+          timestamp: new Date().toISOString(),
+          undo: result as () => void | Promise<void>,
+        });
+      }
+
       this.close();
     } catch (error) {
       console.error(`[CommandPalette] Error executing command "${command.id}":`, error);

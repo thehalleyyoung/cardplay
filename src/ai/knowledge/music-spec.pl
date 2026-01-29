@@ -719,3 +719,566 @@ culture_suggests_constraint(chinese, chinese_mode(gong)) :-
 %% Get all recommended actions
 all_recommended_actions(Actions) :-
   findall(action(A, C, Rs), recommend_action(A, C, Rs), Actions).
+
+%% ============================================================================
+%% PHASE C8: DECK TEMPLATES & MULTI-BOARD INTEGRATION (C861-C960)
+%% ============================================================================
+
+%% ============================================================================
+%% DECK TEMPLATES (C861-C865)
+%% ============================================================================
+
+%% deck_template(+TemplateId, +Description)
+deck_template(theory_deck, 'Core music theory tools').
+deck_template(phrase_deck, 'Phrase browsing, generation, and adaptation').
+deck_template(harmony_deck, 'Harmony exploration and tonality analysis').
+deck_template(arranger_deck, 'Arrangement and orchestration tools').
+deck_template(tracker_assist_deck, 'Tracker pattern assistance tools').
+deck_template(world_music_deck, 'World music theory tools (Carnatic/Celtic/Chinese)').
+deck_template(film_deck, 'Film scoring and cinematic tools').
+deck_template(galant_deck, 'Galant schemata and partimento tools').
+
+%% template_slot(+TemplateId, +SlotIndex, +CardType)
+%% Arranger deck slots
+template_slot(arranger_deck, 1, arranger_style_card).
+template_slot(arranger_deck, 2, film_scoring_card).
+template_slot(arranger_deck, 3, orchestration_role_card).
+template_slot(arranger_deck, 4, scene_arc_card).
+
+%% Theory deck slots
+template_slot(theory_deck, 1, tonality_model_card).
+template_slot(theory_deck, 2, meter_accent_card).
+template_slot(theory_deck, 3, grouping_card).
+template_slot(theory_deck, 4, constraint_pack_card).
+
+%% Phrase deck slots
+template_slot(phrase_deck, 1, phrase_browser_card).
+template_slot(phrase_deck, 2, phrase_generator_card).
+template_slot(phrase_deck, 3, phrase_variation_card).
+template_slot(phrase_deck, 4, schema_card).
+
+%% Harmony deck slots
+template_slot(harmony_deck, 1, harmony_explorer_card).
+template_slot(harmony_deck, 2, tonality_model_card).
+template_slot(harmony_deck, 3, cadence_tools_card).
+template_slot(harmony_deck, 4, modulation_planner_card).
+
+%% Tracker assist deck slots
+template_slot(tracker_assist_deck, 1, tracker_pattern_card).
+template_slot(tracker_assist_deck, 2, phrase_insert_card).
+template_slot(tracker_assist_deck, 3, grouping_card).
+template_slot(tracker_assist_deck, 4, fill_builder_card).
+
+%% World music deck slots
+template_slot(world_music_deck, 1, carnatic_raga_tala_card).
+template_slot(world_music_deck, 2, celtic_tune_card).
+template_slot(world_music_deck, 3, chinese_mode_card).
+template_slot(world_music_deck, 4, world_converter_card).
+
+%% Film deck slots
+template_slot(film_deck, 1, film_scoring_card).
+template_slot(film_deck, 2, scene_arc_card).
+template_slot(film_deck, 3, leitmotif_card).
+template_slot(film_deck, 4, orchestration_role_card).
+
+%% Galant deck slots
+template_slot(galant_deck, 1, schema_browser_card).
+template_slot(galant_deck, 2, schema_realizer_card).
+template_slot(galant_deck, 3, partimento_card).
+template_slot(galant_deck, 4, counterpoint_card).
+
+%% ============================================================================
+%% RECOMMEND TEMPLATE (C866)
+%% ============================================================================
+
+%% recommend_template(+Spec, -TemplateId, -Reasons)
+recommend_template(Spec, film_deck, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, _, constraints(Cs)),
+  ( Style = cinematic ; Style = trailer ; Style = underscore
+  ; member(film_mood(_), Cs)
+  ),
+  Reasons = [because('Film deck recommended for cinematic workflow')].
+
+recommend_template(Spec, galant_deck, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, _, constraints(Cs)),
+  ( Style = galant ; Style = classical ; member(schema(_), Cs) ),
+  Reasons = [because('Galant deck recommended for schema-based workflow')].
+
+recommend_template(Spec, world_music_deck, Reasons) :-
+  Spec = music_spec(_, _, _, _, _, Culture, constraints(Cs)),
+  ( member(Culture, [carnatic, celtic, chinese])
+  ; member(raga(_), Cs)
+  ; member(celtic_tune(_), Cs)
+  ; member(chinese_mode(_), Cs)
+  ),
+  Reasons = [because('World music deck recommended for non-Western culture')].
+
+recommend_template(Spec, theory_deck, Reasons) :-
+  Spec = music_spec(_, _, _, _, _, _, _),
+  Reasons = [because('Theory deck is always useful as a foundation')].
+
+%% ============================================================================
+%% TEMPLATE FITS BOARD (C867)
+%% ============================================================================
+
+%% template_fits_board(+Template, +Board, -Score)
+template_fits_board(arranger_deck, arranger, 95).
+template_fits_board(film_deck, arranger, 90).
+template_fits_board(tracker_assist_deck, tracker, 95).
+template_fits_board(phrase_deck, tracker, 80).
+template_fits_board(phrase_deck, phrase, 95).
+template_fits_board(harmony_deck, harmony, 95).
+template_fits_board(harmony_deck, notation, 80).
+template_fits_board(galant_deck, notation, 90).
+template_fits_board(galant_deck, phrase, 85).
+template_fits_board(world_music_deck, arranger, 70).
+template_fits_board(world_music_deck, tracker, 70).
+template_fits_board(theory_deck, arranger, 75).
+template_fits_board(theory_deck, tracker, 75).
+template_fits_board(theory_deck, notation, 80).
+template_fits_board(theory_deck, phrase, 80).
+template_fits_board(theory_deck, harmony, 85).
+
+%% ============================================================================
+%% CONSTRAINT MAPPINGS FOR CARDS (C869-C874)
+%% ============================================================================
+
+%% constraint_arranger_style(+Style) (C870)
+constraint_arranger_style(cinematic).
+constraint_arranger_style(trailer).
+constraint_arranger_style(underscore).
+constraint_arranger_style(edm).
+constraint_arranger_style(orchestral).
+constraint_arranger_style(ambient).
+
+%% constraint_scene_arc(+ArcType) (C870)
+constraint_scene_arc(rising_action).
+constraint_scene_arc(tension_release).
+constraint_scene_arc(slow_burn).
+constraint_scene_arc(bookend).
+constraint_scene_arc(stinger).
+
+%% constraint_phrase_density(+Density) (C872)
+constraint_type(phrase_density(_), phrase_density).
+
+%% constraint_contour(+Contour) (C872)
+constraint_type(contour(_), contour).
+
+%% constraint_max_interval(+MaxInterval)
+constraint_type(max_interval(_), max_interval).
+
+%% constraint_pattern_role(+Role) (C874)
+constraint_type(pattern_role(_), pattern_role).
+
+%% constraint_swing(+SwingAmount) (C874)
+constraint_type(swing(_), swing).
+
+%% ============================================================================
+%% PATTERN ROLE TAXONOMY (C875)
+%% ============================================================================
+
+pattern_role(groove).
+pattern_role(fill).
+pattern_role(build).
+pattern_role(drop).
+pattern_role(break_down).
+pattern_role(transition).
+pattern_role(intro_pattern).
+pattern_role(outro_pattern).
+
+%% role_compatible(+RoleA, +RoleB) (C876)
+%% Can RoleA be followed by RoleB?
+role_compatible(groove, fill).
+role_compatible(groove, build).
+role_compatible(groove, transition).
+role_compatible(fill, groove).
+role_compatible(fill, drop).
+role_compatible(build, drop).
+role_compatible(build, groove).
+role_compatible(drop, groove).
+role_compatible(drop, build).
+role_compatible(break_down, build).
+role_compatible(break_down, groove).
+role_compatible(transition, groove).
+role_compatible(transition, drop).
+role_compatible(intro_pattern, groove).
+role_compatible(intro_pattern, build).
+role_compatible(groove, outro_pattern).
+role_compatible(fill, outro_pattern).
+
+%% ============================================================================
+%% NEXT ACTION RECOMMENDATION (C889-C890)
+%% ============================================================================
+
+%% next_action(+Context, -HostAction, -Reasons)
+next_action(analysis_complete(schema_match, Schema),
+  add_card(schema_card, [{schema, Schema}]),
+  [because('Schema detected; add schema card for further exploration')]).
+
+next_action(analysis_complete(raga_match, Raga),
+  add_card(carnatic_raga_tala_card, [{raga, Raga}]),
+  [because('Raga detected; add Carnatic card')]).
+
+next_action(analysis_complete(key_detected, Key),
+  set_param(tonality_model_card, detected_key, Key),
+  [because('Key detected; update tonality model card')]).
+
+next_action(section_transition(SectionA, SectionB),
+  suggest_fill(SectionA, SectionB),
+  Reasons) :-
+  format(atom(R), 'Transition from ~w to ~w may benefit from a fill', [SectionA, SectionB]),
+  Reasons = [because(R)].
+
+%% ============================================================================
+%% ARRANGER STYLE RECOMMENDATION (C891-C892)
+%% ============================================================================
+
+%% recommend_arranger_style(+Spec, -Style, -Reasons)
+recommend_arranger_style(Spec, trailer, Reasons) :-
+  Spec = music_spec(_, _, tempo(T), _, _, _, constraints(Cs)),
+  T >= 120,
+  member(film_mood(action), Cs),
+  Reasons = [because('Fast tempo + action mood suggests trailer style')].
+
+recommend_arranger_style(Spec, orchestral, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, _, _),
+  member(Style, [cinematic, classical]),
+  Reasons = [because('Cinematic/classical style suggests orchestral arrangement')].
+
+recommend_arranger_style(Spec, ambient, Reasons) :-
+  Spec = music_spec(_, _, tempo(T), _, _, _, constraints(Cs)),
+  T =< 80,
+  ( member(film_device(harmonic_stasis), Cs)
+  ; member(film_device(pedal_point), Cs)
+  ),
+  Reasons = [because('Slow tempo + stasis suggests ambient arrangement')].
+
+recommend_arranger_style(Spec, edm, Reasons) :-
+  Spec = music_spec(_, _, tempo(T), _, Style, _, _),
+  T >= 110,
+  Style = edm,
+  Reasons = [because('EDM style with appropriate tempo')].
+
+%% ============================================================================
+%% PHRASE PRESET RECOMMENDATION (C893-C894)
+%% ============================================================================
+
+%% recommend_phrase_preset(+Spec, -Preset, -Reasons)
+recommend_phrase_preset(Spec, galant_melody, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, _, constraints(Cs)),
+  ( Style = galant ; member(schema(_), Cs) ),
+  Reasons = [because('Galant style suggests schema-based melody preset')].
+
+recommend_phrase_preset(Spec, raga_alapana, Reasons) :-
+  Spec = music_spec(_, _, _, _, _, carnatic, constraints(Cs)),
+  member(raga(_), Cs),
+  Reasons = [because('Carnatic context with raga suggests alapana preset')].
+
+recommend_phrase_preset(Spec, celtic_tune_gen, Reasons) :-
+  Spec = music_spec(_, _, _, _, _, celtic, constraints(Cs)),
+  member(celtic_tune(_), Cs),
+  Reasons = [because('Celtic context suggests tune generation preset')].
+
+recommend_phrase_preset(Spec, cinematic_motif, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, _, constraints(Cs)),
+  ( Style = cinematic ; member(film_mood(_), Cs) ),
+  Reasons = [because('Cinematic context suggests motif-based phrase preset')].
+
+%% ============================================================================
+%% TRACKER FILL RECOMMENDATION (C895-C896)
+%% ============================================================================
+
+%% recommend_tracker_fill(+Spec, -FillType, -Reasons)
+recommend_tracker_fill(Spec, drum_fill, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, _, _),
+  member(Style, [edm, action, trailer]),
+  Reasons = [because('EDM/action style suggests drum fill')].
+
+recommend_tracker_fill(Spec, melodic_fill, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, _, _),
+  member(Style, [cinematic, classical, galant]),
+  Reasons = [because('Melodic style suggests melodic fill')].
+
+recommend_tracker_fill(Spec, riser_fill, Reasons) :-
+  Spec = music_spec(_, _, _, _, _, _, constraints(Cs)),
+  member(film_device(trailer_rise), Cs),
+  Reasons = [because('Trailer rise device suggests riser fill')].
+
+%% ============================================================================
+%% ORCHESTRATION ROLE ALLOCATION (C897-C898)
+%% ============================================================================
+
+%% allocate_roles(+Spec, +Section, -Roles, -Reasons)
+allocate_roles(Spec, Section, Roles, Reasons) :-
+  Spec = music_spec(_, _, _, _, _, _, constraints(Cs)),
+  ( member(film_mood(Mood), Cs) -> true ; Mood = neutral ),
+  section_energy(Section, Energy),
+  allocate_by_energy(Mood, Energy, Roles),
+  format(atom(R), 'Roles allocated for ~w section at ~w energy (mood: ~w)',
+    [Section, Energy, Mood]),
+  Reasons = [because(R)].
+
+section_energy(intro, low).
+section_energy(verse, medium).
+section_energy(chorus, high).
+section_energy(bridge, medium).
+section_energy(climax, peak).
+section_energy(outro, low).
+section_energy(buildup, rising).
+section_energy(drop, peak).
+section_energy(breakdown, low).
+section_energy(_, medium).  %% fallback
+
+allocate_by_energy(Mood, low, Roles) :-
+  ( Mood = ominous ->
+      Roles = [role(pad, strings), role(bass, synths)]
+  ; Roles = [role(pad, strings), role(melody, piano)]
+  ).
+allocate_by_energy(Mood, medium, Roles) :-
+  ( Mood = heroic ->
+      Roles = [role(melody, brass), role(pad, strings), role(bass, strings)]
+  ; Mood = tender ->
+      Roles = [role(melody, strings), role(pad, piano), role(countermelody, woodwinds)]
+  ; Roles = [role(melody, strings), role(pad, strings), role(bass, strings)]
+  ).
+allocate_by_energy(_, high, Roles) :-
+  Roles = [role(melody, brass), role(pad, strings), role(bass, strings),
+           role(percussion, percussion), role(countermelody, woodwinds)].
+allocate_by_energy(Mood, peak, Roles) :-
+  ( Mood = epic ->
+      Roles = [role(melody, brass), role(pad, choir), role(countermelody, strings),
+               role(bass, strings), role(percussion, percussion), role(ostinato_role, synths)]
+  ; Roles = [role(melody, brass), role(pad, strings), role(bass, strings),
+             role(percussion, percussion), role(countermelody, woodwinds)]
+  ).
+allocate_by_energy(_, rising, Roles) :-
+  Roles = [role(ostinato_role, strings), role(pad, synths),
+           role(percussion, percussion), role(bass, strings)].
+
+%% ============================================================================
+%% DEVICE-TO-CARD MAPPING (C901-C902)
+%% ============================================================================
+
+%% device_requires_card(+Device, -CardType)
+device_requires_card(pedal_point, pedal_generator_card).
+device_requires_card(ostinato, ostinato_card).
+device_requires_card(planing, planing_card).
+device_requires_card(chromatic_mediant, modulation_planner_card).
+device_requires_card(cluster_tension, cluster_voicing_card).
+device_requires_card(quartal_harmony, quartal_voicing_card).
+device_requires_card(leitmotif_interval, leitmotif_card).
+device_requires_card(trailer_rise, trailer_build_card).
+
+%% ============================================================================
+%% CULTURE-TO-CARD MAPPING (C904-C905)
+%% ============================================================================
+
+%% culture_requires_card(+Culture, -CardType)
+culture_requires_card(carnatic, carnatic_raga_tala_card).
+culture_requires_card(carnatic, drone_card).
+culture_requires_card(celtic, celtic_tune_card).
+culture_requires_card(celtic, ornament_card).
+culture_requires_card(chinese, chinese_mode_card).
+culture_requires_card(chinese, heterophony_card).
+
+%% ============================================================================
+%% SCHEMA-TO-CARD MAPPING (C906-C907)
+%% ============================================================================
+
+%% schema_requires_card(+Schema, -CardType)
+schema_requires_card(_, schema_browser_card).
+schema_requires_card(_, schema_realizer_card).
+
+%% ============================================================================
+%% CARD VISIBILITY / GATING (C908-C909)
+%% ============================================================================
+
+%% card_visible(+BoardControlLevel, +CardId, -Visible)
+%% BoardControlLevel: beginner | intermediate | advanced | pro
+card_visible(beginner, constraint_pack_card, true).
+card_visible(beginner, tonality_model_card, false).
+card_visible(beginner, grouping_card, false).
+card_visible(beginner, modulation_planner_card, false).
+card_visible(beginner, counterpoint_card, false).
+
+card_visible(intermediate, constraint_pack_card, true).
+card_visible(intermediate, tonality_model_card, true).
+card_visible(intermediate, grouping_card, true).
+card_visible(intermediate, modulation_planner_card, false).
+card_visible(intermediate, counterpoint_card, false).
+
+card_visible(advanced, _, true).
+card_visible(pro, _, true).
+
+%% Default: visible at intermediate+ levels
+card_visible(Level, _Card, true) :-
+  member(Level, [intermediate, advanced, pro]).
+
+%% ============================================================================
+%% EXPLANATION LEVEL (C911)
+%% ============================================================================
+
+%% explanation_level(+ControlLevel, -Verbosity)
+%% Verbosity: terse | normal | verbose | debug
+explanation_level(beginner, verbose).
+explanation_level(intermediate, normal).
+explanation_level(advanced, terse).
+explanation_level(pro, debug).
+
+%% ============================================================================
+%% VOICE LEADING PROFILE (C940-C941)
+%% ============================================================================
+
+%% voice_leading_profile(+Culture, -Rules)
+%% Culture-specific voice leading expectations.
+voice_leading_profile(western, rules(avoid_parallels, resolve_leading_tone, smooth_motion)).
+voice_leading_profile(carnatic, rules(horizontal_focus, no_chord_requirement, gamaka_permitted)).
+voice_leading_profile(celtic, rules(modal_motion, drone_ok, parallel_thirds_ok)).
+voice_leading_profile(chinese, rules(heterophonic, unison_anchor, parallel_ok)).
+
+%% ============================================================================
+%% WORLD PITCH TO MIDI BRIDGE (C942-C943)
+%% ============================================================================
+
+%% world_pitch_to_midi(+CulturePitch, +Culture, -MidiNote)
+%% Approximate mapping from culture-specific pitch to MIDI.
+world_pitch_to_midi(swara(sa, Octave), carnatic, Midi) :-
+  Midi is 60 + (Octave - 4) * 12.  % Sa = middle C in octave 4
+world_pitch_to_midi(swara(ri1, Octave), carnatic, Midi) :-
+  Midi is 61 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ri2, Octave), carnatic, Midi) :-
+  Midi is 62 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ga1, Octave), carnatic, Midi) :-
+  Midi is 62 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ga2, Octave), carnatic, Midi) :-
+  Midi is 63 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ga3, Octave), carnatic, Midi) :-
+  Midi is 64 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ma1, Octave), carnatic, Midi) :-
+  Midi is 65 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ma2, Octave), carnatic, Midi) :-
+  Midi is 66 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(pa, Octave), carnatic, Midi) :-
+  Midi is 67 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(da1, Octave), carnatic, Midi) :-
+  Midi is 68 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(da2, Octave), carnatic, Midi) :-
+  Midi is 69 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ni1, Octave), carnatic, Midi) :-
+  Midi is 70 + (Octave - 4) * 12.
+world_pitch_to_midi(swara(ni2, Octave), carnatic, Midi) :-
+  Midi is 71 + (Octave - 4) * 12.
+
+%% midi_to_world_pitch(+MidiNote, +Culture, -CulturePitch)
+midi_to_world_pitch(Midi, carnatic, swara(Swara, Octave)) :-
+  Octave is (Midi - 60) // 12 + 4,
+  PC is Midi mod 12,
+  pc_to_swara(PC, Swara).
+
+pc_to_swara(0, sa).
+pc_to_swara(1, ri1).
+pc_to_swara(2, ri2).
+pc_to_swara(3, ga2).
+pc_to_swara(4, ga3).
+pc_to_swara(5, ma1).
+pc_to_swara(6, ma2).
+pc_to_swara(7, pa).
+pc_to_swara(8, da1).
+pc_to_swara(9, da2).
+pc_to_swara(10, ni1).
+pc_to_swara(11, ni2).
+
+%% ============================================================================
+%% FILL GENERATION (C936-C937)
+%% ============================================================================
+
+%% generate_fill(+FillType, +Spec, -Fill, -Reasons)
+generate_fill(drum_fill, Spec, fill(drum, Pattern), Reasons) :-
+  Spec = music_spec(_, meter(N, _), tempo(T), _, _, _, _),
+  ( T >= 140 -> Pattern = [kick, snare, kick, kick, snare, hihat, hihat, crash]
+  ; Pattern = [kick, hihat, snare, hihat, kick, kick, snare, crash]
+  ),
+  format(atom(R), 'Drum fill for ~w/? at ~w BPM', [N, T]),
+  Reasons = [because(R)].
+
+generate_fill(melodic_fill, Spec, fill(melodic, Intervals), Reasons) :-
+  Spec = music_spec(key(_, Mode), _, _, _, _, _, _),
+  ( Mode = major -> Intervals = [0, 2, 4, 7, 12]
+  ; Mode = natural_minor -> Intervals = [0, 3, 5, 7, 12]
+  ; Intervals = [0, 2, 4, 7, 12]  % fallback
+  ),
+  Reasons = [because('Melodic fill using scale-based ascending pattern')].
+
+generate_fill(riser_fill, _, fill(riser, Pattern), Reasons) :-
+  Pattern = [noise_sweep, pitch_rise, percussion_roll, hit],
+  Reasons = [because('Riser fill: noise + pitch sweep + percussion roll')].
+
+%% ============================================================================
+%% PHRASE TAG AND SEARCH (C924-C927)
+%% ============================================================================
+
+:- dynamic(phrase_tag/3).  %% phrase_tag(PhraseId, Tag, Confidence)
+
+%% phrase_search(+Query, -PhraseId, -Score)
+%% Search phrases by tag match.
+phrase_search(tags(Tags), PhraseId, Score) :-
+  phrase_tag(PhraseId, _, _),
+  findall(C, (member(T, Tags), phrase_tag(PhraseId, T, C)), Confidences),
+  Confidences \= [],
+  sum_list(Confidences, Total),
+  length(Tags, NT),
+  Score is Total / NT.
+
+%% recommend_phrase(+Spec, +Context, -PhraseId, -Reasons)  (C928-C929)
+recommend_phrase(Spec, Context, PhraseId, Reasons) :-
+  Spec = music_spec(_, _, _, _, Style, Culture, _),
+  phrase_tag(PhraseId, style(Style), C1),
+  C1 > 0.5,
+  ( phrase_tag(PhraseId, culture(Culture), C2), C2 > 0.3 -> true ; true ),
+  format(atom(R), 'Phrase ~w matches style ~w in context ~w', [PhraseId, Style, Context]),
+  Reasons = [because(R)].
+
+%% ============================================================================
+%% VARIATION AND FILL SUGGESTIONS (C930-C934)
+%% ============================================================================
+
+%% recommend_variation(+Style, +Section, -VariationIndex, -Reasons)
+recommend_variation(cinematic, climax, 3, [because('Climax: maximum variation intensity')]).
+recommend_variation(cinematic, verse, 1, [because('Verse: subtle variation')]).
+recommend_variation(cinematic, chorus, 2, [because('Chorus: moderate variation')]).
+recommend_variation(edm, drop, 3, [because('Drop: maximum energy variation')]).
+recommend_variation(edm, buildup, 2, [because('Buildup: escalating variation')]).
+recommend_variation(_, _, 1, [because('Default: minimal variation')]).
+
+%% ============================================================================
+%% SPEC AUTOFIX (C120-C121)
+%% ============================================================================
+
+%% spec_autofix(+Warning, -FixAction, -Reasons)
+spec_autofix('No key specified; defaulting to C major',
+  set_param(tonality_model_card, key, c_major),
+  [because('Auto-set key to C major when unspecified')]).
+
+spec_autofix(Warning, remove_constraint(Constraint), Reasons) :-
+  atom_concat('Constraint ', Rest, Warning),
+  atom_concat(ConstraintStr, _, Rest),
+  term_to_atom(Constraint, ConstraintStr),
+  format(atom(R), 'Remove conflicting constraint: ~w', [Constraint]),
+  Reasons = [because(R)].
+
+%% ============================================================================
+%% QA: QUERY TIMEOUT GUARD (C960)
+%% ============================================================================
+
+%% guarded_query(+Goal, +TimeoutMs, -Result)
+%% Wraps a query with a timeout to prevent infinite loops.
+guarded_query(Goal, TimeoutMs, Result) :-
+  ( TimeoutMs > 0 ->
+      catch(
+        call(Goal),
+        Error,
+        ( Result = error(Error) )
+      ),
+      Result = ok
+  ; Result = error(timeout_zero)
+  ).

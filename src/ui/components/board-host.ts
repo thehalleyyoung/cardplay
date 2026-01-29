@@ -161,7 +161,7 @@ export function createBoardHost(): BoardHostElement {
     if (currentBoard) {
       // Get active context
       const contextStore = getBoardContextStore();
-      const activeContext = contextStore.getState();
+      const activeContext = contextStore.getContext();
       
       // Create deck instances
       const instances = createDeckInstances(currentBoard, activeContext);

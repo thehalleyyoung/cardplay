@@ -12,8 +12,8 @@
  * @module @cardplay/ui/drag-drop-payloads
  */
 
-import type { Event } from '../../events/types';
-import type { ClipId } from '../../state/clip-registry';
+import type { Event } from '../types/event';
+import type { ClipId } from '../state/types';
 
 // ============================================================================
 // PAYLOAD TYPES
@@ -39,7 +39,7 @@ export interface PhrasePayload {
   type: 'phrase';
   phraseId: string;
   phraseName: string;
-  notes: Event[];
+  notes: Event<unknown>[];
   duration: number; // in ticks
   tags?: string[];
   key?: string;
@@ -66,7 +66,7 @@ export interface ClipPayload {
  */
 export interface EventsPayload {
   type: 'events';
-  events: Event[];
+  events: Event<unknown>[];
   sourceStreamId: string;
   timeRange: { start: number; end: number };
   selectionMode: 'copy' | 'move';
@@ -172,13 +172,18 @@ export function createCardTemplatePayload(
   cardCategory: string,
   options?: { defaultParams?: Record<string, unknown>; presetId?: string }
 ): CardTemplatePayload {
-  return {
+  const payload: CardTemplatePayload = {
     type: 'card-template',
     cardType,
     cardCategory,
-    defaultParams: options?.defaultParams,
-    presetId: options?.presetId,
   };
+  if (options?.defaultParams !== undefined) {
+    payload.defaultParams = options.defaultParams;
+  }
+  if (options?.presetId !== undefined) {
+    payload.presetId = options.presetId;
+  }
+  return payload;
 }
 
 /**
@@ -187,20 +192,27 @@ export function createCardTemplatePayload(
 export function createPhrasePayload(
   phraseId: string,
   phraseName: string,
-  notes: Event[],
+  notes: Event<unknown>[],
   duration: number,
   options?: { tags?: string[]; key?: string; chordContext?: string }
 ): PhrasePayload {
-  return {
+  const payload: PhrasePayload = {
     type: 'phrase',
     phraseId,
     phraseName,
     notes,
     duration,
-    tags: options?.tags,
-    key: options?.key,
-    chordContext: options?.chordContext,
   };
+  if (options?.tags !== undefined) {
+    payload.tags = options.tags;
+  }
+  if (options?.key !== undefined) {
+    payload.key = options.key;
+  }
+  if (options?.chordContext !== undefined) {
+    payload.chordContext = options.chordContext;
+  }
+  return payload;
 }
 
 /**
@@ -213,22 +225,27 @@ export function createClipPayload(
   loop: boolean,
   options?: { clipName?: string; clipColor?: string }
 ): ClipPayload {
-  return {
+  const payload: ClipPayload = {
     type: 'clip',
     clipId,
     streamId,
-    clipName: options?.clipName,
-    clipColor: options?.clipColor,
     duration,
     loop,
   };
+  if (options?.clipName !== undefined) {
+    payload.clipName = options.clipName;
+  }
+  if (options?.clipColor !== undefined) {
+    payload.clipColor = options.clipColor;
+  }
+  return payload;
 }
 
 /**
  * Create an events payload
  */
 export function createEventsPayload(
-  events: Event[],
+  events: Event<unknown>[],
   sourceStreamId: string,
   timeRange: { start: number; end: number },
   selectionMode: 'copy' | 'move'
@@ -251,15 +268,22 @@ export function createSamplePayload(
   sampleUrl: string,
   options?: { duration?: number; waveformData?: number[]; tags?: string[] }
 ): SamplePayload {
-  return {
+  const payload: SamplePayload = {
     type: 'sample',
     sampleId,
     sampleName,
     sampleUrl,
-    duration: options?.duration,
-    waveformData: options?.waveformData,
-    tags: options?.tags,
   };
+  if (options?.duration !== undefined) {
+    payload.duration = options.duration;
+  }
+  if (options?.waveformData !== undefined) {
+    payload.waveformData = options.waveformData;
+  }
+  if (options?.tags !== undefined) {
+    payload.tags = options.tags;
+  }
+  return payload;
 }
 
 /**
@@ -270,13 +294,18 @@ export function createHostActionPayload(
   actionData: HostActionPayload['actionData'],
   options?: { targetCardId?: string; scheduling?: HostActionPayload['scheduling'] }
 ): HostActionPayload {
-  return {
+  const payload: HostActionPayload = {
     type: 'host-action',
     actionType,
-    targetCardId: options?.targetCardId,
     actionData,
-    scheduling: options?.scheduling,
   };
+  if (options?.targetCardId !== undefined) {
+    payload.targetCardId = options.targetCardId;
+  }
+  if (options?.scheduling !== undefined) {
+    payload.scheduling = options.scheduling;
+  }
+  return payload;
 }
 
 // ============================================================================

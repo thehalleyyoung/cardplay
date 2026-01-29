@@ -7,8 +7,6 @@
  * @module @cardplay/ui/components/session-grid-panel
  */
 
-import type { ClipRecord } from '../../state/clip-registry';
-
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -294,4 +292,4 @@ function injectSessionGridStyles(): void {
 // EXPORTS
 // ============================================================================
 
-export type { SessionGridConfig, SessionSlot };
+// Types exported at top of file

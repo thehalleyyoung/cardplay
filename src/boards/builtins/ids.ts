@@ -31,7 +31,10 @@ export type BuiltinBoardId =
   // Hybrid Boards (Phase I)
   | 'composer'
   | 'producer'
-  | 'live-performance';
+  | 'live-performance'
+
+  // Modular / Specialized (M177)
+  | 'modular-routing';
 
 /**
  * Check if a string is a known builtin board ID.
@@ -52,7 +55,8 @@ export function isBuiltinBoardId(id: string): id is BuiltinBoardId {
     'composer',
     'producer',
     'live-performance',
+    'modular-routing',
   ]);
-  
+
   return builtinIds.has(id);
 }

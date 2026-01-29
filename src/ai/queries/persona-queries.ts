@@ -127,7 +127,7 @@ export interface ExportPartsWorkflow {
 }
 
 // =============================================================================
-// Tracker User Types (M093–M136)
+// Tracker User Types (M093–M148)
 // =============================================================================
 
 /** Suggested pattern length. */
@@ -168,6 +168,55 @@ export interface PatternOperationResult {
   readonly notes: PatternNote[];
   readonly technique: string;
   readonly description: string;
+}
+
+/** M138: Tracker macro assignment for a track type. */
+export interface TrackerMacroAssignment {
+  readonly macroIndex: number;
+  readonly name: string;
+  readonly targets: string[];
+}
+
+/** M138: Macro layout for a tracker track type. */
+export interface TrackerMacroLayout {
+  readonly trackType: string;
+  readonly macros: TrackerMacroAssignment[];
+}
+
+/** M139: Automation recording mode. */
+export interface AutomationRecordingMode {
+  readonly id: string;
+  readonly description: string;
+}
+
+/** M139: Automation recording event (from macro tweak). */
+export interface AutomationEvent {
+  readonly tick: number;
+  readonly paramName: string;
+  readonly value: number;
+}
+
+/** M139: Recorded automation lane from a macro tweak session. */
+export interface AutomationLane {
+  readonly trackType: string;
+  readonly macroName: string;
+  readonly paramName: string;
+  readonly events: AutomationEvent[];
+  readonly recordingMode: string;
+}
+
+/** M148: Scene launch control action. */
+export interface SceneLaunchControl {
+  readonly action: string;
+  readonly description: string;
+  readonly quantizationDefault: string;
+}
+
+/** M148: Scene transition rule. */
+export interface SceneTransitionRule {
+  readonly id: string;
+  readonly description: string;
+  readonly bars: number;
 }
 
 // =============================================================================
@@ -236,6 +285,13 @@ export interface StereoPlacement {
   readonly technique: string;
 }
 
+/** M210: MIDI controller mapping. */
+export interface MIDIControllerMapping {
+  readonly controller: string;
+  readonly soundType: string;
+  readonly targets: string[];
+}
+
 // =============================================================================
 // Producer Types (M250–M292)
 // =============================================================================
@@ -292,6 +348,39 @@ export interface LaunchQuantizationMode {
   readonly description: string;
 }
 
+/** M102: Pattern resize rule (double/halve). */
+export interface PatternResizeRule {
+  readonly operation: string;
+  readonly description: string;
+  readonly noteAdjustment: string;
+}
+
+/** M102: Note adjustment strategy when resizing a pattern. */
+export interface ResizeNoteAdjustment {
+  readonly strategy: string;
+  readonly description: string;
+}
+
+/** M103: Quantization preset (grid division). */
+export interface QuantizationPreset {
+  readonly id: string;
+  readonly stepDivision: number;
+  readonly description: string;
+}
+
+/** M103: Swing preset. */
+export interface SwingPreset {
+  readonly id: string;
+  readonly swingPercent: number;
+  readonly description: string;
+}
+
+/** M103: Combined quantization + swing suggestion. */
+export interface QuantizationSuggestion {
+  readonly grid: string;
+  readonly swing: string;
+}
+
 /** Bus configuration for a track setup. */
 export interface BusConfig {
   readonly setupType: string;
@@ -329,6 +418,44 @@ export interface CollaborationHandoff {
   readonly fromRole: string;
   readonly toRole: string;
   readonly method: string;
+}
+
+/** M287: Reference matching technique. */
+export interface ReferenceMatchingTechnique {
+  readonly technique: string;
+  readonly description: string;
+}
+
+/** M288: Platform loudness target. */
+export interface LoudnessTarget {
+  readonly platform: string;
+  readonly targetLUFS: number;
+  readonly description: string;
+}
+
+/** M289: Dynamic range target per genre. */
+export interface DynamicRangeTarget {
+  readonly genre: string;
+  readonly targetDR: number;
+  readonly description: string;
+}
+
+/** M290: Loudness diagnosis result. */
+export interface LoudnessDiagnosis {
+  readonly platform: string;
+  readonly measuredLUFS: number;
+  readonly status: 'too_loud' | 'too_quiet' | 'on_target';
+  readonly targetLUFS: number;
+  readonly description: string;
+}
+
+/** M292: Dynamics processing suggestion. */
+export interface DynamicsSuggestion {
+  readonly genre: string;
+  readonly currentDR: number;
+  readonly action: string;
+  readonly targetDR: number;
+  readonly description: string;
 }
 
 // =============================================================================
@@ -1530,6 +1657,51 @@ export async function getRandomizationConstraints(
     paramGroup: String(r.ParamGroup),
     minFraction: Number(r.MinFrac),
     maxFraction: Number(r.MaxFrac),
+  }));
+}
+
+/**
+ * M210: Map a MIDI controller to parameters for a given sound type.
+ *
+ * Queries performance_control_mapping/3 and returns the parameter
+ * targets assigned to the given controller for the given sound type.
+ */
+export async function mapMIDIController(
+  controller: string,
+  soundType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<MIDIControllerMapping | null> {
+  await ensurePersona('sound-designer', adapter);
+  const result = await adapter.querySingle(
+    `performance_control_mapping(${controller}, ${soundType}, Targets)`
+  );
+  if (!result) return null;
+  return {
+    controller,
+    soundType,
+    targets: Array.isArray(result.Targets)
+      ? result.Targets.map(String)
+      : [String(result.Targets)],
+  };
+}
+
+/**
+ * M210: Get all MIDI controller mappings for a sound type.
+ */
+export async function getAllMIDIControllerMappings(
+  soundType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<MIDIControllerMapping[]> {
+  await ensurePersona('sound-designer', adapter);
+  const results = await adapter.queryAll(
+    `performance_control_mapping(Controller, ${soundType}, Targets)`
+  );
+  return results.map((r) => ({
+    controller: String(r.Controller),
+    soundType,
+    targets: Array.isArray(r.Targets)
+      ? r.Targets.map(String)
+      : [String(r.Targets)],
   }));
 }
 
@@ -2999,6 +3171,89 @@ export async function getVisibleFeatures(
 }
 
 // =============================================================================
+// N130: Advanced Features Override Toggle
+// =============================================================================
+
+/** Whether the advanced features override is active (module-level state). */
+let advancedFeaturesOverride = false;
+
+/**
+ * N130: Enable the "Show Advanced Features" override.
+ *
+ * When active, `decideFeatureVisibilityWithOverride()` returns `true`
+ * for all features regardless of skill level. Also asserts the
+ * `advanced_override_active` fact in Prolog for KB-side override.
+ */
+export async function enableAdvancedFeaturesOverride(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<void> {
+  advancedFeaturesOverride = true;
+  await loadAdaptationKB(adapter);
+  try {
+    await adapter.loadProgram(':- assertz(advanced_override_active).', 'advanced-override');
+  } catch {
+    // Prolog engine may not support dynamic assert — TypeScript flag still works
+  }
+}
+
+/**
+ * N130: Disable the "Show Advanced Features" override.
+ */
+export async function disableAdvancedFeaturesOverride(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<void> {
+  advancedFeaturesOverride = false;
+  await loadAdaptationKB(adapter);
+  try {
+    await adapter.loadProgram(':- retract(advanced_override_active).', 'advanced-override-off');
+  } catch {
+    // Graceful fallback
+  }
+}
+
+/**
+ * N130: Check if the advanced features override is currently active.
+ */
+export function isAdvancedFeaturesOverrideActive(): boolean {
+  return advancedFeaturesOverride;
+}
+
+/**
+ * N130: Decide feature visibility, respecting the override toggle.
+ *
+ * When the override is active, always returns `true`.
+ * Otherwise delegates to the standard `decideFeatureVisibility`.
+ */
+export async function decideFeatureVisibilityWithOverride(
+  feature: string,
+  skillLevel: SkillLevel,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<boolean> {
+  if (advancedFeaturesOverride) return true;
+  return decideFeatureVisibility(feature, skillLevel, adapter);
+}
+
+/**
+ * N130: Get all visible features, respecting the override toggle.
+ *
+ * When the override is active, returns ALL features defined in the KB.
+ */
+export async function getVisibleFeaturesWithOverride(
+  skillLevel: SkillLevel,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string[]> {
+  if (advancedFeaturesOverride) {
+    // Return all features, regardless of level
+    await loadAdaptationKB(adapter);
+    const results = await adapter.queryAll(
+      'feature_complexity(Feature, _)'
+    );
+    return results.map((r) => String(r.Feature));
+  }
+  return getVisibleFeatures(skillLevel, adapter);
+}
+
+// =============================================================================
 // Tracker: Performance Mode Queries (M145–M146)
 // =============================================================================
 
@@ -3067,6 +3322,391 @@ export async function getSuggestedLaunchQuantization(
     `suggest_launch_quantization(${genre}, Mode)`
   );
   return result ? String(result.Mode) : 'bar';
+}
+
+// =============================================================================
+// Tracker: Pattern Resize Queries (M102)
+// =============================================================================
+
+/**
+ * M102: Get all pattern resize rules (double/halve operations).
+ */
+export async function getPatternResizeRules(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<PatternResizeRule[]> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    'pattern_resize_rule(Op, Description, NoteAdj)'
+  );
+  return results.map((r) => ({
+    operation: String(r.Op),
+    description: String(r.Description),
+    noteAdjustment: String(r.NoteAdj),
+  }));
+}
+
+/**
+ * M102: Get the note adjustment strategy for a resize operation.
+ */
+export async function getResizeNoteAdjustment(
+  strategy: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<ResizeNoteAdjustment | null> {
+  await ensurePersona('tracker-user', adapter);
+  const result = await adapter.querySingle(
+    `resize_note_adjustment(${strategy}, Description)`
+  );
+  if (!result) return null;
+  return {
+    strategy,
+    description: String(result.Description),
+  };
+}
+
+/**
+ * M102: Suggest the best resize operation for a genre.
+ */
+export async function suggestResizeOperation(
+  genre: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string> {
+  await ensurePersona('tracker-user', adapter);
+  const result = await adapter.querySingle(
+    `suggest_resize_operation(${genre}, Op)`
+  );
+  return result ? String(result.Op) : 'double';
+}
+
+/**
+ * M102: Resize a pattern's notes according to a given operation.
+ *
+ * This is a pure-TypeScript helper that applies the resize logic
+ * described by the Prolog KB rules. It operates on an array of
+ * note events with `position` (in steps) and `duration` (in steps).
+ */
+export function resizePatternNotes(
+  notes: Array<{ position: number; duration: number; pitch: number; velocity: number }>,
+  patternLength: number,
+  operation: 'double' | 'halve' | 'double_repeat' | 'halve_truncate'
+): { notes: Array<{ position: number; duration: number; pitch: number; velocity: number }>; newLength: number } {
+  switch (operation) {
+    case 'double': {
+      // Spread positions: multiply positions and durations by 2
+      return {
+        notes: notes.map((n) => ({
+          ...n,
+          position: n.position * 2,
+          duration: n.duration * 2,
+        })),
+        newLength: patternLength * 2,
+      };
+    }
+    case 'halve': {
+      // Compress positions: divide by 2, halve durations, clamp overlaps
+      const halved = notes
+        .map((n) => ({
+          ...n,
+          position: Math.floor(n.position / 2),
+          duration: Math.max(1, Math.floor(n.duration / 2)),
+        }))
+        .filter((n) => n.position < Math.floor(patternLength / 2));
+
+      // Merge overlapping notes (same position + pitch)
+      const seen = new Map<string, typeof halved[0]>();
+      for (const n of halved) {
+        const key = `${n.position}:${n.pitch}`;
+        if (!seen.has(key)) {
+          seen.set(key, n);
+        }
+        // else: skip duplicate — keep first occurrence
+      }
+      return {
+        notes: [...seen.values()],
+        newLength: Math.floor(patternLength / 2),
+      };
+    }
+    case 'double_repeat': {
+      // Repeat content: original notes + shifted copies
+      const repeated = [
+        ...notes,
+        ...notes.map((n) => ({ ...n, position: n.position + patternLength })),
+      ];
+      return {
+        notes: repeated,
+        newLength: patternLength * 2,
+      };
+    }
+    case 'halve_truncate': {
+      // Truncate: keep only notes in the first half
+      const halfLen = Math.floor(patternLength / 2);
+      return {
+        notes: notes.filter((n) => n.position < halfLen),
+        newLength: halfLen,
+      };
+    }
+  }
+}
+
+// =============================================================================
+// Tracker: Pattern Quantization & Swing Queries (M103)
+// =============================================================================
+
+/**
+ * M103: Get all available quantization presets.
+ */
+export async function getQuantizationPresets(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<QuantizationPreset[]> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    'quantization_preset(Id, StepDiv, Description)'
+  );
+  return results.map((r) => ({
+    id: String(r.Id),
+    stepDivision: Number(r.StepDiv),
+    description: String(r.Description),
+  }));
+}
+
+/**
+ * M103: Get all available swing presets.
+ */
+export async function getSwingPresets(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<SwingPreset[]> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    'swing_preset(Id, SwingPct, Description)'
+  );
+  return results.map((r) => ({
+    id: String(r.Id),
+    swingPercent: Number(r.SwingPct),
+    description: String(r.Description),
+  }));
+}
+
+/**
+ * M103: Get the recommended quantization + swing for a genre.
+ */
+export async function suggestQuantization(
+  genre: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<QuantizationSuggestion> {
+  await ensurePersona('tracker-user', adapter);
+  const result = await adapter.querySingle(
+    `suggest_quantization(${genre}, Grid, Swing)`
+  );
+  return result
+    ? { grid: String(result.Grid), swing: String(result.Swing) }
+    : { grid: 'q_1_16', swing: 'straight' };
+}
+
+/**
+ * M103: Quantize a set of note positions to the nearest grid step,
+ * then apply a swing offset.
+ *
+ * @param positions - Raw note positions (in ticks or fractional steps).
+ * @param stepsPerBar - How many grid steps per bar.
+ * @param swingPercent - Swing amount (50 = straight, 67 = triplet swing).
+ *   Swing offsets every other grid line.
+ */
+export function quantizeWithSwing(
+  positions: number[],
+  stepsPerBar: number,
+  swingPercent: number
+): number[] {
+  if (stepsPerBar <= 0) return positions;
+
+  const gridSize = 1 / stepsPerBar;
+
+  // Swing amount: 0 = straight (50%), 1.0 = full offset at 75%
+  const swingFraction = Math.max(0, Math.min(1, (swingPercent - 50) / 25));
+
+  return positions.map((pos) => {
+    // Snap to nearest grid point
+    const gridIndex = Math.round(pos / gridSize);
+    let snapped = gridIndex * gridSize;
+
+    // Apply swing to every other grid point (odd indices)
+    if (gridIndex % 2 === 1) {
+      snapped += gridSize * swingFraction * 0.5;
+    }
+
+    return snapped;
+  });
+}
+
+// =============================================================================
+// Tracker: Macro Assignments & Automation Recording (M138–M139)
+// =============================================================================
+
+/**
+ * M138: Get macro assignments for a tracker track type.
+ *
+ * Queries tracker_macro_assignment/3 from persona-tracker-user.pl and
+ * returns structured macro slots with parameter targets.
+ */
+export async function getTrackerMacroAssignments(
+  trackType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<TrackerMacroLayout | null> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    `tracker_macro_assignment(${trackType}, Idx, macro(Name, Targets))`
+  );
+  if (results.length === 0) return null;
+  const macros: TrackerMacroAssignment[] = results.map((r) => ({
+    macroIndex: Number(r.Idx),
+    name: String(r.Name),
+    targets: Array.isArray(r.Targets) ? r.Targets.map(String) : [String(r.Targets)],
+  }));
+  macros.sort((a, b) => a.macroIndex - b.macroIndex);
+  return { trackType, macros };
+}
+
+/**
+ * M138: Get all available tracker track types that have macro assignments.
+ */
+export async function getTrackerMacroTrackTypes(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string[]> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    'tracker_macro_assignment(TrackType, _, _)'
+  );
+  const types = new Set(results.map((r) => String(r.TrackType)));
+  return Array.from(types);
+}
+
+/**
+ * M139: Get all automation recording modes.
+ */
+export async function getAutomationRecordingModes(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<AutomationRecordingMode[]> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    'automation_recording_mode(Id, Description)'
+  );
+  return results.map((r) => ({
+    id: String(r.Id),
+    description: String(r.Description),
+  }));
+}
+
+/**
+ * M139: Get the suggested automation recording mode for a parameter.
+ */
+export async function suggestAutomationMode(
+  paramName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string> {
+  await ensurePersona('tracker-user', adapter);
+  const result = await adapter.querySingle(
+    `suggest_automation_mode(${paramName}, Mode)`
+  );
+  return result ? String(result.Mode) : 'latch';
+}
+
+/**
+ * M139: Get the automatable parameters from a macro assignment.
+ *
+ * Given a track type and macro name, returns the underlying parameter
+ * names that would be recorded during an automation pass.
+ */
+export async function getAutomationTargets(
+  trackType: string,
+  macroName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string[]> {
+  await ensurePersona('tracker-user', adapter);
+  const result = await adapter.querySingle(
+    `tracker_automation_target(${trackType}, ${macroName}, Params)`
+  );
+  if (!result) return [];
+  return Array.isArray(result.Params)
+    ? result.Params.map(String)
+    : [String(result.Params)];
+}
+
+/**
+ * M139: Record automation events from macro tweaks.
+ *
+ * Pure function that captures a sequence of value changes as automation
+ * events. The caller provides timestamped value snapshots and this
+ * function structures them into an AutomationLane ready for storage.
+ */
+export function recordMacroAutomation(
+  trackType: string,
+  macroName: string,
+  paramName: string,
+  recordingMode: string,
+  snapshots: ReadonlyArray<{ tick: number; value: number }>,
+): AutomationLane {
+  const events: AutomationEvent[] = snapshots.map((s) => ({
+    tick: s.tick,
+    paramName,
+    value: s.value,
+  }));
+  return {
+    trackType,
+    macroName,
+    paramName,
+    events,
+    recordingMode,
+  };
+}
+
+// =============================================================================
+// Tracker: Scene Launch Controls (M148)
+// =============================================================================
+
+/**
+ * M148: Get all scene launch control actions.
+ */
+export async function getSceneLaunchControls(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<SceneLaunchControl[]> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    'scene_launch_control(Action, Description, QuantDefault)'
+  );
+  return results.map((r) => ({
+    action: String(r.Action),
+    description: String(r.Description),
+    quantizationDefault: String(r.QuantDefault),
+  }));
+}
+
+/**
+ * M148: Get all scene transition rules.
+ */
+export async function getSceneTransitionRules(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<SceneTransitionRule[]> {
+  await ensurePersona('tracker-user', adapter);
+  const results = await adapter.queryAll(
+    'scene_transition_rule(Id, Description, Bars)'
+  );
+  return results.map((r) => ({
+    id: String(r.Id),
+    description: String(r.Description),
+    bars: Number(r.Bars),
+  }));
+}
+
+/**
+ * M148: Get the suggested scene transition style for a genre.
+ */
+export async function suggestSceneTransition(
+  genre: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string> {
+  await ensurePersona('tracker-user', adapter);
+  const result = await adapter.querySingle(
+    `suggest_scene_transition(${genre}, Transition)`
+  );
+  return result ? String(result.Transition) : 'cut';
 }
 
 // =============================================================================
@@ -3198,3 +3838,291 @@ export async function getCollaborationHandoff(
     method: String(result.Method),
   };
 }
+
+// =============================================================================
+// Producer: Reference Matching, Loudness & Dynamics (M287–M292)
+// =============================================================================
+
+/**
+ * M287: Get available reference matching techniques.
+ */
+export async function getReferenceMatchingTechniques(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<ReferenceMatchingTechnique[]> {
+  await ensurePersona('producer', adapter);
+  const results = await adapter.queryAll(
+    'reference_matching_technique(Technique, Description)'
+  );
+  return results.map((r) => ({
+    technique: String(r.Technique),
+    description: String(r.Description),
+  }));
+}
+
+/**
+ * M288: Get loudness targets for all platforms.
+ */
+export async function getLoudnessTargets(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<LoudnessTarget[]> {
+  await ensurePersona('producer', adapter);
+  const results = await adapter.queryAll(
+    'loudness_target(Platform, LUFS, Description)'
+  );
+  return results.map((r) => ({
+    platform: String(r.Platform),
+    targetLUFS: Number(r.LUFS),
+    description: String(r.Description),
+  }));
+}
+
+/**
+ * M288: Get the loudness target for a specific platform.
+ */
+export async function getLoudnessTargetForPlatform(
+  platform: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<LoudnessTarget | null> {
+  await ensurePersona('producer', adapter);
+  const result = await adapter.querySingle(
+    `loudness_target(${platform}, LUFS, Description)`
+  );
+  if (!result) return null;
+  return {
+    platform,
+    targetLUFS: Number(result.LUFS),
+    description: String(result.Description),
+  };
+}
+
+/**
+ * M289: Get dynamic range targets for all genres.
+ */
+export async function getDynamicRangeTargets(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<DynamicRangeTarget[]> {
+  await ensurePersona('producer', adapter);
+  const results = await adapter.queryAll(
+    'dynamic_range_target(Genre, DR, Description)'
+  );
+  return results.map((r) => ({
+    genre: String(r.Genre),
+    targetDR: Number(r.DR),
+    description: String(r.Description),
+  }));
+}
+
+/**
+ * M290: Diagnose loudness for a platform given a measured LUFS value.
+ *
+ * Queries the Prolog `loudness_diagnosis/3` rule to determine whether
+ * the mix is too loud, too quiet, or on target.
+ */
+export async function diagnoseLoudness(
+  platform: string,
+  measuredLUFS: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<LoudnessDiagnosis | null> {
+  await ensurePersona('producer', adapter);
+
+  // Get the target for context
+  const target = await getLoudnessTargetForPlatform(platform, adapter);
+  if (!target) return null;
+
+  const result = await adapter.querySingle(
+    `loudness_diagnosis(${platform}, ${measuredLUFS}, Status)`
+  );
+
+  const status = result ? String(result.Status) : 'on_target';
+  const validStatus = (
+    status === 'too_loud' || status === 'too_quiet' || status === 'on_target'
+  ) ? status : 'on_target';
+
+  return {
+    platform,
+    measuredLUFS,
+    status: validStatus,
+    targetLUFS: target.targetLUFS,
+    description: target.description,
+  };
+}
+
+/**
+ * M291: Analyze loudness across multiple platforms.
+ *
+ * Returns a diagnosis for each platform, allowing the user to see
+ * how their mix measures up for different delivery targets.
+ */
+export async function analyzeLoudnessMultiPlatform(
+  measuredLUFS: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<LoudnessDiagnosis[]> {
+  const targets = await getLoudnessTargets(adapter);
+  const results: LoudnessDiagnosis[] = [];
+
+  for (const target of targets) {
+    const diff = measuredLUFS - target.targetLUFS;
+    let status: LoudnessDiagnosis['status'];
+    if (diff > 2) {
+      status = 'too_loud';
+    } else if (diff < -2) {
+      status = 'too_quiet';
+    } else {
+      status = 'on_target';
+    }
+    results.push({
+      platform: target.platform,
+      measuredLUFS,
+      status,
+      targetLUFS: target.targetLUFS,
+      description: target.description,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * M292: Suggest dynamics processing based on genre and current dynamic range.
+ *
+ * Queries the Prolog `dynamics_suggestion/3` rule.
+ */
+export async function suggestDynamicsProcessing(
+  genre: string,
+  currentDR: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<DynamicsSuggestion[]> {
+  await ensurePersona('producer', adapter);
+
+  // Get the genre target for context
+  const targetResult = await adapter.querySingle(
+    `dynamic_range_target(${genre}, TargetDR, Desc)`
+  );
+  const targetDR = targetResult ? Number(targetResult.TargetDR) : 10;
+  const description = targetResult ? String(targetResult.Desc) : `Target ~${targetDR} dB`;
+
+  // Query dynamics suggestions
+  const results = await adapter.queryAll(
+    `dynamics_suggestion(${genre}, ${currentDR}, Action)`
+  );
+
+  const suggestions: DynamicsSuggestion[] = results
+    .map((r) => ({
+      genre,
+      currentDR,
+      action: String(r.Action),
+      targetDR,
+      description,
+    }))
+    // Deduplicate actions (Prolog may return multiple due to fallback rules)
+    .filter((s, i, arr) => arr.findIndex((x) => x.action === s.action) === i)
+    // Filter out generic "check_ok" if more specific action exists
+    .filter((s, _, arr) =>
+      s.action !== 'check_ok' || arr.length === 1
+    );
+
+  return suggestions;
+}
+
+// =============================================================================
+// M399: Persona Feature Matrix
+// =============================================================================
+
+/** Feature availability per persona. */
+export type FeatureAvailability = 'available' | 'limited' | 'not-available';
+
+/** A feature entry in the persona feature matrix. */
+export interface PersonaFeatureEntry {
+  readonly featureId: string;
+  readonly featureName: string;
+  readonly category: string;
+  readonly notationComposer: FeatureAvailability;
+  readonly trackerUser: FeatureAvailability;
+  readonly soundDesigner: FeatureAvailability;
+  readonly producer: FeatureAvailability;
+}
+
+/**
+ * M399: Get the complete persona feature matrix.
+ *
+ * Returns a structured matrix indicating which features are available,
+ * limited, or unavailable for each persona.
+ */
+export function getPersonaFeatureMatrix(): readonly PersonaFeatureEntry[] {
+  return PERSONA_FEATURE_MATRIX;
+}
+
+/**
+ * M399: Get features available for a specific persona.
+ */
+export function getFeaturesForPersona(
+  persona: 'notation-composer' | 'tracker-user' | 'sound-designer' | 'producer',
+): readonly PersonaFeatureEntry[] {
+  const key = PERSONA_KEY_MAP[persona];
+  return PERSONA_FEATURE_MATRIX.filter(f => f[key] !== 'not-available');
+}
+
+/**
+ * M399: Get features in a specific category.
+ */
+export function getFeaturesByCategory(category: string): readonly PersonaFeatureEntry[] {
+  return PERSONA_FEATURE_MATRIX.filter(f => f.category === category);
+}
+
+const PERSONA_KEY_MAP = {
+  'notation-composer': 'notationComposer',
+  'tracker-user': 'trackerUser',
+  'sound-designer': 'soundDesigner',
+  'producer': 'producer',
+} as const;
+
+/** M399: Complete persona feature matrix (static data). */
+const PERSONA_FEATURE_MATRIX: readonly PersonaFeatureEntry[] = [
+  // === Composition ===
+  { featureId: 'score-layout', featureName: 'Score Layout & Engraving', category: 'Composition', notationComposer: 'available', trackerUser: 'not-available', soundDesigner: 'not-available', producer: 'limited' },
+  { featureId: 'counterpoint-analysis', featureName: 'Counterpoint Analysis', category: 'Composition', notationComposer: 'available', trackerUser: 'not-available', soundDesigner: 'not-available', producer: 'not-available' },
+  { featureId: 'form-templates', featureName: 'Classical Form Templates', category: 'Composition', notationComposer: 'available', trackerUser: 'limited', soundDesigner: 'not-available', producer: 'limited' },
+  { featureId: 'harmony-explorer', featureName: 'Harmony Explorer', category: 'Composition', notationComposer: 'available', trackerUser: 'limited', soundDesigner: 'limited', producer: 'available' },
+  { featureId: 'cadence-suggestions', featureName: 'Cadence & Modulation Suggestions', category: 'Composition', notationComposer: 'available', trackerUser: 'not-available', soundDesigner: 'not-available', producer: 'limited' },
+  { featureId: 'orchestration', featureName: 'Orchestration Guides', category: 'Composition', notationComposer: 'available', trackerUser: 'not-available', soundDesigner: 'limited', producer: 'limited' },
+  // === Pattern Editing ===
+  { featureId: 'pattern-editor', featureName: 'Pattern Editor', category: 'Pattern Editing', notationComposer: 'not-available', trackerUser: 'available', soundDesigner: 'limited', producer: 'available' },
+  { featureId: 'pattern-resize', featureName: 'Pattern Resize (Double/Halve)', category: 'Pattern Editing', notationComposer: 'not-available', trackerUser: 'available', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'groove-templates', featureName: 'Groove & Swing Templates', category: 'Pattern Editing', notationComposer: 'not-available', trackerUser: 'available', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'pattern-variations', featureName: 'Pattern Variation Techniques', category: 'Pattern Editing', notationComposer: 'limited', trackerUser: 'available', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'quantization', featureName: 'Quantization & Swing', category: 'Pattern Editing', notationComposer: 'limited', trackerUser: 'available', soundDesigner: 'not-available', producer: 'available' },
+  // === Sound Design ===
+  { featureId: 'synthesis-recommendations', featureName: 'Synthesis Recommendations', category: 'Sound Design', notationComposer: 'not-available', trackerUser: 'limited', soundDesigner: 'available', producer: 'limited' },
+  { featureId: 'modulation-routing', featureName: 'Modulation Routing Suggestions', category: 'Sound Design', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'available', producer: 'not-available' },
+  { featureId: 'effect-chains', featureName: 'Effect Chain Presets', category: 'Sound Design', notationComposer: 'not-available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'layering', featureName: 'Sound Layering Suggestions', category: 'Sound Design', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'available', producer: 'limited' },
+  { featureId: 'frequency-balance', featureName: 'Frequency Balance Analysis', category: 'Sound Design', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'macro-assignments', featureName: 'Macro Assignments', category: 'Sound Design', notationComposer: 'not-available', trackerUser: 'limited', soundDesigner: 'available', producer: 'limited' },
+  { featureId: 'randomization', featureName: 'Parameter Randomization', category: 'Sound Design', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'available', producer: 'not-available' },
+  // === Production ===
+  { featureId: 'arrangement-structure', featureName: 'Arrangement Structure Suggestions', category: 'Production', notationComposer: 'limited', trackerUser: 'limited', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'mix-checklist', featureName: 'Mixing Checklist', category: 'Production', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'limited', producer: 'available' },
+  { featureId: 'mastering-targets', featureName: 'Mastering Targets (LUFS)', category: 'Production', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'track-colors', featureName: 'Track Color Coding', category: 'Production', notationComposer: 'not-available', trackerUser: 'limited', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'bus-routing', featureName: 'Bus Routing Setup', category: 'Production', notationComposer: 'not-available', trackerUser: 'limited', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'automation-lanes', featureName: 'Automation Lane Suggestions', category: 'Production', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'limited', producer: 'available' },
+  { featureId: 'loudness-analysis', featureName: 'Loudness & Dynamics Analysis', category: 'Production', notationComposer: 'not-available', trackerUser: 'not-available', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'collaboration', featureName: 'Collaboration Workflows', category: 'Production', notationComposer: 'limited', trackerUser: 'limited', soundDesigner: 'limited', producer: 'available' },
+  // === AI & Learning ===
+  { featureId: 'ai-advisor', featureName: 'AI Advisor Panel', category: 'AI & Learning', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'adaptive-tutorials', featureName: 'Adaptive Tutorials', category: 'AI & Learning', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'skill-estimation', featureName: 'Skill Level Estimation', category: 'AI & Learning', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'progressive-disclosure', featureName: 'Progressive Feature Disclosure', category: 'AI & Learning', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'error-detection', featureName: 'Error Pattern Detection', category: 'AI & Learning', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  // === Workflow ===
+  { featureId: 'workspace-templates', featureName: 'Workspace Templates', category: 'Workflow', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'session-notes', featureName: 'Session Notes', category: 'Workflow', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'project-metadata', featureName: 'Project Metadata & Search', category: 'Workflow', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'undo-branching', featureName: 'Undo History Branching', category: 'Workflow', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'project-versioning', featureName: 'Project Versioning', category: 'Workflow', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  { featureId: 'command-palette', featureName: 'Command Palette (Cmd+K)', category: 'Workflow', notationComposer: 'available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+  // === Performance ===
+  { featureId: 'performance-mode', featureName: 'Performance Mode Layout', category: 'Performance', notationComposer: 'not-available', trackerUser: 'available', soundDesigner: 'limited', producer: 'available' },
+  { featureId: 'launch-quantization', featureName: 'Pattern Launch Quantization', category: 'Performance', notationComposer: 'not-available', trackerUser: 'available', soundDesigner: 'not-available', producer: 'available' },
+  { featureId: 'routing-feedback-detection', featureName: 'Routing Feedback Loop Detection', category: 'Performance', notationComposer: 'not-available', trackerUser: 'available', soundDesigner: 'available', producer: 'available' },
+];

@@ -8,7 +8,11 @@
 
 export * from './ids';
 export * from './basic-tracker-board';
+export * from './piano-roll-producer-board';
 export * from './notation-board-manual';
 export * from './basic-session-board';
 export * from './stub-tracker-phrases';
+export * from './tracker-harmony-board';
+export * from './live-performance-tracker-board';
+export * from './modular-routing-board';
 export * from './register';

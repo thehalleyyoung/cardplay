@@ -357,4 +357,4 @@ function injectDSPChainStyles(): void {
 // EXPORTS
 // ============================================================================
 
-export type { DSPChainConfig, EffectSlot };
+// Types exported at top of file
