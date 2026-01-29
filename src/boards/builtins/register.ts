@@ -23,6 +23,8 @@ import { notationHarmonyBoard } from './notation-harmony-board';
 import { aiArrangerBoard } from './ai-arranger-board';
 import { aiCompositionBoard } from './ai-composition-board';
 import { generativeAmbientBoard } from './generative-ambient-board';
+import { composerBoard } from './composer-board';
+import { livePerformanceBoard } from './live-performance-board';
 
 /**
  * Register all builtin boards.
@@ -36,32 +38,31 @@ export function registerBuiltinBoards(): void {
   const registry = getBoardRegistry();
 
   // Phase F: Manual Boards
-  registry.register(basicTrackerBoard);
+  registry.register(basicTrackerBoard);          // F031-F060
   registry.register(pianoRollProducerBoard);
-  registry.register(notationBoardManual);
-  registry.register(basicSessionBoard);
-  registry.register(basicSamplerBoard);
+  registry.register(notationBoardManual);        // F001-F030
+  registry.register(basicSessionBoard);          // F091-F120
+  registry.register(basicSamplerBoard);          // F061-F090
 
-  // M147: Live Performance Board
+  // M147: Live Performance Board (tracker-based)
   registry.register(livePerformanceTrackerBoard);
 
   // M177: Modular Routing Board
   registry.register(modularRoutingBoard);
 
   // Phase G: Assisted Boards
-  registry.register(trackerPhrasesBoard);       // G031-G060: Tracker + Phrases
-  registry.register(trackerHarmonyBoard);       // G001-G030: Tracker + Harmony
-  registry.register(sessionGeneratorsBoard);    // G061-G090: Session + Generators
-  registry.register(notationHarmonyBoard);      // G091-G120: Notation + Harmony
+  registry.register(trackerPhrasesBoard);        // G031-G060: Tracker + Phrases
+  registry.register(trackerHarmonyBoard);        // G001-G030: Tracker + Harmony
+  registry.register(sessionGeneratorsBoard);     // G061-G090: Session + Generators
+  registry.register(notationHarmonyBoard);       // G091-G120: Notation + Harmony
 
   // Phase H: Generative Boards
-  registry.register(aiArrangerBoard);           // H001-H025: AI Arranger
-  registry.register(aiCompositionBoard);        // H026-H050: AI Composition
-  registry.register(generativeAmbientBoard);    // H051-H075: Generative Ambient
+  registry.register(aiArrangerBoard);            // H001-H025: AI Arranger
+  registry.register(aiCompositionBoard);         // H026-H050: AI Composition
+  registry.register(generativeAmbientBoard);     // H051-H075: Generative Ambient
 
-  // M257: Producer Board
-  registry.register(producerBoard);
-
-  // Phase I: Hybrid Boards (not yet implemented)
-  // registry.register(composerBoard);
+  // Phase I: Hybrid Boards
+  registry.register(composerBoard);              // I001-I025: Composer Board (Hybrid)
+  registry.register(producerBoard);              // I026-I050: Producer Board (Hybrid)
+  registry.register(livePerformanceBoard);       // I051-I075: Live Performance Board (Hybrid)
 }

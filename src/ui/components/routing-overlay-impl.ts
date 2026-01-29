@@ -341,10 +341,12 @@ export class RoutingOverlay {
    * J032: Visual feedback for incompatible connections (shake + tooltip)
    * Reserved for future drag validation feedback
    */
+  /*
   private showIncompatibleFeedback(_portElement: SVGElement, _reason: string): void {
     // TODO: Implement when drag validation is added (J032)
     // Shake animation + tooltip with reason
   }
+  */
 
   /**
    * Get connection color by type (J023)
@@ -506,9 +508,11 @@ export class RoutingOverlay {
   /**
    * Show tooltip (reserved for future use)
    */
+  /*
   private showTooltip(_element: SVGElement, _text: string, _type: 'info' | 'error' = 'info'): void {
     // TODO: Implement tooltip system with type-based styling
   }
+  */
 
   /**
    * Dispatch custom event

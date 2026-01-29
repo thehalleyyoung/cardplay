@@ -105,6 +105,7 @@ function validateAndMigrate(raw: unknown): BoardState {
     favoriteBoardIds: Array.isArray(obj.favoriteBoardIds) ? obj.favoriteBoardIds.filter(id => typeof id === 'string') : [],
     perBoardLayout: typeof obj.perBoardLayout === 'object' && obj.perBoardLayout !== null ? obj.perBoardLayout as Record<string, LayoutState | undefined> : {},
     perBoardDeckState: typeof obj.perBoardDeckState === 'object' && obj.perBoardDeckState !== null ? obj.perBoardDeckState as Record<string, DeckState | undefined> : {},
+    perBoardTrackControlLevels: typeof obj.perBoardTrackControlLevels === 'object' && obj.perBoardTrackControlLevels !== null ? obj.perBoardTrackControlLevels as Record<string, import('./types').TrackControlLevels | undefined> : {},
     firstRunCompleted: typeof obj.firstRunCompleted === 'boolean' ? obj.firstRunCompleted : false,
     lastOpenedAt: typeof obj.lastOpenedAt === 'number' ? obj.lastOpenedAt : null,
   };

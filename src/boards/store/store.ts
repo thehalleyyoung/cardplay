@@ -341,6 +341,142 @@ export class BoardStateStore {
   }
 
   // ============================================================================
+  // TRACK CONTROL LEVELS (J041-J045)
+  // ============================================================================
+
+  /**
+   * Gets track control levels for a board.
+   * J041: Per-track control level data model.
+   */
+  getTrackControlLevels(boardId: string): Record<string, string> {
+    return this.state.perBoardTrackControlLevels[boardId]?.levels ?? {};
+  }
+
+  /**
+   * Gets control level for a specific track/stream.
+   * J041: Track ID → control level mapping.
+   */
+  getTrackControlLevel(boardId: string, streamId: string): string | undefined {
+    const levels = this.state.perBoardTrackControlLevels[boardId];
+    return levels?.levels[streamId] ?? levels?.defaultLevel;
+  }
+
+  /**
+   * Sets control level for a specific track/stream.
+   * J041: Update per-track control level with persistence.
+   */
+  setTrackControlLevel(boardId: string, streamId: string, controlLevel: string): void {
+    const current = this.state.perBoardTrackControlLevels[boardId] ?? { levels: {} };
+    
+    this.state = {
+      ...this.state,
+      perBoardTrackControlLevels: {
+        ...this.state.perBoardTrackControlLevels,
+        [boardId]: {
+          ...current,
+          levels: {
+            ...current.levels,
+            [streamId]: controlLevel,
+          },
+        },
+      },
+    };
+    this.notify();
+  }
+
+  /**
+   * Sets default control level for new tracks in a board.
+   * J041: Default control level for hybrid boards.
+   */
+  setDefaultTrackControlLevel(boardId: string, controlLevel: string): void {
+    const current = this.state.perBoardTrackControlLevels[boardId] ?? { levels: {} };
+    
+    this.state = {
+      ...this.state,
+      perBoardTrackControlLevels: {
+        ...this.state.perBoardTrackControlLevels,
+        [boardId]: {
+          ...current,
+          defaultLevel: controlLevel,
+        },
+      },
+    };
+    this.notify();
+  }
+
+  /**
+   * Removes control level override for a track (fallback to default).
+   * J041: Reset individual track to board default.
+   */
+  resetTrackControlLevel(boardId: string, streamId: string): void {
+    const current = this.state.perBoardTrackControlLevels[boardId];
+    if (!current) return;
+
+    const { [streamId]: _, ...remainingLevels } = current.levels;
+    
+    this.state = {
+      ...this.state,
+      perBoardTrackControlLevels: {
+        ...this.state.perBoardTrackControlLevels,
+        [boardId]: {
+          ...current,
+          levels: remainingLevels,
+        },
+      },
+    };
+    this.notify();
+  }
+
+  /**
+   * Resets all track control levels for a board.
+   * J041: Clear all per-track overrides.
+   */
+  resetAllTrackControlLevels(boardId: string): void {
+    const { [boardId]: _, ...remaining } = this.state.perBoardTrackControlLevels;
+    
+    this.state = {
+      ...this.state,
+      perBoardTrackControlLevels: remaining,
+    };
+    this.notify();
+  }
+
+  // ============================================================================
+  // BOARD RESET ACTIONS (C068-C070)
+  // ============================================================================
+
+  /**
+   * C068: Reset layout for a board (clears persisted per-board layout).
+   * 
+   * This restores the board to its default layout as defined in the
+   * board definition.
+   */
+  resetBoardLayout(boardId: string): void {
+    this.resetLayoutState(boardId);
+  }
+
+  /**
+   * C069: Reset board state for a board (clears persisted deck state + layout state).
+   * 
+   * This resets both layout and deck customizations for a specific board.
+   */
+  resetBoardState(boardId: string): void {
+    this.resetLayoutState(boardId);
+    this.resetDeckState(boardId);
+    this.resetAllTrackControlLevels(boardId);
+  }
+
+  /**
+   * C070: Reset all board preferences (clears board state store key entirely).
+   * 
+   * This is a nuclear option that resets all boards to defaults.
+   * Use with caution!
+   */
+  resetAllBoardPreferences(): void {
+    this.reset();
+  }
+
+  // ============================================================================
   // UTILITIES
   // ============================================================================
 

@@ -97,7 +97,7 @@ export class KeyboardShortcutManager {
   // ==========================================================================
 
   /**
-   * Register a board-specific shortcut map (C052)
+   * Register a board-specific shortcut map (C052, J013)
    */
   registerBoardShortcuts(boardId: string, shortcuts: Record<string, ShortcutHandler>): void {
     for (const [key, handler] of Object.entries(shortcuts)) {
@@ -114,7 +114,7 @@ export class KeyboardShortcutManager {
   }
 
   /**
-   * Unregister board-specific shortcuts (C052)
+   * Unregister board-specific shortcuts (C052, J013)
    */
   unregisterBoardShortcuts(boardId: string): void {
     const prefix = `board:${boardId}:`;
@@ -122,6 +122,34 @@ export class KeyboardShortcutManager {
       if (id.startsWith(prefix)) {
         this.shortcuts.delete(id);
       }
+    }
+  }
+
+  /**
+   * Register deck tab shortcuts (J015)
+   * Cmd+1..9 switches to deck tabs 1-9 in the active deck
+   */
+  registerDeckTabShortcuts(deckId: string, switchToTab: (index: number) => void): void {
+    for (let i = 1; i <= 9; i++) {
+      const key = i.toString();
+      const shortcut: KeyboardShortcut = {
+        id: `deck:${deckId}:tab-${i}`,
+        key,
+        modifiers: { meta: true },
+        description: `Switch to tab ${i}`,
+        category: 'navigation',
+        action: () => switchToTab(i),
+      };
+      this.register(shortcut);
+    }
+  }
+
+  /**
+   * Unregister deck tab shortcuts (J015)
+   */
+  unregisterDeckTabShortcuts(deckId: string): void {
+    for (let i = 1; i <= 9; i++) {
+      this.unregister(`deck:${deckId}:tab-${i}`);
     }
   }
 
@@ -516,6 +544,19 @@ export class KeyboardShortcutManager {
         } else {
           transport.record();
         }
+      },
+    });
+
+    // Escape - Close modals/overlays (J017)
+    this.register({
+      id: 'escape',
+      key: 'Escape',
+      modifiers: {},
+      description: 'Close modal or cancel action',
+      category: 'navigation',
+      action: () => {
+        // Dispatch escape event for modals/overlays to handle
+        document.dispatchEvent(new CustomEvent('cardplay:escape'));
       },
     });
 

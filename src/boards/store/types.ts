@@ -33,6 +33,9 @@ export interface BoardState {
   /** Per-board deck state (active tabs, scroll positions, etc.) */
   perBoardDeckState: Record<string, DeckState | undefined>;
   
+  /** Per-board per-track control levels (J041: hybrid boards) */
+  perBoardTrackControlLevels: Record<string, TrackControlLevels | undefined>;
+  
   /** First-run experience completed */
   firstRunCompleted: boolean;
   
@@ -116,6 +119,19 @@ export interface NotationDeckSettings {
 }
 
 /**
+ * Per-track control levels for hybrid boards.
+ * J041: Defines per-track control level (track ID → control level).
+ * Allows mixing manual + assisted + generative tracks in one board.
+ */
+export interface TrackControlLevels {
+  /** Map of stream ID to control level */
+  levels: Record<string, string>;  // streamId → ControlLevel
+  
+  /** Default control level for new tracks */
+  defaultLevel?: string;  // ControlLevel
+}
+
+/**
  * Mixer deck settings.
  * E046: Track strip visibility and layout preferences.
  */
@@ -147,6 +163,7 @@ export const DEFAULT_BOARD_STATE: BoardState = {
   favoriteBoardIds: [],
   perBoardLayout: {},
   perBoardDeckState: {},
+  perBoardTrackControlLevels: {},
   firstRunCompleted: false,
   lastOpenedAt: null,
 };

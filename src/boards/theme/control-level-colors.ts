@@ -102,6 +102,14 @@ export function getControlLevelPrimaryColor(level: ControlLevel): string {
 }
 
 /**
+ * Get the badge/indicator color for a control level.
+ * Alias for getControlLevelBadgeColor for clarity.
+ */
+export function getControlLevelColor(level: ControlLevel): string {
+  return getControlLevelBadgeColor(level);
+}
+
+/**
  * Convert control level colors to CSS custom properties.
  */
 export function controlLevelColorsToCSSProperties(

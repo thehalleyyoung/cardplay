@@ -22,4 +22,5 @@ export * from './generative-ambient-board';
 export * from './live-performance-tracker-board';
 export * from './modular-routing-board';
 export * from './producer-board';
+export * from './composer-board';
 export * from './register';

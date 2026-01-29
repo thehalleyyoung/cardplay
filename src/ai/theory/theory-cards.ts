@@ -17,8 +17,8 @@
 import type {
   MusicConstraint,
   MusicSpec,
-  RootName,
-  ModeName,
+  // RootName,
+  // ModeName,
   TonalityModel,
   StyleTag,
   CultureTag,
@@ -32,7 +32,7 @@ import type {
   FilmDevice,
   AccentModel,
   CadenceType,
-  Explainable,
+  // Explainable,
 } from './music-spec';
 
 import { withConstraints, withoutConstraintType } from './music-spec';
