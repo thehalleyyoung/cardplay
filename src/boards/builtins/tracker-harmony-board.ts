@@ -9,6 +9,7 @@
  */
 
 import type { Board } from '../types';
+import { getBoardSettingsStore } from '../settings/store';
 
 export const trackerHarmonyBoard: Board = {
   id: 'tracker-harmony',
@@ -175,12 +176,29 @@ export const trackerHarmonyBoard: Board = {
   
   onActivate: () => {
     console.log('Tracker + Harmony board activated');
-    // TODO: Initialize harmony context from active stream
-    // TODO: Set default key to C major if not set
+    
+    // G016: Initialize harmony context with default values if not set
+    const boardSettings = getBoardSettingsStore();
+    const settings = boardSettings.getSettings('tracker-harmony');
+    
+    if (!settings.harmony?.currentKey) {
+      // G015: Set default key to C major
+      boardSettings.updateHarmonySettings('tracker-harmony', {
+        currentKey: 'C',
+        currentChord: 'Cmaj',
+        showHarmonyColors: true,
+        showRomanNumerals: false
+      });
+      console.log('Initialized default harmony context: C major');
+    } else {
+      console.log('Restored harmony context:', settings.harmony);
+    }
   },
   
   onDeactivate: () => {
     console.log('Tracker + Harmony board deactivated');
-    // TODO: Save harmony context settings
+    
+    // Harmony context is persisted automatically by BoardSettingsStore
+    // No explicit save needed
   }
 };

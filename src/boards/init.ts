@@ -13,6 +13,7 @@ import { initBoardSwitcher } from '../ui/components/board-switcher';
 import { KeyboardShortcutManager } from '../ui/keyboard-shortcuts';
 import { getBoardStateStore } from './store/store';
 import { getBoardRegistry } from './registry';
+import { initBoardSwitchIntegration } from './integration/board-switch-integration';
 
 /**
  * Initialize the board system.
@@ -22,7 +23,8 @@ import { getBoardRegistry } from './registry';
  * 2. Registers all builtin board definitions
  * 3. Initializes board switcher UI (C051, C055)
  * 4. Sets up keyboard shortcuts (Cmd+B)
- * 5. Ensures a default board is selected
+ * 5. Initializes board switch integration (D066-D068)
+ * 6. Ensures a default board is selected
  * 
  * Call this once during app startup, before any boards are accessed.
  * 
@@ -60,14 +62,18 @@ export function initializeBoardSystem(): () => void {
   const shortcutManager = KeyboardShortcutManager.getInstance();
   shortcutManager.start();
   
-  // Step 5: Ensure at least one board exists (B147)
+  // Step 5: Initialize board switch integration (D066-D068)
+  // This sets up automatic recomputation of visible decks and allowed cards
+  const unsubIntegration = initBoardSwitchIntegration();
+  
+  // Step 6: Ensure at least one board exists (B147)
   const registry = getBoardRegistry();
   const boards = registry.list();
   if (boards.length === 0) {
     throw new Error('No boards registered! Cannot initialize board system.');
   }
   
-  // Step 6: Set default board if none selected (B146)
+  // Step 7: Set default board if none selected (B146)
   const store = getBoardStateStore();
   const state = store.getState();
   if (!state.currentBoardId || !registry.get(state.currentBoardId)) {
@@ -77,7 +83,7 @@ export function initializeBoardSystem(): () => void {
     }
   }
   
-  // Step 7: Apply initial board theme
+  // Step 8: Apply initial board theme
   const currentBoardId = store.getState().currentBoardId;
   if (currentBoardId) {
     const currentBoard = registry.get(currentBoardId);
@@ -94,6 +100,7 @@ export function initializeBoardSystem(): () => void {
   // Return cleanup function
   return () => {
     unsubSwitcher();
+    unsubIntegration();
     shortcutManager.stop();
     
     // Clean up theme on shutdown

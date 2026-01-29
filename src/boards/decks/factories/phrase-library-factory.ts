@@ -19,6 +19,8 @@ import type { PhraseRecord } from '../../../cards/phrase-system';
 import { getTransport } from '../../../audio/transport';
 import { getSharedEventStore } from '../../../state/event-store';
 import { handlePhraseToPatternEditor, registerDropHandler } from '../../../ui/drop-handlers';
+import { computeBoardCapabilities } from '../../gating/capabilities';
+import { getBoardRegistry } from '../../registry';
 
 /**
  * Phrase library deck factory (G041-G044).
@@ -32,10 +34,15 @@ import { handlePhraseToPatternEditor, registerDropHandler } from '../../../ui/dr
 export const phraseLibraryFactory: DeckFactory = {
   deckType: 'phrases-deck',
 
-  create(deckDef: BoardDeck, _ctx: DeckFactoryContext): DeckInstance {
+  create(deckDef: BoardDeck, ctx: DeckFactoryContext): DeckInstance {
     let state: PhraseBrowserState = createInitialBrowserState();
     let previewStreamId: string | null = null;
     let previewCleanup: (() => void) | null = null;
+    
+    // D050: Wire canDragPhrases capability into phrase library UI
+    const board = getBoardRegistry().get(ctx.boardId);
+    const capabilities = board ? computeBoardCapabilities(board) : null;
+    const isDragEnabled = capabilities?.canDragPhrases ?? false;
     
     const dispatch = (action: BrowserAction) => {
       state = browserReducer(state, action);
@@ -45,9 +52,10 @@ export const phraseLibraryFactory: DeckFactory = {
     const render = () => {
       // Re-render the phrase list
       renderPhraseList(container, state, dispatch, {
-        onDragStart: handlePhraseDragStart,
+        onDragStart: isDragEnabled ? handlePhraseDragStart : null,
         onPreview: handlePhrasePreview,
         onStopPreview: stopPreview,
+        isDragEnabled,
       });
     };
 
@@ -186,9 +194,10 @@ function renderPhraseList(
   state: PhraseBrowserState,
   dispatch: (action: BrowserAction) => void,
   handlers: {
-    onDragStart: (phrase: PhraseRecord<any>, event: DragEvent) => void;
+    onDragStart: ((phrase: PhraseRecord<any>, event: DragEvent) => void) | null;
     onPreview: (phrase: PhraseRecord<any>) => void;
     onStopPreview: () => void;
+    isDragEnabled: boolean;
   }
 ): void {
   container.innerHTML = '';
@@ -263,14 +272,16 @@ function createPhraseItem(
   phrase: PhraseRecord<any>,
   state: PhraseBrowserState,
   handlers: {
-    onDragStart: (phrase: PhraseRecord<any>, event: DragEvent) => void;
+    onDragStart: ((phrase: PhraseRecord<any>, event: DragEvent) => void) | null;
     onPreview: (phrase: PhraseRecord<any>) => void;
     onStopPreview: () => void;
+    isDragEnabled: boolean;
   }
 ): HTMLElement {
   const item = document.createElement('div');
   item.className = 'phrase-item';
-  item.draggable = true; // G043
+  // D050: Only enable drag if canDragPhrases capability is true
+  item.draggable = handlers.isDragEnabled; // G043
   item.style.cssText = `
     padding: 12px;
     margin-bottom: 8px;
@@ -334,9 +345,12 @@ function createPhraseItem(
   item.appendChild(meta);
   
   // Drag handlers (G043)
-  item.addEventListener('dragstart', (e) => {
-    handlers.onDragStart(phrase, e);
-  });
+  // D050: Only add drag handler if drag is enabled
+  if (handlers.onDragStart && handlers.isDragEnabled) {
+    item.addEventListener('dragstart', (e) => {
+      handlers.onDragStart!(phrase, e);
+    });
+  }
   
   // Preview button (G048)
   const previewBtn = document.createElement('button');

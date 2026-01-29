@@ -14,6 +14,8 @@ import type { DeckFactory, DeckFactoryContext, DeckInstance } from '../factory-t
 import { planModulation } from '../../../ai/queries/persona-queries';
 import { createHarmonyControls, injectHarmonyControlsStyles } from '../../../ui/components/harmony-controls';
 import { getBoardContextStore } from '../../context/store';
+import { computeBoardCapabilities } from '../../gating/capabilities';
+import { getBoardRegistry } from '../../registry';
 
 /**
  * Harmony display deck factory.
@@ -28,9 +30,14 @@ import { getBoardContextStore } from '../../context/store';
 export const harmonyDisplayFactory: DeckFactory = {
   deckType: 'harmony-deck',
 
-  create(deckDef: BoardDeck, _ctx: DeckFactoryContext): DeckInstance {
+  create(deckDef: BoardDeck, ctx: DeckFactoryContext): DeckInstance {
     // Inject styles on first use
     injectHarmonyControlsStyles();
+    
+    // D051: Wire canAutoSuggest capability into suggestions UI
+    const board = getBoardRegistry().get(ctx.boardId);
+    const capabilities = board ? computeBoardCapabilities(board) : null;
+    const showSuggestions = capabilities?.canAutoSuggest ?? false;
     
     const store = getBoardContextStore();
     
@@ -135,8 +142,10 @@ export const harmonyDisplayFactory: DeckFactory = {
     `;
 
         // M060: Modulation planner section
-        const modulationSection = document.createElement('div');
-        modulationSection.className = 'harmony-modulation-planner';
+        // D051: Only show if canAutoSuggest capability is enabled
+        if (showSuggestions) {
+          const modulationSection = document.createElement('div');
+          modulationSection.className = 'harmony-modulation-planner';
         modulationSection.style.cssText = `
           border-top: 1px solid var(--border-base, #ccc);
           padding-top: 0.75rem;
@@ -206,6 +215,10 @@ export const harmonyDisplayFactory: DeckFactory = {
 
         container.appendChild(tonesSection);
         container.appendChild(modulationSection);
+      }
+      else {
+        container.appendChild(tonesSection);
+      }
 
         return container;
       },

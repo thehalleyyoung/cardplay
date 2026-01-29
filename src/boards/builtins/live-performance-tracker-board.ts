@@ -11,7 +11,7 @@
 import type { Board } from '../types';
 
 export const livePerformanceTrackerBoard: Board = {
-  id: 'live-performance',
+  id: 'live-performance-tracker',
   name: 'Live Performance Tracker',
   description: 'Tracker optimized for live performance. Launch patterns, control scenes, mix on the fly.',
   icon: '🎛',
