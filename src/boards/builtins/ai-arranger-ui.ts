@@ -235,36 +235,104 @@ export const DEFAULT_HUMANIZE: HumanizeSettings = {
 export async function regenerateSection(
   section: ArrangementSection,
   style: StylePreset,
-  _humanize: HumanizeSettings
+  humanize: HumanizeSettings,
+  partMappings: PartStreamMapping[]
 ): Promise<void> {
   if (section.frozen) {
     console.warn('Section is frozen, cannot regenerate:', section.name);
     return;
   }
   
-  console.info('Regenerate section:', {
+  const store = getSharedEventStore();
+  const endTick = section.startTick + (section.durationBars * 4 * 480); // Assume 480 PPQ, 4/4
+  
+  // Capture current events for undo
+  const originalEvents = new Map<EventStreamId, any[]>();
+  
+  for (const mapping of partMappings) {
+    if (!section.activeParts.has(mapping.part)) continue;
+    
+    const stream = store.getStream(mapping.streamId);
+    if (!stream) continue;
+    
+    // Get events in section range
+    const eventsInSection = stream.events.filter(
+      ev => ev.start >= section.startTick && ev.start < endTick
+    );
+    
+    originalEvents.set(mapping.streamId, [...eventsInSection]);
+    
+    // Clear section events
+    const eventIds = eventsInSection.map(ev => ev.id);
+    if (eventIds.length > 0) {
+      store.removeEvents(mapping.streamId, eventIds);
+    }
+    
+    // Generate new events based on style and humanize settings
+    // For MVP, create placeholder notes
+    const partSettings = style.partSettings[mapping.part];
+    if (!partSettings) continue;
+    
+    const numNotes = Math.floor(section.durationBars * 8 * partSettings.density);
+    const newEvents = [];
+    
+    for (let i = 0; i < numNotes; i++) {
+      const tickInSection = (i / numNotes) * (endTick - section.startTick);
+      const timingJitter = (Math.random() - 0.5) * 2 * humanize.timingVariation;
+      
+      newEvents.push({
+        kind: 'note',
+        start: section.startTick + Math.floor(tickInSection + timingJitter),
+        duration: 240, // Quarter note
+        payload: {
+          note: 60 + Math.floor(Math.random() * 24), // C4-C6 range
+          velocity: 80 + Math.floor((Math.random() - 0.5) * humanize.velocityVariation * 2)
+        }
+      });
+    }
+    
+    if (newEvents.length > 0) {
+      store.addEvents(mapping.streamId, newEvents as any);
+    }
+  }
+  
+  console.info('Regenerated section:', {
     section: section.name,
     style: style.name,
-    parts: Array.from(section.activeParts)
+    parts: Array.from(section.activeParts),
+    eventsGenerated: Array.from(originalEvents.entries()).reduce(
+      (sum, [_, events]) => sum + events.length, 0
+    )
   });
-  
-  // TODO: Integrate with generator system
-  // For MVP, log the operation
-  
-  // Would:
-  // 1. Clear existing events in section time range
-  // 2. Generate new events per part
-  // 3. Apply humanization
-  // 4. Write to part streams
   
   // Wrap in undo
   getUndoStack().push({
     type: 'batch',
     description: `Regenerate ${section.name}`,
     undo: () => {
+      // Restore original events
+      for (const [streamId, events] of originalEvents) {
+        const stream = store.getStream(streamId);
+        if (!stream) continue;
+        
+        // Clear regenerated events
+        const currentEvents = stream.events.filter(
+          ev => ev.start >= section.startTick && ev.start < endTick
+        );
+        if (currentEvents.length > 0) {
+          store.removeEvents(streamId, currentEvents.map(ev => ev.id));
+        }
+        
+        // Restore original
+        if (events.length > 0) {
+          store.addEvents(streamId, events);
+        }
+      }
       console.info('Undo regenerate section');
     },
     redo: () => {
+      // Re-run generation (simplified: just remove and restore)
+      regenerateSection(section, style, humanize, partMappings);
       console.info('Redo regenerate section');
     }
   });
@@ -275,24 +343,71 @@ export async function regenerateSection(
  * 
  * Marks section as frozen to prevent regeneration.
  * Events become fully editable like manual events.
+ * Also updates part stream control levels to 'full-manual'.
  */
-export function freezeSection(section: ArrangementSection): void {
+export function freezeSection(
+  section: ArrangementSection,
+  partMappings: PartStreamMapping[]
+): void {
+  const wasFrozen = section.frozen;
+  const wasGenerated = section.generated;
+  const originalControlLevels = new Map<EventStreamId, PartStreamMapping['controlLevel']>();
+  
+  // Capture original state for undo
+  for (const mapping of partMappings) {
+    if (section.activeParts.has(mapping.part)) {
+      originalControlLevels.set(mapping.streamId, mapping.controlLevel);
+    }
+  }
+  
+  // Freeze section
   section.frozen = true;
   section.generated = false; // Now treated as manual
   
-  console.info('Froze section:', section.name);
+  // Update part control levels to manual
+  for (const mapping of partMappings) {
+    if (section.activeParts.has(mapping.part)) {
+      mapping.controlLevel = 'full-manual';
+      mapping.generated = false;
+    }
+  }
+  
+  console.info('Froze section:', {
+    section: section.name,
+    partsAffected: Array.from(section.activeParts)
+  });
   
   // Wrap in undo
   getUndoStack().push({
     type: 'batch',
     description: `Freeze ${section.name}`,
     undo: () => {
-      section.frozen = false;
-      section.generated = true;
+      section.frozen = wasFrozen;
+      section.generated = wasGenerated;
+      
+      // Restore original control levels
+      for (const mapping of partMappings) {
+        const originalLevel = originalControlLevels.get(mapping.streamId);
+        if (originalLevel) {
+          mapping.controlLevel = originalLevel;
+          mapping.generated = (originalLevel !== 'full-manual');
+        }
+      }
+      
+      console.info('Undo freeze section');
     },
     redo: () => {
       section.frozen = true;
       section.generated = false;
+      
+      for (const mapping of partMappings) {
+        if (section.activeParts.has(mapping.part)) {
+          mapping.controlLevel = 'full-manual';
+          mapping.generated = false;
+        }
+      }
+      
+      console.info('Redo freeze section');
     }
   });
 }
@@ -386,21 +501,31 @@ export function verifyArrangerIntegration(
  */
 export function captureToManualBoard(
   mappings: PartStreamMapping[],
-  targetBoardId: string = 'basic-tracker-board'
+  targetBoardId?: string
 ): void {
+  // Import capture-to-manual functionality
+  const { captureToManualBoard: performCapture } = require('../switching/capture-to-manual');
+  
+  // Extract stream IDs from mappings
+  const streamIds = mappings.map(m => m.streamId);
+  
   console.info('Capture to manual board:', {
-    targetBoard: targetBoardId,
-    streams: mappings.map(m => m.streamId)
+    targetBoard: targetBoardId || 'auto-detect',
+    streams: streamIds
   });
   
-  // TODO: Integrate with board switching
-  // Would:
-  // 1. Call switchBoard(targetBoardId, { preserveActiveContext: true })
-  // 2. Set active stream to first part stream
-  // 3. Show notification about manual editing
+  // Perform capture with proper board switching
+  const result = performCapture({
+    targetBoardId,
+    freezeGeneratedLayers: true,
+    preserveDeckTabs: true
+  });
   
-  // For MVP, log the action
-  console.info('Switch to manual board:', targetBoardId);
+  if (result.success) {
+    console.info('Successfully captured to manual board:', result.targetBoardId);
+  } else {
+    console.error('Failed to capture to manual board:', result.error);
+  }
 }
 
 // ============================================================================

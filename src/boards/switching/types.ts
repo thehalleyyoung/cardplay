@@ -39,6 +39,13 @@ export interface BoardSwitchOptions {
    * If false, transport may be reset.
    */
   preserveTransport?: boolean;
+  
+  /**
+   * Whether to clear selection on board switch.
+   * If true, clears all selected events/clips.
+   * Default: false
+   */
+  clearSelection?: boolean;
 
   /**
    * Whether to call board lifecycle hooks (onDeactivate, onActivate).
@@ -55,5 +62,6 @@ export const DEFAULT_SWITCH_OPTIONS: Required<BoardSwitchOptions> = {
   resetDecks: false,
   preserveActiveContext: true,
   preserveTransport: true,
+  clearSelection: false,
   callLifecycleHooks: true,
 };

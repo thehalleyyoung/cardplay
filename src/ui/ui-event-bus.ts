@@ -19,7 +19,9 @@ export type UIEventType =
   | 'help-panel:open'
   | 'help-panel:close'
   | 'first-run:open'
-  | 'first-run:close';
+  | 'first-run:close'
+  | 'command-palette:open'
+  | 'command-palette:close';
 
 export interface UIEvent {
   type: UIEventType;

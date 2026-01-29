@@ -89,6 +89,13 @@ export function switchBoard(
       contextStore.setActiveViewType(targetBoard.primaryView);
     }
   }
+  
+  // C080: Clear selection if requested
+  if (opts.clearSelection) {
+    const { getSelectionStore } = require('../../state/selection-store');
+    const selectionStore = getSelectionStore();
+    selectionStore.clearSelection();
+  }
 
   // Preserve transport by default (no action needed if preserving)
   if (!opts.preserveTransport) {

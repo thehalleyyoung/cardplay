@@ -1592,16 +1592,16 @@ The board system core is functionally complete. Remaining test failures are test
 - [x] J008 Add deck header UI affordances showing deck control level override (if set).
 - [x] J009 Add “generated” vs “manual” styling for events (e.g., lighter alpha for generated).
 - [x] J010 Add a consistent icon set mapping for board icons and deck icons (single source).
-- [ ] J011 Decide canonical shortcut system: consolidate `keyboard-shortcuts.ts` and `keyboard-navigation.ts`.
-- [ ] J012 If consolidating, create `cardplay/src/ui/shortcuts/index.ts` and migrate registrations.
-- [ ] J013 Implement `registerBoardShortcuts(board)` and `unregisterBoardShortcuts(board)` helpers.
-- [ ] J014 Add `Cmd+B` board switch shortcut (global) and ensure no conflicts with deck tab switching.
-- [ ] J015 Add `Cmd+1..9` deck tab switching scoped to active deck container.
-- [ ] J016 Add `Cmd+K` command palette shortcut reserved for AI composer boards (hidden otherwise).
-- [ ] J017 Add `Space/Enter/Esc` transport shortcuts consistent across all boards.
+- [x] J011 Decide canonical shortcut system: consolidate `keyboard-shortcuts.ts` and `keyboard-navigation.ts`. ✅
+- [x] J012 If consolidating, create `cardplay/src/ui/shortcuts/index.ts` and migrate registrations. ✅ (Using keyboard-shortcuts.ts directly)
+- [x] J013 Implement `registerBoardShortcuts(board)` and `unregisterBoardShortcuts(board)` helpers. ✅
+- [x] J014 Add `Cmd+B` board switch shortcut (global) and ensure no conflicts with deck tab switching. ✅
+- [x] J015 Add `Cmd+1..9` deck tab switching scoped to active deck container. ✅
+- [x] J016 Add `Cmd+K` command palette shortcut reserved for AI composer boards (hidden otherwise). ✅
+- [x] J017 Add `Space/Enter/Esc` transport shortcuts consistent across all boards. ✅
 - [ ] J018 Add a “Shortcuts” help view listing active board + active deck shortcuts.
-- [ ] J019 Ensure shortcut system pauses in text inputs except undo/redo.
-- [ ] J020 Ensure shortcut system supports user remapping in the future (design now; implement later).
+- [x] J019 Ensure shortcut system pauses in text inputs except undo/redo. ✅
+- [x] J020 Ensure shortcut system supports user remapping in the future (design now; implement later). ✅ (Architecture supports)
 - [x] J021 Create `cardplay/src/ui/components/routing-overlay.ts` to visualize routing graph over the board. ✅
 - [x] J022 In routing overlay, render nodes for decks/cards/tracks using `routing-graph.ts`. ✅
 - [x] J023 In routing overlay, render connections by type (audio/midi/mod/trigger) with color coding. ✅
@@ -1651,10 +1651,10 @@ The board system core is functionally complete. Remaining test failures are test
 - [x] K003 Add a “Deck authoring guide” doc explaining how to add a new `DeckType` + factory. ✅
 - [ ] K004 Add a “Project compatibility” doc explaining how boards share the same project format.
 - [ ] K005 Add a “Board switching semantics” doc: what persists, what resets, what migrates.
-- [ ] K006 Add E2E-ish tests (jsdom/puppeteer) that open board switcher and switch boards.
-- [ ] K007 Add E2E-ish test: drag a phrase into tracker and assert events appear in store.
-- [ ] K008 Add E2E-ish test: generate a clip in Session+Generators board and assert it appears in timeline.
-- [ ] K009 Add E2E-ish test: edit same stream in tracker and notation and assert convergence.
+- [x] K006 Add E2E-ish tests (jsdom/puppeteer) that open board switcher and switch boards. ✅
+- [x] K007 Add E2E-ish test: drag a phrase into tracker and assert events appear in store. ✅
+- [x] K008 Add E2E-ish test: generate a clip in Session+Generators board and assert it appears in timeline. ✅
+- [x] K009 Add E2E-ish test: edit same stream in tracker and notation and assert convergence. ✅
 - [ ] K010 Add a performance benchmark doc for tracker (rows/second, target FPS, dirty region usage).
 - [ ] K011 Add a performance benchmark doc for piano roll (note count, zoom, selection performance).
 - [ ] K012 Add a performance benchmark doc for session grid (grid size, clip state updates).

@@ -831,4 +831,5 @@ export {
 export {
   type PDFMetadata,
   printPDF,
-} from './print-layout';
+} from './print-layout';// Harmony overlay
+export * from './harmony-overlay';

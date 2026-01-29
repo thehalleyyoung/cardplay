@@ -247,6 +247,19 @@ export function createBoardSwitcher(options: BoardSwitcherOptions = {}): HTMLEle
   }
   
   function handleKeyDown(e: KeyboardEvent) {
+    // C082: Cmd+1-9 to switch to recent board N
+    if ((e.metaKey || e.ctrlKey) && e.key >= '1' && e.key <= '9') {
+      e.preventDefault();
+      const index = parseInt(e.key, 10) - 1;
+      if (index < results.length) {
+        const board = results[index];
+        if (board) {
+          handleSwitch(board.id);
+        }
+      }
+      return;
+    }
+    
     switch (e.key) {
       case 'Escape':
         e.preventDefault();

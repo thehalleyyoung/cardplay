@@ -271,6 +271,13 @@ export class KeyboardShortcutManager {
   }
 
   /**
+   * Gets all registered shortcuts (alias for getShortcuts).
+   */
+  getAllShortcuts(): readonly KeyboardShortcut[] {
+    return this.getShortcuts();
+  }
+
+  /**
    * Gets shortcuts by category.
    */
   getShortcutsByCategory(category: ShortcutCategory): readonly KeyboardShortcut[] {
@@ -489,7 +496,7 @@ export class KeyboardShortcutManager {
 
     // ========== VIEW ==========
 
-    // Board switcher (Cmd/Ctrl+B) - C051
+    // Board switcher (Cmd/Ctrl+B) - C051, J014
     this.register({
       id: 'switch-board',
       key: 'b',
@@ -500,6 +507,21 @@ export class KeyboardShortcutManager {
         // Use dynamic import to avoid circular dependencies
         import('./ui-event-bus').then(({ emitUIEvent }) => {
           emitUIEvent('board-switcher:open');
+        });
+      },
+    });
+
+    // Command palette for AI composer boards (Cmd/Ctrl+K) - J016
+    this.register({
+      id: 'command-palette',
+      key: 'k',
+      modifiers: { [cmdKey]: true },
+      description: 'Open command palette (AI composer)',
+      category: 'view',
+      action: () => {
+        // Emit event for AI composer command palette
+        import('./ui-event-bus').then(({ emitUIEvent }) => {
+          emitUIEvent('command-palette:open');
         });
       },
     });
