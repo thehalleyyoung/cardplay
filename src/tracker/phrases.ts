@@ -18,20 +18,14 @@
 import {
   PhraseId,
   asPhraseId,
-  asRowIndex,
   TrackerRow,
   NoteCell,
   EffectCell,
-  TrackConfig,
   emptyRow,
-  emptyNoteCell,
   noteCell,
-  effectCell,
-  effect,
-  SpecialNote,
-  RowIndex,
+  asMidiNote,
+  asVelocity,
 } from './types';
-import { FX } from './effects';
 
 // =============================================================================
 // PHRASE TYPES
@@ -303,7 +297,9 @@ export class PhraseStore {
     const phrase = this.phrases.get(id);
     if (!phrase || row < 0 || row >= phrase.rows.length) return false;
     
-    phrase.rows[row].tracks[0].note = note;
+    const existingRow = phrase.rows[row];
+    if (!existingRow) return false;
+    phrase.rows[row] = { ...existingRow, note };
     return true;
   }
   
@@ -314,11 +310,15 @@ export class PhraseStore {
     const phrase = this.phrases.get(id);
     if (!phrase || row < 0 || row >= phrase.rows.length) return false;
     
-    while (phrase.rows[row].tracks[0].effects.length <= effectIndex) {
-      phrase.rows[row].tracks[0].effects.push({ command: null });
+    const existingRow = phrase.rows[row];
+    if (!existingRow) return false;
+
+    const effects = [...existingRow.effects];
+    while (effects.length <= effectIndex) {
+      effects.push({ effects: [] });
     }
-    
-    phrase.rows[row].tracks[0].effects[effectIndex] = fx;
+    effects[effectIndex] = fx;
+    phrase.rows[row] = { ...existingRow, effects };
     return true;
   }
   
@@ -461,34 +461,51 @@ export class PhraseStore {
    * Transform phrase row based on playback state
    */
   private transformRow(row: TrackerRow, state: PhrasePlaybackState, phrase: Phrase): TrackerRow {
-    // Deep clone row
-    const transformed = JSON.parse(JSON.stringify(row)) as TrackerRow;
-    
-    const track = transformed.tracks[0];
-    if (!track) return transformed;
-    
+    const note = row.note;
+    const noteValue = note.note as number;
+
+    let nextNote = note.note;
+    let nextVolume = note.volume;
+    let changed = false;
+
     // Apply transpose
-    if (phrase.config.keyMode === PhraseKeyMode.Relative && state.transposeOffset !== 0) {
-      if (typeof track.note.note === 'number' && track.note.note > 0 && track.note.note <= 127) {
-        track.note.note = Math.max(1, Math.min(127, track.note.note + state.transposeOffset));
+    if (noteValue >= 0 && noteValue <= 127) {
+      if (phrase.config.keyMode === PhraseKeyMode.Relative && state.transposeOffset !== 0) {
+        const pitch = Math.max(0, Math.min(127, noteValue + state.transposeOffset));
+        nextNote = asMidiNote(pitch);
+        changed = true;
+      } else if (phrase.config.keyMode === PhraseKeyMode.Mono) {
+        nextNote = asMidiNote(state.triggerNote);
+        changed = true;
       }
-    } else if (phrase.config.keyMode === PhraseKeyMode.Mono) {
-      if (typeof track.note.note === 'number' && track.note.note > 0 && track.note.note <= 127) {
-        track.note.note = state.triggerNote;
+    }
+
+    // Apply volume scaling (tracker uses "volume" = velocity).
+    if (note.volume !== undefined) {
+      let v = Number(note.volume);
+      if (state.volumeScale !== 1.0) {
+        v = Math.round(v * state.volumeScale);
+      }
+      if (phrase.config.volume !== 255) {
+        v = Math.round(v * (phrase.config.volume / 255));
+      }
+      v = Math.max(0, Math.min(127, v));
+      const scaled = asVelocity(v);
+      if (scaled !== note.volume) {
+        nextVolume = scaled;
+        changed = true;
       }
     }
-    
-    // Apply volume scaling
-    if (state.volumeScale !== 1.0 && track.note.velocity !== null) {
-      track.note.velocity = Math.round(track.note.velocity * state.volumeScale);
-    }
-    
-    // Apply phrase volume
-    if (phrase.config.volume !== 255 && track.note.velocity !== null) {
-      track.note.velocity = Math.round(track.note.velocity * (phrase.config.volume / 255));
-    }
-    
-    return transformed;
+
+    if (!changed) return row;
+    return {
+      ...row,
+      note: {
+        ...note,
+        ...(nextNote === note.note ? {} : { note: nextNote }),
+        ...(nextVolume === note.volume || nextVolume === undefined ? {} : { volume: nextVolume }),
+      },
+    };
   }
   
   /**
@@ -525,7 +542,10 @@ export class PhraseStore {
       
       // Copy rows
       for (let i = 0; i < Math.min(parsed.rows.length, phrase.rows.length); i++) {
-        phrase.rows[i] = parsed.rows[i];
+        const row = parsed.rows[i];
+        if (row) {
+          phrase.rows[i] = row;
+        }
       }
       
       // Copy metadata
@@ -559,18 +579,22 @@ export class PhraseStore {
   createFromSelection(
     name: string,
     rows: TrackerRow[],
-    sourceTrack: number = 0,
+    _sourceTrack: number = 0,
   ): Phrase {
+    void _sourceTrack;
     const phrase = this.createPhrase({
       name,
       length: rows.length,
     });
     
-    // Copy selected track to phrase
+    // Copy selected rows to phrase (phrases are single-track).
     for (let i = 0; i < rows.length; i++) {
-      if (rows[i]?.tracks[sourceTrack]) {
-        phrase.rows[i].tracks[0] = JSON.parse(JSON.stringify(rows[i].tracks[sourceTrack]));
-      }
+      const row = rows[i];
+      if (!row) continue;
+      phrase.rows[i] = {
+        note: { ...row.note },
+        effects: row.effects.map(e => ({ effects: [...e.effects] })),
+      };
     }
     
     return phrase;
@@ -599,7 +623,12 @@ export function createArpeggioPhrase(
   });
   
   for (let i = 0; i < intervals.length; i++) {
-    store.setNote(phrase.config.id, i, noteCell(baseNote + intervals[i], null, 127));
+    const interval = intervals[i] ?? 0;
+    store.setNote(
+      phrase.config.id,
+      i,
+      noteCell(asMidiNote(baseNote + interval), undefined, asVelocity(127))
+    );
   }
   
   return phrase;
@@ -632,7 +661,13 @@ export function createScalePhrase(
   });
   
   for (let i = 0; i < notes.length; i++) {
-    store.setNote(phrase.config.id, i, noteCell(notes[i], null, 127));
+    const pitch = notes[i];
+    if (pitch === undefined) continue;
+    store.setNote(
+      phrase.config.id,
+      i,
+      noteCell(asMidiNote(pitch), undefined, asVelocity(127))
+    );
   }
   
   return phrase;
@@ -658,7 +693,11 @@ export function createRhythmPhrase(
   for (let i = 0; i < pattern.length; i++) {
     if (pattern[i]) {
       const velocity = accents?.[i] ?? 127;
-      store.setNote(phrase.config.id, i, noteCell(note, null, velocity));
+      store.setNote(
+        phrase.config.id,
+        i,
+        noteCell(asMidiNote(note), undefined, asVelocity(velocity))
+      );
     }
   }
   

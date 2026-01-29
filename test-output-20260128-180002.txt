@@ -1,0 +1,189 @@
+# test 20260128-180002
+
+> @cardplay/core@0.1.0 test
+> vitest run
+
+
+ RUN  v1.6.1 /Users/halleyyoung/Documents/behavioral/cardplay
+
+ ✓ src/ui/components/sample-browser.test.ts  (131 tests) 29ms
+ ✓ src/cards/generators.test.ts  (164 tests) 26ms
+ ✓ src/ui/components/arrangement-panel.test.ts  (238 tests) 27ms
+ ✓ src/ui/components/piano-roll-panel.test.ts  (132 tests) 21ms
+ ✓ src/cards/card-visuals.test.ts  (162 tests) 35ms
+ ✓ src/ui/components/tracker-panel.test.ts  (139 tests) 35ms
+ ✓ src/cards/transforms.test.ts  (123 tests) 26ms
+ ✓ src/cards/arranger.test.ts  (222 tests) 37ms
+ ✓ src/cards/drum-machine.test.ts  (128 tests | 3 skipped) 24ms
+ ✓ src/ui/session-view.test.ts  (166 tests) 44ms
+ ✓ src/containers/container.test.ts  (75 tests) 16ms
+ ✓ src/cards/effects.test.ts  (112 tests) 19ms
+ ✓ src/ui/cards.test.ts  (94 tests) 12ms
+ ✓ src/notation/playback.test.ts  (75 tests) 10ms
+ ✓ src/cards/presets.test.ts  (58 tests) 11ms
+ ✓ src/ui/beginner.test.ts  (73 tests) 12ms
+ ✓ src/ui/achievements.test.ts  (71 tests) 14ms
+ ✓ src/cards/bassline.test.ts  (144 tests | 2 skipped) 17ms
+ ✓ src/notation/notation.test.ts  (96 tests) 15ms
+ ✓ src/cards/lead-synth.test.ts  (105 tests) 18ms
+ ✓ src/cards/parameters.test.ts  (73 tests) 17ms
+ ✓ src/audio/web-midi.test.ts  (54 tests) 8ms
+ ✓ src/cards/score-notation.test.ts  (45 tests) 16ms
+ ✓ src/cards/pad-synth.test.ts  (107 tests) 25ms
+ ✓ src/cards/organ.test.ts  (117 tests) 36ms
+ ✓ src/cards/loop-player.test.ts  (87 tests) 19ms
+ ✓ src/audio/event-flattener.test.ts  (48 tests) 22ms
+ ✓ src/cards/arpeggiator.test.ts  (88 tests | 2 skipped) 32ms
+ ✓ src/cards/sampler.test.ts  (73 tests) 12ms
+ ✓ src/cards/sequencer.test.ts  (79 tests | 2 skipped) 16ms
+ ✓ src/ui/arrangement-operations.test.ts  (44 tests) 7ms
+ ✓ src/cards/recording-manager.test.ts  (46 tests) 10ms
+ ✓ src/cards/macro-controls.test.ts  (65 tests) 15ms
+ ✓ src/audio/drum-patterns.test.ts  (73 tests) 37ms
+ ✓ src/ui/visualization.test.ts  (82 tests) 15ms
+ ✓ src/audio/sampler-core.test.ts  (59 tests) 44ms
+ ✓ src/ui/components.test.ts  (72 tests) 11ms
+stdout | src/cards/phrase-system.test.ts > Phrase System > IdeaTool - rateIdea() > should accept rating for an idea
+Rated idea idea-1769641210506 with 5 stars
+
+ ✓ src/cards/phrase-system.test.ts  (48 tests) 22ms
+ ✓ src/audio/midi-input-handler.test.ts  (40 tests) 12ms
+ ✓ src/cards/chord-progression.test.ts  (70 tests | 2 skipped) 21ms
+ ✓ src/cards/melody.test.ts  (71 tests | 2 skipped) 16ms
+ ✓ src/user-cards/deck-template-advanced.test.ts  (42 tests) 8ms
+ ✓ src/audio/audio-engine.test.ts  (49 tests) 8ms
+ ✓ src/cards/drum-kit.test.ts  (62 tests) 14ms
+ ✓ src/audio/sampler-modulation.test.ts  (56 tests) 33ms
+ ✓ src/audio/sample-manipulation-ui.test.ts  (40 tests) 24ms
+ ✓ src/ui/layout.test.ts  (66 tests) 14ms
+ ✓ src/notation/editing.test.ts  (39 tests) 9ms
+ ✓ src/audio/wavetable.test.ts  (56 tests) 662ms
+ ✓ src/cards/modulation.test.ts  (43 tests) 8ms
+ ✓ src/audio/sample-editor.test.ts  (43 tests) 109ms
+ ✓ src/cards/graph.test.ts  (32 tests) 9ms
+ ✓ src/audio/scheduler.test.ts  (63 tests) 12ms
+ ✓ src/ui/onboarding.test.ts  (49 tests) 17ms
+ ✓ src/ui/session-recording.test.ts  (25 tests) 9ms
+ ✓ src/audio/synth.test.ts  (56 tests) 17ms
+ ✓ src/audio/audio-optimization.test.ts  (47 tests) 19ms
+ ✓ src/audio/mixer.test.ts  (54 tests) 9ms
+ ✓ src/audio/sample.test.ts  (51 tests) 9ms
+ ✓ src/audio/sample-mapper.test.ts  (38 tests) 146ms
+ ✓ src/ui/tooltips.test.ts  (43 tests) 7ms
+ ✓ src/cards/registry.test.ts  (38 tests) 9ms
+ ✓ src/audio/freesound.test.ts  (37 tests) 11ms
+ ✓ src/streams/stream.test.ts  (35 tests) 10ms
+ ✓ src/cards/audio-transforms.test.ts  (43 tests) 12ms
+ ✓ src/notation/event-bridge.test.ts  (29 tests) 9ms
+ ✓ src/tests/integration-verification.test.ts  (12 tests) 9ms
+ ✓ src/cards/keyboard-instruments.test.ts  (47 tests) 10ms
+ ✓ src/cards/card.test.ts  (23 tests) 8ms
+ ✓ src/ai/engine/prolog-adapter.test.ts  (35 tests | 1 skipped) 278ms
+ ✓ src/audio/sample-slicer.test.ts  (29 tests) 10ms
+ ✓ src/ai/queries/board-queries.test.ts  (41 tests) 1634ms
+ ✓ src/ai/adaptation/prolog-phrase-adapter.test.ts  (25 tests) 1759ms
+ ✓ src/ui/components/export-dialog.test.ts  (49 tests) 275ms
+ ✓ src/ui/theme.test.ts  (55 tests) 9ms
+ ✓ src/audio/midi-mapping.test.ts  (29 tests) 12ms
+ ✓ src/events/operations.test.ts  (40 tests) 14ms
+ ✓ src/storage/indexeddb-backend.test.ts  (24 tests) 151ms
+ ✓ src/audio/pitch-detect.test.ts  (43 tests) 329ms
+ ✓ src/ai/advisor/advisor-interface.test.ts  (34 tests) 475ms
+ ✓ src/cards/phrase-midi.test.ts  (20 tests) 8ms
+ ✓ src/voices/voice.test.ts  (39 tests) 9ms
+ ✓ src/ai/generators/generators.test.ts  (43 tests) 3468ms
+ ✓ src/user-cards/card-editor-panel.test.ts  (35 tests) 112ms
+ ✓ src/cards/choir.test.ts  (29 tests) 11ms
+ ✓ src/cards/stack.test.ts  (25 tests) 7ms
+stdout | src/audio/worklet.test.ts > workletDebug > should not throw when enabled
+[Worklet] test
+
+ ✓ src/audio/worklet.test.ts  (35 tests) 12ms
+ ✓ src/cards/adapter.test.ts  (28 tests) 8ms
+ ✓ src/audio/sample-pack-manager.test.ts  (33 tests) 277ms
+ ✓ src/rules/rules.test.ts  (14 tests) 56ms
+ ❯ src/ai/harmony/harmony-explorer.test.ts  (31 tests | 1 failed) 4039ms
+   ❯ src/ai/harmony/harmony-explorer.test.ts > HarmonyExplorer > performance > should complete chord suggestions quickly
+     → expected 347.9424590000008 to be less than 100
+ ✓ src/cards/protocol.test.ts  (29 tests) 6ms
+ ✓ src/ai/queries/composition-queries.test.ts  (38 tests) 4125ms
+ ✓ src/types/event.test.ts  (37 tests) 8ms
+ ✓ src/notation/comparison-sync.test.ts  (18 tests) 16ms
+ ✓ src/user-cards/card-metadata-ui.test.ts  (37 tests) 428ms
+ ✓ src/ai/advisor/conversation-manager.test.ts  (30 tests) 207ms
+ ✓ src/audio/freesound-api.test.ts  (27 tests) 10ms
+ ✓ src/cards/testing/card-test.test.ts  (15 tests) 6ms
+stdout | src/cards/testing/card-test.test.ts > Card Testing Framework > Test Runner > should run unit tests successfully
+Result: {
+  "cardId": "double-card",
+  "cardName": "Double Card",
+  "totalTests": 3,
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "duration": 0.1875419999996666,
+  "results": [
+    {
+      "testId": "unit-1769641216617-0.6062284437354586",
+      "testName": "should double positive number",
+      "testType": "unit",
+      "passed": true,
+      "duration": 0.04754200000024866,
+      "output": 10
+    },
+    {
+      "testId": "unit-1769641216617-0.3920408695539762",
+      "testName": "should double negative number",
+      "testType": "unit",
+      "passed": true,
+      "duration": 0.008459000000584638,
+      "output": -6
+    },
+    {
+      "testId": "unit-1769641216617-0.6411617227391899",
+      "testName": "should double zero",
+      "testType": "unit",
+      "passed": true,
+      "duration": 0.004625000001396984,
+      "output": 0
+    }
+  ],
+  "qualityScore": 100
+}
+
+ ✓ src/audio/context.test.ts  (24 tests) 107ms
+ ✓ src/test-utils/test-utils.test.ts  (18 tests) 12ms
+ ✓ src/events/serialization.test.ts  (13 tests) 7ms
+ ✓ src/cards/preset-sync.test.ts  (14 tests) 134ms
+ ✓ src/user-cards/template-preview.test.ts  (11 tests) 4ms
+ ✓ src/user-cards/pack-ratings.test.ts  (10 tests) 10ms
+ ✓ src/user-cards/pack-discovery.test.ts  (9 tests) 5ms
+ ✓ src/audio/sample-packs.test.ts  (18 tests) 678ms
+stdout | src/audio/sample-packs.test.ts > Sample Pack System > SamplePackLoader > should track load progress
+Pack loading skipped in test (network required)
+
+ ✓ src/user-cards/pack-stats.test.ts  (7 tests) 5ms
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > L027: Query throughput > should handle 1000 simple queries in reasonable time
+Query throughput: 616 queries/sec
+Total time for 1000 queries: 1622.93ms
+
+ ✓ src/ui/components/sample-waveform-preview.test.ts  (70 tests) 545ms
+ ✓ src/ai/queries/theory-queries.test.ts  (42 tests) 3253ms
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > L027: Query throughput > should handle queries with backtracking efficiently
+Backtracking queries: 1172.68ms for 100 queries
+
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > L027: Query throughput > should handle findAll efficiently
+findAll queries: 715.28ms for 500 queries
+
+ ✓ src/ai/engine/prolog-adapter.bench.test.ts  (7 tests) 3704ms
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > Cache performance > should benefit from caching repeated queries
+Cold query: 13.82ms, Warm query: 0.01ms
+
+ ✓ src/audio/export.test.ts  (23 tests) 4722ms
+
+ Test Files  1 failed | 111 passed (112)
+      Tests  1 failed | 6385 passed | 14 skipped (6400)
+Type Errors  no errors
+   Start at  18:00:08
+   Duration  13.15s (transform 8.00s, setup 3ms, collect 17.40s, tests 33.03s, environment 383ms, prepare 7.65s)
+

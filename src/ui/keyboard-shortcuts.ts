@@ -521,6 +521,18 @@ export class KeyboardShortcutManager {
       },
     });
 
+    // Open AI Advisor (Cmd/Ctrl+/) - L308
+    this.register({
+      id: 'open-ai-advisor',
+      key: '/',
+      modifiers: { [cmdKey]: true },
+      description: 'Open AI Advisor',
+      category: 'view',
+      action: () => {
+        document.dispatchEvent(new CustomEvent('cardplay:open-ai-advisor'));
+      },
+    });
+
     // ========== FILE ==========
 
     // Save (Cmd/Ctrl+S)

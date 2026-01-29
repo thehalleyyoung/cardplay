@@ -24,3 +24,6 @@ export * from './rules';
 
 // Re-export all cards
 export * from './cards';
+
+// NOTE: Board system is available via internal imports until naming conflicts are resolved (B128)
+// export * from './boards';

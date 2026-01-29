@@ -1,0 +1,2350 @@
+# CardPlay Implementation Roadmap — Branch C (Music Theory KB Expansion + Theory Decks/Cards)
+
+Branch A is **boards/product/UI**. Branch B is **Prolog engine + core KBs**.  
+This Branch C is **music-theory depth**: computational music theory, film/galant theory, and non‑Western theory (Carnatic/Celtic/Chinese) expressed in two synchronized declarative forms:
+
+1) **Declarative as card parameters** (UI-controllable, serializable, patchable)  
+2) **Declarative as Prolog facts/rules** (queryable, explainable, optimizable)
+
+The goal is that the Arranger Keyboard, Phrase tools, and Tracker tools all “speak” the same `MusicSpec` and can round‑trip between:
+- a user-facing card parameter set
+- a Prolog goal/context
+- generated musical events (notes/chords/phrases/arrangements)
+
+## Complete picture (how this connects to existing CardPlay)
+
+### Existing (today in repo)
+- **Arranger keyboard**: `cardplay/src/cards/arranger.ts`
+- **Phrase cards (UI metadata)**: `cardplay/src/cards/phrase-cards.ts`
+- **Tracker card**: `cardplay/src/tracker/tracker-card.ts` (+ `tracker-card-integration.ts`)
+- **Prolog KBs**: `cardplay/src/ai/knowledge/music-theory.pl`, `composition-patterns.pl`, `phrase-adaptation.pl`
+- **Query wrappers**: `cardplay/src/ai/queries/theory-queries.ts`, `composition-queries.ts`
+
+### New (Branch C adds)
+- **Theory KB modules** (still loaded by `loadMusicTheoryKB`):  
+  - computational models (GTTM, Spiral Array, DFT/phase tonality, pitch-class profile tools)  
+  - style theory (film harmony/orchestration devices; galant schemata)  
+  - world theory (Carnatic/Celtic/Chinese pitch/rhythm/ornament concepts)
+- **Theory decks/cards** that *manipulate* these factors (not just explain them):
+  - Tonality Model card (K-S profile vs DFT/phase vs Spiral Array)
+  - Grouping/Meter (GTTM) card (phrase boundaries, metrical accents, reduction)
+  - Galant Schema card (choose schema, cadence targets, variation operators)
+  - Film Scoring card (mood → harmony/orchestration devices; leitmotif tracking)
+  - Carnatic Raga/Tala card (raga, tala, gamaka density, kalpana swaras constraints)
+  - Celtic Tune card (tune type, mode, ornaments, form AABB, drone strategy)
+  - Chinese Mode/Ornament card (gong/shang/jiao/zhi/yu, heterophony, ornaments)
+
+## Canonical representation: `MusicSpec` (Card params ⇄ Prolog)
+
+### Prolog term (canonical “intent”)
+Use a single structured term passed into Prolog queries:
+
+```prolog
+% music_spec(
+%   key(Root, Mode),
+%   meter(Num, Den),
+%   tempo(Bpm),
+%   tonality_model(Model),
+%   style(StyleTag),
+%   culture(CultureTag),
+%   constraints(ConstraintsList)
+% ).
+```
+
+### Card parameters (canonical “controls”)
+Every generator/analyzer card should expose *only* parameters that can map to:
+- a `music_spec/7` term (high level), and/or
+- a family of `constraint_*` predicates (low level)
+
+Example mapping:
+- `TonalityModelCard.model = spiral_array` → `tonality_model(spiral_array)`
+- `SchemaCard.schema = prinner` → `constraint_schema(prinner)`
+- `CarnaticRagaCard.raga = kalyani` → `constraint_raga(kalyani)`
+
+## Roadmap: 1000 steps (C001–C1000)
+
+Notes:
+- Each step should result in either (a) new KB predicates/data, (b) new card/deck params, (c) new query wrappers, or (d) tests/docs demonstrating use.
+- Keep Prolog layered (facts → derived predicates → high-level queries) per `cardplay/docs/ai/prolog-deck-reasoning.md`.
+
+---
+
+## Phase C0 — Alignment, taxonomy, invariants (C001–C050)
+
+- [ ] C001 Re-read `cardplay/cardplayui.md` focusing on arranger/tracker/phrase boards.
+- [ ] C002 Re-read `cardplay/cardplay2.md` sections on phrase grammar and Carnatic support.
+- [ ] C003 Inventory current Prolog KB predicates and note gaps for style/world/computation.
+- [ ] C004 Inventory generator cards and list which musical controls are currently missing.
+- [ ] C005 Inventory tracker integrations and how phrase insertion/adaptation currently works.
+- [ ] C006 Define “musical specification invariants” (tempo/meter/key consistency rules).
+- [ ] C007 Define canonical naming for roots/modes across TS + Prolog (`csharp`, `eflat`, …).
+- [ ] C008 Define canonical chord quality taxonomy across TS + Prolog (`major7`, `dominant7`, …).
+- [ ] C009 Define canonical “scale vs mode vs raga” distinction (and how they map to pitch sets).
+- [ ] C010 Define canonical “culture tag” enum (`western`, `carnatic`, `celtic`, `chinese`, `hybrid`).
+- [ ] C011 Define canonical “style tag” enum (`galant`, `romantic`, `cinematic`, `edm`, …).
+- [ ] C012 Define canonical “tonality model” enum (`ks_profile`, `dft_phase`, `spiral_array`).
+- [ ] C013 Define canonical “phrase boundary” concept used by tracker + arranger + phrase tools.
+- [ ] C014 Define canonical “schema” representation (degrees/bass/upper-voice/cadence targets).
+- [ ] C015 Define canonical “ornament” representation (pre-beat grace, mordent, slide, etc.).
+- [ ] C016 Define canonical “meter accent model” representation (beat strength by position).
+- [ ] C017 Define canonical “tala” representation (anga groupings, claps/waves, cycle length).
+- [ ] C018 Define canonical “tune type” representation (jig/reel/strathspey, etc.).
+- [ ] C019 Define canonical “pentatonic mode” representation (gong/shang/jiao/zhi/yu).
+- [ ] C020 Decide which specs live in `music-theory` vs `composition-patterns` KB.
+- [ ] C021 Add docs: “Where does this knowledge live?” (KB layering and responsibilities).
+- [ ] C022 Add docs: “How card params become Prolog facts” (sync lifecycle).
+- [ ] C023 Add docs: “How Prolog returns HostActions” (actions, explanations, confidence).
+- [ ] C024 Define `explain/2` convention: `explain(Recommendation, ReasonsList)`.
+- [ ] C025 Define numeric scoring convention: `score(Item, 0..100)`.
+- [ ] C026 Define “confidence” convention for generators vs analyzers.
+- [ ] C027 Define how to represent time: ticks vs beats vs tala aksharas (conversion rules).
+- [ ] C028 Define how to represent microtiming/swing across cultures (where applicable).
+- [ ] C029 Define minimal MIDI↔note-name utilities shared by theory and cards.
+- [ ] C030 Define “pitch class set” representation usable for key detection and raga matching.
+- [ ] C031 Define “voice” representation for multi-voice schemata and arranger patterns.
+- [ ] C032 Define “register model” (octave ranges) for each board (tracker vs arranger).
+- [ ] C033 Define “density” model (events per beat, per voice) for all generators.
+- [ ] C034 Define “tension” model beyond diatonic degrees (chromatic mediants, modal mixture).
+- [ ] C035 Define “cadence” model beyond V–I (galant cadences, cinematic cadences, etc.).
+- [ ] C036 Define “harmonic rhythm” model (rate of chord change) and constraints.
+- [ ] C037 Define “melodic contour” vocabulary shared by GTTM + melody generator.
+- [ ] C038 Define “motivic identity” representation for leitmotifs (interval/rhythm fingerprints).
+- [ ] C039 Define “schema similarity” metric for fuzzy matching to real phrases.
+- [ ] C040 Define “raga similarity” metric for approximate matching in 12‑TET.
+- [ ] C041 Define “mode similarity” metric (shared degrees + leading-tone behavior).
+- [ ] C042 Define “ornament budget” model (density of ornaments per beat/phrase).
+- [ ] C043 Define “articulation vocabulary” shared by orchestration and tracker (staccato, legato…).
+- [ ] C044 Define “instrument family roles” vocabulary (pad, ostinato, drone, melody, counterline…).
+- [ ] C045 Define “arranger style” taxonomy hooks (style → meter → groove → orchestration).
+- [ ] C046 Define “phrase type” taxonomy hooks (pickup, cadence, fill, turnaround, response…).
+- [ ] C047 Define “tracker pattern role” taxonomy (groove cell, fill, break, build, transition…).
+- [ ] C048 Define “validation rules” for cross-card consistency (spec conflicts).
+- [x] C049 Add Prolog predicate `spec_conflict/3` for explaining incompatible constraints. *(Implemented in music-spec.pl)*
+- [x] C050 Add Prolog predicate `spec_normalize/2` to canonicalize equivalent specs. *(Implemented in music-spec.pl)*
+
+---
+
+## Phase C1 — `MusicSpec` plumbing: cards ⇄ Prolog ⇄ generators (C051–C130)
+
+- [x] C051 Define TS type `MusicSpec` aligned with Prolog `music_spec/7`. *(Implemented in music-spec.ts)*
+- [x] C052 Define TS `Constraint` discriminated union mirroring Prolog `constraint_*` facts. *(MusicConstraint in music-spec.ts)*
+- [x] C053 Add `specToPrologFacts(spec)` encoder that emits `spec_*` Prolog facts. *(In spec-prolog-bridge.ts)*
+- [x] C054 Add `factsToSpec(bindings)` decoder for reading inferred specs back to TS. *(In spec-prolog-bridge.ts)*
+- [ ] C055 Add per-board “context slice” (tempo/meter/key/selected deck) to Prolog session.
+- [x] C056 Add Prolog predicate `current_spec/1` as a single entrypoint for active spec. *(In music-spec.pl)*
+- [x] C057 Add Prolog predicate `constraint/1` family for normalized constraints list. *(In music-spec.pl)*
+- [x] C058 Add Prolog predicate `with_constraints/3` (Spec, ExtraConstraints, Spec2). *(In music-spec.pl)*
+- [x] C059 Add Prolog predicate `satisfies/2` (Candidate, Constraint) for uniform checking. *(In music-spec.pl)*
+- [x] C060 Add Prolog predicate `violates/2` (Candidate, Constraint) for explanation plumbing. *(In music-spec.pl)*
+- [x] C061 Add TS `Explainable<T>` type `{ value: T; reasons: string[]; confidence: number }`. *(In music-spec.ts)*
+- [x] C062 Add query wrapper `explainQuery(goal)` returning solutions + reasons + scores.
+- [x] C063 Add Prolog convention: every recommender has `recommend_*/3` plus `explain_*/3`.
+- [x] C064 Implement `spec_push/2` (Facts, Token) and `spec_pop/1` for scoped queries (dev-only).
+- [x] C065 Add `music_context/…` facts derived from live project state (tempo, meter, key, section).
+- [x] C066 Add `deck_context/…` facts derived from active board deck layout.
+- [x] C067 Add `card_context/…` facts for selected card parameters.
+- [ ] C068 Add “stateless query” mode that does not mutate Prolog DB (preferred).
+- [ ] C069 Add “stateful session” mode for interactive exploration (optional).
+- [x] C070 Add tests: round-trip `MusicSpec` → Prolog facts → inferred spec → TS. *(In spec-queries.test.ts)*
+- [x] C071 Add tests: conflicting constraints produce `spec_conflict/3` explanations. *(In spec-queries.test.ts)*
+- [x] C072 Add tests: `spec_normalize/2` canonicalizes enharmonic keys and alias modes. *(In spec-queries.test.ts)*
+- [ ] C073 Add “spec inspector” debug panel card to show active facts/goals.
+- [ ] C074 Add “constraint toggles” UI pattern shared by all theory cards.
+- [ ] C075 Define `CardParamSchema` → `Constraint` mapping table (one source of truth).
+- [ ] C076 Add TS registry: `constraintMappers` keyed by card id + param id.
+- [x] C077 Add Prolog predicate `card_param/3` for representing current param snapshots. *(In music-spec.pl)*
+- [x] C078 Add Prolog predicate `derived_param/3` for inferred/auto params (with confidence). *(In music-spec.pl)*
+- [x] C079 Add Prolog predicate `recommend_param/4` (CardId, ParamId, Value, Confidence). *(In music-spec.pl)*
+- [x] C080 Add Prolog predicate `recommend_action/3` emitting `HostAction` terms. *(In music-spec.pl)*
+- [ ] C081 Add TS mapping from `HostAction` to card system actions (set param, add card, etc.).
+- [ ] C082 Add “apply recommendation” UX flow (preview → accept → apply).
+- [ ] C083 Add “why?” UX flow (show Prolog explanation tree).
+- [x] C084 Add support for "soft constraints"” (preferences) vs “hard constraints” (requirements). *(hard field in music-spec.ts)*
+- [x] C085 Add Prolog predicate `preference/2` and `requirement/2` for constraints.
+- [x] C086 Add "weight"” field to preferences and scoring aggregator. *(weight in music-spec.ts)*
+- [ ] C087 Add Prolog predicate `score_candidate/3` combining multiple preferences.
+- [ ] C088 Add TS helper to compute Pareto-front solutions (optional).
+- [x] C089 Add "constraint pack"” presets (e.g., “cinematic-heroic”, “galant-phrase”, “carnatic-alapana”).
+- [x] C090 Add Prolog predicate `constraint_pack/2` mapping pack id to constraints list. *(In music-spec.pl)*
+- [ ] C091 Add card: `ConstraintPackCard` with dropdown + editable overrides.
+- [ ] C092 Add card: `TonalityModelCard` selecting model + parameters (alpha weights).
+- [ ] C093 Add card: `MeterAccentCard` selecting meter + swing + accent model.
+- [ ] C094 Add card: `GroupingCard` selecting phrase boundary sensitivity (GTTM-inspired).
+- [ ] C095 Add card: `SchemaCard` selecting schema + cadence + variations.
+- [ ] C096 Add card: `FilmScoringCard` selecting mood + devices + orchestration roles.
+- [ ] C097 Add card: `CarnaticRagaTalaCard` selecting raga/tala + gamaka density.
+- [ ] C098 Add card: `CelticTuneCard` selecting tune type + ornaments + drone strategy.
+- [ ] C099 Add card: `ChineseModeCard` selecting pentatonic mode + ornaments + heterophony.
+- [ ] C100 Add TS/Prolog plumbing so each new theory card emits constraints into `MusicSpec`.
+- [ ] C101 Add “Theory Deck” template containing the above cards in a recommended order.
+- [ ] C102 Add “Phrase Deck” template (Phrase Browser + Generator + Variations + Schema).
+- [ ] C103 Add “Harmony Deck” template (Harmony Explorer + Tonality Model + Cadence tools).
+- [ ] C104 Add “Arranger Deck” template (Arranger + Film Scoring + Orchestration roles).
+- [ ] C105 Add “Tracker Assistance Deck” template (Tracker + Phrase Insert + GTTM Grouping).
+- [ ] C106 Add “World Music Deck” template (Carnatic + Celtic + Chinese cards + converters).
+- [ ] C107 Add `recommend_deck_for_spec/3` Prolog rule to propose deck templates.
+- [ ] C108 Add `recommend_board_for_spec/3` Prolog rule to propose a board (arranger/tracker/notation).
+- [ ] C109 Add “board switch suggestion” UX that uses `recommend_board_for_spec/3`.
+- [ ] C110 Add prolog query wrappers for deck/board recommendations (TS API).
+- [ ] C111 Add integration: phrase generator reads `MusicSpec` and uses constraints automatically.
+- [ ] C112 Add integration: arranger reads `MusicSpec` for style/mood/orchestration defaults.
+- [ ] C113 Add integration: tracker helper reads `MusicSpec` to suggest pattern roles + fills.
+- [ ] C114 Add integration: phrase adapter reads `MusicSpec` for key/mode/raga mapping.
+- [ ] C115 Add integration: chord generator reads `MusicSpec` for film/galant/culture constraints.
+- [ ] C116 Add “spec snapshots” saved with projects and restored on load.
+- [ ] C117 Add “spec diff” view to compare snapshots and explain musical impact.
+- [ ] C118 Add “spec lint” command that flags ambiguous or contradictory constraints.
+- [ ] C119 Add `spec_lint/2` Prolog predicate returning lint warnings with explanations.
+- [ ] C120 Add “spec auto-fix” suggestions for common issues (e.g., mode mismatch).
+- [ ] C121 Add Prolog predicate `spec_autofix/3` emitting `HostAction`s.
+- [ ] C122 Add “spec versioning” to support evolving constraint schemas.
+- [ ] C123 Add migration tool for old projects’ spec data.
+- [ ] C124 Add dev tool: print current Prolog DB facts relevant to spec.
+- [ ] C125 Add perf guard: ensure spec pushes do not leak facts across queries.
+- [ ] C126 Add tests: repeated queries do not accumulate duplicate facts.
+- [ ] C127 Add tests: theory cards produce constraints that Prolog consumes correctly.
+- [ ] C128 Add tests: applying `HostAction`s updates card params and changes recommendations.
+- [ ] C129 Add docs: “How to author a new theory card” (params → constraints → predicates).
+- [ ] C130 Add docs: “How to extend the music theory KB” (facts, predicates, tests).
+
+---
+
+## Phase C2 — Computational music theory models (GTTM, Spiral Array, DFT/phase tonality) (C131–C260)
+
+- [x] C131 Add KB section: pitch-class profile utilities (counts, normalization, weighting).
+- [x] C132 Add predicate `pc_profile/2` converting note events → 12-bin pitch-class histogram.
+- [x] C133 Add predicate `pc_profile_norm/2` returning normalized profile (sum=1).
+- [ ] C134 Add predicate `pc_profile_weighted/3` supporting duration/velocity weighting.
+- [x] C135 Add predicate `profile_rotate/3` rotating a 12-bin profile by N semitones.
+- [x] C136 Add key-profile facts for Krumhansl-Schmuckler major/minor templates.
+- [x] C137 Add predicate `ks_key_score/4` (Profile, KeyRoot, Mode, Score).
+- [x] C138 Add predicate `ks_best_key/3` (Profile, BestKey, BestMode).
+- [x] C139 Add explanation predicate `ks_explain_key/3` (Profile, Key, Reasons).
+- [ ] C140 Add tests for `ks_best_key/3` on major scale pitch classes.
+- [ ] C141 Add tests for `ks_best_key/3` on natural minor pitch classes.
+- [x] C142 Add DFT utilities: represent complex numbers as `c(Re,Im)` terms.
+- [x] C143 Add predicate `c_add/3`, `c_mul/3`, `c_abs/2`, `c_phase/2`.
+- [ ] C144 Add predicate `dft_bin/4` (Profile, K, Complex, Magnitude).
+- [ ] C145 Add predicate `dft_phase_bin/3` (Profile, K, PhaseRadians).
+- [ ] C146 Add predicate `tonality_by_phase/3` mapping phase of k=1 to tonic estimate.
+- [ ] C147 Add predicate `tonality_by_phase/4` with mode bias (major/minor prior).
+- [x] C148 Add predicate `dft_phase_key/3` (Profile, KeyRoot, Confidence).
+- [ ] C149 Add predicate `dft_phase_key/4` (Profile, KeyRoot, Mode, Confidence).
+- [x] C150 Add predicate `dft_phase_explain/3` returning phase + nearest key centers.
+- [ ] C151 Add tests: `dft_phase_key/3` identifies C for C-major profile.
+- [ ] C152 Add tests: `dft_phase_key/3` identifies G for G-major profile.
+- [ ] C153 Add “phase ambiguity” detection (e.g., relative major/minor close scores).
+- [x] C154 Add predicate `tonality_ambiguity/2` listing competing tonics/modes.
+- [x] C155 Add hybrid keyfinder predicate `best_key/4` combining KS and DFT evidence.
+- [ ] C156 Add `best_key/4` weights as card parameters in TonalityModelCard.
+- [ ] C157 Add query wrapper `identifyKeyAdvanced(profile, opts)` in TS.
+- [ ] C158 Add docs: “DFT phase approximation of tonality” (how/why, limitations).
+- [x] C159 Add Spiral Array pitch-class points (12 pitch classes mapped to 3D points).
+- [x] C160 Add predicate `spiral_point_pc/2` (PC, p(X,Y,Z)).
+- [x] C161 Add predicate `spiral_point_note/2` (NoteName, p(X,Y,Z)).
+- [x] C162 Add predicate `spiral_distance/3` (NoteA, NoteB, Dist).
+- [x] C163 Add predicate `spiral_chord_point/3` (Root, ChordType, Point).
+- [x] C164 Add predicate `spiral_key_point/3` (KeyRoot, Mode, Point).
+- [x] C165 Add predicate `spiral_chord_key_distance/5` (Chord, Key, Dist, FitScore, Reasons).
+- [ ] C166 Add predicate `spiral_best_key/3` using spiral distances from chord set.
+- [ ] C167 Add predicate `spiral_best_voicing/4` minimizing voice-leading + spiral tension.
+- [ ] C168 Add tests: spiral distance symmetry + zero distance identity.
+- [ ] C169 Add tests: spiral key point vs diatonic chord proximity sanity checks.
+- [ ] C170 Add docs: “Spiral Array for chords/keys” (what distances mean).
+- [ ] C171 Add GTTM representation: events as `e(Start,Dur,Pitch)` or richer `note(...)`.
+- [x] C172 Add predicate `ioi/3` (E1, E2, InterOnsetInterval).
+- [ ] C173 Add predicate `gttm_boundary_cue/3` (CueName, Strength, Evidence).
+- [ ] C174 Add cue: boundary by rest/IOI gap (temporal proximity rule).
+- [ ] C175 Add cue: boundary by large registral leap (registral proximity rule).
+- [ ] C176 Add cue: boundary by durational accent (durational accent rule).
+- [ ] C177 Add cue: boundary by change in articulation/velocity (surface change rule).
+- [x] C178 Add predicate `gttm_boundary_score/4` (Prev,Curr,Next,Score).
+- [x] C179 Add predicate `gttm_segment/3` (Events, Sensitivity, Segments).
+- [x] C180 Add predicate `gttm_segment_explain/4` with cue contributions.
+- [x] C181 Add metrical structure: predicate `metrical_strength/3` (Meter, Position, Strength).
+- [ ] C182 Add accent model: downbeat strong, secondary strong, others weak (base).
+- [x] C183 Add swing/compound meter variants (6/8, 9/8, 12/8).
+- [x] C184 Add predicate `accented_event/3` (Spec, Event, AccentStrength).
+- [x] C185 Add predicate `time_span_weight/3` combining accent + duration prominence.
+- [x] C186 Add time-span reduction sketch: `tsr_select_heads/3` (Segment, Heads, Reasons).
+- [x] C187 Add prolongational reduction sketch: `pr_relation/4` (E1,E2,Type,Strength).
+- [x] C188 Add predicate `gttm_phrase_head/3` returning main tones per segment.
+- [x] C189 Add predicate `gttm_motivic_skeleton/2` extracting reduced contour degrees.
+- [ ] C190 Add tests: segmentation produces fewer segments with lower sensitivity.
+- [ ] C191 Add tests: metrical strength for 4/4 positions 1 and 3 stronger than 2 and 4.
+- [x] C192 Add query wrapper `segmentPhraseGTTM(events, opts)` in TS.
+- [ ] C193 Add card parameter: GroupingCard.sensitivity mapped to `gttm_segment/3`.
+- [ ] C194 Add integration: tracker “phrase select” uses GTTM segmentation boundaries.
+- [ ] C195 Add integration: phrase generator uses GTTM skeleton to guide motif creation.
+- [ ] C196 Add integration: arranger uses GTTM heads to place harmonic rhythm changes.
+- [ ] C197 Add “phrase boundary markers” UX in tracker (ghost lines) based on GTTM.
+- [ ] C198 Add “accent heatmap” overlay in tracker based on metrical strength.
+- [ ] C199 Add “spiral tension” overlay for chords in harmony explorer.
+- [ ] C200 Add “DFT phase compass” UI that shows tonality phase + ambiguity.
+- [ ] C201 Add bridging predicate: `constraint_tonality_model/1` for model selection.
+- [ ] C202 Add bridging predicate: `constraint_grouping/1` for segmentation settings.
+- [ ] C203 Add bridging predicate: `constraint_meter_accent/1` for accent model settings.
+- [ ] C204 Add “analysis cache” keyed by (events hash, spec hash) to avoid recomputation.
+- [ ] C205 Add test: analysis cache returns identical results and does not mutate facts.
+- [ ] C206 Add Prolog “no side effects” convention for analysis predicates (pure relations).
+- [ ] C207 Add property tests: spiral distances non-negative and symmetric.
+- [ ] C208 Add property tests: DFT bin magnitude invariant under rotation (up to phase shift).
+- [ ] C209 Add fallback behavior when arithmetic functions missing in Prolog engine.
+- [ ] C210 Add TS fallback for DFT computations if Prolog math proves too limited.
+- [ ] C211 Add Prolog predicate `supports_math/0` to gate features (engine capability check).
+- [ ] C212 Add docs: “Computational models supported and when to use them”.
+- [ ] C213 Add “compare tonality models” helper that runs KS vs DFT vs Spiral and reports.
+- [ ] C214 Add query wrapper `compareTonalityModels(profile)` returning ranked tonics.
+- [ ] C215 Add “tonality model autopick” rule based on context (e.g., modal vs functional).
+- [ ] C216 Add predicate `recommend_tonality_model/3` (Spec, Model, Reasons).
+- [ ] C217 Add card default: if culture=carnatic, prefer raga model; if cinematic, prefer spiral.
+- [x] C218 Add “tonal tension” derived measure from spiral distance to key center.
+- [x] C219 Add predicate `tonal_tension/4` (Chord, Key, Tension, Reasons).
+- [ ] C220 Add “tonal drift” derived measure from DFT phase change over time windows.
+- [ ] C221 Add predicate `tonal_drift/3` (ProfilesOverTime, DriftScore, Reasons).
+- [ ] C222 Add “phrase boundary confidence” score derived from multiple GTTM cues.
+- [ ] C223 Add predicate `gttm_boundary_confidence/4` (Prev,Curr,Next,Confidence).
+- [ ] C224 Add “theme similarity” metric for motifs (interval n-grams + rhythm).
+- [x] C225 Add predicate `motif_fingerprint/2` and `motif_similarity/3`.
+- [ ] C226 Add “leitmotif tracker” that matches motifs against library in project.
+- [ ] C227 Add query wrapper `findMotifOccurrences(events, library)` in TS.
+- [ ] C228 Add card: `LeitmotifLibraryCard` to store motif fingerprints + labels.
+- [ ] C229 Add card: `LeitmotifMatcherCard` to detect motifs in tracker/notation.
+- [ ] C230 Add Prolog predicate `motif_label/2` and `motif_occurs/4`.
+- [ ] C231 Add test: motif similarity returns 100 for identical motifs.
+- [ ] C232 Add test: motif similarity decreases with interval perturbations.
+- [ ] C233 Add “schema fingerprint” based on scale degrees + bass + cadence.
+- [ ] C234 Add predicate `schema_fingerprint/2` and `schema_similarity/3`.
+- [ ] C235 Add “raga fingerprint” based on arohana/avarohana + pakad phrases.
+- [ ] C236 Add predicate `raga_fingerprint/2` and `raga_similarity/3`.
+- [ ] C237 Add “mode fingerprint” based on scale degree set + leading-tone behavior.
+- [ ] C238 Add predicate `mode_fingerprint/2` and `mode_similarity/3`.
+- [ ] C239 Add DFT-based “tonal centroid” (optional) as alternative to Spiral Array.
+- [ ] C240 Add predicate `tonal_centroid/2` producing 6D point from profile (K1,K2,K3).
+- [ ] C241 Add predicate `centroid_distance/3` between two tonal centroid points.
+- [ ] C242 Add docs: “Tonal centroid vs Spiral Array” tradeoffs.
+- [x] C243 Add “windowed tonality” analysis over phrases (per-segment key).
+- [ ] C244 Add predicate `segment_key/4` (SegmentEvents, Model, Key, Confidence).
+- [ ] C245 Add “modulation detection” based on segment key changes.
+- [x] C246 Add predicate `detect_modulations/2` returning modulation points and types.
+- [ ] C247 Add “pivot chord search” using spiral distance and functional compatibility.
+- [ ] C248 Add predicate `pivot_chord/5` (KeyA, KeyB, Chord, Score, Reasons).
+- [ ] C249 Add integration: harmony explorer uses `pivot_chord/5` for modulation planning.
+- [ ] C250 Add tests: modulation detection finds change for sequences with clear key shift.
+- [x] C251 Add “phrase cadence detector” using harmonic rhythm + chord function + GTTM heads.
+- [x] C252 Add predicate `detect_cadence/3` (Chords, CadenceType, Confidence).
+- [x] C253 Add explain predicate `cadence_reasons/3` (Chords, Cadence, Reasons).
+- [ ] C254 Add integration: tracker shows cadence markers at phrase ends.
+- [ ] C255 Add integration: arranger uses cadence markers to trigger fills/transitions.
+- [ ] C256 Add “cadence strength” metric for ranking endings (film/galant/world variants).
+- [ ] C257 Add predicate `cadence_strength/3` (CadenceType, Spec, Strength).
+- [ ] C258 Add docs: “Cadence types beyond common-practice harmony”.
+- [ ] C259 Add coverage tests: all computational predicates load without errors.
+- [ ] C260 Add benchmark: tonality + segmentation queries complete under 10ms on typical data.
+
+---
+
+## Phase C3 — Galant schemata KB + schema-driven phrase generation (C261–C360)
+
+- [x] C261 Add KB representation: `schema/1`, `schema_role/2`, `schema_pattern/2`.
+- [x] C262 Define schema pattern term: `pat(BassDegrees, UpperDegrees, CadenceTargets)`.
+- [x] C263 Add schema: Prinner (bass 4–3–2–1; upper 6–5–4–3).
+- [x] C264 Add schema: Meyer (1–7–1; cadential emphasis).
+- [x] C265 Add schema: Monte (ascending sequence 1–2–3–4).
+- [x] C266 Add schema: Fonte (descending sequence 4–3–2–1).
+- [x] C267 Add schema: Romanesca (bass 1–7–6–3; upper 5–5–6–5).
+- [x] C268 Add schema: Quiescenza (IV–I6/4–V–I cadence frame).
+- [x] C269 Add schema: Do-Re-Mi (upper 1–2–3 over I–V6–I6).
+- [x] C270 Add schema: Ponte (dominant prolongation with 5–5–5–1 cadence).
+- [x] C271 Add schema: Passo Indietro (step back before cadence).
+- [x] C272 Add schema: Circolo (circle-of-fifths mini-sequence).
+- [x] C273 Add schema: Cadential 6/4 (I6/4–V–I).
+- [x] C274 Add schema: Indugio (delay/linger on pre-cadential harmony).
+- [x] C275 Add schema: Lament bass (chromatic 1–7–6–#5).
+- [x] C276 Add schema: Ascending 5–6 sequence.
+- [x] C277 Add schema: Descending 7–6 suspension chain.
+- [x] C278 Add schema: Omnibus (chromatic contrary motion).
+- [x] C279 Add schema: “Rocket” (arpeggiated tonic ascent as opening gesture).
+- [x] C280 Add schema: “Mannheim sigh” (paired slurred appoggiaturas).
+- [x] C281 Add schema: “Mannheim roller” (extended ascending sequence).
+- [x] C282 Add schema: “Mannheim bird” (rapid turn figure).
+- [x] C283 Add schema: “Mannheim crescendo” (dynamics/rhythm density ramp).
+- [x] C284 Add schema category predicates: opening, continuation, cadential, sequential.
+- [x] C285 Add schema predicate `schema_cadence/2` mapping schemata to cadence types.
+- [x] C286 Add schema constraint predicate `schema_requires/2` (meter, harmonic rhythm).
+- [x] C287 Add schema constraint predicate `schema_prefers/2` (ornament density, tempo range).
+- [x] C288 Add `match_schema/3` (DegreeSequence, Schema, Score).
+- [x] C289 Add `match_schema_explain/4` (Degrees, Schema, Score, Reasons).
+- [x] C290 Add “fuzzy matching” allowing passing tones and suspensions.
+- [ ] C291 Add predicate `degree_skeleton/2` extracting structural degrees from melody.
+- [ ] C292 Add predicate `schema_fit/4` (Melody, Bass, Schema, Score).
+- [x] C293 Add predicate `schema_realize_harmony/4` (Key, Schema, Chords, Reasons).
+- [x] C294 Add predicate `schema_realize_bass/4` (Key, Schema, BassLine, Reasons).
+- [x] C295 Add predicate `schema_realize_upper/4` (Key, Schema, UpperVoice, Reasons).
+- [x] C296 Add schema variation operators: transpose, invert, sequence, expand, compress.
+- [x] C297 Add predicate `schema_variation/3` (Schema, Op, VariantSchema).
+- [x] C298 Add predicate `recommend_schema/3` (Spec, Schema, Reasons).
+- [ ] C299 Add predicate `recommend_schema_for_cadence/4` (Spec, Cadence, Schema, Reasons).
+- [ ] C300 Add TS query wrapper `recommendGalantSchema(spec)` returning ranked schemata.
+- [ ] C301 Add TS query wrapper `matchGalantSchema(degrees)` for phrase analysis.
+- [ ] C302 Add “Schema Browser Card” UI to select/preview schemata and render skeleton.
+- [ ] C303 Add “Schema-to-Chords Card” generating chord progression from schema in key.
+- [ ] C304 Add “Schema-to-Bass Card” generating bassline events from schema.
+- [ ] C305 Add “Schema-to-Melody Card” generating upper-voice melody from schema.
+- [ ] C306 Add “Schema Variation Card” applying variation ops to an existing schema.
+- [ ] C307 Add “Schema Constraint Card” to bind phrase generator to specific schemata.
+- [ ] C308 Add integration: phrase generator uses schema skeleton as constraint.
+- [ ] C309 Add integration: arranger uses schema to generate accompaniment patterns.
+- [ ] C310 Add integration: tracker can insert schema skeleton into pattern lanes.
+- [ ] C311 Add “cadence landing” control (PAC/IAC/HC/DC) as SchemaCard param.
+- [ ] C312 Add schema-specific default harmonic rhythm (e.g., 2 chords/bar).
+- [ ] C313 Add predicate `schema_harmonic_rhythm/2`.
+- [ ] C314 Add “partimento” style bass patterns for common schemata.
+- [ ] C315 Add predicate `partimento_rule/3` mapping bass degree to figured-bass options.
+- [ ] C316 Add “voice leading” rules specific to galant textures (outer voices priority).
+- [ ] C317 Add predicate `galant_voice_leading_ok/3`.
+- [ ] C318 Add “rule of the octave” fragments for scale-degree harmonization.
+- [ ] C319 Add predicate `rule_of_octave/3` for ascending/descending degrees.
+- [ ] C320 Add “cadential patterns” library (Meyer cadence, Quiescenza, etc.).
+- [ ] C321 Add predicate `galant_cadence_pattern/2`.
+- [x] C322 Add “default diminutions” (passing/neighbor turns) for each schema degree.
+- [x] C323 Add predicate `schema_diminution/3` (Schema, Degree, OrnamentPattern).
+- [ ] C324 Add “default suspensions” library (4-3, 7-6, 9-8).
+- [ ] C325 Add predicate `schema_suspension/3`.
+- [ ] C326 Add “melody-bass counterpoint constraints” (avoid parallels, spacing).
+- [ ] C327 Add predicate `galant_counterpoint_ok/4`.
+- [x] C328 Add “phrase form” templates (period, sentence) built from schemata.
+- [x] C329 Add predicate `galant_phrase_form/3` (Form, SchemaSeq, Reasons).
+- [x] C330 Add predicate `recommend_phrase_form/3` (Spec, Form, Reasons).
+- [x] C331 Add “sentence” model: presentation (2+2) + continuation (4) + cadence.
+- [x] C332 Add “period” model: antecedent + consequent with cadential strengthening.
+- [x] C333 Add “hybrid” model: sentence-period blends.
+- [x] C334 Add “schema chaining” rules (which schemata follow which).
+- [x] C335 Add predicate `schema_tendency/2`.
+- [ ] C336 Add predicate `recommend_schema_chain/4` (Spec, Length, Chain, Reasons).
+- [ ] C337 Add “schema chain” to chord progression generator.
+- [ ] C338 Add “schema chain” to melody generator (upper-voice path).
+- [ ] C339 Add tests: `match_schema/3` identifies Prinner from degree sequence.
+- [ ] C340 Add tests: `schema_realize_harmony/4` yields valid diatonic chords in key.
+- [ ] C341 Add tests: schema variations preserve cadence targets unless overridden.
+- [ ] C342 Add docs: “Galant schemata in CardPlay” (what they are, how to use).
+- [ ] C343 Add docs: “Schema Browser Card” usage examples and recommended decks.
+- [ ] C344 Add example project: “Galant sentence in C” (schema chain + cadence).
+- [ ] C345 Add example project: “Romanesca variation” (sequence + diminution).
+- [ ] C346 Add example project: “Partimento bass + realization” (rule-of-octave).
+- [ ] C347 Add “schema‑as‑constraints” to Prolog deck reasoning (gating and suggestions).
+- [ ] C348 Add predicate `deck_requires_schema_tools/2` for galant workflows.
+- [ ] C349 Add “galant workspace board” (notation + schema + harmony explorer + phrase gen).
+- [ ] C350 Add board template for galant with appropriate decks and tool gating.
+- [ ] C351 Add performance guard: schema KB queries should not require heavy search.
+- [x] C352 Add “schema index” predicate for fast lookup by cadence type and role.
+- [x] C353 Add predicate `schema_index/3` (Cadence, Role, Schema).
+- [x] C354 Add “schema tag” taxonomy (opening, sequential, cadential, lament, etc.).
+- [x] C355 Add predicate `schema_tag/2`.
+- [ ] C356 Add “schema to film” bridge: map galant cadences to cinematic analogues.
+- [ ] C357 Add predicate `schema_film_analogue/3`.
+- [ ] C358 Add “schema to pop” bridge: map schemata to four-chord progressions/hook patterns.
+- [ ] C359 Add predicate `schema_pop_analogue/3`.
+- [ ] C360 Add coverage tests: all schema predicates load and answer at least one query.
+
+---
+
+## Phase C4 — Film music theory KB (harmony devices, orchestration, leitmotif practice) (C361–C470)
+
+- [x] C361 Add KB representation: `film_mood/1`, `film_device/1`, `film_role/1`.
+- [x] C362 Add mood taxonomy: heroic, ominous, tender, wonder, mystery, sorrow, comedy.
+- [x] C363 Add device: pedal_point (tonic or dominant pedal).
+- [x] C364 Add device: ostinato (rhythmic/melodic repeating cell).
+- [x] C365 Add device: planing_parallel_chords (constant-interval parallel harmony).
+- [x] C366 Add device: chromatic_mediant (root motion by major/minor third).
+- [x] C367 Add device: modal_mixture (borrowed iv, bVI, bVII, etc.).
+- [x] C368 Add device: lydian_tonic (raised 4 as “wonder” color).
+- [x] C369 Add device: dorian_minor (raised 6 for “noble minor”).
+- [x] C370 Add device: phrygian_color (b2 for “threat/ancient”).
+- [x] C371 Add device: whole_tone_wash (dreamlike, unstable).
+- [x] C372 Add device: octatonic (diminished scale, action/tension).
+- [x] C373 Add device: cluster_chords (dense voicings for tension).
+- [x] C374 Add device: quartal_harmony (fourth stacks for openness/modernity).
+- [x] C375 Add device: added_second_sixth (open triads with color tones).
+- [x] C376 Add device: suspended_harmony (sus2/sus4, delayed resolution).
+- [x] C377 Add device: deceptive_resolution (V→vi; or bVII→I variants).
+- [x] C378 Add device: resolved_dissonance (appoggiatura emphasis).
+- [x] C379 Add device: harmonic_stasis (slow change; texture carries motion).
+- [x] C380 Add device: cadence_deferral (avoid PAC to sustain forward motion).
+- [x] C381 Add device: trailer_rise (stepwise lift + percussion ramp).
+- [x] C382 Add device: bVI_bVII_I (epic mixolydian/plagal hybrid).
+- [x] C383 Add device: i_bVI_bIII_bVII (minor “epic” loop).
+- [x] C384 Add device: i_bVII_bVI_bVII (dark oscillation).
+- [x] C385 Add device: neo_riemannian_shifts (P/L/R transformations).
+- [x] C386 Add device: leitmotif_interval_signature (motif identity by intervals).
+- [x] C387 Add role taxonomy: melody, countermelody, pad, bass, percussion, ostinato.
+- [x] C388 Add orchestration family taxonomy: strings/brass/woodwinds/choir/synths/percussion.
+- [x] C389 Add mapping: mood→preferred modes (heroic→mixolydian/lydian; ominous→phrygian).
+- [x] C390 Add mapping: mood→preferred devices (mystery→planing/whole_tone; action→octatonic).
+- [x] C391 Add mapping: mood→instrument roles (heroic→brass melody; tender→strings/piano).
+- [x] C392 Add mapping: device→harmonic constraints (planing forbids functional resolution emphasis).
+- [x] C393 Add mapping: device→texture constraints (ostinato implies steady rhythmic grid).
+- [x] C394 Add mapping: device→arranger style hints (e.g., “trailer”, “minimal underscore”).
+- [x] C395 Add predicate `recommend_film_devices/3` (Spec, Devices, Reasons).
+- [x] C396 Add predicate `recommend_film_mode/3` (Spec, Mode, Reasons).
+- [x] C397 Add predicate `recommend_film_orchestration/4` (Spec, Roles, Instruments, Reasons).
+- [ ] C398 Add predicate `recommend_film_progression/4` (Mood, Key, Chords, Reasons).
+- [ ] C399 Add predicate `recommend_film_voicing/4` (Device, Chord, Voicing, Reasons).
+- [x] C400 Add “register plan” rules (low strings pedal; brass in mid-high, etc.).
+- [ ] C401 Add predicate `register_plan/4` (Mood, Role, Range, Reasons).
+- [x] C402 Add “dynamic contour” rules for cues (crescendo, subito drop, swells).
+- [x] C403 Add predicate `dynamic_plan/3`.
+- [x] C404 Add “rhythmic density curve” rules for trailers (build-ups).
+- [x] C405 Add predicate `density_curve/3` (Mood, Sections, Curve).
+- [ ] C406 Add integration: arranger uses `recommend_film_orchestration/4` to assign voices.
+- [ ] C407 Add integration: composition patterns KB gets `cinematic` substyles (trailer, underscore, drama).
+- [ ] C408 Add card: `FilmScoringCard` (mood, devices, orchestration roles, motif id).
+- [ ] C409 Add card: `OrchestrationRoleCard` (role→instrument family allocation).
+- [ ] C410 Add card: `OstinatoCard` (cell length, rhythmic grid, pitch set constraints).
+- [ ] C411 Add card: `TrailerBuildCard` (build length, hits, risers, percussion density).
+- [ ] C412 Add leitmotif library integration with film scoring card (motif → cue suggestions).
+- [x] C413 Add predicate `motif_for_mood/3` recommending motifs or transformations per mood.
+- [x] C414 Add “motif transformation” ops: augmentation, diminution, inversion, reharmonization.
+- [x] C415 Add predicate `motif_transform/4` (Motif, Op, NewMotif, Reasons).
+- [ ] C416 Add “harmonic pacing” rules (underscoring avoids strong cadences mid-scene).
+- [ ] C417 Add predicate `avoid_strong_cadence/2` (Spec, Reasons).
+- [ ] C418 Add “hit point” rules (sync musical accents with picture markers).
+- [ ] C419 Add predicate `hit_point/3` and `place_hit_chord/4`.
+- [ ] C420 Add “mickey-mousing” constraint toggles (tight rhythmic sync vs loose).
+- [ ] C421 Add “text painting” mappings (gesture types to harmonic/melodic devices).
+- [ ] C422 Add predicate `gesture_to_device/3` (Gesture, Device, Confidence).
+- [ ] C423 Add “diegetic vs nondiegetic” orchestration hints.
+- [ ] C424 Add predicate `diegetic_hint/3`.
+- [x] C425 Add “genre film idioms” (sci-fi, fantasy, horror, romance) as constraints packs.
+- [x] C426 Add `constraint_pack/2` entries for common film idioms.
+- [x] C427 Add horror pack: phrygian, clusters, tritone, low drones.
+- [x] C428 Add fantasy pack: lydian, open fifths, harp/choir, pedal points.
+- [x] C429 Add sci-fi pack: whole-tone, planing, synth textures, irregular meters.
+- [x] C430 Add romance pack: major/minor mixture, lyrical strings, rich extensions.
+- [x] C431 Add action pack: octatonic, ostinato, percussion drive, brass stabs.
+- [x] C432 Add comedy pack: sudden modulations, quirky instrumentation, chromatic turns.
+- [ ] C433 Add “chromatic mediant network” for key relations used in film.
+- [ ] C434 Add predicate `chromatic_mediant/2` (KeyA, KeyB) and `mediant_path/3`.
+- [ ] C435 Add “planing rule” for chord sequences (preserve chord quality while shifting root).
+- [ ] C436 Add predicate `planing_sequence/4`.
+- [ ] C437 Add “pedal point generator” rules for bass + inner voices.
+- [ ] C438 Add predicate `generate_pedal_texture/4`.
+- [ ] C439 Add “cluster voicing” generator rules (density, spacing, register).
+- [ ] C440 Add predicate `generate_cluster_voicing/4`.
+- [ ] C441 Add “quartal voicing” generator rules (stack fourths within range).
+- [ ] C442 Add predicate `generate_quartal_voicing/4`.
+- [ ] C443 Add TS query wrappers for film recommendations and explainers.
+- [ ] C444 Add tests: film device recommendation responds to mood + tempo + meter.
+- [ ] C445 Add tests: orchestration recommendations produce at least one valid instrumentation.
+- [ ] C446 Add docs: “Film scoring in CardPlay” (decks, cards, examples).
+- [ ] C447 Add example project: “Trailer cue build” (ostinato + hits + riser).
+- [ ] C448 Add example project: “Fantasy wonder cue” (lydian + choir + pedal).
+- [ ] C449 Add example project: “Horror drone cue” (phrygian + clusters).
+- [ ] C450 Add example project: “Neo-Riemannian mediant loop” (P/L/R operations).
+- [ ] C451 Add “scene arc” model: map film scene beats to arrangement sections.
+- [ ] C452 Add predicate `scene_arc_template/3` (ArcType, Sections, Reasons).
+- [ ] C453 Add integration: arranger song parts map to scene arc templates.
+- [ ] C454 Add “orchestration budget” model (CPU/voices) to keep arrangements feasible.
+- [ ] C455 Add predicate `orchestration_budget/3` and validation.
+- [ ] C456 Add “timbre-first” hooks: map spectral descriptors to orchestration choices.
+- [ ] C457 Add predicate `timbre_descriptor/2` and `descriptor_to_instruments/3`.
+- [ ] C458 Add “harmonic color” hooks: map chord extensions to mood constraints.
+- [ ] C459 Add predicate `extension_color/3` (Extension, Mood, Weight).
+- [ ] C460 Add “cadence avoidance” toggles for underscore cues.
+- [ ] C461 Add “cadence emphasis” toggles for endings/trailers.
+- [ ] C462 Add predicate `recommend_cue_ending/3` for final cadence/hit strategies.
+- [ ] C463 Add integration: phrase generator uses film devices for melody constraints.
+- [ ] C464 Add integration: chord generator supports chromatic mediants and planing.
+- [ ] C465 Add coverage tests: film predicates load and answer at least one query.
+- [ ] C466 Add benchmark: film device recommendation under 10ms.
+- [ ] C467 Add lint: warn if film pack conflicts with explicit schema constraints.
+- [ ] C468 Add `spec_conflict/3` cases for film-vs-galant contradictions.
+- [ ] C469 Add UI: show “conflict” badge on cards when constraints incompatible.
+- [ ] C470 Add “film board” template (arranger + theory + leitmotif + mixer).
+
+---
+
+## Phase C5 — Carnatic music theory KB (raga/tala/gamaka; constraints for generation) (C471–C650)
+
+- [x] C471 Add Carnatic pitch model: swara positions mapped to pitch classes (12‑TET approximation).
+- [x] C472 Add predicates `swara/1`, `swara_pc/2`, `swara_variant/3` (ri1/ri2/ri3, etc.).
+- [x] C473 Add predicate `raga/1` and `raga_melakarta/2` (for melakarta ragas).
+- [x] C474 Add predicate `raga_arohana/2` and `raga_avarohana/2` (as swara lists).
+- [x] C475 Add predicate `raga_pakad/2` (characteristic phrase degrees/swaras).
+- [x] C476 Add predicate `raga_janya/2` (janya→parent melakarta).
+- [x] C477 Add tala model: predicate `tala/1`, `tala_cycle/2`, `tala_anga/2`.
+- [x] C478 Add tala angas: laghu, drutam, anudrutam with beat counts.
+- [x] C479 Add predicate `jati/1` and `laghu_jati_beats/2` (tisra/chatusra/khanda/misra/sankeerna).
+- [x] C480 Add predicate `tala_pattern/3` (Tala, Jati, BeatGroups).
+- [x] C481 Add gamaka taxonomy: kampita, nokku, jaaru, sphurita, pratyahatam.
+- [x] C482 Add predicate `gamaka/1` and `gamaka_constraints/2` (pitch movement constraints).
+- [x] C483 Add “ornament budget” constraints for gamaka density vs tempo.
+- [x] C484 Add predicate `recommend_gamaka_density/3` (Spec, Density, Reasons).
+- [x] C485 Add “raga compatibility” rules (which ragas share enough swaras to modulate).
+- [x] C486 Add predicate `raga_compatible/3` (RagaA, RagaB, Score).
+- [x] C487 Add predicate `recommend_raga/3` (Spec, Raga, Reasons).
+- [x] C488 Add predicate `match_raga/3` (PitchClasses, Raga, Score).
+- [x] C489 Add predicate `match_raga_explain/4`.
+- [x] C490 Add “raga phrase grammar” scaffolding: allowed transitions between swaras.
+- [x] C491 Add predicate `raga_transition/3` (Raga, FromSwara, ToSwara).
+- [x] C492 Add “avoid phrases” (varjya) rule support for ragas that omit notes directionally.
+- [x] C493 Add predicate `raga_varjya/3` (Raga, Direction, Swara).
+- [x] C494 Add “nyasa swara” representation (resting tones).
+- [x] C495 Add predicate `raga_nyasa/2`.
+- [x] C496 Add “vadi/samvadi” analog support (where meaningful; keep optional).
+- [x] C497 Add predicate `raga_emphasis/3` (Raga, Swara, Weight).
+- [x] C498 Add “tala accent model” (sam/eduppu) support and mapping to ticks.
+- [x] C499 Add predicate `eduppu/1` (sam, ateeta, anagata) and `eduppu_offset/2`.
+- [x] C500 Add predicate `tala_accent/3` (Tala, BeatIndex, Strength).
+- [x] C501 Add “konnakol syllable” taxonomy for rhythm teaching and generation.
+- [ ] C502 Add predicate `konnakol_phrase/2` (Pattern, Syllables).
+- [ ] C503 Add “korvai” structure model (mathematical cadence).
+- [ ] C504 Add predicate `korvai/3` (Tala, Structure, Reasons).
+- [ ] C505 Add “mora” structure model (thrice-repeated cadence).
+- [ ] C506 Add predicate `mora/3`.
+- [ ] C507 Add integration: tracker supports tala grids (cycle markers, subdivisions).
+- [ ] C508 Add integration: phrase generator supports raga constraints for melody generation.
+- [ ] C509 Add integration: arranger supports drone + percussion roles for Carnatic ensemble.
+- [ ] C510 Add card: `CarnaticRagaTalaCard` (raga, tala, jati, eduppu, gamaka density).
+- [ ] C511 Add card: `DroneCard` (sa/pa drone, sruti box controls).
+- [ ] C512 Add card: `MridangamPatternCard` (tala pattern + konnakol mapping).
+- [ ] C513 Add card: `KorvaiGeneratorCard` (korvai/mora builder).
+- [ ] C514 Add “raga phrase insert” tool for tracker (pakad insertion).
+- [ ] C515 Add predicate `recommend_pakad/3` (Raga, Context, Pakad).
+- [ ] C516 Add “raga mood” mapping (bhava/rasa approximations; optional and cautious).
+- [ ] C517 Add predicate `raga_rasa/3` with low-confidence weighting.
+- [ ] C518 Add “raga time-of-day” mapping (optional; keep as metadata).
+- [ ] C519 Add predicate `raga_time/2`.
+- [ ] C520 Add tests: `match_raga/3` returns high score for pitch classes in raga.
+- [ ] C521 Add tests: tala patterns sum to correct cycle length.
+- [ ] C522 Add docs: “Carnatic theory in CardPlay” (raga/tala/gamaka as constraints).
+- [ ] C523 Add example project: “Adi tala alapana skeleton” (raga + drone).
+- [ ] C524 Add example project: “Korvai builder” (tala + mora/korvai).
+- [ ] C525 Add melakarta #01 Kanakangi to KB (aro/ava, key swaras).
+- [ ] C526 Add melakarta #02 Ratnangi to KB.
+- [ ] C527 Add melakarta #03 Ganamurti to KB.
+- [ ] C528 Add melakarta #04 Vanaspati to KB.
+- [ ] C529 Add melakarta #05 Manavati to KB.
+- [ ] C530 Add melakarta #06 Tanarupi to KB.
+- [ ] C531 Add melakarta #07 Senavati to KB.
+- [ ] C532 Add melakarta #08 Hanumatodi to KB.
+- [ ] C533 Add melakarta #09 Dhenuka to KB.
+- [ ] C534 Add melakarta #10 Natakapriya to KB.
+- [ ] C535 Add melakarta #11 Kokilapriya to KB.
+- [ ] C536 Add melakarta #12 Rupavati to KB.
+- [ ] C537 Add melakarta #13 Gayakapriya to KB.
+- [ ] C538 Add melakarta #14 Vakulabharanam to KB.
+- [ ] C539 Add melakarta #15 Mayamalavagowla to KB.
+- [ ] C540 Add melakarta #16 Chakravakam to KB.
+- [ ] C541 Add melakarta #17 Suryakantam to KB.
+- [ ] C542 Add melakarta #18 Hatakambari to KB.
+- [ ] C543 Add melakarta #19 Jhankaradhwani to KB.
+- [ ] C544 Add melakarta #20 Natabhairavi to KB.
+- [ ] C545 Add melakarta #21 Keeravani to KB.
+- [ ] C546 Add melakarta #22 Kharaharapriya to KB.
+- [ ] C547 Add melakarta #23 Gourimanohari to KB.
+- [ ] C548 Add melakarta #24 Varunapriya to KB.
+- [ ] C549 Add melakarta #25 Mararanjani to KB.
+- [ ] C550 Add melakarta #26 Charukesi to KB.
+- [ ] C551 Add melakarta #27 Sarasangi to KB.
+- [ ] C552 Add melakarta #28 Harikambhoji to KB.
+- [ ] C553 Add melakarta #29 Dheerasankarabharanam to KB.
+- [ ] C554 Add melakarta #30 Naganandini to KB.
+- [ ] C555 Add melakarta #31 Yagapriya to KB.
+- [ ] C556 Add melakarta #32 Ragavardhini to KB.
+- [ ] C557 Add melakarta #33 Gangeyabhushani to KB.
+- [ ] C558 Add melakarta #34 Vagadhisvari to KB.
+- [ ] C559 Add melakarta #35 Shulini to KB.
+- [ ] C560 Add melakarta #36 Chalanata to KB.
+- [ ] C561 Add melakarta #37 Salagam to KB.
+- [ ] C562 Add melakarta #38 Jalarnavam to KB.
+- [ ] C563 Add melakarta #39 Jhalavarali to KB.
+- [ ] C564 Add melakarta #40 Navaneetam to KB.
+- [ ] C565 Add melakarta #41 Pavani to KB.
+- [ ] C566 Add melakarta #42 Raghupriya to KB.
+- [ ] C567 Add melakarta #43 Gavambodhi to KB.
+- [ ] C568 Add melakarta #44 Bhavapriya to KB.
+- [ ] C569 Add melakarta #45 Shubhapantuvarali to KB.
+- [ ] C570 Add melakarta #46 Shadvidamargini to KB.
+- [ ] C571 Add melakarta #47 Suvarnangi to KB.
+- [ ] C572 Add melakarta #48 Divyamani to KB.
+- [ ] C573 Add melakarta #49 Dhavalambari to KB.
+- [ ] C574 Add melakarta #50 Namanarayani to KB.
+- [ ] C575 Add melakarta #51 Kamavardhini to KB.
+- [ ] C576 Add melakarta #52 Ramapriya to KB.
+- [ ] C577 Add melakarta #53 Gamanashrama to KB.
+- [ ] C578 Add melakarta #54 Vishwambhari to KB.
+- [ ] C579 Add melakarta #55 Shamalangi to KB.
+- [ ] C580 Add melakarta #56 Shanmukhapriya to KB.
+- [ ] C581 Add melakarta #57 Simhendramadhyamam to KB.
+- [ ] C582 Add melakarta #58 Hemavati to KB.
+- [ ] C583 Add melakarta #59 Dharmavati to KB.
+- [ ] C584 Add melakarta #60 Neetimati to KB.
+- [ ] C585 Add melakarta #61 Kantamani to KB.
+- [ ] C586 Add melakarta #62 Rishabhapriya to KB.
+- [ ] C587 Add melakarta #63 Latangi to KB.
+- [ ] C588 Add melakarta #64 Vachaspati to KB.
+- [ ] C589 Add melakarta #65 Mechakalyani to KB.
+- [ ] C590 Add melakarta #66 Chitrambari to KB.
+- [ ] C591 Add melakarta #67 Sucharitra to KB.
+- [ ] C592 Add melakarta #68 Jyotisvarupini to KB.
+- [ ] C593 Add melakarta #69 Dhatuvardhini to KB.
+- [ ] C594 Add melakarta #70 Nasikabhushani to KB.
+- [ ] C595 Add melakarta #71 Kosalam to KB.
+- [ ] C596 Add melakarta #72 Rasikapriya to KB.
+- [ ] C597 Add janya raga: Mohanam (from Harikambhoji) with pakad phrases.
+- [ ] C598 Add janya raga: Hindolam (from Natabhairavi) with characteristic leaps.
+- [ ] C599 Add janya raga: Hamsadhwani (from Dheerasankarabharanam) with bright opening.
+- [ ] C600 Add janya raga: Shuddha Saveri (from Harikambhoji) with pentatonic feel.
+- [ ] C601 Add janya raga: Kapi (bhāṣānga) with vakra movement metadata.
+- [ ] C602 Add janya raga: Bhairavi (bhāṣānga) with anya swara notes metadata.
+- [ ] C603 Add janya raga: Kambhoji (from Harikambhoji) with kampita gamaka emphasis.
+- [ ] C604 Add janya raga: Todi (from Hanumatodi) with strong gamaka constraints.
+- [ ] C605 Add janya raga: Saveri (from Natabhairavi) with nyasa tones.
+- [ ] C606 Add janya raga: Arabhi (from Dheerasankarabharanam) with brisk phrases.
+- [ ] C607 Add janya raga: Abhogi (pentatonic) with constraint set.
+- [ ] C608 Add tala: Adi (8) with chatusra jati default.
+- [ ] C609 Add tala: Rupaka (3) with beat groupings.
+- [ ] C610 Add tala: Misra Chapu (7) with 3+2+2.
+- [ ] C611 Add tala: Khanda Chapu (5) with 2+3.
+- [ ] C612 Add tala: Jhampa (10) with laghu+anudrutam+drutam.
+- [ ] C613 Add tala: Triputa (7/8/9/… via jati) with laghu+2 drutams.
+- [ ] C614 Add tala: Ata (14) with 2 laghus + 2 drutams.
+- [ ] C615 Add tala: Eka (laghu only) with jati variants.
+- [ ] C616 Add “tani avartanam” form constraints (percussion solo sections).
+- [ ] C617 Add predicate `carnatic_form/2` (alapana, tanam, kriti, tani, RTP).
+- [ ] C618 Add “alapana” constraints (free rhythm; raga exploration).
+- [ ] C619 Add “tanam” constraints (rhythmicized alapana).
+- [ ] C620 Add “kriti” constraints (structured composition; sahitya mapping optional).
+- [ ] C621 Add “kalpana swaras” constraints (improvised swaras in tala).
+- [ ] C622 Add predicate `recommend_carnatic_form/3` (Spec, Form, Reasons).
+- [ ] C623 Add “eduppu” support in tracker grid for phrase alignment.
+- [ ] C624 Add conversion: tala aksharas → ticks given tempo + subdivision.
+- [ ] C625 Add tests: akshara→ticks round-trip for common tempos.
+- [ ] C626 Add “shruti” (microtonal) placeholder representation (future; store cents offsets).
+- [ ] C627 Add predicate `shruti_offset/3` (Raga, Swara, Cents).
+- [ ] C628 Add “mridangam syllables” mapping (tha, dhi, thom…) as metadata.
+- [ ] C629 Add predicate `mridangam_phrase/2`.
+- [ ] C630 Add “kanakku” arithmetic helpers (cycle math) for korvais.
+- [ ] C631 Add predicate `cycle_fit/3` (PatternDur, CycleDur, Fits).
+- [ ] C632 Add “korvai search” generator (fill cycle with phrase candidates).
+- [ ] C633 Add predicate `generate_korvai/4`.
+- [ ] C634 Add performance guard: korvai search must be bounded (depth/timeout).
+- [ ] C635 Add “gamaka renderer” placeholder for MIDI (pitch bend curves) as card output.
+- [ ] C636 Add “gamakas to MIDI” mapping rules (bend ranges, durations, curves).
+- [ ] C637 Add predicate `gamaka_to_midi/3` (Gamaka, Notes, BendEvents).
+- [ ] C638 Add integration: phrase adapter preserves gamaka contours when adapting.
+- [ ] C639 Add integration: melody generator can emit gamaka ornaments under constraints.
+- [ ] C640 Add “carnatic board” template (tracker+tala grid+drone+mridangam+phrase gen).
+- [ ] C641 Add validation: forbid western chord progressions when culture=carnatic unless hybrid.
+- [ ] C642 Add `spec_conflict/3` rules for culture-specific contradictions.
+- [ ] C643 Add docs: “Hybrid mode” guidance (when to mix ragas with western harmony).
+- [ ] C644 Add example: “Celtic melody over Carnatic tala” (hybrid constraints demonstration).
+- [ ] C645 Add lint: warn if raga implies pitch outside 12-TET mapping without shruti offsets.
+- [ ] C646 Add `spec_lint/2` warnings for approximate mappings.
+- [ ] C647 Add tests: carnatic predicates load and answer at least one query per major raga.
+- [ ] C648 Add benchmark: raga matching under 10ms for typical pitch-class set.
+- [ ] C649 Add docs: “How to contribute more ragas/talas” (data format and tests).
+- [ ] C650 Add coverage test: all Carnatic KB modules load and do not conflict with base theory.
+
+---
+
+## Phase C6 — Celtic music theory KB (modes, forms, ornaments, dance types) (C651–C760)
+
+- [ ] C651 Add Celtic genre id to composition patterns and core theory culture tags.
+- [ ] C652 Add tune type taxonomy: reel, jig, slip_jig, hornpipe, strathspey, polka, march, air.
+- [ ] C653 Add predicate `celtic_tune_type/3` (Type, Meter, TempoRange).
+- [ ] C654 Add meter mappings: reels 4/4, jigs 6/8, slip jigs 9/8, hornpipes 4/4 swing.
+- [ ] C655 Add rhythm feel predicates: swing, dotted, straight, lilt.
+- [ ] C656 Add predicate `celtic_rhythm_feel/2`.
+- [ ] C657 Add mode usage metadata: dorian and mixolydian common; major/minor also used.
+- [ ] C658 Add predicate `celtic_mode_preference/3` (TuneType, Mode, Weight).
+- [ ] C659 Add drone model: tonic drone, tonic+dominant drone, open fifths.
+- [ ] C660 Add predicate `celtic_drone/3` (Mode, DroneTones, Reasons).
+- [ ] C661 Add ornament taxonomy: cut, tap, roll, slide, grace, cran, birl.
+- [ ] C662 Add predicate `celtic_ornament/2` (Instrument, OrnamentList).
+- [ ] C663 Add instrument families: fiddle, flute, whistle, pipes, harp, bouzouki, bodhran.
+- [ ] C664 Add predicate `celtic_instrument_role/3` (Instrument, Role, Weight).
+- [ ] C665 Add common forms: AABB, AA'BB', AB, through_composed airs.
+- [ ] C666 Add predicate `celtic_form/2`.
+- [ ] C667 Add phrase length tendencies (often 8-bar parts with repeats).
+- [ ] C668 Add predicate `celtic_phrase_length/2`.
+- [ ] C669 Add harmonic language: modal drones; I–bVII; i–bVII–bVI; V may be absent.
+- [ ] C670 Add predicate `celtic_progression/2` with common loops by mode.
+- [ ] C671 Add “cadence” variants: modal cadences to I with bVII approach.
+- [ ] C672 Add predicate `celtic_cadence/2`.
+- [ ] C673 Add “melodic contour” tendencies: stepwise with occasional leaps (pipes/fiddle).
+- [ ] C674 Add predicate `celtic_melodic_range/3` by instrument.
+- [ ] C675 Add “ornament budget” by tempo and instrument (pipes vs fiddle).
+- [ ] C676 Add predicate `celtic_ornament_budget/3`.
+- [ ] C677 Add tune type: reel default tempo range and subdivision hints.
+- [ ] C678 Add tune type: jig default tempo range and subdivision hints.
+- [ ] C679 Add tune type: slip jig default tempo range and subdivision hints.
+- [ ] C680 Add tune type: hornpipe swing model (dotted rhythm).
+- [ ] C681 Add tune type: strathspey snap rhythm model.
+- [ ] C682 Add bodhran pattern templates for jigs and reels.
+- [ ] C683 Add predicate `bodhran_pattern/3`.
+- [ ] C684 Add accompaniment patterns: guitar/bouzouki “oom-pah” and arpeggiations.
+- [ ] C685 Add predicate `celtic_accompaniment_pattern/3`.
+- [ ] C686 Add “session dynamics” model: gradual layering, instrument entries, endings.
+- [ ] C687 Add predicate `celtic_session_arrangement/3`.
+- [ ] C688 Add card: `CelticTuneCard` (tune type, mode, ornaments, form, drone).
+- [ ] C689 Add card: `OrnamentGeneratorCard` (instrument-specific ornaments).
+- [ ] C690 Add card: `BodhranCard` (pattern picker + humanization).
+- [ ] C691 Add card: `DroneCard` reused with Celtic presets (pipes drone vs fiddle open strings).
+- [ ] C692 Add integration: phrase generator can emit Celtic ornamentation under constraints.
+- [ ] C693 Add integration: tracker shows AABB form markers and repeat controls.
+- [ ] C694 Add integration: arranger selects session arrangement templates for Celtic style.
+- [ ] C695 Add TS query wrapper `recommendCelticTune(spec)` returning tune type/mode/form.
+- [ ] C696 Add TS query wrapper `generateBodhranPattern(tuneType, tempo)`.
+- [ ] C697 Add “modal harmony explainer” in harmony explorer when culture=celtic.
+- [ ] C698 Add predicate `explain_modal_progression/3`.
+- [ ] C699 Add “ornament insertion points” detection (strong beats, phrase endings).
+- [ ] C700 Add predicate `ornament_points/3`.
+- [ ] C701 Add “roll” generator for reel tempo with constraints on spacing.
+- [ ] C702 Add predicate `generate_roll/4`.
+- [ ] C703 Add “cut/tap” generator for ornaments and mapping to MIDI grace notes.
+- [ ] C704 Add predicate `ornament_to_midi/3`.
+- [ ] C705 Add “pipes constraints” (avoid chromaticism; emphasize drones; specific scales).
+- [ ] C706 Add predicate `pipes_constraint/2`.
+- [ ] C707 Add “fiddle double-stop” optional generator (open-string resonances).
+- [ ] C708 Add predicate `double_stop_ok/3`.
+- [ ] C709 Add tests: tune type → meter mapping correct.
+- [ ] C710 Add tests: celtic progression predicates return at least one progression per mode.
+- [ ] C711 Add docs: “Celtic theory in CardPlay” (modes, ornaments, forms, decks).
+- [ ] C712 Add example project: “Dorian reel AABB with drone and bodhran”.
+- [ ] C713 Add example project: “Mixolydian jig with bouzouki accompaniment”.
+- [ ] C714 Add “celtic vs western harmony” conflict lint (e.g., heavy functional cadences).
+- [ ] C715 Add `spec_conflict/3` cases (celtic mode + strong V–I preference mismatch).
+- [ ] C716 Add “hybrid constraints” pack: cinematic-celtic (pipes + strings + pedal).
+- [ ] C717 Add `constraint_pack/2` for cinematic-celtic.
+- [ ] C718 Add “strathspey rhythm” generator constraints (snap + dotted feel).
+- [ ] C719 Add predicate `strathspey_rhythm_cell/2`.
+- [ ] C720 Add “hornpipe swing” mapping to tracker swing/humanize settings.
+- [ ] C721 Add predicate `hornpipe_swing/2`.
+- [ ] C722 Add “dance lift” constraints (accent on 1 and 4 in jigs, etc.).
+- [ ] C723 Add predicate `dance_lift_accent/3`.
+- [ ] C724 Add integration: MeterAccentCard supports Celtic dance accent presets.
+- [ ] C725 Add “call-and-response” phrasing templates for session tunes.
+- [ ] C726 Add predicate `celtic_call_response/3`.
+- [ ] C727 Add “variation” operators for repeats (A then A’ ornamentation).
+- [ ] C728 Add predicate `repeat_variation/3`.
+- [ ] C729 Add integration: phrase variation card can apply Celtic repeat variation presets.
+- [ ] C730 Add “ending” models (tag endings, fermata, unison hits).
+- [ ] C731 Add predicate `celtic_ending/3`.
+- [ ] C732 Add “set” model: chain multiple tunes with compatible keys/modes/tempos.
+- [ ] C733 Add predicate `tune_set_compatible/3`.
+- [ ] C734 Add “set builder” tool in arranger/phrase deck.
+- [ ] C735 Add card: `SetBuilderCard` for chaining tunes.
+- [ ] C736 Add tests: set builder chooses compatible keys/modes.
+- [ ] C737 Add “transposition constraints” for instruments (whistle in D, pipes in A, etc.).
+- [ ] C738 Add predicate `instrument_key_constraint/3`.
+- [ ] C739 Add integration: key suggestions respect instrument key constraints.
+- [ ] C740 Add docs: “Instrument key constraints (Celtic)” explanation.
+- [ ] C741 Add “ornament style” presets by region (Irish/Scottish/Cape Breton; metadata).
+- [ ] C742 Add predicate `celtic_style/2` and `style_ornament_bias/3`.
+- [ ] C743 Add “Cape Breton” swing/drive bias (strathspey/reel relationship).
+- [ ] C744 Add “Scottish” snap rhythm bias (strathspey).
+- [ ] C745 Add “Irish” roll/cut bias (reels/jigs).
+- [ ] C746 Add “harp accompaniment” voicing constraints (open sonorities).
+- [ ] C747 Add predicate `harp_voicing_ok/3`.
+- [ ] C748 Add integration: arranger chooses harp voicings for Celtic harp roles.
+- [ ] C749 Add coverage tests: all Celtic KB modules load and answer at least one query.
+- [ ] C750 Add benchmark: Celtic recommendations under 10ms.
+- [ ] C751 Add “celtic board” template (tracker + ornament + drone + set builder).
+- [ ] C752 Add UI: show “lift/accent” hints as overlays in tracker.
+- [ ] C753 Add UI: show “ornament points” suggestions with preview playback.
+- [ ] C754 Add lint: warn if ornament density exceeds instrument/tempo budget.
+- [ ] C755 Add `spec_lint/2` warnings for ornament overload.
+- [ ] C756 Add “notation export” mapping for ornaments (grace notes, turns).
+- [ ] C757 Add predicate `ornament_to_notation/3`.
+- [ ] C758 Add TS export path from ornament annotations to notation renderer.
+- [ ] C759 Add docs: “Ornaments across tracker and notation” (shared representation).
+- [ ] C760 Add final integration tests for Celtic workflow deck end-to-end.
+
+---
+
+## Phase C7 — Chinese music theory KB (pentatonic modes, heterophony, ornaments, forms) (C761–C860)
+
+- [ ] C761 Add Chinese culture tag and basic pitch model: pentatonic core degrees.
+- [ ] C762 Add predicate `gongche_mode/2` or `chinese_mode/2` mapping mode→pitch classes.
+- [ ] C763 Add the five pentatonic modes: gong, shang, jiao, zhi, yu.
+- [ ] C764 Add “bian” tones (additional heptatonic tones) as optional color notes.
+- [ ] C765 Add predicate `bian_tone/3` (Mode, Tone, Weight).
+- [ ] C766 Add instrument families: erhu, dizi, guzheng, pipa, guqin, sheng, suona, percussion.
+- [ ] C767 Add predicate `chinese_instrument_role/3`.
+- [ ] C768 Add texture model: heterophony (same melody with variations across instruments).
+- [ ] C769 Add predicate `heterophony/2` and `heterophony_variation/3`.
+- [ ] C770 Add ornament taxonomy: hua (grace), yao (vibrato), hua_yin (slides), tremolo.
+- [ ] C771 Add predicate `chinese_ornament/2` (Instrument, Ornaments).
+- [ ] C772 Add ornament-to-MIDI mapping rules (slides, bends, grace notes).
+- [ ] C773 Add predicate `chinese_ornament_to_midi/3`.
+- [ ] C774 Add rhythm model: free-rhythm intros vs metric sections (ban/yan feel).
+- [ ] C775 Add predicate `ban_yan/2` (Free, Metered) and constraints.
+- [ ] C776 Add form taxonomy: qin prelude, melody+variation, opera cue, dance tune.
+- [ ] C777 Add predicate `chinese_form/2`.
+- [ ] C778 Add scale-degree emphasis rules per mode (resting tones).
+- [ ] C779 Add predicate `chinese_nyasa/3` (Mode, Degree, Weight).
+- [ ] C780 Add melodic contour tendencies: pentatonic leaps, stepwise turns, octave doublings.
+- [ ] C781 Add predicate `chinese_contour_bias/3`.
+- [ ] C782 Add “cadence” model: pentatonic resolution to gong (tonic) with approach tones.
+- [ ] C783 Add predicate `chinese_cadence/3`.
+- [ ] C784 Add “modal modulation” rules between pentatonic modes.
+- [ ] C785 Add predicate `mode_modulate/3` (ModeA, ModeB, Strategy).
+- [ ] C786 Add “instrument technique” constraints (pipa tremolo, guzheng glissandi).
+- [ ] C787 Add predicate `technique/2` and `technique_constraint/3`.
+- [ ] C788 Add card: `ChineseModeCard` (mode, bian tones, heterophony, ornament style).
+- [ ] C789 Add card: `HeterophonyCard` (voices, variation depth, timing spread).
+- [ ] C790 Add card: `GuzhengGlissCard` (gliss rate, pitch set constraints).
+- [ ] C791 Add card: `ErhuOrnamentCard` (slides/vibrato density).
+- [ ] C792 Add integration: arranger supports heterophony role assignment across voices.
+- [ ] C793 Add integration: phrase generator can emit pentatonic melodies with bian tones.
+- [ ] C794 Add integration: tracker shows heterophony lanes (same melody variants).
+- [ ] C795 Add TS query wrapper `recommendChineseMode(spec)` returning mode + bian tones.
+- [ ] C796 Add TS query wrapper `generateHeterophonyVariants(melody, opts)`.
+- [ ] C797 Add “ornament points” detection for Chinese ornaments (phrase ends, long tones).
+- [ ] C798 Add predicate `chinese_ornament_points/3`.
+- [ ] C799 Add “free-rhythm” representation in tracker (rubato grid) as optional mode.
+- [ ] C800 Add conversion: free-rhythm phrases to ticks using expressive timing curves.
+- [ ] C801 Add predicate `rubato_curve/2`.
+- [ ] C802 Add “ban/yan” presets mapping to meter accent models.
+- [ ] C803 Add predicate `ban_yan_accent/3`.
+- [ ] C804 Add tests: pentatonic modes produce correct 5-tone pitch-class sets.
+- [ ] C805 Add tests: bian tones add optional color notes with lower weight.
+- [ ] C806 Add docs: “Chinese theory in CardPlay” (modes, heterophony, ornaments, decks).
+- [ ] C807 Add example project: “Gong mode heterophony with guzheng glissandi”.
+- [ ] C808 Add example project: “Pentatonic opera cue with suona lead + percussion”.
+- [ ] C809 Add “chinese vs western harmony” conflict lint (avoid dense functional chords by default).
+- [ ] C810 Add `spec_conflict/3` cases for chinese culture vs chord-heavy constraints.
+- [ ] C811 Add hybrid pack: cinematic-chinese (pentatonic + strings + percussion hits).
+- [ ] C812 Add `constraint_pack/2` for cinematic-chinese.
+- [ ] C813 Add “sheng chordal pad” constraints (stacked fifths, pentatonic clusters).
+- [ ] C814 Add predicate `sheng_voicing/3`.
+- [ ] C815 Add integration: arranger uses sheng_voicing for pad roles when selected.
+- [ ] C816 Add “pipa articulation” mapping (tremolo, plucks) to rhythm density rules.
+- [ ] C817 Add predicate `pipa_articulation/3`.
+- [ ] C818 Add “guqin harmonics” role mapping (flageolet-like color tones).
+- [ ] C819 Add predicate `guqin_harmonic/3`.
+- [ ] C820 Add “dizi breath phrasing” constraints (phrase length, rests).
+- [ ] C821 Add predicate `dizi_phrase_constraints/3`.
+- [ ] C822 Add “suona intensity” constraints (register and dynamic range).
+- [ ] C823 Add predicate `suona_constraints/3`.
+- [ ] C824 Add “percussion color” taxonomy (gongs, drums, clappers) and cue mappings.
+- [ ] C825 Add predicate `chinese_percussion_color/3`.
+- [ ] C826 Add “gesture mapping” (glissando = transition, gong hit = section boundary).
+- [ ] C827 Add predicate `gesture_to_role/3`.
+- [ ] C828 Add integration: tracker can place section markers from gesture suggestions.
+- [ ] C829 Add “melody variation” ops (ornamentation, register shift, rhythmic displacement).
+- [ ] C830 Add predicate `chinese_variation/4`.
+- [ ] C831 Add integration: phrase variation card supports Chinese variation presets.
+- [ ] C832 Add coverage tests: all Chinese predicates load and answer at least one query.
+- [ ] C833 Add benchmark: Chinese recommendations under 10ms.
+- [ ] C834 Add “chinese board” template (phrase + heterophony + ornament + arranger roles).
+- [ ] C835 Add UI overlays: show pentatonic “safe notes” and bian tones distinctly in tracker.
+- [ ] C836 Add UI overlays: show heterophony variation depth per voice.
+- [ ] C837 Add lint: warn if ornament density exceeds instrument technique constraints.
+- [ ] C838 Add `spec_lint/2` warnings for technique overload.
+- [ ] C839 Add notation export mapping for ornaments (slides, grace notes).
+- [ ] C840 Add predicate `chinese_ornament_to_notation/3`.
+- [ ] C841 Add TS export path from ornament annotations to notation renderer.
+- [ ] C842 Add “intonation” placeholder (just intonation vs 12-TET) metadata support.
+- [ ] C843 Add predicate `intonation_system/2` and `intonation_offset/3` (future).
+- [ ] C844 Add docs: “Intonation systems in CardPlay” (roadmap, not promises).
+- [ ] C845 Add “mode modulation” helper tool in harmony explorer.
+- [ ] C846 Add integration: harmony explorer can suggest mode shifts instead of chord modulations.
+- [ ] C847 Add predicate `recommend_mode_shift/4`.
+- [ ] C848 Add tests: mode shift recommendation returns plausible neighbor modes.
+- [ ] C849 Add “phrase head” extraction (reuse GTTM heads) for heterophony generation.
+- [ ] C850 Add integration: heterophony generator uses phrase heads for stable anchors.
+- [ ] C851 Add “timbral blend” rules for heterophony (avoid masking).
+- [ ] C852 Add predicate `masking_avoidance/3`.
+- [ ] C853 Add integration: arranger voice allocation respects masking avoidance.
+- [ ] C854 Add tests: masking avoidance yields different registers for competing roles.
+- [ ] C855 Add docs: “Heterophony in CardPlay” (why it’s different from polyphony).
+- [ ] C856 Add example: “Same melody, three instruments, varied ornaments”.
+- [ ] C857 Add final integration tests for Chinese workflow deck end-to-end.
+- [ ] C858 Add validation: culture-specific constraints can be toggled off in hybrid mode.
+- [ ] C859 Add UI: hybrid mode badge and explanation.
+- [ ] C860 Add final lint coverage for Chinese workflows.
+
+---
+
+## Phase C8 — Decks/cards integration across Arranger, Phrase, Tracker (C861–C960)
+
+- [ ] C861 Define canonical deck templates for Arranger Keyboard workflows (style, parts, voicings).
+- [ ] C862 Define canonical deck templates for Phrase workflows (browse, generate, adapt, vary).
+- [ ] C863 Define canonical deck templates for Tracker workflows (pattern edit, phrase assist, humanize).
+- [ ] C864 Add “Theory Deck” to all assisted/generative boards as optional side panel.
+- [ ] C865 Add Prolog facts describing each deck template: `deck_template/2`, `template_slot/3`.
+- [ ] C866 Add Prolog predicate `recommend_template/3` (Spec, TemplateId, Reasons).
+- [ ] C867 Add Prolog predicate `template_fits_board/3` (Template, Board, Score).
+- [ ] C868 Add UI: “Add recommended deck” action surfaced from Prolog recommendations.
+- [ ] C869 Add “arranger keyboard card” parameter mapping into `MusicSpec` (style/mood/energy).
+- [ ] C870 Add `constraint_arranger_style/1` and `constraint_scene_arc/1` predicates.
+- [ ] C871 Add “phrase generator card” parameter mapping into `MusicSpec` (density/contour/schema).
+- [ ] C872 Add `constraint_phrase_density/1`, `constraint_contour/1`, `constraint_max_interval/1`.
+- [ ] C873 Add “tracker card” parameter mapping into `MusicSpec` (pattern role, accents, swing).
+- [ ] C874 Add `constraint_pattern_role/1` and `constraint_swing/1`.
+- [ ] C875 Add unified “pattern role” taxonomy across tracker+arranger (fill, build, drop, etc.).
+- [ ] C876 Add Prolog predicate `role_compatible/2` for chaining roles across sections.
+- [ ] C877 Add “phrase insert” UX: tracker can drag phrases with constraints from Theory Deck.
+- [ ] C878 Add “phrase adapt on drop” UX using Prolog phrase adaptation rules.
+- [ ] C879 Add “schema recognition” on selected tracker region (suggest matching schemata).
+- [ ] C880 Add “film device recognition” on selected chord region (suggest devices in play).
+- [ ] C881 Add “culture recognition” on selected melody (suggest raga/mode match).
+- [ ] C882 Add TS pipeline: selection → extract events/chords → build profile → query KB.
+- [ ] C883 Add a shared `SelectionAnalyzer` utility for tracker/notation/session selections.
+- [ ] C884 Add “analysis result cards” that display model outputs with explainers.
+- [ ] C885 Add card: `TonalityAnalysisCard` (KS vs DFT vs Spiral comparison).
+- [ ] C886 Add card: `GroupingAnalysisCard` (GTTM boundaries + heads + cadence).
+- [ ] C887 Add card: `SchemaAnalysisCard` (galant schema matches + score).
+- [ ] C888 Add card: `CultureAnalysisCard` (raga/mode matches + confidence).
+- [ ] C889 Add “recommend next action” Prolog rules based on analysis results.
+- [ ] C890 Add predicate `next_action/3` (Context, HostAction, Reasons).
+- [ ] C891 Add “arranger style recommendation” from film mood + culture tags.
+- [ ] C892 Add predicate `recommend_arranger_style/3`.
+- [ ] C893 Add “phrase generator preset recommendation” from schema/culture/mood.
+- [ ] C894 Add predicate `recommend_phrase_preset/3`.
+- [ ] C895 Add “tracker pattern fill recommendation” from cadence markers + section transitions.
+- [ ] C896 Add predicate `recommend_tracker_fill/3`.
+- [ ] C897 Add “orchestration role allocation” from mood + section energy curve.
+- [ ] C898 Add predicate `allocate_roles/4` (Spec, Section, Roles, Reasons).
+- [ ] C899 Add integration: arranger uses `allocate_roles/4` to choose voices per part.
+- [ ] C900 Add integration: mixer defaults created from orchestration role allocation.
+- [ ] C901 Add “device-to-card” mapping (film device implies which cards should appear).
+- [ ] C902 Add predicate `device_requires_card/2`.
+- [ ] C903 Add UI: “Add required cards” action when user picks device pack.
+- [ ] C904 Add “culture-to-card” mapping (culture implies which world-music cards appear).
+- [ ] C905 Add predicate `culture_requires_card/2`.
+- [ ] C906 Add “schema-to-card” mapping (schema implies schema browser/realizer cards).
+- [ ] C907 Add predicate `schema_requires_card/2`.
+- [ ] C908 Add gating rules: beginner boards hide advanced theory cards by default.
+- [ ] C909 Add predicate `card_visible/3` (BoardControlLevel, CardId, Visible).
+- [ ] C910 Add “progressive disclosure” slider that changes visibility and recommendation verbosity.
+- [ ] C911 Add Prolog rule `explanation_level/2` derived from control level.
+- [ ] C912 Add UI: explanation level affects how many reasons are shown.
+- [ ] C913 Add “parameter linking” between cards (e.g., tonality model affects harmony explorer).
+- [ ] C914 Add TS linking layer: card param changes trigger updates to dependent cards.
+- [ ] C915 Add “spec event bus” shared by all cards (publish/subscribe to spec changes).
+- [ ] C916 Add tests: changing TonalityModelCard re-runs harmony suggestions with new model.
+- [ ] C917 Add tests: changing SchemaCard constrains phrase generator output.
+- [ ] C918 Add tests: changing CarnaticRagaTalaCard constrains melody generator pitch set.
+- [ ] C919 Add tests: changing CelticTuneCard updates ornament generator suggestions.
+- [ ] C920 Add tests: changing ChineseModeCard updates heterophony generation.
+- [ ] C921 Add “round-trip” tests: accept recommendation → modifies params → recommendations change.
+- [ ] C922 Add “undo” integration for applied HostActions.
+- [ ] C923 Add “session recording” integration: recorded phrases get analyzed and tagged automatically.
+- [ ] C924 Add Prolog facts for phrase tagging (schema tags, culture tags, mood tags).
+- [ ] C925 Add predicate `phrase_tag/3` (PhraseId, Tag, Confidence).
+- [ ] C926 Add “phrase database” indexing by tags and fingerprints.
+- [ ] C927 Add predicate `phrase_search/3` (Query, PhraseId, Score).
+- [ ] C928 Add “phrase recommendation” from current spec + selection context.
+- [ ] C929 Add predicate `recommend_phrase/4` (Spec, Context, PhraseId, Reasons).
+- [ ] C930 Add “arranger variation suggestion” from section energy curve and cadence strength.
+- [ ] C931 Add predicate `recommend_variation/4` (Style, Section, VariationIndex, Reasons).
+- [ ] C932 Add integration: arranger song parts default to recommended variation indices.
+- [ ] C933 Add “fill suggestion” from cadence markers (when approaching chorus/drop).
+- [ ] C934 Add integration: arranger triggers fillAtEnd based on suggestions.
+- [ ] C935 Add “tracker fill builder” that generates fills using style constraints.
+- [ ] C936 Add card: `FillBuilderCard` (drum fills, melodic fills, risers).
+- [ ] C937 Add predicate `generate_fill/4`.
+- [ ] C938 Add “voice-leading checker” that validates chord-to-chord motion in arranger output.
+- [ ] C939 Add integration: arranger warns on poor voice-leading (optional).
+- [ ] C940 Add “culture-aware voice-leading” profiles (avoid western V–I assumptions in raga contexts).
+- [ ] C941 Add predicate `voice_leading_profile/2`.
+- [ ] C942 Add “bridge adapters” between world pitch models and MIDI pitches (approximate).
+- [ ] C943 Add predicate `world_pitch_to_midi/3` and `midi_to_world_pitch/3`.
+- [ ] C944 Add UI: show approximate tuning warning when using world pitch models in MIDI.
+- [ ] C945 Add “render to notation” rules for schemata and ornaments (where representable).
+- [ ] C946 Add `export_notation/3` for analyzed phrases.
+- [ ] C947 Add “render to tracker” rules for schemata and ornaments (compact encoding).
+- [ ] C948 Add `export_tracker/3` for analyzed phrases.
+- [ ] C949 Add “render to arranger” rules for schemata and film devices (style presets).
+- [ ] C950 Add `export_arranger/3` for analyzed phrases/specs.
+- [ ] C951 Add docs: “How Arranger, Phrase, Tracker share theory” (end-to-end diagram).
+- [ ] C952 Add docs: “Declarative specs as params vs rules” (why both exist).
+- [ ] C953 Add example: “Start in tracker → analyze schema → move to arranger → orchestrate”.
+- [ ] C954 Add example: “Start with film mood card → generate harmony → insert phrase into tracker”.
+- [ ] C955 Add example: “Start with raga/tala → generate melody skeleton → add heterophony”.
+- [ ] C956 Add example: “Start with Celtic tune card → generate AABB → build set”.
+- [ ] C957 Add example: “Start with Chinese mode → generate heterophony → orchestrate”.
+- [ ] C958 Add integration tests: each example project builds without errors.
+- [ ] C959 Add performance tests: repeated analysis/recommendation cycles remain responsive.
+- [ ] C960 Add QA: validate no Prolog query can infinite loop (timeouts and guards).
+
+---
+
+## Phase C9 — Docs, QA, and release-hardening for theory features (C961–C1000)
+
+- [ ] C961 Update `cardplay/docs/ai/music-theory-predicates.md` for new theory predicates.
+- [ ] C962 Update `cardplay/docs/ai/composition-predicates.md` for new genres (celtic/chinese substyles).
+- [ ] C963 Add `cardplay/docs/ai/computational-theory.md` (GTTM, Spiral Array, DFT/phase).
+- [ ] C964 Add `cardplay/docs/ai/galant-schemata.md` (schema library and usage).
+- [ ] C965 Add `cardplay/docs/ai/film-music.md` (devices, mood packs, orchestration roles).
+- [ ] C966 Add `cardplay/docs/ai/carnatic.md` (raga/tala/gamaka; constraints).
+- [ ] C967 Add `cardplay/docs/ai/celtic.md` (tune types, ornaments, forms).
+- [ ] C968 Add `cardplay/docs/ai/chinese.md` (modes, heterophony, ornaments).
+- [ ] C969 Add `cardplay/docs/ai/theory-decks.md` (deck templates and recommended stacks).
+- [ ] C970 Add “KB contribution guide” for adding new data safely with tests.
+- [ ] C971 Add “glossary” mapping common theory terms to CardPlay primitives.
+- [ ] C972 Add tests: all KB modules load in isolation and together without predicate conflicts.
+- [ ] C973 Add tests: keyfinding comparisons (KS vs DFT vs Spiral) stable on fixtures.
+- [ ] C974 Add tests: schema matching stable on fixtures.
+- [ ] C975 Add tests: raga matching stable on fixtures (with approximation disclaimers).
+- [ ] C976 Add tests: celtic/chinese mode matching stable on fixtures.
+- [ ] C977 Add benchmarks: keep KB load time acceptable (<200ms for typical bundles).
+- [ ] C978 Add benchmarks: common recommendation queries under 10ms.
+- [ ] C979 Add fuzz tests: random spec constraints should never crash Prolog adapter.
+- [ ] C980 Add fuzz tests: random note sequences should not infinite-loop analysis predicates.
+- [ ] C981 Add build-time check: fail if any Prolog KB contains syntax errors.
+- [ ] C982 Add lint: fail if roadmap card ids do not exist in registry (when implemented).
+- [ ] C983 Add “theory feature flags” to gate experimental features (spiral/DFT).
+- [ ] C984 Add “capabilities report” card showing which theory models are enabled.
+- [ ] C985 Add UI: allow per-project enabling/disabling heavy theory modules.
+- [ ] C986 Add migration: ensure older projects load with sensible default theory cards hidden.
+- [ ] C987 Add “educational mode” toggles to surface explanations more aggressively.
+- [ ] C988 Add “pro mode” toggles to surface advanced constraints and raw Prolog goals.
+- [ ] C989 Add telemetry hooks (local-only) to measure which theory tools get used (optional).
+- [ ] C990 Add docs: “Privacy and offline-first AI” (Prolog runs locally, no network needed).
+- [ ] C991 Add sample deck JSON exports for Theory Deck, Film Deck, Galant Deck, World Deck.
+- [ ] C992 Add sample board presets referencing those deck exports.
+- [ ] C993 Add examples to README(s) for quickly enabling theory decks.
+- [ ] C994 Add “quickstart: film cue” tutorial (15 minutes).
+- [ ] C995 Add “quickstart: galant sentence” tutorial (15 minutes).
+- [ ] C996 Add “quickstart: carnatic raga+tala” tutorial (15 minutes).
+- [ ] C997 Add “quickstart: celtic AABB set” tutorial (15 minutes).
+- [ ] C998 Add “quickstart: chinese heterophony” tutorial (15 minutes).
+- [ ] C999 Add final review: ensure Branch C work items map cleanly to Branch A UI surfaces and Branch B Prolog engine.
+- [ ] C1000 Freeze Branch C roadmap and begin incremental implementation in small PRs.
+
+
+---
+
+## Phase C10 — User-Defined MusicSpec Extensions & Custom Cards (C1001–C1100) [FUTURE WORK]
+
+This phase enables users to extend the MusicSpec system with their own constraint types,
+Prolog predicates, and theory cards. The infrastructure is in place at:
+- `src/ai/theory/music-spec.ts` (ConstraintCustom type)
+- `src/ai/theory/custom-constraints.ts` (constraintRegistry)
+- `src/ai/theory/spec-prolog-bridge.ts` (custom constraint encoding)
+
+### User-Defined Constraint Types (C1001–C1020)
+
+- [ ] C1001 Add docs: "How to define a custom constraint type" (TypeScript + Prolog).
+- [ ] C1002 Add `CustomConstraintDefinition` validation for required fields.
+- [ ] C1003 Add namespace validation (require `user:`, `pack:`, or custom prefix).
+- [ ] C1004 Add constraint schema validation using JSON Schema.
+- [ ] C1005 Add runtime type checking for custom constraint params.
+- [ ] C1006 Add `constraintRegistry.import(packId)` for loading constraint packs.
+- [ ] C1007 Add `constraintRegistry.export()` for serializing registered constraints.
+- [ ] C1008 Add versioning support for custom constraint definitions.
+- [ ] C1009 Add deprecation warnings for outdated custom constraint versions.
+- [ ] C1010 Add migration helpers for evolving custom constraint schemas.
+- [ ] C1011 Add "constraint browser" UI for discovering available constraints.
+- [ ] C1012 Add search/filter for constraint browser by category and culture.
+- [ ] C1013 Add "constraint pack manager" for installing/removing packs.
+- [ ] C1014 Add constraint pack format specification (JSON + Prolog bundle).
+- [ ] C1015 Add constraint pack signing and verification (optional trust model).
+- [ ] C1016 Add tests: custom constraint registration and lookup.
+- [ ] C1017 Add tests: custom constraint Prolog encoding round-trip.
+- [ ] C1018 Add tests: custom constraint conflict detection with built-in constraints.
+- [ ] C1019 Add example: "Balinese gamelan scale" custom constraint pack.
+- [ ] C1020 Add example: "Jazz voicing rules" custom constraint pack.
+
+### User-Defined Prolog Predicates (C1021–C1040)
+
+- [ ] C1021 Add docs: "How to add custom Prolog predicates" (syntax, safety rules).
+- [ ] C1022 Add Prolog code sanitization (prevent infinite loops, limit recursion).
+- [ ] C1023 Add Prolog predicate namespace enforcement (`user_`, `pack_` prefixes).
+- [ ] C1024 Add Prolog code validation before loading (syntax check).
+- [ ] C1025 Add Prolog dependency declaration (require base KB predicates).
+- [ ] C1026 Add Prolog predicate versioning and deprecation support.
+- [ ] C1027 Add `loadCustomProlog(code, namespace)` API.
+- [ ] C1028 Add `unloadCustomProlog(namespace)` API.
+- [ ] C1029 Add "Prolog sandbox" mode for testing custom predicates safely.
+- [ ] C1030 Add Prolog error reporting with line numbers for custom code.
+- [ ] C1031 Add Prolog query timeout enforcement for custom predicates.
+- [ ] C1032 Add integration: card packs can bundle Prolog code.
+- [ ] C1033 Add integration: user cards can define inline Prolog snippets.
+- [ ] C1034 Add tests: custom Prolog loads without breaking base KB.
+- [ ] C1035 Add tests: custom Prolog namespace isolation.
+- [ ] C1036 Add tests: custom Prolog timeout enforcement.
+- [ ] C1037 Add example: custom "bluegrass progression rules" Prolog module.
+- [ ] C1038 Add example: custom "Indian classical transition rules" Prolog module.
+- [ ] C1039 Add benchmarks: custom Prolog load time overhead.
+- [ ] C1040 Add docs: "Prolog safety guidelines for pack authors".
+
+### User-Defined Theory Cards (C1041–C1070)
+
+- [ ] C1041 Add `ConstraintContributingCard` interface to card protocol.
+- [ ] C1042 Add card manifest field: `contributes.constraints[]`.
+- [ ] C1043 Add card manifest field: `contributes.prologCode`.
+- [ ] C1044 Add card manifest field: `contributes.constraintPacks[]`.
+- [ ] C1045 Add automatic constraint registration when card is loaded.
+- [ ] C1046 Add automatic constraint unregistration when card is removed.
+- [ ] C1047 Add "Theory Card Template" for creating new theory cards.
+- [ ] C1048 Add card parameter to constraint mapping declaration syntax.
+- [ ] C1049 Add bidirectional sync: constraint changes update card params.
+- [ ] C1050 Add bidirectional sync: card param changes update constraints.
+- [ ] C1051 Add card-to-card constraint linking (e.g., key card affects mode card).
+- [ ] C1052 Add "constraint preview" showing Prolog term for current card state.
+- [ ] C1053 Add "constraint conflict indicator" on card UI.
+- [ ] C1054 Add "explain constraint" action showing Prolog reasoning.
+- [ ] C1055 Add card pack format for bundling custom theory cards.
+- [ ] C1056 Add card pack installation from file/URL.
+- [ ] C1057 Add card pack dependency resolution (require base packs).
+- [ ] C1058 Add card pack update mechanism with version checking.
+- [ ] C1059 Add tests: card contributes constraints on load.
+- [ ] C1060 Add tests: card removes constraints on unload.
+- [ ] C1061 Add tests: card param changes propagate to MusicSpec.
+- [ ] C1062 Add tests: MusicSpec changes propagate to card params.
+- [ ] C1063 Add example card: "Microtonal Scale Card" (custom tuning constraint).
+- [ ] C1064 Add example card: "Polyrhythm Card" (custom meter overlay constraint).
+- [ ] C1065 Add example card: "Extended Technique Card" (custom articulation constraint).
+- [ ] C1066 Add example card: "Regional Style Card" (user-defined style packs).
+- [ ] C1067 Add docs: "Creating a custom theory card" tutorial.
+- [ ] C1068 Add docs: "Theory card best practices" (constraint design, UX patterns).
+- [ ] C1069 Add docs: "Publishing a theory card pack" (format, distribution).
+- [ ] C1070 Add "Theory Card Marketplace" placeholder (future community feature).
+
+### Custom Constraint UI Components (C1071–C1090)
+
+- [ ] C1071 Add generic constraint parameter editor (auto-generated from schema).
+- [ ] C1072 Add constraint parameter types: enum, number, range, boolean, string.
+- [ ] C1073 Add constraint parameter types: note, chord, scale, mode selectors.
+- [ ] C1074 Add constraint parameter types: culture-specific (raga, tala, tune type).
+- [ ] C1075 Add constraint parameter groups with collapsible sections.
+- [ ] C1076 Add constraint parameter presets (save/load named configurations).
+- [ ] C1077 Add constraint parameter randomization ("surprise me" button).
+- [ ] C1078 Add constraint parameter interpolation (morph between presets).
+- [ ] C1079 Add constraint visualization: pitch class display for scale constraints.
+- [ ] C1080 Add constraint visualization: beat grid for rhythm constraints.
+- [ ] C1081 Add constraint visualization: tension graph for harmonic constraints.
+- [ ] C1082 Add constraint "quick add" from analysis results.
+- [ ] C1083 Add constraint "learn from selection" (extract constraints from events).
+- [ ] C1084 Add constraint comparison view (before/after with diff).
+- [ ] C1085 Add constraint export to JSON/Prolog for sharing.
+- [ ] C1086 Add constraint import from JSON/Prolog.
+- [ ] C1087 Add tests: generic editor renders all parameter types.
+- [ ] C1088 Add tests: preset save/load round-trip.
+- [ ] C1089 Add tests: constraint visualization updates on param change.
+- [ ] C1090 Add docs: "Custom constraint UI patterns".
+
+### Integration & Ecosystem (C1091–C1100)
+
+- [ ] C1091 Add project-level custom constraint persistence.
+- [ ] C1092 Add workspace-level constraint pack configuration.
+- [ ] C1093 Add user preference: default constraint packs to load.
+- [ ] C1094 Add "constraint profile" switching (switch full constraint sets).
+- [ ] C1095 Add export: project + all required custom constraints as bundle.
+- [ ] C1096 Add import: project bundle with constraint auto-installation.
+- [ ] C1097 Add analytics: track custom constraint usage (local only).
+- [ ] C1098 Add "constraint health check" diagnostic tool.
+- [ ] C1099 Add final integration tests for custom constraint ecosystem.
+- [ ] C1100 Add docs: "Extending CardPlay theory system" (complete guide).
+---
+
+## Phase C11 — Lydian Chromatic Concept (George Russell's Tonal Gravity) (C1101–C1200)
+
+The Lydian Chromatic Concept of Tonal Organization is George Russell's influential theory
+that positions the Lydian scale (not major/Ionian) as the most consonant scale relative
+to a tonic. This phase implements Russell's concepts for jazz harmony analysis and generation.
+
+### Core Lydian Chromatic Concepts (C1101–C1130)
+
+- [ ] C1101 Add docs: "Lydian Chromatic Concept overview" (tonal gravity, parent scales).
+- [ ] C1102 Add `lydian_tonic/2` predicate: Lydian as primary consonant scale from any root.
+- [ ] C1103 Add Lydian Chromatic Scale (all 12 tones ordered by tonal gravity from Lydian tonic).
+- [ ] C1104 Add predicate `lydian_chromatic_order/2` (Root, OrderedPitchClasses).
+- [ ] C1105 Add "tonal gravity" levels: vertical (chord) vs horizontal (melodic).
+- [ ] C1106 Add predicate `tonal_gravity_level/3` (Note, LydianRoot, GravityLevel).
+- [ ] C1107 Add "principal" scales: Lydian, Lydian Augmented, Lydian Diminished, etc.
+- [ ] C1108 Add predicate `principal_scale/2` (ScaleName, Intervals).
+- [ ] C1109 Add "horizontal" scales: scales for melodic motion over chord types.
+- [ ] C1110 Add predicate `horizontal_scale/3` (ChordType, ScaleName, Intervals).
+- [ ] C1111 Add "vertical" scales: scales for chord voicing and extensions.
+- [ ] C1112 Add predicate `vertical_scale/3` (ChordType, ScaleName, Intervals).
+- [ ] C1113 Add "parent scale" concept: derive chord from scale rather than scale from chord.
+- [ ] C1114 Add predicate `chord_parent_scale/3` (Chord, ParentScale, Reasons).
+- [ ] C1115 Add "Lydian Chromatic order" for all 12 pitch classes from any tonic.
+- [ ] C1116 Add predicate `lcc_pitch_order/3` (Tonic, PC, Order1to12).
+- [ ] C1117 Add "outgoing" vs "ingoing" tonal gravity distinction.
+- [ ] C1118 Add predicate `gravity_direction/3` (Note, LydianRoot, Direction).
+- [ ] C1119 Add "tonal order" mapping: I, II, III, IV#, V, VI, VII (Lydian degrees).
+- [ ] C1120 Add predicate `lydian_degree/3` (Note, LydianRoot, Degree).
+- [ ] C1121 Add "chord-scale unity" concept: chord and scale as same entity.
+- [ ] C1122 Add predicate `chord_scale_unity/3` (ChordSymbol, Scale, Voicing).
+- [ ] C1123 Add "modal genre" categories: major, minor, augmented, diminished families.
+- [ ] C1124 Add predicate `modal_genre/2` (Scale, Genre).
+- [ ] C1125 Add "supra-vertical tonal gravity" for extended harmonies.
+- [ ] C1126 Add predicate `supra_vertical_extension/3` (Chord, Extension, GravityScore).
+- [ ] C1127 Add tests: Lydian scale has highest consonance score from its tonic.
+- [ ] C1128 Add tests: Lydian Chromatic order places #4 before natural 4.
+- [ ] C1129 Add tests: chord-parent-scale lookup returns expected principal scales.
+- [ ] C1130 Add docs: "Why Lydian? Russell's reasoning and modern applications".
+
+### Lydian Chromatic Chord-Scale Relationships (C1131–C1160)
+
+- [ ] C1131 Add Lydian Chromatic chord types: Maj7#11, min7, 7sus, 7alt, etc.
+- [ ] C1132 Add predicate `lcc_chord_type/2` (ChordSymbol, Structure).
+- [ ] C1133 Add "chord-scale" pairings for major family (Lydian, Ionian, Mixolydian).
+- [ ] C1134 Add "chord-scale" pairings for minor family (Dorian, Aeolian, Phrygian).
+- [ ] C1135 Add "chord-scale" pairings for dominant family (Mixolydian, Lydian b7, Altered).
+- [ ] C1136 Add "chord-scale" pairings for diminished family (Locrian, Locrian #2).
+- [ ] C1137 Add predicate `lcc_chord_scale/3` (ChordType, ScaleChoice, GravityFit).
+- [ ] C1138 Add "avoid notes" concept based on tonal gravity conflicts.
+- [ ] C1139 Add predicate `lcc_avoid_note/3` (Chord, Scale, AvoidNote).
+- [ ] C1140 Add "color tones" based on tonal gravity enhancement.
+- [ ] C1141 Add predicate `lcc_color_tone/3` (Chord, Scale, ColorTone).
+- [ ] C1142 Add "upper structure triads" from Lydian Chromatic perspective.
+- [ ] C1143 Add predicate `upper_structure_triad/4` (BaseChord, TriadRoot, TriadQuality, Tensions).
+- [ ] C1144 Add "polychord" voicings based on LCC principles.
+- [ ] C1145 Add predicate `lcc_polychord/4` (BaseChord, UpperChord, Voicing, GravityScore).
+- [ ] C1146 Add "slash chord" interpretation via parent scale analysis.
+- [ ] C1147 Add predicate `slash_chord_parent/3` (SlashChord, ParentScale, Analysis).
+- [ ] C1148 Add "modal interchange" via Lydian Chromatic lens.
+- [ ] C1149 Add predicate `lcc_modal_interchange/4` (Key, BorrowedChord, SourceScale, GravityShift).
+- [ ] C1150 Add "Coltrane changes" analysis using LCC concepts.
+- [ ] C1151 Add predicate `coltrane_substitution/3` (OriginalChord, Substitution, LCCReason).
+- [ ] C1152 Add "tritone substitution" via LCC horizontal gravity.
+- [ ] C1153 Add predicate `lcc_tritone_sub/3` (Dominant, Sub, GravityPath).
+- [ ] C1154 Add "ii-V-I" analysis via LCC parent scales.
+- [ ] C1155 Add predicate `lcc_ii_v_i/4` (Key, ii, V, I_scales).
+- [ ] C1156 Add tests: dominant chord returns Lydian b7 as high-gravity option.
+- [ ] C1157 Add tests: minor chord returns Dorian as primary option.
+- [ ] C1158 Add tests: upper structure triads yield correct tension combinations.
+- [ ] C1159 Add docs: "Chord-scale relationships in LCC vs traditional jazz theory".
+- [ ] C1160 Add example: "Giant Steps" analysis using LCC principles.
+
+### Lydian Chromatic Cards & Integration (C1161–C1200)
+
+- [ ] C1161 Add card: `LydianChromaticCard` (tonic, scale selection, gravity display).
+- [ ] C1162 Add card: `ParentScaleCard` (chord → parent scale lookup with alternatives).
+- [ ] C1163 Add card: `TonalGravityVisualizerCard` (circular display of pitch gravity).
+- [ ] C1164 Add card: `ChordScaleUnityCard` (shows chord/scale as unified entity).
+- [ ] C1165 Add card: `UpperStructureCard` (polychord voicing builder).
+- [ ] C1166 Add UI: "gravity heatmap" overlay in harmony explorer.
+- [ ] C1167 Add UI: "parent scale" suggestion on chord selection.
+- [ ] C1168 Add UI: "avoid notes" warnings in melody generator.
+- [ ] C1169 Add integration: phrase generator can use LCC scales for melodic lines.
+- [ ] C1170 Add integration: chord generator can suggest LCC-based voice leading.
+- [ ] C1171 Add integration: arranger voicings can use LCC polychord templates.
+- [ ] C1172 Add predicate `recommend_lcc_voicing/4` (Chord, Context, Voicing, Reasons).
+- [ ] C1173 Add predicate `recommend_lcc_scale/4` (Chord, MelodicContext, Scale, Reasons).
+- [ ] C1174 Add `constraint_lcc_gravity/1` for tonal gravity preferences.
+- [ ] C1175 Add `constraint_lcc_parent_scale/1` for parent scale enforcement.
+- [ ] C1176 Add constraint pack: "lcc_modal_jazz" (Lydian-first approach).
+- [ ] C1177 Add constraint pack: "lcc_bebop" (Lydian Chromatic + bebop vocabulary).
+- [ ] C1178 Add constraint pack: "lcc_fusion" (extended LCC voicings + modern rhythm).
+- [ ] C1179 Add TS query wrapper `analyzeLCCGravity(notes)` returning gravity levels.
+- [ ] C1180 Add TS query wrapper `recommendLCCScale(chord)` returning ranked scales.
+- [ ] C1181 Add TS query wrapper `buildLCCVoicing(chord, opts)` returning polychord.
+- [ ] C1182 Add "LCC reharmonization" tool: suggest gravity-based substitutions.
+- [ ] C1183 Add predicate `lcc_reharmonize/4` (OriginalProgression, NewProgression, Strategy, Reasons).
+- [ ] C1184 Add "tonal gravity analysis" of existing melody (identify implied parent scales).
+- [ ] C1185 Add predicate `analyze_melody_gravity/3` (Notes, ImpliedScales, GravityProfile).
+- [ ] C1186 Add "LCC voice leading" constraints (movement by tonal gravity).
+- [ ] C1187 Add predicate `lcc_voice_leading_score/3` (VoiceMotion, GravityScore, Reasons).
+- [ ] C1188 Add tests: LCC voicing generator produces valid jazz voicings.
+- [ ] C1189 Add tests: LCC scale recommendation matches chord type.
+- [ ] C1190 Add tests: LCC reharmonization preserves melodic compatibility.
+- [ ] C1191 Add docs: "Lydian Chromatic Concept in CardPlay" (cards, workflows).
+- [ ] C1192 Add example project: "Modal jazz tune with LCC voicings".
+- [ ] C1193 Add example project: "Coltrane changes reharmonization".
+- [ ] C1194 Add example project: "LCC-guided improvisation over standards".
+- [ ] C1195 Add "LCC board" template (harmony explorer + LCC cards + phrase gen).
+- [ ] C1196 Add lint: warn when melody conflicts with parent scale gravity.
+- [ ] C1197 Add `spec_conflict/3` cases for LCC vs traditional functional harmony.
+- [ ] C1198 Add benchmark: LCC scale recommendation under 10ms.
+- [ ] C1199 Add coverage tests: all LCC predicates load and answer queries.
+- [ ] C1200 Add final integration tests for LCC workflow end-to-end.
+
+---
+
+## Phase C12 — Jazz Arranging Theory (Voicings, Big Band, Combo, Reharmonization) (C1201–C1350)
+
+This phase implements comprehensive jazz arranging theory for combo and big band contexts,
+including voicing techniques, section writing, counterpoint, and reharmonization strategies.
+
+### Jazz Voicing Foundations (C1201–C1240)
+
+- [ ] C1201 Add docs: "Jazz voicing principles" (voice leading, extensions, avoid notes).
+- [ ] C1202 Add "shell voicing" templates (3rd + 7th in left hand).
+- [ ] C1203 Add predicate `shell_voicing/3` (Chord, VoiceSet, Inversion).
+- [ ] C1204 Add "rootless voicing" templates (A and B voicings).
+- [ ] C1205 Add predicate `rootless_voicing/4` (Chord, Type_A_or_B, Notes, Register).
+- [ ] C1206 Add "drop voicing" techniques: drop 2, drop 3, drop 2+4.
+- [ ] C1207 Add predicate `drop_voicing/4` (CloseVoicing, DropType, OpenVoicing, Span).
+- [ ] C1208 Add "spread voicing" for open textures (orchestral jazz).
+- [ ] C1209 Add predicate `spread_voicing/4` (Chord, Extensions, Voicing, RegisterSpan).
+- [ ] C1210 Add "cluster voicing" for dense modern jazz textures.
+- [ ] C1211 Add predicate `jazz_cluster_voicing/4` (Chord, Density, Voicing, Tensions).
+- [ ] C1212 Add "quartal voicing" for modal jazz (McCoy Tyner style).
+- [ ] C1213 Add predicate `quartal_jazz_voicing/4` (Chord, QuartalStack, Notes, Reasons).
+- [ ] C1214 Add "So What voicing" (specific quartal structure).
+- [ ] C1215 Add predicate `so_what_voicing/3` (Root, Quality, Notes).
+- [ ] C1216 Add "Kenny Barron voicing" (minor 9th structures).
+- [ ] C1217 Add predicate `barron_voicing/3` (Chord, Notes, Tensions).
+- [ ] C1218 Add "Bill Evans voicing" (open rootless with pedal).
+- [ ] C1219 Add predicate `evans_voicing/4` (Chord, VoicingType, Notes, Reasons).
+- [ ] C1220 Add "Herbie Hancock voicing" (cluster + quartal hybrid).
+- [ ] C1221 Add predicate `hancock_voicing/4` (Chord, Context, Notes, Reasons).
+- [ ] C1222 Add "stride piano" voicing templates.
+- [ ] C1223 Add predicate `stride_voicing/4` (Chord, BassNote, ChordNotes, Rhythm).
+- [ ] C1224 Add "two-handed voicing" balance rules (piano/keys).
+- [ ] C1225 Add predicate `two_hand_voicing/5` (Chord, LeftHand, RightHand, Balance, Reasons).
+- [ ] C1226 Add "guitar voicing" constraints (4-6 note max, fret span limits).
+- [ ] C1227 Add predicate `guitar_voicing/4` (Chord, Voicing, Frets, Fingering).
+- [ ] C1228 Add "voice leading" optimization between chord voicings.
+- [ ] C1229 Add predicate `voice_leading_score/4` (Voicing1, Voicing2, Score, Moves).
+- [ ] C1230 Add "common tone" preservation rules.
+- [ ] C1231 Add predicate `common_tones/3` (Chord1, Chord2, SharedNotes).
+- [ ] C1232 Add "smooth voice leading" constraints (minimal motion).
+- [ ] C1233 Add predicate `smooth_voice_leading/4` (Progression, Voicings, TotalMotion, Reasons).
+- [ ] C1234 Add "contrary motion" detection for voice independence.
+- [ ] C1235 Add predicate `contrary_motion/4` (Voice1, Voice2, Direction1, Direction2).
+- [ ] C1236 Add tests: shell voicings contain 3rd and 7th.
+- [ ] C1237 Add tests: drop 2 voicing correctly redistributes close position.
+- [ ] C1238 Add tests: voice leading optimizer minimizes total semitone motion.
+- [ ] C1239 Add docs: "Voicing types reference" (with audio examples).
+- [ ] C1240 Add example: "ii-V-I with voice leading optimization".
+
+### Big Band Section Writing (C1241–C1280)
+
+- [ ] C1241 Add docs: "Big band section writing fundamentals".
+- [ ] C1242 Add section taxonomy: saxes (AATTB), trumpets (4), trombones (4), rhythm.
+- [ ] C1243 Add predicate `big_band_section/2` (SectionName, Instruments).
+- [ ] C1244 Add "unison/octave" writing for power and clarity.
+- [ ] C1245 Add predicate `unison_octave_line/3` (Melody, Section, SectionVoices).
+- [ ] C1246 Add "soli" writing (harmonized melody in one section).
+- [ ] C1247 Add predicate `soli_voicing/4` (Melody, HarmonyChords, Section, Voices).
+- [ ] C1248 Add "4-way close" sax soli technique.
+- [ ] C1249 Add predicate `four_way_close/3` (MelodyNote, Chord, FourNotes).
+- [ ] C1250 Add "5-way close" with doubled lead (standard sax soli).
+- [ ] C1251 Add predicate `five_way_close/3` (MelodyNote, Chord, FiveNotes).
+- [ ] C1252 Add "drop 2" sax soli voicing.
+- [ ] C1253 Add predicate `sax_soli_drop2/3` (MelodyNote, Chord, FiveNotes).
+- [ ] C1254 Add "drop 2+4" brass voicing.
+- [ ] C1255 Add predicate `brass_drop_2_4/3` (MelodyNote, Chord, BrassVoices).
+- [ ] C1256 Add "spread voicing" for full big band (across sections).
+- [ ] C1257 Add predicate `big_band_spread/4` (Chord, Sections, FullVoicing, Reasons).
+- [ ] C1258 Add "block voicing" (locked hands across sections).
+- [ ] C1259 Add predicate `block_voicing/4` (Melody, Chords, Section, BlockedLine).
+- [ ] C1260 Add "background figures" (riffs, pads, punches behind soloist).
+- [ ] C1261 Add predicate `background_figure/4` (Type, Rhythm, Voicing, Role).
+- [ ] C1262 Add "shout chorus" arranging (climactic ensemble passages).
+- [ ] C1263 Add predicate `shout_chorus/4` (Melody, Chords, FullEnsemble, Dynamics).
+- [ ] C1264 Add "tutti" vs "soli" section balance.
+- [ ] C1265 Add predicate `section_balance/4` (Passage, ActiveSections, RestingSections, Reasons).
+- [ ] C1266 Add "call and response" between sections.
+- [ ] C1267 Add predicate `call_response_sections/4` (CallSection, ResponseSection, CallMaterial, ResponseMaterial).
+- [ ] C1268 Add "contrapuntal" backgrounds (independent lines).
+- [ ] C1269 Add predicate `contrapuntal_bg/4` (MainMelody, CounterMelody, Voicings, Reasons).
+- [ ] C1270 Add "register" management across sections (avoid muddiness).
+- [ ] C1271 Add predicate `register_allocation/4` (Chord, Sections, Registers, Spacing).
+- [ ] C1272 Add "dynamics" layering for section builds.
+- [ ] C1273 Add predicate `dynamic_layer/4` (Section, DynamicLevel, EntryPoint, Reasons).
+- [ ] C1274 Add tests: 4-way close produces correct interval structure.
+- [ ] C1275 Add tests: drop 2 sax soli maintains melody on top.
+- [ ] C1276 Add tests: section balance avoids tutti overload.
+- [ ] C1277 Add docs: "Big band arranging workflow" (from lead sheet to full score).
+- [ ] C1278 Add example project: "Swing chart with sax soli and brass punches".
+- [ ] C1279 Add example project: "Shout chorus build over 12-bar blues".
+- [ ] C1280 Add example project: "Modal big band with quartal brass voicings".
+
+### Combo Arranging & Small Group Writing (C1281–C1310)
+
+- [ ] C1281 Add docs: "Small group jazz arranging" (trio, quartet, quintet, sextet).
+- [ ] C1282 Add combo taxonomy: duo, trio, quartet, quintet, sextet, septet, nonet.
+- [ ] C1283 Add predicate `jazz_combo/2` (Size, TypicalInstruments).
+- [ ] C1284 Add "head arrangement" templates (minimal notation, maximum freedom).
+- [ ] C1285 Add predicate `head_arrangement/4` (Tune, Form, Melody, HarmonyGuide).
+- [ ] C1286 Add "rhythm section" role distribution (piano/bass/drums interplay).
+- [ ] C1287 Add predicate `rhythm_section_role/4` (Instrument, Role, Context, Constraints).
+- [ ] C1288 Add "piano comping" patterns by style (swing, bossa, ballad).
+- [ ] C1289 Add predicate `comping_pattern/4` (Style, Chord, Pattern, RhythmFeel).
+- [ ] C1290 Add "bass walking" line generation from chord chart.
+- [ ] C1291 Add predicate `walking_bass/4` (ChordProgression, WalkingLine, Style, Reasons).
+- [ ] C1292 Add "drum patterns" by style and tempo.
+- [ ] C1293 Add predicate `jazz_drum_pattern/4` (Style, Tempo, Pattern, Variations).
+- [ ] C1294 Add "horn section" writing for small group (2-3 horns).
+- [ ] C1295 Add predicate `small_horn_section/4` (Melody, Chord, HornVoices, Texture).
+- [ ] C1296 Add "harmonized unison" for horn pairs/trios.
+- [ ] C1297 Add predicate `harmonized_unison/4` (Melody, Interval, Voice1, Voice2).
+- [ ] C1298 Add "interlude" and "vamp" construction.
+- [ ] C1299 Add predicate `interlude_vamp/4` (Chords, Duration, Texture, Purpose).
+- [ ] C1300 Add "solo section" structure (chorus length, form markers).
+- [ ] C1301 Add predicate `solo_section/4` (Form, Choruses, Trades, EndingCue).
+- [ ] C1302 Add "trading fours/eights" structure.
+- [ ] C1303 Add predicate `trading_structure/4` (TradeLength, Instruments, Order, Transitions).
+- [ ] C1304 Add "outro/tag" construction for endings.
+- [ ] C1305 Add predicate `jazz_ending/4` (Type, Chords, Melody, Arrangement).
+- [ ] C1306 Add tests: walking bass line hits chord tones on strong beats.
+- [ ] C1307 Add tests: horn harmonization stays within instrument ranges.
+- [ ] C1308 Add docs: "Combo arranging checklist" (form, roles, dynamics).
+- [ ] C1309 Add example project: "Jazz quartet arrangement of standard".
+- [ ] C1310 Add example project: "Quintet arrangement with 2-horn head".
+
+### Jazz Reharmonization Techniques (C1311–C1350)
+
+- [ ] C1311 Add docs: "Reharmonization principles" (when and why to reharmonize).
+- [ ] C1312 Add "tritone substitution" rules and applications.
+- [ ] C1313 Add predicate `tritone_sub/3` (OriginalChord, SubChord, Reasons).
+- [ ] C1314 Add "passing diminished" chord insertion.
+- [ ] C1315 Add predicate `passing_diminished/4` (Chord1, Chord2, PassingDim, VoiceLeading).
+- [ ] C1316 Add "chromatic approach" chord insertion.
+- [ ] C1317 Add predicate `chromatic_approach/4` (TargetChord, ApproachChord, Direction, Reasons).
+- [ ] C1318 Add "secondary dominant" insertion (V/x).
+- [ ] C1319 Add predicate `secondary_dominant/4` (TargetChord, SecDom, Resolution, Reasons).
+- [ ] C1320 Add "related ii" insertion (ii-V approach to any chord).
+- [ ] C1321 Add predicate `related_ii/3` (TargetChord, RelatedII, FullApproach).
+- [ ] C1322 Add "backdoor dominant" (bVII7 to I).
+- [ ] C1323 Add predicate `backdoor_dominant/3` (TargetChord, Backdoor, Reasons).
+- [ ] C1324 Add "Tadd Dameron turnaround" and variants.
+- [ ] C1325 Add predicate `dameron_turnaround/3` (Key, Chords, Reasons).
+- [ ] C1326 Add "Coltrane changes" (major third cycle substitutions).
+- [ ] C1327 Add predicate `coltrane_changes/4` (OriginalProgression, ColtraneVersion, CycleType, Reasons).
+- [ ] C1328 Add "constant structure" reharmonization (parallel chord movement).
+- [ ] C1329 Add predicate `constant_structure/4` (Melody, ChordQuality, Progression, Reasons).
+- [ ] C1330 Add "planing" reharmonization (parallel diatonic/chromatic).
+- [ ] C1331 Add predicate `jazz_planing/4` (Melody, PlaningType, Progression, Reasons).
+- [ ] C1332 Add "pedal point" reharmonization (bass pedal with moving upper structure).
+- [ ] C1333 Add predicate `pedal_reharm/4` (OriginalProgression, PedalNote, NewProgression, Reasons).
+- [ ] C1334 Add "modal reharmonization" (replace functional with modal stasis).
+- [ ] C1335 Add predicate `modal_reharm/4` (OriginalProgression, Mode, ModalVersion, Reasons).
+- [ ] C1336 Add "chord substitution strength" scoring.
+- [ ] C1337 Add predicate `sub_strength/4` (Original, Substitution, Strength, Compatibility).
+- [ ] C1338 Add "melody compatibility" checking for reharmonization.
+- [ ] C1339 Add predicate `melody_compatible/4` (Melody, NewChord, CompatScore, Conflicts).
+- [ ] C1340 Add integration: harmony explorer suggests reharmonizations.
+- [ ] C1341 Add integration: arranger can apply reharmonization templates.
+- [ ] C1342 Add card: `ReharmonizationCard` (technique picker, preview, apply).
+- [ ] C1343 Add card: `TritoneSubCard` (one-click tritone sub insertion).
+- [ ] C1344 Add card: `ColtraneChangesCard` (cycle substitution builder).
+- [ ] C1345 Add tests: tritone sub preserves guide tones (3rd/7th).
+- [ ] C1346 Add tests: melody compatibility rejects clashing reharmonizations.
+- [ ] C1347 Add docs: "Reharmonization cookbook" (techniques with examples).
+- [ ] C1348 Add example project: "Standards with progressive reharmonization".
+- [ ] C1349 Add example project: "Coltrane changes applied to 'Autumn Leaves'".
+- [ ] C1350 Add final integration tests for jazz arranging workflow.
+
+---
+
+## Phase C13 — Jazz Improvisation Theory (Lines, Patterns, Guide Tones) (C1351–C1450)
+
+This phase adds support for jazz improvisation analysis, practice patterns, and
+melodic vocabulary generation based on jazz pedagogy and bebop tradition.
+
+### Bebop & Jazz Melodic Vocabulary (C1351–C1390)
+
+- [ ] C1351 Add docs: "Bebop language fundamentals" (eighth-note lines, enclosures).
+- [ ] C1352 Add "bebop scale" variants (major, dominant, minor, Dorian).
+- [ ] C1353 Add predicate `bebop_scale/3` (Type, Root, Notes).
+- [ ] C1354 Add "enclosure" patterns (chromatic approach from above/below).
+- [ ] C1355 Add predicate `enclosure/4` (TargetNote, EnclosureType, Notes, Rhythm).
+- [ ] C1356 Add "digital patterns" (1235, 1357, etc.).
+- [ ] C1357 Add predicate `digital_pattern/4` (Chord, PatternType, Notes, Direction).
+- [ ] C1358 Add "approach note" patterns (chromatic, scalar, indirect).
+- [ ] C1359 Add predicate `approach_pattern/4` (TargetNote, ApproachType, Notes, Rhythm).
+- [ ] C1360 Add "arpeggio" patterns from chord tones through extensions.
+- [ ] C1361 Add predicate `jazz_arpeggio/4` (Chord, Range, Notes, Direction).
+- [ ] C1362 Add "pentatonic superimposition" patterns.
+- [ ] C1363 Add predicate `pentatonic_super/4` (Chord, PentatonicRoot, Notes, Tension).
+- [ ] C1364 Add "triad pair" improvisation patterns.
+- [ ] C1365 Add predicate `triad_pair/4` (Chord, TriadPair, Pattern, Reasons).
+- [ ] C1366 Add "hexatonic" patterns (triad pair merged scales).
+- [ ] C1367 Add predicate `hexatonic_scale/3` (TriadPair, Scale, Tensions).
+- [ ] C1368 Add "cliche" vocabulary (stock phrases, licks, quotes).
+- [ ] C1369 Add predicate `jazz_cliche/4` (Context, Phrase, Source, Usage).
+- [ ] C1370 Add "target note" strategy for line construction.
+- [ ] C1371 Add predicate `target_note_line/4` (ChordProgression, Targets, Line, Reasons).
+- [ ] C1372 Add "guide tone line" generation (3rds and 7ths voice-led).
+- [ ] C1373 Add predicate `guide_tone_line/3` (ChordProgression, GuideTones, VoiceLeading).
+- [ ] C1374 Add "motivic development" techniques (sequence, inversion, fragmentation).
+- [ ] C1375 Add predicate `motif_development/4` (Motif, Technique, DevelopedMotif, Reasons).
+- [ ] C1376 Add "rhythmic displacement" patterns.
+- [ ] C1377 Add predicate `rhythmic_displacement/4` (Pattern, Displacement, NewPattern, Reasons).
+- [ ] C1378 Add "outside playing" techniques (side-stepping, superimposition).
+- [ ] C1379 Add predicate `outside_technique/4` (Chord, Technique, OutsideLine, ResolutionPath).
+- [ ] C1380 Add tests: bebop scale correctly adds passing tone.
+- [ ] C1381 Add tests: enclosure patterns land on target on downbeat.
+- [ ] C1382 Add tests: guide tone line moves by step/common tone.
+- [ ] C1383 Add docs: "Building jazz vocabulary" (patterns, practice routines).
+- [ ] C1384 Add example: "Digital patterns through ii-V-I".
+- [ ] C1385 Add example: "Enclosure exercises over standards".
+- [ ] C1386 Add example: "Guide tone line through rhythm changes".
+- [ ] C1387 Add example: "Pentatonic superimposition over minor blues".
+- [ ] C1388 Add example: "Outside playing with resolution".
+- [ ] C1389 Add predicate `jazz_practice_exercise/4` (Concept, Exercise, Chords, Instructions).
+- [ ] C1390 Add TS wrapper `generateJazzExercise(concept, key)` for practice generation.
+
+### Jazz Improvisation Cards & Integration (C1391–C1450)
+
+- [ ] C1391 Add card: `BebopScaleCard` (scale type, root, practice modes).
+- [ ] C1392 Add card: `EnclosureCard` (enclosure type, target notes, preview).
+- [ ] C1393 Add card: `DigitalPatternCard` (pattern selector, chord input, output).
+- [ ] C1394 Add card: `GuideToneCard` (progression input, guide tone line generator).
+- [ ] C1395 Add card: `LickLibraryCard` (browse, search, insert vocabulary).
+- [ ] C1396 Add card: `MotifDeveloperCard` (input motif, select technique, generate).
+- [ ] C1397 Add card: `OutsideCard` (tension control, resolution strategy).
+- [ ] C1398 Add integration: phrase generator uses bebop vocabulary constraints.
+- [ ] C1399 Add integration: tracker can insert jazz patterns at selection.
+- [ ] C1400 Add integration: arranger solo section uses melodic vocabulary.
+- [ ] C1401 Add "transcription analysis" tools (extract patterns from phrases).
+- [ ] C1402 Add predicate `analyze_jazz_phrase/3` (Phrase, Patterns, Vocabulary).
+- [ ] C1403 Add "pattern recognition" for digital patterns, enclosures, arpeggios.
+- [ ] C1404 Add predicate `recognize_pattern/3` (Notes, PatternType, Match).
+- [ ] C1405 Add "vocabulary builder" workflow (learn from transcriptions).
+- [ ] C1406 Add UI: highlight recognized patterns in tracker/notation.
+- [ ] C1407 Add UI: suggest vocabulary insertions based on chord context.
+- [ ] C1408 Add "practice mode" with progressive pattern exercises.
+- [ ] C1409 Add predicate `next_practice_step/3` (CurrentLevel, NextExercise, Reasons).
+- [ ] C1410 Add "call and response" practice mode (system plays, user responds).
+- [ ] C1411 Add constraint: `jazz_vocabulary_level/1` (beginner/intermediate/advanced).
+- [ ] C1412 Add constraint: `jazz_style_era/1` (swing/bebop/cool/modal/fusion/contemporary).
+- [ ] C1413 Add constraint pack: "bebop_fundamentals" (enclosures, digital patterns, arpeggios).
+- [ ] C1414 Add constraint pack: "modal_jazz_vocabulary" (quartal, pentatonic, static harmony).
+- [ ] C1415 Add constraint pack: "contemporary_jazz" (triad pairs, hexatonics, outside).
+- [ ] C1416 Add TS wrapper `analyzeJazzPhrase(notes)` returning patterns.
+- [ ] C1417 Add TS wrapper `suggestJazzVocabulary(chord, level)` returning phrases.
+- [ ] C1418 Add TS wrapper `generateGuideToneLine(progression)` returning line.
+- [ ] C1419 Add "jazz analysis report" for imported MIDI/transcriptions.
+- [ ] C1420 Add predicate `jazz_analysis_report/3` (Phrase, Chords, Report).
+- [ ] C1421 Add "style comparison" (is this more bebop or modal?).
+- [ ] C1422 Add predicate `jazz_style_match/3` (Phrase, Style, Score).
+- [ ] C1423 Add tests: pattern recognition identifies enclosures correctly.
+- [ ] C1424 Add tests: bebop vocabulary generator produces valid lines.
+- [ ] C1425 Add tests: guide tone generator creates smooth voice leading.
+- [ ] C1426 Add docs: "Jazz improvisation in CardPlay" (cards, workflows).
+- [ ] C1427 Add example project: "Bebop etude over rhythm changes".
+- [ ] C1428 Add example project: "Modal jazz improvisation over 'So What'".
+- [ ] C1429 Add example project: "Contemporary vocabulary over Coltrane changes".
+- [ ] C1430 Add "jazz improv board" template (phrase gen + vocabulary + guide tones).
+- [ ] C1431 Add lint: warn when line doesn't resolve outside tension.
+- [ ] C1432 Add `spec_lint/2` for jazz melodic line quality.
+- [ ] C1433 Add "tension curve" analysis for jazz lines.
+- [ ] C1434 Add predicate `tension_curve/3` (Line, Chords, TensionProfile).
+- [ ] C1435 Add UI: tension curve visualization for improv lines.
+- [ ] C1436 Add "target note practice" mode with backing track integration.
+- [ ] C1437 Add "transcription import" workflow (MIDI → analysis → vocabulary extraction).
+- [ ] C1438 Add predicate `extract_vocabulary/3` (Transcription, PatternLibrary, Stats).
+- [ ] C1439 Add "personal vocabulary library" per user (saved licks, patterns).
+- [ ] C1440 Add predicate `user_vocabulary/3` (UserId, PatternType, Patterns).
+- [ ] C1441 Add "vocabulary export" to practice sheets (PDF/notation).
+- [ ] C1442 Add "ear training" integration (pattern playback, identification).
+- [ ] C1443 Add coverage tests: all jazz improv predicates work.
+- [ ] C1444 Add benchmark: pattern recognition under 10ms.
+- [ ] C1445 Add final integration tests for jazz improv workflow.
+- [ ] C1446 Add docs: "Jazz theory integration roadmap" (LCC + arranging + improv).
+- [ ] C1447 Add cross-phase validation: LCC constraints work with jazz voicings.
+- [ ] C1448 Add cross-phase validation: jazz voicings work with reharmonization.
+- [ ] C1449 Add cross-phase validation: improv patterns work with LCC scales.
+- [ ] C1450 Add final summary: "Jazz theory complete" integration report.
+
+---
+
+## Phase C14 — Mathematical & Computational Models of Orchestration (C1451–C1550)
+
+### Spectral Music & Additive Synthesis Models (C1451–C1475)
+- [ ] C1451 Add KB: `music-theory-spectral.pl` for spectral music concepts.
+- [ ] C1452 Add predicate `harmonic_series/3` (Fundamental, NumPartials, PartialsList).
+- [ ] C1453 Add predicate `partial_amplitude/3` (PartialNum, Rolloff, Amplitude).
+- [ ] C1454 Add predicate `inharmonic_spectrum/3` (Fundamental, Stretch, Partials).
+- [ ] C1455 Add predicate `spectral_centroid/2` (Spectrum, Centroid).
+- [ ] C1456 Add predicate `spectral_flux/3` (Spectrum1, Spectrum2, Flux).
+- [ ] C1457 Add predicate `spectral_rolloff/3` (Spectrum, Threshold, Frequency).
+- [ ] C1458 Add predicate `mfcc_coefficients/3` (Spectrum, NumCoeffs, MFCCs).
+- [ ] C1459 Add predicate `instrument_spectrum_model/3` (Instrument, Pitch, Spectrum).
+- [ ] C1460 Add predicate `additive_synthesis_target/3` (TargetSpectrum, Instruments, Assignment).
+- [ ] C1461 Add predicate `spectral_similarity/3` (Spectrum1, Spectrum2, Similarity).
+- [ ] C1462 Add predicate `spectral_morphing/4` (Spec1, Spec2, T, InterpolatedSpec).
+- [ ] C1463 Add predicate `grisey_spectral_harmony/3` (Fundamental, SpectralChord, Voicing).
+- [ ] C1464 Add predicate `murail_spectral_process/3` (SourceSpec, Transform, ResultSpec).
+- [ ] C1465 Add predicate `spectral_to_pitch_class/3` (Spectrum, Tolerance, PitchClasses).
+- [ ] C1466 Add predicate `pitch_class_to_spectral/3` (PitchClasses, Fundamental, Spectrum).
+- [ ] C1467 Add constraint: `spectral_brightness/1` (dark/neutral/bright).
+- [ ] C1468 Add constraint: `spectral_density/1` (sparse/moderate/dense).
+- [ ] C1469 Add constraint: `spectral_evolution/1` (static/slow/dynamic).
+- [ ] C1470 Add TS type: `SpectralModel` with partials, amplitudes, phases.
+- [ ] C1471 Add TS wrapper `calculateSpectralCentroid(spectrum)`.
+- [ ] C1472 Add TS wrapper `morphSpectrum(spec1, spec2, t)`.
+- [ ] C1473 Add TS wrapper `assignInstrumentsToSpectrum(targetSpectrum, available)`.
+- [ ] C1474 Add tests: spectral analysis produces correct centroids.
+- [ ] C1475 Add docs: "Spectral music in CardPlay" (Grisey, Murail techniques).
+
+### Klangfarbenmelodie & Timbre Distribution (C1476–C1490)
+- [ ] C1476 Add predicate `klangfarben_melody/3` (Melody, InstrumentSeq, Result).
+- [ ] C1477 Add predicate `timbre_transition_cost/3` (Instr1, Instr2, Cost).
+- [ ] C1478 Add predicate `optimal_timbre_path/3` (Melody, Instruments, OptimalAssignment).
+- [ ] C1479 Add predicate `instrument_register_sweet_spot/3` (Instrument, LowNote, HighNote).
+- [ ] C1480 Add predicate `instrument_dynamic_range/3` (Instrument, SoftestDb, LoudestDb).
+- [ ] C1481 Add predicate `instrument_attack_profile/3` (Instrument, AttackMs, AttackShape).
+- [ ] C1482 Add predicate `instrument_blend_factor/3` (Instr1, Instr2, BlendQuality).
+- [ ] C1483 Add predicate `section_blend_matrix/2` (InstrumentList, BlendMatrix).
+- [ ] C1484 Add predicate `hocket_pattern/3` (Melody, NumVoices, HocketResult).
+- [ ] C1485 Add predicate `compound_melody_analysis/3` (Melody, Voices, VoiceAssignment).
+- [ ] C1486 Add constraint: `timbre_continuity/1` (fragmented/moderate/smooth).
+- [ ] C1487 Add constraint: `register_spread/1` (narrow/medium/wide).
+- [ ] C1488 Add TS wrapper `analyzeCompoundMelody(notes)` returning voice streams.
+- [ ] C1489 Add TS wrapper `generateHocket(melody, instruments)`.
+- [ ] C1490 Add tests: klangfarben assignment respects instrument ranges.
+
+### Orchestral Balance & Doubling Theory (C1491–C1510)
+- [ ] C1491 Add predicate `rimsky_korsakov_rule/3` (Voicing, Rule, Applies).
+- [ ] C1492 Add predicate `piston_orchestration_principle/3` (Context, Principle, Application).
+- [ ] C1493 Add predicate `adler_doubling_rule/4` (Melody, Dynamics, Texture, Doubling).
+- [ ] C1494 Add predicate `orchestral_weight/3` (Instrumentation, Dynamics, WeightScore).
+- [ ] C1495 Add predicate `balance_check/3` (Voicing, Dynamics, BalanceIssues).
+- [ ] C1496 Add predicate `doubling_effectiveness/4` (Primary, Secondary, Interval, Score).
+- [ ] C1497 Add predicate `octave_doubling_rule/3` (Voice, OctaveChoice, Effectiveness).
+- [ ] C1498 Add predicate `unison_doubling_blend/3` (Instr1, Instr2, BlendQuality).
+- [ ] C1499 Add predicate `tutti_balance/3` (FullScore, Section, BalanceAnalysis).
+- [ ] C1500 Add predicate `foreground_background_separation/3` (Score, Foreground, Background).
+- [ ] C1501 Add predicate `masking_risk/4` (Voice1, Voice2, Register, Risk).
+- [ ] C1502 Add predicate `optimal_spacing/3` (Chord, Instruments, SpacingResult).
+- [ ] C1503 Add predicate `kennan_grantham_rule/3` (Situation, Rule, Recommendation).
+- [ ] C1504 Add constraint: `orchestral_density/1` (chamber/small/medium/large/massive).
+- [ ] C1505 Add constraint: `doubling_style/1` (unison/octave/color/reinforcement).
+- [ ] C1506 Add TS type: `OrchestralBalance` with weight, spread, density.
+- [ ] C1507 Add TS wrapper `analyzeOrchestralBalance(score)`.
+- [ ] C1508 Add TS wrapper `suggestDoublings(melody, targetWeight)`.
+- [ ] C1509 Add tests: balance analysis detects masking issues.
+- [ ] C1510 Add docs: "Classical orchestration theory in CardPlay".
+
+### Set Theory & Pitch-Class Analysis for Arrangement (C1511–C1530)
+- [ ] C1511 Add predicate `pitch_class_set/2` (Notes, PCSet).
+- [ ] C1512 Add predicate `forte_number/2` (PCSet, ForteNumber).
+- [ ] C1513 Add predicate `interval_vector/2` (PCSet, IntervalVector).
+- [ ] C1514 Add predicate `set_class_normal_form/2` (PCSet, NormalForm).
+- [ ] C1515 Add predicate `set_class_prime_form/2` (PCSet, PrimeForm).
+- [ ] C1516 Add predicate `set_transposition/3` (PCSet, N, TransposedSet).
+- [ ] C1517 Add predicate `set_inversion/3` (PCSet, Axis, InvertedSet).
+- [ ] C1518 Add predicate `set_complement/2` (PCSet, Complement).
+- [ ] C1519 Add predicate `z_relation/2` (PCSet1, PCSet2).
+- [ ] C1520 Add predicate `subset_relation/3` (PCSet, SuperSet, IsSubset).
+- [ ] C1521 Add predicate `common_tones_under_transposition/4` (PCSet, N, CommonTones, Count).
+- [ ] C1522 Add predicate `transformational_network/3` (SetSequence, Operations, Network).
+- [ ] C1523 Add predicate `neo_riemannian_plr/3` (Triad, Operation, ResultTriad).
+- [ ] C1524 Add predicate `tonnetz_distance/3` (Chord1, Chord2, Distance).
+- [ ] C1525 Add predicate `parsimonious_voice_leading/3` (Chord1, Chord2, VoiceLeading).
+- [ ] C1526 Add constraint: `set_complexity/1` (simple/moderate/complex).
+- [ ] C1527 Add constraint: `transformation_type/1` (T/I/R/P/L).
+- [ ] C1528 Add TS wrapper `analyzePitchClassSet(notes)` returning Forte number.
+- [ ] C1529 Add TS wrapper `findParsimoniousPath(chord1, chord2)`.
+- [ ] C1530 Add tests: set analysis matches published Forte tables.
+
+### Algorithmic Orchestration & AI Models (C1531–C1550)
+- [ ] C1531 Add predicate `ircam_orchidea_model/3` (TargetSound, Instruments, Solution).
+- [ ] C1532 Add predicate `orchestration_search_space/3` (Constraints, NumInstr, SearchSpace).
+- [ ] C1533 Add predicate `constraint_satisfaction_orchestration/3` (Constraints, Pool, Assignment).
+- [ ] C1534 Add predicate `genetic_orchestration/4` (Target, Population, Generations, Best).
+- [ ] C1535 Add predicate `neural_timbre_embedding/3` (Sound, Model, Embedding).
+- [ ] C1536 Add predicate `timbre_space_distance/3` (Embedding1, Embedding2, Distance).
+- [ ] C1537 Add predicate `orchestration_fitness/3` (Assignment, Target, FitnessScore).
+- [ ] C1538 Add predicate `multi_objective_orchestration/4` (Targets, Weights, Pool, Pareto).
+- [ ] C1539 Add predicate `style_transfer_orchestration/4` (Source, TargetStyle, Pool, Result).
+- [ ] C1540 Add predicate `reduction_to_orchestration/3` (PianoScore, Style, FullScore).
+- [ ] C1541 Add constraint: `orchestration_algorithm/1` (greedy/beam/genetic/constraint).
+- [ ] C1542 Add constraint: `timbre_matching_tolerance/1` (strict/moderate/loose).
+- [ ] C1543 Add TS type: `OrchestrationSolution` with assignment, fitness, explanation.
+- [ ] C1544 Add TS wrapper `solveOrchestration(target, constraints)`.
+- [ ] C1545 Add TS wrapper `expandPianoToOrchestra(pianoScore, style)`.
+- [ ] C1546 Add tests: orchestration solver finds valid assignments.
+- [ ] C1547 Add benchmark: orchestration search under 100ms for small ensembles.
+- [ ] C1548 Add docs: "Algorithmic orchestration in CardPlay".
+- [ ] C1549 Add example project: "Piano to orchestra expansion".
+- [ ] C1550 Add final summary: "Computational orchestration complete".
+
+---
+
+## Phase C15 — Film Scoring Theory & Emotion (C1551–C1700)
+
+### Foundational Film Music Theory (C1551–C1580)
+- [ ] C1551 Add KB: `music-theory-film-scoring.pl` for film music concepts.
+- [ ] C1552 Add predicate `diegetic_vs_nondiegetic/2` (MusicCue, Type).
+- [ ] C1553 Add predicate `mickey_mousing/3` (Action, MusicSync, IsMickeying).
+- [ ] C1554 Add predicate `underscoring_technique/3` (Scene, Technique, Application).
+- [ ] C1555 Add predicate `source_scoring/3` (SourceSound, Treatment, Result).
+- [ ] C1556 Add predicate `anempathetic_music/3` (SceneEmotion, MusicEmotion, Contrast).
+- [ ] C1557 Add predicate `empathetic_music/3` (SceneEmotion, MusicEmotion, Alignment).
+- [ ] C1558 Add predicate `leitmotif_definition/3` (MotifId, Character, MusicalMaterial).
+- [ ] C1559 Add predicate `leitmotif_transformation/4` (MotifId, Scene, Transform, Result).
+- [ ] C1560 Add predicate `leitmotif_combination/4` (Motif1, Motif2, Technique, Combined).
+- [ ] C1561 Add predicate `temp_track_analysis/3` (TempTrack, Features, Extracted).
+- [ ] C1562 Add predicate `hit_point/3` (Timecode, EventType, MusicAction).
+- [ ] C1563 Add predicate `streamer_and_punch/4` (StartTC, EndTC, Duration, Tempo).
+- [ ] C1564 Add predicate `click_track_calculation/4` (HitPoints, TempoRange, Rubato, ClickTrack).
+- [ ] C1565 Add predicate `free_timing_cue/3` (Conductor, Streamers, FlexPoints).
+- [ ] C1566 Add constraint: `sync_precision/1` (loose/moderate/tight/frame_accurate).
+- [ ] C1567 Add constraint: `score_function/1` (underscore/source/transition/stinger).
+- [ ] C1568 Add constraint: `narrative_role/1` (tension/release/foreshadow/recall/comment).
+- [ ] C1569 Add TS type: `FilmCue` with timecodes, hitpoints, function.
+- [ ] C1570 Add TS wrapper `calculateClickTrack(hitPoints, constraints)`.
+- [ ] C1571 Add TS wrapper `analyzeLeitmotifUsage(score)`.
+- [ ] C1572 Add tests: click track calculation hits all sync points.
+- [ ] C1573 Add docs: "Film scoring fundamentals in CardPlay".
+- [ ] C1574 Add predicate `berklee_film_scoring_rule/3` (Situation, Rule, Application).
+- [ ] C1575 Add predicate `usc_scoring_approach/3` (Genre, Approach, Techniques).
+- [ ] C1576 Add predicate `nyu_steinhardt_method/3` (Scene, Analysis, Recommendation).
+- [ ] C1577 Add predicate `ucla_scoring_technique/3` (Context, Technique, Implementation).
+- [ ] C1578 Add predicate `film_school_convention/3` (School, Convention, Details).
+- [ ] C1579 Add constraint: `scoring_philosophy/1` (classical_hollywood/minimalist/avant_garde/hybrid).
+- [ ] C1580 Add constraint: `director_preference/1` (wall_to_wall/sparse/source_heavy).
+
+### Emotion-Music Mapping Models (C1581–C1620)
+- [ ] C1581 Add predicate `russell_circumplex/3` (Valence, Arousal, EmotionLabel).
+- [ ] C1582 Add predicate `thayer_energy_stress/3` (Energy, Stress, EmotionLabel).
+- [ ] C1583 Add predicate `plutchik_wheel/3` (PrimaryEmotion, Intensity, Variant).
+- [ ] C1584 Add predicate `ekman_basic_emotion/2` (Emotion, MusicalCorrelates).
+- [ ] C1585 Add predicate `laukka_juslin_cues/3` (Emotion, AcousticCues, Weights).
+- [ ] C1586 Add predicate `tempo_to_arousal/2` (Tempo, ArousalLevel).
+- [ ] C1587 Add predicate `mode_to_valence/2` (Mode, ValenceLevel).
+- [ ] C1588 Add predicate `dynamics_to_intensity/2` (DynamicLevel, IntensityLevel).
+- [ ] C1589 Add predicate `articulation_to_tension/2` (Articulation, TensionLevel).
+- [ ] C1590 Add predicate `register_to_weight/2` (Register, PerceivedWeight).
+- [ ] C1591 Add predicate `harmonic_tension_to_suspense/2` (TensionScore, SuspenseLevel).
+- [ ] C1592 Add predicate `timbre_brightness_to_mood/2` (Brightness, MoodAssociation).
+- [ ] C1593 Add predicate `rhythm_regularity_to_stability/2` (Regularity, StabilityLevel).
+- [ ] C1594 Add predicate `composite_emotion_model/3` (MusicalFeatures, Model, EmotionVector).
+- [ ] C1595 Add predicate `emotion_to_music_params/3` (TargetEmotion, Constraints, MusicSpec).
+- [ ] C1596 Add predicate `emotional_arc/3` (SceneTimeline, EmotionCurve, MusicPlan).
+- [ ] C1597 Add predicate `emotional_contrast/4` (Emotion1, Emotion2, TransitionType, Music).
+- [ ] C1598 Add predicate `catharsis_model/3` (TensionBuild, Release, CatharsisPoint).
+- [ ] C1599 Add predicate `suspense_anticipation_model/4` (Event, Delay, Uncertainty, Music).
+- [ ] C1600 Add constraint: `target_valence/1` (negative/neutral/positive).
+- [ ] C1601 Add constraint: `target_arousal/1` (calm/moderate/excited).
+- [ ] C1602 Add constraint: `emotional_trajectory/1` (static/building/releasing/arc).
+- [ ] C1603 Add TS type: `EmotionVector` with valence, arousal, tension, etc.
+- [ ] C1604 Add TS wrapper `mapMusicToEmotion(musicFeatures)`.
+- [ ] C1605 Add TS wrapper `generateEmotionalCue(targetEmotion, duration)`.
+- [ ] C1606 Add tests: tempo/mode correctly predict valence/arousal.
+- [ ] C1607 Add docs: "Emotion-music mapping in CardPlay".
+- [ ] C1608 Add predicate `meyer_expectation_emotion/3` (Expectation, Outcome, Emotion).
+- [ ] C1609 Add predicate `huron_sweet_anticipation/3` (Prediction, Resolution, Response).
+- [ ] C1610 Add predicate `koelsch_music_emotion/3` (Feature, Process, Emotion).
+- [ ] C1611 Add predicate `zentner_geneva_model/3` (MusicType, Induced, Perceived).
+- [ ] C1612 Add predicate `sloboda_tears_chills/3` (MusicalDevice, PhysicalResponse, Mechanism).
+- [ ] C1613 Add predicate `chill_inducing_pattern/2` (Pattern, ChillProbability).
+- [ ] C1614 Add predicate `tear_inducing_pattern/2` (Pattern, TearProbability).
+- [ ] C1615 Add predicate `awe_inducing_pattern/2` (Pattern, AweProbability).
+- [ ] C1616 Add constraint: `target_physical_response/1` (chills/tears/goosebumps/none).
+- [ ] C1617 Add TS wrapper `predictEmotionalResponse(music)`.
+- [ ] C1618 Add TS wrapper `designForChills(constraints)`.
+- [ ] C1619 Add tests: chill patterns correctly identified.
+- [ ] C1620 Add docs: "Psychophysiology of music in CardPlay".
+
+### Genre-Specific Film Scoring (C1621–C1660)
+- [ ] C1621 Add predicate `horror_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1622 Add predicate `horror_cluster/3` (ClusterType, Instruments, Voicing).
+- [ ] C1623 Add predicate `horror_stinger/3` (StingerType, Duration, Instrumentation).
+- [ ] C1624 Add predicate `horror_drone/3` (DroneType, Harmonics, Movement).
+- [ ] C1625 Add predicate `tension_without_release/3` (TensionLevel, Duration, Technique).
+- [ ] C1626 Add predicate `action_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1627 Add predicate `action_ostinato/3` (OstinatoType, Rhythm, Instrumentation).
+- [ ] C1628 Add predicate `action_brass_stab/3` (StabType, Voicing, Rhythm).
+- [ ] C1629 Add predicate `chase_music_pattern/3` (IntensityLevel, Tempo, Pattern).
+- [ ] C1630 Add predicate `fight_music_sync/3` (FightPhase, MusicPhase, Sync).
+- [ ] C1631 Add predicate `romance_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1632 Add predicate `love_theme_structure/3` (Structure, Development, Climax).
+- [ ] C1633 Add predicate `romantic_string_writing/3` (Texture, Voicing, Movement).
+- [ ] C1634 Add predicate `bittersweet_harmony/3` (BaseHarmony, AddedTensions, Effect).
+- [ ] C1635 Add predicate `comedy_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1636 Add predicate `comedic_timing/3` (VisualBeat, MusicBeat, Offset).
+- [ ] C1637 Add predicate `cartoon_music_device/3` (Device, Trigger, Sound).
+- [ ] C1638 Add predicate `ironic_underscore/3` (SceneTone, MusicTone, IronicEffect).
+- [ ] C1639 Add predicate `drama_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1640 Add predicate `dramatic_pause/3` (Context, Duration, ReentryType).
+- [ ] C1641 Add predicate `emotional_swell/3` (BuildType, PeakPoint, Resolution).
+- [ ] C1642 Add predicate `subtle_underscore/3` (SceneContent, MusicIntensity, Technique).
+- [ ] C1643 Add predicate `scifi_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1644 Add predicate `electronic_orchestral_hybrid/3` (Balance, Textures, Integration).
+- [ ] C1645 Add predicate `alien_sound_design/3` (Concept, Synthesis, Musical).
+- [ ] C1646 Add predicate `space_ambience/3` (Type, Elements, Emotional).
+- [ ] C1647 Add predicate `fantasy_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1648 Add predicate `epic_theme_structure/3` (ThemeType, Orchestration, Development).
+- [ ] C1649 Add predicate `magical_element/3` (MagicType, Sound, Instrumentation).
+- [ ] C1650 Add predicate `world_building_music/3` (Culture, MusicalElements, Authenticity).
+- [ ] C1651 Add constraint: `film_genre/1` (horror/action/romance/comedy/drama/scifi/fantasy).
+- [ ] C1652 Add constraint: `scoring_era/1` (golden_age/new_hollywood/modern/contemporary).
+- [ ] C1653 Add TS type: `FilmGenreProfile` with techniques, instruments, harmony.
+- [ ] C1654 Add TS wrapper `generateGenreCue(genre, sceneType, duration)`.
+- [ ] C1655 Add TS wrapper `analyzeFilmScoreGenre(cue)`.
+- [ ] C1656 Add tests: horror techniques produce high tension scores.
+- [ ] C1657 Add docs: "Genre-specific film scoring in CardPlay".
+- [ ] C1658 Add example project: "Horror film cue with stingers".
+- [ ] C1659 Add example project: "Action chase sequence".
+- [ ] C1660 Add example project: "Romantic theme development".
+
+### Famous Composer Techniques (C1661–C1700)
+- [ ] C1661 Add predicate `williams_technique/3` (Technique, Context, Implementation).
+- [ ] C1662 Add predicate `williams_fanfare/3` (Type, Voicing, Rhythm).
+- [ ] C1663 Add predicate `williams_action_ostinato/3` (Pattern, Development, Orchestration).
+- [ ] C1664 Add predicate `williams_romantic_melody/3` (Contour, Harmony, Orchestration).
+- [ ] C1665 Add predicate `zimmer_technique/3` (Technique, Context, Implementation).
+- [ ] C1666 Add predicate `zimmer_ostinato_layer/3` (Layer, Rhythm, Texture).
+- [ ] C1667 Add predicate `zimmer_bass_design/3` (Type, Synthesis, Processing).
+- [ ] C1668 Add predicate `zimmer_hybrid_orchestration/3` (Acoustic, Electronic, Balance).
+- [ ] C1669 Add predicate `horner_technique/3` (Technique, Context, Implementation).
+- [ ] C1670 Add predicate `horner_danger_motif/3` (Intervals, Rhythm, Instrumentation).
+- [ ] C1671 Add predicate `horner_ethnic_integration/3` (Culture, Elements, OrchestralBlend).
+- [ ] C1672 Add predicate `morricone_technique/3` (Technique, Context, Implementation).
+- [ ] C1673 Add predicate `morricone_sparse_texture/3` (Elements, Space, Tension).
+- [ ] C1674 Add predicate `morricone_vocal_use/3` (VocalType, Role, Treatment).
+- [ ] C1675 Add predicate `morricone_electric_guitar/3` (Style, Processing, Context).
+- [ ] C1676 Add predicate `goldsmith_technique/3` (Technique, Context, Implementation).
+- [ ] C1677 Add predicate `goldsmith_modernism/3` (Technique, Integration, Effect).
+- [ ] C1678 Add predicate `elfman_technique/3` (Technique, Context, Implementation).
+- [ ] C1679 Add predicate `elfman_quirky_orchestration/3` (Element, Treatment, Effect).
+- [ ] C1680 Add predicate `elfman_choir_use/3` (ChoirType, Role, Gothic).
+- [ ] C1681 Add predicate `howard_technique/3` (Technique, Context, Implementation).
+- [ ] C1682 Add predicate `howard_orchestral_color/3` (Palette, Texture, Emotion).
+- [ ] C1683 Add predicate `desplat_technique/3` (Technique, Context, Implementation).
+- [ ] C1684 Add predicate `desplat_chamber_intimacy/3` (Ensemble, Texture, Emotion).
+- [ ] C1685 Add predicate `newman_technique/3` (Technique, Context, Implementation).
+- [ ] C1686 Add predicate `newman_americana/3` (Element, Treatment, Nostalgia).
+- [ ] C1687 Add predicate `composer_style_match/3` (Cue, Composer, Similarity).
+- [ ] C1688 Add predicate `style_blend/4` (Composer1, Composer2, Ratio, BlendedStyle).
+- [ ] C1689 Add constraint: `reference_composer/1` (williams/zimmer/horner/morricone/etc).
+- [ ] C1690 Add constraint: `era_authenticity/1` (period/modern_interpretation/fusion).
+- [ ] C1691 Add TS type: `ComposerStyleProfile` with techniques, signatures, palette.
+- [ ] C1692 Add TS wrapper `analyzeComposerStyle(cue)`.
+- [ ] C1693 Add TS wrapper `generateInStyleOf(composer, sceneType, duration)`.
+- [ ] C1694 Add tests: Williams analysis detects fanfare patterns.
+- [ ] C1695 Add docs: "Film composer techniques in CardPlay".
+- [ ] C1696 Add example project: "Williams-style adventure theme".
+- [ ] C1697 Add example project: "Zimmer-style hybrid action cue".
+- [ ] C1698 Add example project: "Morricone-style western cue".
+- [ ] C1699 Add cross-phase validation: composer techniques work with emotion models.
+- [ ] C1700 Add final summary: "Film scoring theory complete".
+
+---
+
+## Phase C16 — World Music Theory Deep Dive (C1701–C1900)
+
+### Indian Classical Music Theory (C1701–C1750)
+- [ ] C1701 Add KB: `music-theory-indian.pl` for comprehensive Indian music.
+- [ ] C1702 Add predicate `raga_database/5` (RagaName, Aroha, Avaroha, Vadi, Samvadi).
+- [ ] C1703 Add predicate `raga_pakad/2` (RagaName, CharacteristicPhrase).
+- [ ] C1704 Add predicate `raga_time_theory/3` (RagaName, Prahar, Appropriateness).
+- [ ] C1705 Add predicate `raga_season/2` (RagaName, Season).
+- [ ] C1706 Add predicate `raga_rasa/2` (RagaName, DominantRasa).
+- [ ] C1707 Add predicate `raga_family/2` (RagaName, Thaat).
+- [ ] C1708 Add predicate `thaat_scale/2` (ThaatName, Swaras).
+- [ ] C1709 Add predicate `melakarta_system/3` (MelaNumber, Name, Swaras).
+- [ ] C1710 Add predicate `janya_raga/2` (JanyaRaga, ParentMelakarta).
+- [ ] C1711 Add predicate `gamaka_type/3` (GamakaName, Description, Notation).
+- [ ] C1712 Add predicate `gamaka_for_swara/3` (RagaName, Swara, ApproprGamakas).
+- [ ] C1713 Add predicate `gamaka_intensity/3` (Context, RasaTarget, GamakaLevel).
+- [ ] C1714 Add predicate `tala_definition/4` (TalaName, Angas, Aksharas, Jaatis).
+- [ ] C1715 Add predicate `tala_clap_pattern/2` (TalaName, ClapWavePattern).
+- [ ] C1716 Add predicate `laya_type/3` (LayaName, TempoMultiplier, Description).
+- [ ] C1717 Add predicate `nadai/gati/3` (Name, Subdivision, Description).
+- [ ] C1718 Add predicate `korvai_structure/3` (Pattern, Repetitions, Landing).
+- [ ] C1719 Add predicate `mora_structure/3` (MoraType, Pattern, Resolution).
+- [ ] C1720 Add predicate `tihai_calculation/4` (Pattern, Gap, Cycles, ValidTihai).
+- [ ] C1721 Add predicate `alapana_structure/3` (Phase, Characteristics, Duration).
+- [ ] C1722 Add predicate `tanam_pattern/3` (RagaName, TanamType, Pattern).
+- [ ] C1723 Add predicate `pallavi_structure/3` (Theme, Development, Return).
+- [ ] C1724 Add predicate `niraval_technique/3` (Line, Variation, Constraint).
+- [ ] C1725 Add predicate `kalpana_swara_rule/3` (Raga, TalaPosition, SwaraChoice).
+- [ ] C1726 Add predicate `sangati_development/3` (Theme, VariationNum, Variation).
+- [ ] C1727 Add constraint: `raga/1` (raga name atom).
+- [ ] C1728 Add constraint: `tala/1` (tala name atom).
+- [ ] C1729 Add constraint: `laya/1` (vilambit/madhya/drut).
+- [ ] C1730 Add constraint: `gamaka_density/1` (sparse/moderate/dense/virtuosic).
+- [ ] C1731 Add TS type: `RagaSpec` with scale, phrases, gamakas, time.
+- [ ] C1732 Add TS type: `TalaSpec` with structure, aksharas, pattern.
+- [ ] C1733 Add TS wrapper `getRagaDetails(ragaName)`.
+- [ ] C1734 Add TS wrapper `calculateTihai(pattern, tala)`.
+- [ ] C1735 Add TS wrapper `generateKalpanaSwara(raga, tala, duration)`.
+- [ ] C1736 Add tests: tihai calculations land correctly.
+- [ ] C1737 Add tests: raga lookup returns correct scales.
+- [ ] C1738 Add docs: "Indian classical music in CardPlay".
+- [ ] C1739 Add example project: "Carnatic krithi outline".
+- [ ] C1740 Add example project: "Hindustani raga alapana".
+- [ ] C1741 Add predicate `north_south_difference/3` (Concept, Hindustani, Carnatic).
+- [ ] C1742 Add predicate `gharana_style/3` (GharanaName, Characteristics, Techniques).
+- [ ] C1743 Add predicate `bani_style/3` (BaniName, Characteristics, Techniques).
+- [ ] C1744 Add predicate `fusion_raga_mapping/3` (RagaName, WesternMode, Notes).
+- [ ] C1745 Add predicate `raga_chord_compatibility/3` (RagaName, ChordType, Compatibility).
+- [ ] C1746 Add tests: fusion mappings preserve raga character.
+- [ ] C1747 Add docs: "Indian-Western fusion in CardPlay".
+- [ ] C1748 Add example project: "Raga-based jazz improvisation".
+- [ ] C1749 Add cross-validation: ragas work with GTTM phrase analysis.
+- [ ] C1750 Add summary: "Indian music theory complete".
+
+### Middle Eastern & Arabic Music Theory (C1751–C1790)
+- [ ] C1751 Add KB: `music-theory-arabic.pl` for Arabic/Turkish/Persian.
+- [ ] C1752 Add predicate `maqam_definition/4` (MaqamName, Jins1, Jins2, Ghammaz).
+- [ ] C1753 Add predicate `jins_definition/3` (JinsName, Intervals, Size).
+- [ ] C1754 Add predicate `maqam_modulation/3` (FromMaqam, ToMaqam, PivotNote).
+- [ ] C1755 Add predicate `maqam_family/2` (MaqamName, FamilyName).
+- [ ] C1756 Add predicate `quarter_tone_notation/2` (NoteName, CentsOffset).
+- [ ] C1757 Add predicate `sayr_convention/3` (MaqamName, Phase, Movement).
+- [ ] C1758 Add predicate `taqsim_structure/3` (MaqamName, Phase, Characteristics).
+- [ ] C1759 Add predicate `iqa_definition/3` (IqaName, Pattern, Accents).
+- [ ] C1760 Add predicate `iqa_family/2` (IqaName, Family).
+- [ ] C1761 Add predicate `turkish_makam/4` (MakamName, Seyir, Durak, Guclu).
+- [ ] C1762 Add predicate `turkish_usul/3` (UsulName, Pattern, Strokes).
+- [ ] C1763 Add predicate `persian_dastgah/3` (DastgahName, Gushehs, Structure).
+- [ ] C1764 Add predicate `radif_pattern/3` (DastgahName, GushehName, Pattern).
+- [ ] C1765 Add predicate `tahrir_ornament/3` (Type, Execution, Context).
+- [ ] C1766 Add predicate `microtonal_inflection/3` (Context, Note, Inflection).
+- [ ] C1767 Add predicate `heterophony_model/3` (MainMelody, Variation, Relationship).
+- [ ] C1768 Add predicate `arabic_form/3` (FormName, Sections, Characteristics).
+- [ ] C1769 Add predicate `wasla_suite/3` (Maqam, Pieces, Order).
+- [ ] C1770 Add constraint: `maqam/1` (maqam name atom).
+- [ ] C1771 Add constraint: `iqa/1` (iqa name atom).
+- [ ] C1772 Add constraint: `regional_style/1` (egyptian/levantine/iraqi/maghrebi).
+- [ ] C1773 Add TS type: `MaqamSpec` with ajnas, sayr, modulations.
+- [ ] C1774 Add TS wrapper `getMaqamDetails(maqamName)`.
+- [ ] C1775 Add TS wrapper `generateTaqsim(maqam, duration)`.
+- [ ] C1776 Add tests: maqam modulations follow sayr conventions.
+- [ ] C1777 Add docs: "Arabic music theory in CardPlay".
+- [ ] C1778 Add example project: "Maqam Bayati taqsim".
+- [ ] C1779 Add predicate `oud_technique/3` (Technique, Notation, Execution).
+- [ ] C1780 Add predicate `qanun_technique/3` (Technique, Notation, Execution).
+- [ ] C1781 Add predicate `nay_technique/3` (Technique, Notation, Execution).
+- [ ] C1782 Add predicate `tarab_aesthetic/3` (Element, Role, Effect).
+- [ ] C1783 Add predicate `saltanah_state/3` (MusicFeatures, PerformerState, AudienceResponse).
+- [ ] C1784 Add predicate `maqam_emotion/2` (MaqamName, AssociatedEmotions).
+- [ ] C1785 Add predicate `arabic_western_fusion/3` (ArabicElement, WesternElement, Integration).
+- [ ] C1786 Add tests: quarter-tone calculations correct.
+- [ ] C1787 Add docs: "Tarab aesthetics in CardPlay".
+- [ ] C1788 Add example project: "Contemporary Arabic fusion".
+- [ ] C1789 Add cross-validation: maqamat work with film emotion models.
+- [ ] C1790 Add summary: "Middle Eastern music complete".
+
+### East Asian Music Theory (C1791–C1830)
+- [ ] C1791 Add KB: `music-theory-east-asian.pl` for Chinese/Japanese/Korean.
+- [ ] C1792 Add predicate `chinese_mode/3` (ModeName, Gong, PitchSet).
+- [ ] C1793 Add predicate `chinese_scale_system/3` (SystemName, Derivation, Scales).
+- [ ] C1794 Add predicate `yanyue_scale/2` (ScaleName, Intervals).
+- [ ] C1795 Add predicate `qupai_pattern/3` (QupaiName, Structure, Variations).
+- [ ] C1796 Add predicate `banshi_meter/3` (BanshiName, BeatsPerBar, Tempo).
+- [ ] C1797 Add predicate `chinese_ornament/3` (OrnamentName, Execution, Context).
+- [ ] C1798 Add predicate `guqin_technique/3` (TechniqueName, Notation, Sound).
+- [ ] C1799 Add predicate `pipa_technique/3` (TechniqueName, Notation, Sound).
+- [ ] C1800 Add predicate `erhu_technique/3` (TechniqueName, Notation, Sound).
+- [ ] C1801 Add predicate `japanese_scale/3` (ScaleName, Intervals, Context).
+- [ ] C1802 Add predicate `gagaku_mode/3` (ModeName, Derivation, Usage).
+- [ ] C1803 Add predicate `min_yo_scale/2` (RegionName, Scale).
+- [ ] C1804 Add predicate `shamisen_technique/3` (TechniqueName, Notation, Sound).
+- [ ] C1805 Add predicate `shakuhachi_technique/3` (TechniqueName, Notation, Sound).
+- [ ] C1806 Add predicate `koto_technique/3` (TechniqueName, Notation, Sound).
+- [ ] C1807 Add predicate `korean_mode/3` (ModeName, Context, PitchSet).
+- [ ] C1808 Add predicate `jangdan_pattern/3` (JangdanName, Pattern, Instrument).
+- [ ] C1809 Add predicate `sigimsae_ornament/3` (Type, Execution, Expression).
+- [ ] C1810 Add predicate `gayageum_technique/3` (TechniqueName, Notation, Sound).
+- [ ] C1811 Add predicate `heterophony_rule/3` (MainPart, DerivativePart, Relationship).
+- [ ] C1812 Add predicate `breath_phrase_model/3` (Instrument, BreathLength, PhraseBoundary).
+- [ ] C1813 Add predicate `east_asian_form/3` (FormName, Sections, Development).
+- [ ] C1814 Add constraint: `east_asian_tradition/1` (chinese/japanese/korean).
+- [ ] C1815 Add constraint: `chinese_regional/1` (cantonese/beijing/jiangnan/sichuan).
+- [ ] C1816 Add constraint: `japanese_genre/1` (gagaku/hogaku/minyo).
+- [ ] C1817 Add TS type: `EastAsianScale` with pitches, ornaments, context.
+- [ ] C1818 Add TS wrapper `getChineseMode(modeName)`.
+- [ ] C1819 Add TS wrapper `generateHeterophony(melody, instruments)`.
+- [ ] C1820 Add tests: Chinese modes calculate correct pitches.
+- [ ] C1821 Add docs: "East Asian music in CardPlay".
+- [ ] C1822 Add example project: "Chinese silk-bamboo ensemble".
+- [ ] C1823 Add example project: "Japanese koto piece".
+- [ ] C1824 Add example project: "Korean sanjo excerpt".
+- [ ] C1825 Add predicate `pentatonic_variation_technique/3` (Base, Technique, Result).
+- [ ] C1826 Add predicate `east_west_fusion_rule/3` (EasternElement, WesternHarmony, Integration).
+- [ ] C1827 Add tests: heterophony generation follows tradition rules.
+- [ ] C1828 Add docs: "East-West fusion in CardPlay".
+- [ ] C1829 Add cross-validation: East Asian scales work with Western harmony.
+- [ ] C1830 Add summary: "East Asian music complete".
+
+### African Music Theory (C1831–C1860)
+- [ ] C1831 Add KB: `music-theory-african.pl` for Sub-Saharan African music.
+- [ ] C1832 Add predicate `african_rhythm_timeline/3` (PatternName, Timeline, Tradition).
+- [ ] C1833 Add predicate `bell_pattern/3` (PatternName, Pattern, Culture).
+- [ ] C1834 Add predicate `polyrhythm_layer/4` (Layer1, Layer2, Resultant, PhaseRelation).
+- [ ] C1835 Add predicate `cross_rhythm/3` (PatternA, PatternB, PerceptualDownbeat).
+- [ ] C1836 Add predicate `hemiola_pattern/3` (Pattern, Level, Duration).
+- [ ] C1837 Add predicate `call_response_structure/3` (Call, Response, Relationship).
+- [ ] C1838 Add predicate `cyclic_form/3` (Cycle, Variations, Development).
+- [ ] C1839 Add predicate `west_african_scale/3` (Tradition, Instrument, Scale).
+- [ ] C1840 Add predicate `mbira_tuning/3` (TuningName, Pitches, Context).
+- [ ] C1841 Add predicate `interlocking_pattern/3` (Part1, Part2, Combined).
+- [ ] C1842 Add predicate `inherent_pattern/3` (SourcePatterns, PerceivedMelody, Explanation).
+- [ ] C1843 Add predicate `participatory_discrepancy/3` (Timing, Effect, Cultural).
+- [ ] C1844 Add predicate `griot_tradition/3` (Element, Role, Technique).
+- [ ] C1845 Add predicate `highlife_pattern/3` (PatternType, Rhythm, Harmony).
+- [ ] C1846 Add predicate `afrobeat_structure/3` (Section, Function, Characteristics).
+- [ ] C1847 Add predicate `soukous_pattern/3` (GuitarPart, Role, Pattern).
+- [ ] C1848 Add constraint: `african_region/1` (west/east/central/south).
+- [ ] C1849 Add constraint: `african_tradition/1` (traditional/highlife/afrobeat/soukous).
+- [ ] C1850 Add TS type: `AfricanRhythm` with timeline, layers, feel.
+- [ ] C1851 Add TS wrapper `generatePolyrhythm(patterns, density)`.
+- [ ] C1852 Add TS wrapper `analyzeTimeline(rhythm)`.
+- [ ] C1853 Add tests: polyrhythm layers align correctly.
+- [ ] C1854 Add docs: "African rhythm in CardPlay".
+- [ ] C1855 Add example project: "12/8 bell pattern with variations".
+- [ ] C1856 Add example project: "Afrobeat horn arrangement".
+- [ ] C1857 Add predicate `african_diaspora_connection/3` (AfricanPattern, DiasporaGenre, Relationship).
+- [ ] C1858 Add tests: timeline patterns export to MIDI correctly.
+- [ ] C1859 Add cross-validation: African rhythms work with Western harmony.
+- [ ] C1860 Add summary: "African music theory complete".
+
+### Latin American Music Theory (C1861–C1900)
+- [ ] C1861 Add KB: `music-theory-latin.pl` for Latin American music.
+- [ ] C1862 Add predicate `clave_pattern/3` (ClaveName, Pattern, Style).
+- [ ] C1863 Add predicate `clave_direction/3` (Pattern, Direction, Phrase).
+- [ ] C1864 Add predicate `tumbao_pattern/3` (Instrument, Pattern, ClaveRelation).
+- [ ] C1865 Add predicate `montuno_pattern/3` (Chord, Pattern, Variation).
+- [ ] C1866 Add predicate `mambo_section/3` (SectionType, Arrangement, Energy).
+- [ ] C1867 Add predicate `son_structure/3` (Section, Function, Characteristics).
+- [ ] C1868 Add predicate `salsa_arrangement/4` (Intro, Body, Mambo, Coda).
+- [ ] C1869 Add predicate `brazilian_rhythm/3` (StyleName, Pattern, Instruments).
+- [ ] C1870 Add predicate `samba_pattern/3` (Instrument, Pattern, Variation).
+- [ ] C1871 Add predicate `bossa_nova_pattern/3` (Instrument, Pattern, Voicing).
+- [ ] C1872 Add predicate `baiao_pattern/3` (Instrument, Pattern, Characteristics).
+- [ ] C1873 Add predicate `brazilian_harmony/3` (Context, Progression, Voicing).
+- [ ] C1874 Add predicate `tango_rhythm/3` (PatternName, Pattern, Accent).
+- [ ] C1875 Add predicate `tango_arrangement/3` (Section, Orchestration, Style).
+- [ ] C1876 Add predicate `bandoneon_technique/3` (Technique, Notation, Effect).
+- [ ] C1877 Add predicate `cumbia_pattern/3` (Instrument, Pattern, Region).
+- [ ] C1878 Add predicate `reggaeton_pattern/3` (Element, Pattern, Variation).
+- [ ] C1879 Add predicate `dembow_rhythm/3` (PatternType, Pattern, Usage).
+- [ ] C1880 Add constraint: `latin_style/1` (salsa/son/mambo/cha_cha/bossa/samba/tango).
+- [ ] C1881 Add constraint: `clave_type/1` (son/rumba/bossa/none).
+- [ ] C1882 Add constraint: `brazilian_style/1` (samba/bossa/baiao/forro/mpb).
+- [ ] C1883 Add TS type: `LatinRhythm` with clave, patterns, feel.
+- [ ] C1884 Add TS wrapper `generateMontuno(chords, claveType)`.
+- [ ] C1885 Add TS wrapper `checkClaveAlignment(pattern, clave)`.
+- [ ] C1886 Add tests: montunos align with clave correctly.
+- [ ] C1887 Add docs: "Latin music theory in CardPlay".
+- [ ] C1888 Add example project: "Salsa arrangement template".
+- [ ] C1889 Add example project: "Bossa nova chord study".
+- [ ] C1890 Add example project: "Tango arrangement".
+- [ ] C1891 Add predicate `afro_cuban_religious/3` (Tradition, Rhythm, Context).
+- [ ] C1892 Add predicate `rumba_style/3` (StyleName, Clave, Characteristics).
+- [ ] C1893 Add predicate `latin_jazz_fusion/3` (LatinElement, JazzElement, Integration).
+- [ ] C1894 Add tests: clave checking catches violations.
+- [ ] C1895 Add docs: "Latin-Jazz fusion in CardPlay".
+- [ ] C1896 Add example project: "Latin jazz arrangement".
+- [ ] C1897 Add cross-validation: Latin rhythms work with jazz harmony.
+- [ ] C1898 Add cross-validation: Latin patterns work with LCC.
+- [ ] C1899 Add final integration tests for world music.
+- [ ] C1900 Add summary: "World music theory complete".
+
+---
+
+## Phase C17 — Rock, Pop & Contemporary Popular Music Theory (C1901–C2050)
+
+### Rock Music Theory (C1901–C1950)
+- [ ] C1901 Add KB: `music-theory-rock.pl` for rock music concepts.
+- [ ] C1902 Add predicate `power_chord/3` (Root, Voicing, Inversion).
+- [ ] C1903 Add predicate `rock_progression/3` (ProgressionName, Numerals, Style).
+- [ ] C1904 Add predicate `blues_rock_scale/3` (Key, ScaleType, Notes).
+- [ ] C1905 Add predicate `pentatonic_rock_usage/3` (Context, Scale, Licks).
+- [ ] C1906 Add predicate `rock_riff_pattern/3` (RiffType, Rhythm, Contour).
+- [ ] C1907 Add predicate `guitar_technique_rock/3` (Technique, Notation, Sound).
+- [ ] C1908 Add predicate `palm_mute_pattern/3` (Pattern, Tempo, Intensity).
+- [ ] C1909 Add predicate `rock_drum_pattern/3` (StyleName, Pattern, Feel).
+- [ ] C1910 Add predicate `rock_fill/3` (FillType, Duration, Complexity).
+- [ ] C1911 Add predicate `bass_rock_pattern/3` (StyleName, Pattern, Relationship).
+- [ ] C1912 Add predicate `rock_song_form/3` (FormType, Sections, Variations).
+- [ ] C1913 Add predicate `verse_chorus_form/4` (Verse, Chorus, Bridge, Arrangement).
+- [ ] C1914 Add predicate `rock_dynamics/3` (Section, Level, Texture).
+- [ ] C1915 Add predicate `rock_modulation/3` (FromKey, ToKey, Technique).
+- [ ] C1916 Add predicate `truck_driver_modulation/2` (Interval, Effect).
+- [ ] C1917 Add predicate `rock_subgenre/3` (Subgenre, Characteristics, Examples).
+- [ ] C1918 Add predicate `classic_rock_style/3` (Era, Features, Artists).
+- [ ] C1919 Add predicate `hard_rock_style/3` (Feature, Implementation, Artists).
+- [ ] C1920 Add predicate `punk_rock_style/3` (Feature, Constraint, Artists).
+- [ ] C1921 Add predicate `alternative_rock_style/3` (Feature, Harmonic, Artists).
+- [ ] C1922 Add predicate `indie_rock_style/3` (Feature, Texture, Artists).
+- [ ] C1923 Add predicate `metal_subgenre/3` (Subgenre, Features, Techniques).
+- [ ] C1924 Add predicate `metal_riff_technique/3` (Technique, Execution, Effect).
+- [ ] C1925 Add predicate `drop_tuning/3` (TuningName, Notes, Style).
+- [ ] C1926 Add predicate `djent_technique/3` (Element, Rhythm, Processing).
+- [ ] C1927 Add predicate `progressive_rock/3` (Element, Complexity, Examples).
+- [ ] C1928 Add predicate `odd_meter_rock/3` (Meter, Feel, Usage).
+- [ ] C1929 Add constraint: `rock_subgenre/1` (classic/hard/punk/alt/indie/metal/prog).
+- [ ] C1930 Add constraint: `rock_era/1` (50s/60s/70s/80s/90s/2000s/2010s/2020s).
+- [ ] C1931 Add constraint: `distortion_level/1` (clean/crunch/overdrive/distortion/fuzz).
+- [ ] C1932 Add TS type: `RockArrangement` with riffs, form, dynamics.
+- [ ] C1933 Add TS wrapper `generateRockProgression(style, energy)`.
+- [ ] C1934 Add TS wrapper `analyzeRockForm(song)`.
+- [ ] C1935 Add tests: power chord voicings correct.
+- [ ] C1936 Add docs: "Rock music theory in CardPlay".
+- [ ] C1937 Add example project: "Classic rock arrangement".
+- [ ] C1938 Add example project: "Metal riff composition".
+- [ ] C1939 Add predicate `guitar_tone_chain/3` (Style, Pedals, AmpSettings).
+- [ ] C1940 Add predicate `rock_production_technique/3` (Technique, Application, Era).
+- [ ] C1941 Add predicate `wall_of_sound/3` (Technique, Layers, Phil Spector).
+- [ ] C1942 Add predicate `rock_hook/3` (HookType, Element, Placement).
+- [ ] C1943 Add predicate `anthem_chorus/3` (Structure, Voicing, Energy).
+- [ ] C1944 Add predicate `breakdown_section/3` (Type, Texture, Resolution).
+- [ ] C1945 Add tests: rock forms parse correctly.
+- [ ] C1946 Add docs: "Rock arrangement in CardPlay".
+- [ ] C1947 Add example project: "Rock anthem with key change".
+- [ ] C1948 Add cross-validation: rock works with GTTM analysis.
+- [ ] C1949 Add cross-validation: rock works with emotion models.
+- [ ] C1950 Add summary: "Rock music theory complete".
+
+### Pop Music Theory (C1951–C2000)
+- [ ] C1951 Add KB: `music-theory-pop.pl` for pop music concepts.
+- [ ] C1952 Add predicate `pop_chord_progression/3` (Name, Numerals, Era).
+- [ ] C1953 Add predicate `four_chord_song/2` (Progression, Examples).
+- [ ] C1954 Add predicate `pop_melody_contour/3` (ContourType, Characteristics, Effect).
+- [ ] C1955 Add predicate `hook_placement/3` (HookType, Location, Repetition).
+- [ ] C1956 Add predicate `earworm_characteristics/2` (Feature, Importance).
+- [ ] C1957 Add predicate `pop_song_form/3` (FormType, Sections, Modern).
+- [ ] C1958 Add predicate `prechorus_function/3` (Harmonic, Melodic, Energy).
+- [ ] C1959 Add predicate `post_chorus/3` (Function, Texture, Hook).
+- [ ] C1960 Add predicate `drop_section/3` (BuildUp, Drop, Release).
+- [ ] C1961 Add predicate `pop_production_element/3` (Element, Era, Usage).
+- [ ] C1962 Add predicate `vocal_production/3` (Technique, Era, Effect).
+- [ ] C1963 Add predicate `autotune_usage/3` (Style, Intensity, Aesthetic).
+- [ ] C1964 Add predicate `vocal_stacking/3` (Type, Arrangement, Blend).
+- [ ] C1965 Add predicate `topliner_technique/3` (Technique, Application, Result).
+- [ ] C1966 Add predicate `millennial_whoop/2` (Pattern, Examples).
+- [ ] C1967 Add predicate `pop_beat_pattern/3` (Era, Pattern, Producer).
+- [ ] C1968 Add predicate `trap_influenced_pop/3` (Element, Application, Examples).
+- [ ] C1969 Add predicate `synth_pop_element/3` (Element, Sound, Era).
+- [ ] C1970 Add predicate `electropop_texture/3` (Texture, Layers, Processing).
+- [ ] C1971 Add predicate `kpop_structure/3` (Element, Characteristics, Influence).
+- [ ] C1972 Add predicate `jpop_structure/3` (Element, Characteristics, Influence).
+- [ ] C1973 Add predicate `latin_pop_fusion/3` (LatinElement, PopElement, Result).
+- [ ] C1974 Add predicate `pop_key_convention/3` (Era, KeyPreferences, Reasons).
+- [ ] C1975 Add predicate `pop_tempo_range/3` (Era, TempoRange, Feel).
+- [ ] C1976 Add predicate `streaming_era_conventions/3` (Platform, Constraint, Adaptation).
+- [ ] C1977 Add constraint: `pop_era/1` (motown/disco/80s/90s/2000s/streaming).
+- [ ] C1978 Add constraint: `pop_style/1` (mainstream/indie_pop/electropop/synth/dance).
+- [ ] C1979 Add constraint: `hook_density/1` (sparse/moderate/saturated).
+- [ ] C1980 Add TS type: `PopArrangement` with hooks, form, production.
+- [ ] C1981 Add TS wrapper `generatePopProgression(style, energy)`.
+- [ ] C1982 Add TS wrapper `analyzePopHooks(song)`.
+- [ ] C1983 Add tests: pop progressions generate valid harmony.
+- [ ] C1984 Add docs: "Pop music theory in CardPlay".
+- [ ] C1985 Add example project: "Modern pop song structure".
+- [ ] C1986 Add example project: "80s synth-pop arrangement".
+- [ ] C1987 Add predicate `hit_song_formula/3` (Element, Weight, Research).
+- [ ] C1988 Add predicate `billboard_analysis/3` (Era, Trend, Characteristics).
+- [ ] C1989 Add predicate `spotify_top50_features/3` (Feature, Average, Variance).
+- [ ] C1990 Add predicate `tiktok_viral_characteristics/2` (Feature, Importance).
+- [ ] C1991 Add predicate `pop_collaboration_style/3` (Type, Artists, Result).
+- [ ] C1992 Add predicate `feature_verse/3` (Style, Contrast, Integration).
+- [ ] C1993 Add tests: hook analysis identifies main hooks.
+- [ ] C1994 Add docs: "Commercial pop writing in CardPlay".
+- [ ] C1995 Add example project: "Streaming-optimized pop song".
+- [ ] C1996 Add cross-validation: pop works with emotion models.
+- [ ] C1997 Add cross-validation: pop works with film scoring.
+- [ ] C1998 Add benchmark: pop analysis under 50ms.
+- [ ] C1999 Add final integration tests for pop theory.
+- [ ] C2000 Add summary: "Pop music theory complete".
+
+### Electronic Dance Music Theory (C2001–C2050)
+- [ ] C2001 Add KB: `music-theory-edm.pl` for electronic dance music.
+- [ ] C2002 Add predicate `four_on_floor/3` (Tempo, Subgenre, Variations).
+- [ ] C2003 Add predicate `breakbeat_pattern/3` (PatternName, Pattern, Genre).
+- [ ] C2004 Add predicate `edm_arrangement/4` (Intro, Build, Drop, Breakdown).
+- [ ] C2005 Add predicate `drop_types/3` (DropType, Characteristics, Genre).
+- [ ] C2006 Add predicate `buildup_techniques/3` (Technique, Duration, Intensity).
+- [ ] C2007 Add predicate `riser_design/3` (RiserType, Parameters, Effect).
+- [ ] C2008 Add predicate `sidechain_compression/3` (Source, Target, Settings).
+- [ ] C2009 Add predicate `synth_bass_type/3` (BassType, Synthesis, Genre).
+- [ ] C2010 Add predicate `wobble_bass/3` (Rate, Shape, Modulation).
+- [ ] C2011 Add predicate `supersaw_stack/3` (Voices, Detune, Width).
+- [ ] C2012 Add predicate `edm_chord_voicing/3` (ChordType, Voicing, Texture).
+- [ ] C2013 Add predicate `pluck_synth/3` (Attack, Decay, Filtering).
+- [ ] C2014 Add predicate `pad_texture/3` (PadType, Movement, Warmth).
+- [ ] C2015 Add predicate `edm_subgenre/3` (GenreName, BPM, Characteristics).
+- [ ] C2016 Add predicate `house_style/3` (Substyle, Features, Artists).
+- [ ] C2017 Add predicate `techno_style/3` (Substyle, Features, Artists).
+- [ ] C2018 Add predicate `trance_style/3` (Substyle, Features, Artists).
+- [ ] C2019 Add predicate `dubstep_style/3` (Substyle, Features, Artists).
+- [ ] C2020 Add predicate `drum_and_bass/3` (Substyle, Features, Artists).
+- [ ] C2021 Add predicate `future_bass/3` (Element, Implementation, Artists).
+- [ ] C2022 Add predicate `lo_fi_aesthetic/3` (Element, Processing, Mood).
+- [ ] C2023 Add predicate `ambient_edm/3` (Element, Texture, Space).
+- [ ] C2024 Add predicate `festival_anthems/3` (Structure, Energy, Singalong).
+- [ ] C2025 Add predicate `underground_vs_commercial/3` (Aspect, Underground, Commercial).
+- [ ] C2026 Add constraint: `edm_genre/1` (house/techno/trance/dubstep/dnb/future).
+- [ ] C2027 Add constraint: `bpm_range/1` (specific ranges per genre).
+- [ ] C2028 Add constraint: `energy_curve/1` (steady/building/dropping/dynamic).
+- [ ] C2029 Add TS type: `EDMArrangement` with drops, builds, energy.
+- [ ] C2030 Add TS wrapper `generateEDMBuild(duration, intensity)`.
+- [ ] C2031 Add TS wrapper `analyzeEDMEnergy(track)`.
+- [ ] C2032 Add tests: EDM builds have proper energy curves.
+- [ ] C2033 Add docs: "EDM production theory in CardPlay".
+- [ ] C2034 Add example project: "House track arrangement".
+- [ ] C2035 Add example project: "Dubstep drop design".
+- [ ] C2036 Add predicate `edm_automation/3` (Parameter, Curve, Musical).
+- [ ] C2037 Add predicate `filter_sweep/3` (FilterType, Direction, Duration).
+- [ ] C2038 Add predicate `impact_sound/3` (ImpactType, Processing, Placement).
+- [ ] C2039 Add predicate `white_noise_riser/3` (Duration, Filtering, Modulation).
+- [ ] C2040 Add predicate `vocal_chop/3` (Source, Processing, Rhythm).
+- [ ] C2041 Add predicate `edm_sample_pack_element/3` (Element, Usage, Layering).
+- [ ] C2042 Add tests: sidechain patterns create proper pumping.
+- [ ] C2043 Add docs: "EDM sound design in CardPlay".
+- [ ] C2044 Add example project: "Future bass arrangement".
+- [ ] C2045 Add cross-validation: EDM works with emotion models.
+- [ ] C2046 Add cross-validation: EDM works with spectral analysis.
+- [ ] C2047 Add benchmark: EDM analysis under 100ms.
+- [ ] C2048 Add final integration tests for EDM theory.
+- [ ] C2049 Add summary: "EDM theory complete".
+- [ ] C2050 Add final summary: "Rock/Pop/EDM contemporary music complete".
+
+---
+
+## Phase C18 — Cross-Cultural & Fusion Theory (C2051–C2100)
+
+### Fusion Frameworks (C2051–C2075)
+- [ ] C2051 Add KB: `music-theory-fusion.pl` for cross-cultural fusion.
+- [ ] C2052 Add predicate `scale_compatibility/4` (Scale1, Culture1, Scale2, Culture2, Compatibility).
+- [ ] C2053 Add predicate `rhythm_fusion_rule/4` (Rhythm1, Rhythm2, FusionType, Result).
+- [ ] C2054 Add predicate `cultural_element_weight/3` (Element, Culture, Authenticity).
+- [ ] C2055 Add predicate `appropriation_vs_appreciation/3` (Usage, Context, Assessment).
+- [ ] C2056 Add predicate `fusion_genre/4` (GenreName, Culture1, Culture2, Characteristics).
+- [ ] C2057 Add predicate `world_beat/3` (Element, WesternTreatment, Result).
+- [ ] C2058 Add predicate `ethno_jazz/3` (TraditionElement, JazzElement, Integration).
+- [ ] C2059 Add predicate `global_pop/3` (LocalElement, PopElement, Commercial).
+- [ ] C2060 Add predicate `ambient_world/3` (TraditionalSource, ElectronicTreatment, Mood).
+- [ ] C2061 Add predicate `microtonality_in_fusion/3` (Source, Approximation, Compromise).
+- [ ] C2062 Add predicate `rhythm_translation/3` (Original, Target, Adaptation).
+- [ ] C2063 Add predicate `instrumentation_fusion/3` (TraditionalInstr, WesternInstr, Blend).
+- [ ] C2064 Add predicate `timbre_cultural_marker/3` (Timbre, Culture, Strength).
+- [ ] C2065 Add predicate `melodic_cultural_marker/3` (MelodicFeature, Culture, Strength).
+- [ ] C2066 Add predicate `harmonic_cultural_marker/3` (HarmonicFeature, Culture, Strength).
+- [ ] C2067 Add constraint: `fusion_balance/1` (traditional_heavy/balanced/western_heavy).
+- [ ] C2068 Add constraint: `authenticity_priority/1` (high/medium/low).
+- [ ] C2069 Add TS type: `FusionSpec` with sources, balance, elements.
+- [ ] C2070 Add TS wrapper `analyzeCulturalElements(music)`.
+- [ ] C2071 Add TS wrapper `suggestFusionApproach(culture1, culture2)`.
+- [ ] C2072 Add tests: fusion rules produce coherent results.
+- [ ] C2073 Add docs: "Cross-cultural fusion in CardPlay".
+- [ ] C2074 Add example project: "Indo-Jazz fusion".
+- [ ] C2075 Add example project: "Afro-Celtic fusion".
+
+### Integration & Synthesis (C2076–C2100)
+- [ ] C2076 Add predicate `all_cultures_scale_mapping/2` (UnifiedPitch, CultureMappings).
+- [ ] C2077 Add predicate `universal_rhythm_grid/2` (Subdivision, CultureMappings).
+- [ ] C2078 Add predicate `cross_cultural_cadence/3` (Function, Realizations, Cultures).
+- [ ] C2079 Add predicate `global_ornament_library/3` (OrnamentType, Cultures, Variations).
+- [ ] C2080 Add predicate `texture_palette_global/3` (Texture, Cultures, Examples).
+- [ ] C2081 Add predicate `emotion_cross_cultural/3` (Emotion, WesternRealization, OtherRealizations).
+- [ ] C2082 Add predicate `form_cross_cultural/3` (FormPrinciple, WesternVersion, Others).
+- [ ] C2083 Add predicate `compositional_tool_universal/3` (Tool, WesternName, Equivalents).
+- [ ] C2084 Add constraint: `global_perspective/1` (western_centric/multicentric/specific).
+- [ ] C2085 Add TS wrapper `translateMusicalConcept(concept, fromCulture, toCulture)`.
+- [ ] C2086 Add tests: scale mappings are bidirectional.
+- [ ] C2087 Add docs: "Universal music concepts in CardPlay".
+- [ ] C2088 Add cross-validation: all cultures work with MusicSpec.
+- [ ] C2089 Add cross-validation: all cultures work with film scoring.
+- [ ] C2090 Add cross-validation: all cultures work with emotion models.
+- [ ] C2091 Add cross-validation: all cultures work with GTTM.
+- [ ] C2092 Add cross-validation: all cultures work with orchestration.
+- [ ] C2093 Add benchmark: culture-switching under 10ms.
+- [ ] C2094 Add final integration tests for world music.
+- [ ] C2095 Add final integration tests for popular music.
+- [ ] C2096 Add final integration tests for film scoring.
+- [ ] C2097 Add final integration tests for fusion.
+- [ ] C2098 Add docs: "Complete music theory integration".
+- [ ] C2099 Add example project: "Global fusion composition".
+- [ ] C2100 Add final summary: "Phases C14-C18 complete - comprehensive music theory KB".

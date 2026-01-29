@@ -1,0 +1,29 @@
+--- a/src/ui/components/tracker-panel.ts
++++ b/src/ui/components/tracker-panel.ts
+@@ -4029,7 +4029,7 @@ export function parseEffectCommand(effectStr: string): EffectCommandData {
+   }
+   
+   const [, commandChar, paramStr] = match;
+-  const param = parseInt(paramStr, 16);
++  const param = parseInt(paramStr || '0', 16);
+   
+   let command: EffectCommand = 'none';
+   
+@@ -4278,7 +4278,7 @@ export function quantizeNoteToScale(note: number, constraint: ScaleConstraintOv
+   const noteClass = note % 12;
+   const relativeNote = (noteClass - constraint.root + 12) % 12;
+   
+-  let closestDegree = constraint.scale[0];
++  let closestDegree = constraint.scale[0] ?? 0;
+   let minDistance = Math.abs(relativeNote - closestDegree);
+   
+   for (const degree of constraint.scale) {
+@@ -4381,7 +4381,7 @@ export function createMacroColumn(
+     id,
+     name,
+     targetParameter,
+-    range: [0, 127],
++    range: [0, 127] as const,
+     displayFormat: 'hex',
+   });
+ }

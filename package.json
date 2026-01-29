@@ -57,6 +57,7 @@
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^12.6.2",
+    "lit": "^3.3.2",
     "tau-prolog": "^0.3.4"
   }
 }

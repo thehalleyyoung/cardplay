@@ -11,20 +11,14 @@ import {
   asPatternId,
   asTrackId,
   asRowIndex,
-  asColumnIndex,
   createPatternConfig,
   createTrackConfig,
   createTrackData,
   emptyRow,
-  emptyNoteCell,
-  emptyEffectCell,
   emptySelection,
   createInitialTrackerState,
   TrackType,
   SpecialNote,
-  asTick,
-  asTickDuration,
-  asEventId,
   asMidiNote,
   asVelocity,
   type Pattern, 
@@ -41,11 +35,12 @@ import {
   type TrackerState,
   type CursorPosition,
   type TrackerSelection,
-  type SelectionRange,
   type SelectionAnchor,
   type EventStreamId, 
-  type ClipId,
 } from './types';
+import { getSharedEventStore } from '../state';
+import { createEvent, type Event } from '../types/event';
+import { EventKinds } from '../types/event-kind';
 
 // ============================================================================
 // PATTERN STORE
@@ -414,7 +409,9 @@ export class PatternStore {
     this.pushUndo();
     
     const rows = [...trackData.rows];
-    rows[rowIdx] = { ...rows[rowIdx], note };
+    const existingRow = rows[rowIdx];
+    if (!existingRow) return;
+    rows[rowIdx] = { ...existingRow, note };
     
     const tracks = new Map(pattern.tracks);
     tracks.set(trackId, { ...trackData, rows });
@@ -444,14 +441,18 @@ export class PatternStore {
     
     const rowIdx = rowIndex as number;
     if (rowIdx < 0 || rowIdx >= trackData.rows.length) return;
-    if (effectColumn < 0 || effectColumn >= trackData.rows[rowIdx].effects.length) return;
+    const existingRow = trackData.rows[rowIdx];
+    if (!existingRow) return;
+    if (effectColumn < 0 || effectColumn >= existingRow.effects.length) return;
     
     this.pushUndo();
     
     const rows = [...trackData.rows];
-    const effects = [...rows[rowIdx].effects];
+    const row = rows[rowIdx];
+    if (!row) return;
+    const effects = [...row.effects];
     effects[effectColumn] = effect;
-    rows[rowIdx] = { ...rows[rowIdx], effects };
+    rows[rowIdx] = { ...row, effects };
     
     const tracks = new Map(pattern.tracks);
     tracks.set(trackId, { ...trackData, rows });
@@ -477,7 +478,9 @@ export class PatternStore {
     if (!row) return;
     if (effectColumn < 0 || effectColumn >= row.effects.length) return;
     
-    const existingEffects = row.effects[effectColumn].effects;
+    const effectCell = row.effects[effectColumn];
+    if (!effectCell) return;
+    const existingEffects = effectCell.effects;
     this.setEffect(patternId, trackId, rowIndex, effectColumn, {
       effects: [...existingEffects, command],
     });
@@ -536,11 +539,13 @@ export class PatternStore {
     const end = Math.min(rows.length - 1, endRow as number);
     
     for (let i = start; i <= end; i++) {
-      const note = rows[i].note;
+      const row = rows[i];
+      if (!row) continue;
+      const note = row.note;
       if (note.note >= 0 && note.note <= 127) {
         const newNote = Math.max(0, Math.min(127, (note.note as number) + semitones));
         rows[i] = {
-          ...rows[i],
+          ...row,
           note: { ...note, note: asMidiNote(newNote) },
         };
       }
@@ -579,11 +584,13 @@ export class PatternStore {
     const end = Math.min(rows.length - 1, endRow as number);
     
     for (let i = start; i <= end; i++) {
-      const note = rows[i].note;
+      const row = rows[i];
+      if (!row) continue;
+      const note = row.note;
       if (note.volume !== undefined) {
         const newVelocity = Math.max(0, Math.min(127, Math.round((note.volume as number) * multiplier)));
         rows[i] = {
-          ...rows[i],
+          ...row,
           note: { ...note, volume: asVelocity(newVelocity) },
         };
       }
@@ -623,11 +630,13 @@ export class PatternStore {
     const maxDelay = Math.floor(amount * 2.55);  // 0-255
     
     for (let i = start; i <= end; i++) {
-      const note = rows[i].note;
+      const row = rows[i];
+      if (!row) continue;
+      const note = row.note;
       if (note.note >= 0) {
         const delay = Math.floor(Math.random() * maxDelay);
         rows[i] = {
-          ...rows[i],
+          ...row,
           note: { ...note, delay },
         };
       }
@@ -669,14 +678,20 @@ export class PatternStore {
     
     for (let t = minTrackIdx; t <= maxTrackIdx; t++) {
       const trackId = this.state.trackOrder[t];
+      if (!trackId) continue;
       const trackData = pattern.tracks.get(trackId);
       if (!trackData) continue;
       
       const rows: TrackerRow[] = [];
       for (let r = minRow; r <= maxRow; r++) {
+        const row = trackData.rows[r];
+        if (!row) {
+          rows.push(emptyRow(trackData.config.effectColumns));
+          continue;
+        }
         rows.push({
-          note: { ...trackData.rows[r].note },
-          effects: trackData.rows[r].effects.map(e => ({ effects: [...e.effects] })),
+          note: { ...row.note },
+          effects: row.effects.map(e => ({ effects: [...e.effects] })),
         });
       }
       data.set(trackId, rows);
@@ -719,11 +734,12 @@ export class PatternStore {
     const startRow = cursor.row as number;
     
     let clipboardTrackIdx = 0;
-    for (const [sourceTrackId, sourceRows] of clipboard.data) {
+    for (const sourceRows of clipboard.data.values()) {
       const targetTrackIdx = startTrackIdx + clipboardTrackIdx;
       if (targetTrackIdx >= this.state.trackOrder.length) break;
       
       const targetTrackId = this.state.trackOrder[targetTrackIdx];
+      if (!targetTrackId) break;
       const trackData = tracks.get(targetTrackId);
       if (!trackData) continue;
       
@@ -732,26 +748,37 @@ export class PatternStore {
       for (let i = 0; i < sourceRows.length; i++) {
         const targetRow = startRow + i;
         if (targetRow >= rows.length) break;
+
+        const sourceRow = sourceRows[i];
+        if (!sourceRow) continue;
         
         if (mode === 'replace') {
           rows[targetRow] = {
-            note: { ...sourceRows[i].note },
-            effects: sourceRows[i].effects.map(e => ({ effects: [...e.effects] })),
+            note: { ...sourceRow.note },
+            effects: sourceRow.effects.map(e => ({ effects: [...e.effects] })),
           };
         } else {
           // Merge mode: only replace non-empty cells
-          const sourceNote = sourceRows[i].note;
+          const existingTargetRow = rows[targetRow];
+          if (!existingTargetRow) continue;
+
+          let nextRow: TrackerRow = existingTargetRow;
+
+          const sourceNote = sourceRow.note;
           if (sourceNote.note !== SpecialNote.Empty) {
-            rows[targetRow] = { ...rows[targetRow], note: { ...sourceNote } };
+            nextRow = { ...nextRow, note: { ...sourceNote } };
           }
           
-          const targetEffects = [...rows[targetRow].effects];
-          for (let e = 0; e < sourceRows[i].effects.length && e < targetEffects.length; e++) {
-            if (sourceRows[i].effects[e].effects.length > 0) {
-              targetEffects[e] = { effects: [...sourceRows[i].effects[e].effects] };
+          const targetEffects = [...nextRow.effects];
+          for (let e = 0; e < sourceRow.effects.length && e < targetEffects.length; e++) {
+            const sourceEffectCell = sourceRow.effects[e];
+            if (!sourceEffectCell) continue;
+            if (sourceEffectCell.effects.length > 0) {
+              targetEffects[e] = { effects: [...sourceEffectCell.effects] };
             }
           }
-          rows[targetRow] = { ...rows[targetRow], effects: targetEffects };
+          nextRow = { ...nextRow, effects: targetEffects };
+          rows[targetRow] = nextRow;
         }
       }
       
@@ -798,6 +825,7 @@ export class PatternStore {
     
     for (let t = minTrackIdx; t <= maxTrackIdx; t++) {
       const trackId = this.state.trackOrder[t];
+      if (!trackId) continue;
       const trackData = tracks.get(trackId);
       if (!trackData) continue;
       
@@ -967,61 +995,66 @@ export class PatternStore {
     if (!trackData) return null;
     
     const store = getSharedEventStore();
-    const events: Event<any>[] = [];
+    type TrackerNotePayload = {
+      pitch: number;
+      velocity: number;
+      pan?: number;
+      instrument?: unknown;
+    };
+    const events: Event<TrackerNotePayload>[] = [];
     
     const ticksPerRow = this.ppq / pattern.config.rowsPerBeat;
     
     for (let rowIdx = 0; rowIdx < trackData.rows.length; rowIdx++) {
       const row = trackData.rows[rowIdx];
+      if (!row) continue;
       const note = row.note;
       
       if (note.note >= 0 && note.note <= 127) {
-        const startTick = asTick(rowIdx * ticksPerRow + (note.delay ?? 0));
+        const start = rowIdx * ticksPerRow + (note.delay ?? 0);
         
         // Find duration (until next note or note-off)
         let duration = ticksPerRow;
         for (let nextRow = rowIdx + 1; nextRow < trackData.rows.length; nextRow++) {
-          const nextNote = trackData.rows[nextRow].note.note;
+          const next = trackData.rows[nextRow];
+          if (!next) continue;
+          const nextNote = next.note.note;
           if (nextNote === SpecialNote.NoteOff || nextNote === SpecialNote.NoteCut || nextNote >= 0) {
             duration = (nextRow - rowIdx) * ticksPerRow;
             break;
           }
         }
         
-        events.push({
-          id: asEventId(`${patternId}-${trackId}-${rowIdx}`),
-          startTick,
-          duration: asTickDuration(duration),
-          payload: {
-            type: 'note',
-            pitch: note.note,
-            velocity: note.volume ?? 100,
-            pan: note.pan,
-            instrument: note.instrument,
-          },
-        });
+        events.push(
+          createEvent<TrackerNotePayload>({
+            kind: EventKinds.NOTE,
+            start,
+            duration,
+            payload: {
+              pitch: note.note as number,
+              velocity: note.volume === undefined ? 100 : Number(note.volume),
+              ...(note.pan === undefined ? {} : { pan: note.pan }),
+              ...(note.instrument === undefined ? {} : { instrument: note.instrument }),
+            },
+          })
+        );
       }
     }
     
     // Create or update stream
     let streamId = trackData.config.streamId;
     if (!streamId) {
-      streamId = store.createStream(events);
+      const created = store.createStream({
+        name: `${pattern.config.name}:${trackData.config.name}`,
+        events,
+      });
+      streamId = created.id;
       this.updateTrackConfig(trackId, { streamId });
     } else {
-      // Clear and re-add
-      const stream = store.getStream(streamId);
-      if (stream) {
-        for (const event of stream.events) {
-          store.removeEvent(streamId, event.id);
-        }
-      }
-      for (const event of events) {
-        store.addEvent(streamId, event);
-      }
+      store.updateStream(streamId, () => ({ events }));
     }
     
-    return streamId;
+    return streamId ?? null;
   }
   
   /**
@@ -1041,24 +1074,26 @@ export class PatternStore {
     this.pushUndo();
     
     const ticksPerRow = this.ppq / pattern.config.rowsPerBeat;
-    const rows = [...trackData.rows].map((row, i) => 
+    const rows = Array.from({ length: trackData.rows.length }, () =>
       emptyRow(trackData.config.effectColumns)
     );
     
     for (const event of stream.events) {
       const rowIdx = Math.floor((event.startTick as number) / ticksPerRow);
       if (rowIdx >= 0 && rowIdx < rows.length) {
-        const payload = event.payload as any;
-        rows[rowIdx] = {
-          ...rows[rowIdx],
-          note: {
-            note: asMidiNote(payload.pitch ?? 60),
-            volume: payload.velocity !== undefined ? asVelocity(payload.velocity) : undefined,
-            pan: payload.pan,
-            instrument: payload.instrument,
-            delay: (event.startTick as number) % ticksPerRow,
-          },
+        const row = rows[rowIdx];
+        if (!row) continue;
+
+        const payload = event.payload as { pitch?: unknown; velocity?: unknown; pan?: unknown; instrument?: unknown };
+        const noteCell: NoteCell = {
+          note: asMidiNote(Number(payload.pitch ?? 60)),
+          ...(payload.velocity === undefined ? {} : { volume: asVelocity(Number(payload.velocity)) }),
+          ...(typeof payload.pan === 'number' ? { pan: payload.pan } : {}),
+          ...(payload.instrument === undefined ? {} : { instrument: payload.instrument as any }),
+          delay: (event.startTick as number) % ticksPerRow,
         };
+
+        rows[rowIdx] = { ...row, note: noteCell };
       }
     }
     

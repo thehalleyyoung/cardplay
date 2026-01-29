@@ -11,6 +11,10 @@ The music theory KB provides predicates for:
 - Voice leading rules
 - Harmonic functions and cadences
 - Orchestration and texture
+- Computational analysis helpers (PC profiles, key-finding, grouping)
+- Galant schemata (schema patterns and matching)
+- Film music helpers (mood → mode/device/role recommendations)
+- World-music scaffolding (Carnatic/Celtic/Chinese starter predicates)
 
 ## Notes
 
@@ -197,6 +201,106 @@ Named chord progressions as lists of [degree, quality] pairs.
 ### `diatonic_chord/3`
 ```prolog
 diatonic_chord(ScaleType, Degree, Quality).
+```
+
+## Computational Music Theory (Extensions)
+
+These predicates live in `cardplay/src/ai/knowledge/music-theory-computational.pl` and are loaded by `loadMusicTheoryKB`.
+
+### `pc_profile_from_pcs/2`
+```prolog
+pc_profile_from_pcs(PitchClasses, Profile12).
+```
+Build a 12-bin pitch-class profile (PCP) from a list of pitch classes (0–11).
+
+### `pc_profile_norm/2`
+```prolog
+pc_profile_norm(Profile12, Normalized12).
+```
+Normalize a profile so bins sum to 1.
+
+### `ks_best_key/3`
+```prolog
+ks_best_key(Profile12, KeyRootPC, Mode).
+```
+Krumhansl–Schmuckler style key scoring (utility).
+
+### `dft_phase_key_note/3`
+```prolog
+dft_phase_key_note(Profile12, TonicNote, Confidence).
+```
+Estimate tonic by matching the phase direction of the DFT k=1 component.
+
+### `spiral_distance2/3`
+```prolog
+spiral_distance2(NoteA, NoteB, DistSquared).
+```
+Approximate tonal “distance” (squared) using a spiral-array-inspired embedding.
+
+### `gttm_segment/3`
+```prolog
+gttm_segment(Events, Threshold0to100, Segments).
+```
+Heuristic grouping/segmentation for note events `evt(Start, Dur, MidiPitch)`.
+
+## Galant Schemata (Extensions)
+
+These predicates live in `cardplay/src/ai/knowledge/music-theory-galant.pl`.
+
+### `galant_schema/1`
+```prolog
+galant_schema(Schema).
+```
+
+### `schema_pattern/3`
+```prolog
+schema_pattern(Schema, Role, Degrees).
+```
+
+### `match_galant_schema/3`
+```prolog
+match_galant_schema(DegreeSequence, Schema, Score).
+```
+
+## Film Music (Extensions)
+
+These predicates live in `cardplay/src/ai/knowledge/music-theory-film.pl`.
+
+### `film_mood/1`
+```prolog
+film_mood(Mood).
+```
+
+### `recommend_film_device/3`
+```prolog
+recommend_film_device(Mood, Device, Reasons).
+```
+
+## World Music (Extensions)
+
+These predicates live in `cardplay/src/ai/knowledge/music-theory-world.pl`.
+
+### Carnatic (starter)
+```prolog
+raga(Raga).
+raga_arohana(Raga, Swaras).
+raga_avarohana(Raga, Swaras).
+raga_pcs(Raga, PitchClasses).
+tala(Tala).
+tala_cycle(Tala, Beats).
+```
+
+### Celtic (starter)
+```prolog
+celtic_tune_type(Type, meter(Num, Den)).
+celtic_progression(Name, Degrees).
+celtic_ornament(Ornament).
+```
+
+### Chinese (starter)
+```prolog
+chinese_pentatonic_mode(Mode, Steps).
+chinese_mode_pcs(TonicNote, Mode, PitchClasses).
 ```
 Returns the chord quality for a scale degree.
 

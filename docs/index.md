@@ -50,3 +50,10 @@ These docs are strict extensions of the canonical data model and semantics in `c
 - [Transport semantics reference](./transport-semantics.md)
 - [Recording semantics reference](./recording-semantics.md)
 - [Mixer semantics reference](./mixer-semantics.md)
+
+## Board System (Phase B-C)
+
+- [Board API Reference](./boards/board-api.md)
+- [Board State Persistence](./boards/board-state.md)
+- [Layout Runtime Model](./boards/layout-runtime.md)
+- [Board Switching Migration](./boards/migration.md)

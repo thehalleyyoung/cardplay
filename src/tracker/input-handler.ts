@@ -16,21 +16,15 @@ import {
   asVelocity,
   SpecialNote,
   emptySelection,
-  type PatternId,
-  type TrackId,
-  type RowIndex,
-  type ColumnIndex,
   type CursorPosition,
-  type CursorConfig,
   type TrackerSelection,
   type SelectionAnchor,
   type TrackerState,
   type NoteCell,
   type EffectCommand,
-  type EditMode,
   type EventStreamId,
 } from './types';
-import { getPatternStore } from './pattern-store';
+import { getTrackerEventSync } from './event-sync';
 
 // ============================================================================
 // TYPES
@@ -151,7 +145,6 @@ export class TrackerInputHandler {
   private onCursorChange: ((cursor: CursorPosition | null) => void) | null = null;
   private onSelectionChange: ((selection: TrackerSelection) => void) | null = null;
   private onNoteInput: ((note: NoteCell, advance: boolean) => void) | null = null;
-  private onEffectInput: ((effect: EffectCommand) => void) | null = null;
   
   constructor(config: Partial<InputHandlerConfig> = {}) {
     this.config = { ...DEFAULT_INPUT_CONFIG, ...config };
@@ -254,8 +247,9 @@ export class TrackerInputHandler {
   private moveCursorUp(
     cursor: CursorPosition,
     patternLength: number,
-    state: TrackerState
+    _state: TrackerState
   ): CursorPosition {
+    void _state;
     let newRow = (cursor.row as number) - 1;
     
     if (newRow < 0) {
@@ -272,8 +266,9 @@ export class TrackerInputHandler {
   private moveCursorDown(
     cursor: CursorPosition,
     patternLength: number,
-    state: TrackerState
+    _state: TrackerState
   ): CursorPosition {
+    void _state;
     let newRow = (cursor.row as number) + 1;
     
     if (newRow >= patternLength) {
@@ -304,6 +299,7 @@ export class TrackerInputHandler {
     } else if (currentIdx > 0) {
       // Move to previous sub-column
       const newSubColumn = subColumns[currentIdx - 1];
+      if (!newSubColumn) return cursor;
       return { 
         ...cursor, 
         subColumn: newSubColumn,
@@ -314,6 +310,7 @@ export class TrackerInputHandler {
       const trackIdx = state.trackOrder.indexOf(cursor.trackId);
       if (trackIdx > 0) {
         const newTrackId = state.trackOrder[trackIdx - 1];
+        if (!newTrackId) return cursor;
         const trackConfig = state.trackConfigs.get(newTrackId);
         const effectCols = trackConfig?.effectColumns ?? 2;
         return {
@@ -350,6 +347,7 @@ export class TrackerInputHandler {
     } else if (currentIdx < subColumns.length - 1) {
       // Move to next sub-column
       const newSubColumn = subColumns[currentIdx + 1];
+      if (!newSubColumn) return cursor;
       return {
         ...cursor,
         subColumn: newSubColumn,
@@ -360,9 +358,11 @@ export class TrackerInputHandler {
       // Move to next track
       const trackIdx = state.trackOrder.indexOf(cursor.trackId);
       if (trackIdx < state.trackOrder.length - 1) {
+        const newTrackId = state.trackOrder[trackIdx + 1];
+        if (!newTrackId) return cursor;
         return {
           ...cursor,
-          trackId: state.trackOrder[trackIdx + 1],
+          trackId: newTrackId,
           subColumn: 'note',
           effectIndex: 0,
           nibble: 0,
@@ -376,7 +376,8 @@ export class TrackerInputHandler {
   /**
    * Jump cursor by page.
    */
-  pageUp(state: TrackerState, pageSize: number = 16): void {
+  pageUp(_state: TrackerState, pageSize: number = 16): void {
+    void _state;
     if (!this.cursor) return;
     
     const newRow = Math.max(0, (this.cursor.row as number) - pageSize);
@@ -489,6 +490,7 @@ export class TrackerInputHandler {
     
     const firstTrack = state.trackOrder[0];
     const lastTrack = state.trackOrder[state.trackOrder.length - 1];
+    if (!firstTrack || !lastTrack) return;
     
     const start: SelectionAnchor = {
       patternId: this.cursor.patternId,
@@ -712,13 +714,18 @@ export class TrackerInputHandler {
           const newParam = this.cursor.nibble === 0
             ? (digit << 4) | (param & 0x0F)
             : (param & 0xF0) | digit;
+
+          const updated: EffectCommand = {
+            code: asEffectCode(code),
+            param: asEffectParam(newParam),
+          };
           
           if (streamId) {
             sync.setEffect(
               streamId,
               this.cursor.row as number,
               this.cursor.effectIndex,
-              { effects: [{ code: asEffectCode(code), param: asEffectParam(newParam) }] },
+              { effects: [updated] },
               patternLength
             );
           }
@@ -843,13 +850,6 @@ export class TrackerInputHandler {
    */
   setOnNoteInput(callback: (note: NoteCell, advance: boolean) => void): void {
     this.onNoteInput = callback;
-  }
-  
-  /**
-   * Set effect input callback.
-   */
-  setOnEffectInput(callback: (effect: EffectCommand) => void): void {
-    this.onEffectInput = callback;
   }
 }
 

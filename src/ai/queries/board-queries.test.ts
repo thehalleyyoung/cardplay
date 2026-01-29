@@ -97,8 +97,8 @@ describe('Board & Deck Query Functions', () => {
       expect(result.valid).toBe(true);
     });
     
-    it('should validate mixer with sample_browser', async () => {
-      const result = await validateDeckCombination(['mixer', 'sample_browser']);
+    it('should validate mixer with browser', async () => {
+      const result = await validateDeckCombination(['mixer', 'browser']);
       
       expect(result.valid).toBe(true);
     });
@@ -398,7 +398,7 @@ describe('Board & Deck Query Functions', () => {
   describe('Integration Tests', () => {
     it('should support complete workflow setup flow', async () => {
       // 1. Get workflow info
-      const workflow = 'tracker_lofi';
+      const workflow = 'tracker_user';
       const info = await getWorkflowInfo(workflow);
       
       // 2. Get recommended board
@@ -441,7 +441,8 @@ describe('Board & Deck Query Functions', () => {
       
       for (const board of boards) {
         expect(typeof board.id).toBe('string');
-        expect(['manual', 'assisted', 'generative', 'hybrid']).toContain(board.controlLevel);
+        // The KB uses: full_manual, manual_with_hints, assisted, collaborative, directed, generative
+        expect(['manual', 'assisted', 'generative', 'hybrid', 'full_manual', 'manual_with_hints', 'collaborative', 'directed']).toContain(board.controlLevel);
       }
     });
   });

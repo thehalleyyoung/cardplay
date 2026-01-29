@@ -1,0 +1,1118 @@
+# Board-Centric UI: 1000-Step Plan (Repo → `cardplay/cardplayui.md`)
+
+This is a **repo-aware**, **granular**, **1,000-step** roadmap to get from the current implementation to the Board-Centric Architecture described in `cardplay/cardplayui.md`.
+
+## How the UI works today (high-level map)
+
+### Shared state (data plane)
+- `cardplay/src/state/event-store.ts`: `SharedEventStore` (streams + subscriptions)
+- `cardplay/src/state/clip-registry.ts`: `ClipRegistry` (clips reference streams)
+- `cardplay/src/state/selection-state.ts`: cross-view selection by `EventId`
+- `cardplay/src/state/undo-stack.ts`: undo/redo
+- `cardplay/src/state/routing-graph.ts`: shared routing graph
+- `cardplay/src/state/parameter-resolver.ts`: unified parameter resolution
+
+### Editors / views (view plane)
+- Tracker (panel-style): `cardplay/src/ui/components/tracker-panel.ts` (+ `tracker-store-adapter.ts`)
+- Piano roll: `cardplay/src/ui/components/piano-roll-panel.ts` (+ `piano-roll-store-adapter.ts`)
+- Notation: `cardplay/src/notation/panel.ts` (+ `notation-store-adapter.ts`)
+- Arrangement: `cardplay/src/ui/components/arrangement-panel.ts`
+
+### Cards / stacks / decks (workspace plane)
+- Card shell: `cardplay/src/ui/components/card-component.ts`
+- Stack container: `cardplay/src/ui/components/stack-component.ts`
+- Deck runtime (grid + audio chain + routing sync): `cardplay/src/ui/deck-layout.ts`
+
+### What’s missing vs `cardplay/cardplayui.md`
+- No **Board** type/system, no `BoardRegistry`, no `BoardSwitcher`, no first-run board selection.
+- No board-driven **tool gating** (phrase/harmony/generator/AI) that determines visible decks/panels.
+- No unified “deck” UX layer that consistently renders the spec’s deck types (pattern editor, phrase library, generator, arranger, mixer, etc.).
+- Several **API drifts** currently break `npm run typecheck` (transport snapshot vs state; store APIs), making board work risky until stabilized.
+
+## Conventions in this plan
+- Each checkbox is one concrete step.
+- Step IDs are grouped by phase: `A001…A100`, `B001…`, etc.
+- Phase counts add up to **exactly 1,000 steps**.
+
+---
+
+## Phase A: Baseline & Repo Health (A001–A100)
+
+- [ ] A001 Re-read `cardplay/cardplayui.md` and extract required Board/Deck primitives.
+- [ ] A002 Re-read `cardplay/currentsteps.md` and note overlaps with Board work.
+- [ ] A003 Inventory current UI surfaces (tracker, piano roll, notation, arrangement, session).
+- [ ] A004 Inventory shared stores (`event-store`, `clip-registry`, `selection`, `undo`, `routing`).
+- [ ] A005 Inventory UI primitives (`card-component`, `stack-component`, `deck-layout`).
+- [ ] A006 Inventory “bridge” modules (`layout-bridge`, `design-system-bridge`, onboarding bridges).
+- [ ] A007 Document how tracker editing reaches stores (adapters + `TrackerEventSync`).
+- [ ] A008 Document how piano roll editing reaches stores (store adapter path).
+- [ ] A009 Document how notation editing reaches stores (`notation-store-adapter` path).
+- [ ] A010 Document how arrangement reads clips/streams (ClipRegistry + timeline ops).
+- [ ] A011 List competing “card” concepts (`src/cards/*` vs `src/audio/instrument-cards.ts`).
+- [ ] A012 List competing “deck” concepts (`deck-layout`, `deck-layouts`, `deck-reveal`).
+- [ ] A013 Write a short “canonical decisions” note (which card/deck concepts boards will use).
+- [ ] A014 Create `cardplay/docs/boardcentric/audit.md` to store A003–A013 findings.
+- [x] A015 Run `cd cardplay && npm run typecheck` and capture output to a file (`cardplay/typecheck-output-20260128-180002.txt`).
+- [x] A016 Run `cd cardplay && npm test` and capture output to a file (`cardplay/test-output-20260128-180224.txt`).
+- [x] A017 Run `cd cardplay && npm run build` and capture output to a file (`cardplay/build-output-20260128-180002.txt`).
+- [ ] A018 Categorize typecheck failures by file and dependency fan-out.
+- [ ] A019 Prioritize fixes: pick the 5 files blocking the most imports.
+- [ ] A020 Open `src/state/event-store.ts` and confirm the canonical store API surface.
+- [ ] A021 In `src/audio/audio-engine-store-bridge.ts`, replace `subscribeToStream` with `subscribe`.
+- [ ] A022 In `src/audio/audio-engine-store-bridge.ts`, replace `unsubscribeFromStream` with `unsubscribe`.
+- [ ] A023 In `src/audio/audio-engine-store-bridge.ts`, replace `listStreamIds` with `getAllStreams()` mapping.
+- [ ] A024 In `src/audio/audio-engine-store-bridge.ts`, replace `event.tick` reads with `event.start`.
+- [ ] A025 In `src/audio/audio-engine-store-bridge.ts`, use `TransportSnapshot` where `tempo/currentTick/isPlaying` are needed.
+- [ ] A026 Normalize transport usage: treat `TransportState` as the string union only (`snapshot.state`).
+- [ ] A027 Add guards for possibly-undefined events in `audio-engine-store-bridge.ts`.
+- [ ] A028 Fix `TrackHeader` construction under `exactOptionalPropertyTypes` in `audio-engine-store-bridge.ts`.
+- [ ] A029 Re-run typecheck and confirm `audio-engine-store-bridge.ts` is clean.
+- [ ] A030 Open `src/state/clip-registry.ts` and confirm canonical subscription API names.
+- [ ] A031 In `src/ui/session-view-store-bridge.ts`, replace `registry.subscribe(...)` with `subscribeAll(...)`.
+- [ ] A032 In `src/ui/session-view-store-bridge.ts`, ensure `createStream` calls pass `{ name, events? }` objects.
+- [ ] A033 In `src/ui/session-view-store-bridge.ts`, introduce `makeSessionSlotKey(track, scene)` helper and use everywhere.
+- [ ] A034 In `src/ui/session-view-store-bridge.ts`, introduce `makeSessionSlotStreamId(track, scene)` helper and use everywhere.
+- [ ] A035 In `src/ui/session-view-store-bridge.ts`, stop assigning `EventStreamRecord` objects to `EventStreamId` variables.
+- [ ] A036 In `src/ui/session-view-store-bridge.ts`, stop assigning `ClipRecord` objects to `ClipId` variables.
+- [ ] A037 In `src/ui/session-view-store-bridge.ts`, map `ClipRecord.duration` → slot length display value.
+- [ ] A038 In `src/ui/session-view-store-bridge.ts`, map `ClipRecord.loop` → slot loop display value.
+- [ ] A039 In `src/ui/session-view-store-bridge.ts`, fix `undefined` vs `null` mismatches (prefer `null` where typed).
+- [ ] A040 In `src/ui/session-view-store-bridge.ts`, remove unused imports flagged by TS.
+- [ ] A041 Re-run typecheck and confirm `session-view-store-bridge.ts` is clean.
+- [ ] A042 In `src/ui/session-clip-adapter.ts`, fix `TrackHeader` creation to always include required fields.
+- [ ] A043 Re-run typecheck and confirm `session-clip-adapter.ts` is clean.
+- [ ] A044 Open `src/tracker/tracker-card-integration.ts` and reconcile `TrackerInputHandler.handleKeyDown` signature.
+- [ ] A045 Update tracker card integration to call `handleKeyDown(e.key, trackerState, streamId, patternLength)`.
+- [ ] A046 Ensure tracker card integration binds to a real `EventStreamId` (not private pattern copies).
+- [ ] A047 Call `TrackerEventSync.bindStream(streamId, patternLength)` on mount and unbind on destroy.
+- [ ] A048 Re-run typecheck and confirm tracker integration compiles.
+- [ ] A049 Decide canonical tracker UI for boards: panel (`tracker-panel`) vs card (`tracker-card`), and document it.
+- [ ] A050 If keeping both, define roles: deck uses panel; embeddable widgets use card.
+- [ ] A051 Verify `tracker-panel` edits are routed through `SharedEventStore` (no local event truth).
+- [ ] A052 Verify `piano-roll-panel` edits are routed through `SharedEventStore`.
+- [ ] A053 Verify `notation-store-adapter` is bidirectional (store → notation and notation → store).
+- [ ] A054 Verify `SelectionStore` is used across tracker/piano roll/notation (event IDs, not indices).
+- [ ] A055 Add an integration test: edit a note in tracker, observe update in piano roll.
+- [ ] A056 Add an integration test: edit a note in piano roll, observe update in notation.
+- [ ] A057 Add an integration test: selection in notation highlights in tracker (same event IDs).
+- [ ] A058 Create `cardplay/examples/board-playground/` for browser-based manual testing.
+- [ ] A059 Add `cardplay/examples/board-playground/index.html` with a root element and CSS baseline.
+- [ ] A060 Add `cardplay/examples/board-playground/main.ts` mounting tracker + piano roll + notation against one stream.
+- [ ] A061 Add minimal transport controls in playground (play/pause/stop; show tick).
+- [ ] A062 Add buttons in playground to create a new stream and switch active stream.
+- [ ] A063 Add buttons in playground to create a clip referencing the active stream.
+- [ ] A064 Ensure playground uses `design-system-bridge` tokens for consistent theming.
+- [ ] A065 Ensure playground loads fonts from `cardplay/public/fonts`.
+- [ ] A066 Add `dev:playground` script in `cardplay/package.json` (separate from lib build).
+- [ ] A067 Ensure playground files are excluded from library exports/build artifacts.
+- [ ] A068 Run playground and manually verify cross-view sync remains stable under rapid edits.
+- [ ] A069 Record any UI inconsistencies found during playground testing in `docs/boardcentric/audit.md`.
+- [ ] A070 Inventory layout capabilities in `src/ui/layout.ts` vs what boards need (split, dock, tabs).
+- [ ] A071 Prototype (in playground) a left sidebar + center editor layout using current layout bridge.
+- [ ] A072 Prototype (in playground) tab switching between tracker and piano roll in one area.
+- [ ] A073 Confirm undo stack integration: edits create undo actions and revert cleanly.
+- [ ] A074 Confirm generated vs user events are distinguishable via `EventStreamMeta.generated` or similar.
+- [ ] A075 Add a short “Board MVP” doc defining the minimum shipping slice (2 boards + switcher).
+- [ ] A076 Pick MVP boards: `basic-tracker-board` and `tracker-phrases-board`.
+- [ ] A077 Define MVP acceptance: switch boards, persist state, enforce gating, shared stream edits.
+- [ ] A078 Ensure MVP definition aligns with `INTEGRATION_FIXES_CHECKLIST.md` scope.
+- [ ] A079 Add placeholder test files for upcoming board modules (registry/switching/gating).
+- [ ] A080 Confirm vitest config supports new UI tests (jsdom where needed).
+- [ ] A081 Add `cardplay/docs/boardcentric/glossary.md` (board/deck/stack/panel/card/clip/stream).
+- [ ] A082 Add `cardplay/docs/boardcentric/card-taxonomy.md` mapping existing card categories to board kinds.
+- [ ] A083 Audit `keyboard-shortcuts.ts` vs `keyboard-navigation.ts` and decide a single source of truth.
+- [ ] A084 Ensure shortcut manager starts in playground so board switch UX can be exercised.
+- [ ] A085 Add a TODO list for reconciling shortcut systems in `docs/boardcentric/audit.md`.
+- [ ] A086 Confirm `deck-layout.ts` registry lifecycle doesn’t leak subscriptions (create/remove/clear).
+- [ ] A087 Confirm routing graph mutations are centralized and undoable.
+- [ ] A088 Confirm parameter resolver stack order matches docs (preset → automation → modulation → overrides).
+- [ ] A089 Ensure lint config covers new folders planned under `src/boards`.
+- [ ] A090 Decide naming conventions for new board files and commit to them (kebab-case IDs, TS file names).
+- [ ] A091 Add a “Boards” section to `INTEGRATION_FIXES_CHECKLIST.md` linking this plan.
+- [ ] A092 Add a link to this plan from `cardplay/docs/index.md`.
+- [ ] A093 Re-run `npm run typecheck` and confirm there are no regressions.
+- [ ] A094 Re-run `npm test` and confirm there are no regressions.
+- [ ] A095 Re-run `npm run build` and confirm there are no regressions.
+- [ ] A096 Tag the baseline state in a short note: “Green baseline achieved” (date + commit hash if applicable).
+- [ ] A097 Freeze API decisions: store methods, transport snapshot shape, clip record fields.
+- [ ] A098 Create a “do-not-break” list for baseline APIs in `docs/boardcentric/audit.md`.
+- [ ] A099 Confirm all new board work will build on the stabilized baseline.
+- [ ] A100 Proceed only after baseline is green across typecheck/test/build.
+
+<!-- NEXT_PHASE -->
+## Phase K: QA, Performance, Docs, Release (K001–K030)
+
+- [ ] K001 Add a `cardplay/docs/boards/` index page listing all builtin boards and their deck sets.
+- [ ] K002 Add a “Board authoring guide” doc explaining how to add a new board end-to-end.
+- [ ] K003 Add a “Deck authoring guide” doc explaining how to add a new `DeckType` + factory.
+- [ ] K004 Add a “Project compatibility” doc explaining how boards share the same project format.
+- [ ] K005 Add a “Board switching semantics” doc: what persists, what resets, what migrates.
+- [ ] K006 Add E2E-ish tests (jsdom/puppeteer) that open board switcher and switch boards.
+- [ ] K007 Add E2E-ish test: drag a phrase into tracker and assert events appear in store.
+- [ ] K008 Add E2E-ish test: generate a clip in Session+Generators board and assert it appears in timeline.
+- [ ] K009 Add E2E-ish test: edit same stream in tracker and notation and assert convergence.
+- [ ] K010 Add a performance benchmark doc for tracker (rows/second, target FPS, dirty region usage).
+- [ ] K011 Add a performance benchmark doc for piano roll (note count, zoom, selection performance).
+- [ ] K012 Add a performance benchmark doc for session grid (grid size, clip state updates).
+- [ ] K013 Add a performance benchmark doc for routing overlay (node/edge counts, redraw budget).
+- [ ] K014 Add a simple benchmark harness in playground to stress-test large streams/clips.
+- [ ] K015 Ensure all benchmarks can run without network access and without external services.
+- [ ] K016 Add memory leak checks: verify subscriptions are cleaned up on board and deck unmount.
+- [ ] K017 Add a test that rapidly switches boards 100 times and asserts no growth in subscriptions.
+- [ ] K018 Add an accessibility checklist for each board (keyboard workflow, ARIA roles, contrast).
+- [ ] K019 Run a high-contrast audit on board switcher, deck headers, routing overlay, and editors.
+- [ ] K020 Add documentation for control spectrum and what each control level means (Part I alignment).
+- [ ] K021 Add documentation for the deck/stack system (Part VII alignment) using repo examples.
+- [ ] K022 Add documentation for connection routing (Part VIII alignment) using routing overlay screenshots.
+- [ ] K023 Add documentation for theming and styling (Part IX alignment) with token tables.
+- [ ] K024 Create a “Board v1 release checklist” (which boards ship, known limitations, migration notes).
+- [ ] K025 Define “Board MVP” release criteria: at least 2 boards + switcher + persistence + gating + sync.
+- [ ] K026 Define “Board v1” release criteria: all manual + assisted boards working; generative boards MVP.
+- [ ] K027 Update `cardplay/README` or docs index to point users to the board-first entry points.
+- [ ] K028 Run `npm run check` as the final gate and require green before release.
+- [ ] K029 Cut a release note doc summarizing what changed and what’s next.
+- [ ] K030 Lock Phase K when docs/tests/benchmarks exist and the board system is shippable.
+## Phase J: Routing, Theming, Shortcuts (J001–J060)
+
+- [ ] J001 Define `BoardTheme` defaults for each control level (manual/hints/assisted/directed/generative).
+- [ ] J002 Implement `applyBoardTheme(boardTheme)` that composes with `src/ui/theme.ts` CSS variables.
+- [ ] J003 Add per-board theme variants: dark/light/high-contrast (reuse existing theme presets).
+- [ ] J004 Add `boardThemeToCSSProperties()` bridging board theme into CSS custom properties.
+- [ ] J005 Ensure board theme changes do not require remounting editors (pure CSS updates).
+- [ ] J006 Implement control-level indicator colors per `cardplayui.md` §9.2.
+- [ ] J007 Add track header UI affordances showing control level (badge + color strip).
+- [ ] J008 Add deck header UI affordances showing deck control level override (if set).
+- [ ] J009 Add “generated” vs “manual” styling for events (e.g., lighter alpha for generated).
+- [ ] J010 Add a consistent icon set mapping for board icons and deck icons (single source).
+- [ ] J011 Decide canonical shortcut system: consolidate `keyboard-shortcuts.ts` and `keyboard-navigation.ts`.
+- [ ] J012 If consolidating, create `cardplay/src/ui/shortcuts/index.ts` and migrate registrations.
+- [ ] J013 Implement `registerBoardShortcuts(board)` and `unregisterBoardShortcuts(board)` helpers.
+- [ ] J014 Add `Cmd+B` board switch shortcut (global) and ensure no conflicts with deck tab switching.
+- [ ] J015 Add `Cmd+1..9` deck tab switching scoped to active deck container.
+- [ ] J016 Add `Cmd+K` command palette shortcut reserved for AI composer boards (hidden otherwise).
+- [ ] J017 Add `Space/Enter/Esc` transport shortcuts consistent across all boards.
+- [ ] J018 Add a “Shortcuts” help view listing active board + active deck shortcuts.
+- [ ] J019 Ensure shortcut system pauses in text inputs except undo/redo.
+- [ ] J020 Ensure shortcut system supports user remapping in the future (design now; implement later).
+- [ ] J021 Create `cardplay/src/ui/components/routing-overlay.ts` to visualize routing graph over the board.
+- [ ] J022 In routing overlay, render nodes for decks/cards/tracks using `routing-graph.ts`.
+- [ ] J023 In routing overlay, render connections by type (audio/midi/mod/trigger) with color coding.
+- [ ] J024 In routing overlay, allow click-to-connect (port → port) and validate via Phase D rules.
+- [ ] J025 In routing overlay, allow drag-to-rewire connections and persist changes to routing graph store.
+- [ ] J026 In routing overlay, integrate undo/redo for connection edits (`executeWithUndo`).
+- [ ] J027 Add a “show routing” toggle in board chrome (and persist per board).
+- [ ] J028 Add a “routing mini-map” mode for dense graphs (zoomed overview).
+- [ ] J029 Integrate `DeckLayoutAdapter` audio nodes as routing endpoints for mixer/chain decks.
+- [ ] J030 Ensure routing changes update audio engine graph (if audio engine bridge exists).
+- [ ] J031 Add a “connection inspector” panel showing selected connection details (gain, type, ports).
+- [ ] J032 Add visual feedback for incompatible connections (shake + tooltip with reason).
+- [ ] J033 Ensure routing overlay respects reduced motion and high contrast.
+- [ ] J034 Add unit tests for routing validation logic (Phase D already tests pure validation).
+- [ ] J035 Add integration test: create a connection in overlay and verify routing graph store updated.
+- [ ] J036 Add integration test: undo connection edit restores prior routing graph.
+- [ ] J037 Create `cardplay/src/ui/components/board-theme-picker.ts` (optional) to switch theme variants.
+- [ ] J038 Persist theme choice per board (or global) with a clear policy setting.
+- [ ] J039 Ensure board switching optionally switches theme (configurable).
+- [ ] J040 Add “control spectrum” UI element for hybrid boards (per-track sliders, optional MVP).
+- [ ] J041 Define per-track control level data model (track id → control level) in board state.
+- [ ] J042 Show per-track control level in session headers and mixer strips.
+- [ ] J043 Show per-track control level in tracker track headers (color bar).
+- [ ] J044 Show per-track control level in arrangement track list (color bar).
+- [ ] J045 Add an accessibility announcement when control level changes (“Track Drums set to Directed”).
+- [ ] J046 Ensure all new UI components use theme tokens (no hard-coded colors unless in token definitions).
+- [ ] J047 Audit existing components for hard-coded colors that conflict with high-contrast theme.
+- [ ] J048 Replace hard-coded colors with semantic tokens in key shared components (deck/container headers).
+- [ ] J049 Ensure board chrome and deck headers are readable in all theme modes.
+- [ ] J050 Add a “focus ring” standard for all interactive elements (reuse `focusRingCSS`).
+- [ ] J051 Ensure routing overlay and modals follow the same focus/ARIA conventions.
+- [ ] J052 Add “visual density” setting for tracker/session views (compact vs comfortable) per board.
+- [ ] J053 Persist visual density setting per board and apply to tracker/session row heights.
+- [ ] J054 Add docs: `cardplay/docs/boards/theming.md` describing board theme + control indicators.
+- [ ] J055 Add docs: `cardplay/docs/boards/routing.md` describing routing overlay + validation rules.
+- [ ] J056 Add docs: `cardplay/docs/boards/shortcuts.md` describing global + per-board shortcuts.
+- [ ] J057 Run playground in high-contrast mode and verify board switcher + routing overlay usability.
+- [ ] J058 Run an accessibility pass: keyboard-only navigation through board chrome and deck tabs.
+- [ ] J059 Add a performance pass: routing overlay render loop throttling and efficient redraw.
+- [ ] J060 Lock Phase J once routing/theming/shortcuts are consistent across boards.
+
+<!-- NEXT_PHASE -->
+## Phase I: Hybrid Boards (I001–I075)
+
+### Composer Board (Hybrid Power User) (I001–I025)
+
+- [ ] I001 Create `cardplay/src/boards/builtins/composer-board.ts` board definition.
+- [ ] I002 Set id/name/description/icon to match `cardplayui.md` Composer Board.
+- [ ] I003 Set `controlLevel: 'collaborative'` and “mix manual + assisted per track” philosophy string.
+- [ ] I004 Enable tools: phrase DB (drag-drop), harmony explorer (suggest), generators (on-demand), arranger (chord-follow).
+- [ ] I005 Optionally enable `aiComposer` in `inline-suggest` mode (MVP can keep it hidden).
+- [ ] I006 Choose `primaryView: 'composer'` for this board.
+- [ ] I007 Base the layout on `src/ui/composer-deck-layout.ts` panel set.
+- [ ] I008 Add deck `arranger` (sections bar) as top strip (reuse `arranger-sections-bar.ts` logic).
+- [ ] I009 Add deck `chord-track` as top lane (reuse `chord-track-lane.ts` adapter logic).
+- [ ] I010 Add deck `clip-session` as main grid (center).
+- [ ] I011 Add deck `notation-score` as bottom editor (syncs to selected clip stream).
+- [ ] I012 Add deck `pattern-editor` as an alternate bottom editor tab (tracker view of same stream).
+- [ ] I013 Add deck `transport` in board chrome (play/stop/loop, tempo, count-in).
+- [ ] I014 Add deck `generator` as a side panel for on-demand parts (melody/bass/drums/arp).
+- [ ] I015 Add deck `phrase-library` as a side panel for drag/drop phrases (optional in MVP).
+- [ ] I016 Add `composer-deck-bar` as a compact generator strip (reuse `composer-deck-bar.ts` state model).
+- [ ] I017 Wire deck bar “generate” actions to write proposals into a preview area (accept/reject).
+- [ ] I018 On accept, commit generated notes into the active clip’s stream with undo support.
+- [ ] I019 Adapt generated phrases to chord track using `src/cards/phrase-adapter.ts` (voice-leading mode).
+- [ ] I020 Implement scroll/zoom sync across arranger/chord/session/notation (use `composer-deck-layout.ts` types).
+- [ ] I021 Implement per-track control levels (manual vs assisted vs directed) and show indicators on tracks.
+- [ ] I022 Persist per-track control levels in board state (so sessions reopen with same autonomy mix).
+- [ ] I023 Add docs: `cardplay/docs/boards/composer-board.md` (hybrid workflow + shortcuts).
+- [ ] I024 Add integration tests: selecting a session clip updates notation/tracker editor context.
+- [ ] I025 Lock Composer board once multi-panel sync + per-track control indicators are stable.
+
+### Producer Board (Hybrid Production) (I026–I050)
+
+- [ ] I026 Create `cardplay/src/boards/builtins/producer-board.ts` board definition.
+- [ ] I027 Set id/name/description/icon to match `cardplayui.md` Producer Board.
+- [ ] I028 Set `controlLevel: 'collaborative'` and “full production with optional generation” philosophy string.
+- [ ] I029 Enable tools: generators (on-demand), arranger (manual-trigger), phrase DB (browse-only or drag-drop).
+- [ ] I030 Keep AI composer optional; default hidden for MVP to reduce scope.
+- [ ] I031 Choose `primaryView: 'timeline'` for this board.
+- [ ] I032 Define layout: timeline (center), mixer (bottom), browser (left), dsp-chain (right), session (tab).
+- [ ] I033 Add deck `timeline` as primary deck (arrangement view).
+- [ ] I034 Add deck `mixer` as bottom deck (track strips + meters).
+- [ ] I035 Add deck `instrument-browser` as left deck (add instruments/effects).
+- [ ] I036 Add deck `dsp-chain` as right deck (device chain for selected track).
+- [ ] I037 Add deck `clip-session` as a tab (for sketching + launching).
+- [ ] I038 Add deck `properties` as a tab (inspect clips, events, devices).
+- [ ] I039 Add deck `routing`/`modular` overlay access for complex routing (Phase J).
+- [ ] I040 Implement per-track “control level” badges (manual vs generated) on mixer strips.
+- [ ] I041 Implement “freeze generated track” action (turn generated streams into static editable events).
+- [ ] I042 Implement “render/bounce” action (audio) for performance; keep metadata linking to source.
+- [ ] I043 Implement automation lanes integration using `parameter-resolver.ts` (preset + automation + modulation).
+- [ ] I044 Ensure timeline editing and session editing share the same clips (ClipRegistry invariants).
+- [ ] I045 Add shortcuts: split, duplicate, consolidate, quantize, bounce, toggle mixer.
+- [ ] I046 Add docs: `cardplay/docs/boards/producer-board.md` (end-to-end production workflow).
+- [ ] I047 Add smoke test: adding a clip in session shows in timeline and vice versa.
+- [ ] I048 Add smoke test: dsp-chain changes route through routing graph and are undoable.
+- [ ] I049 Add perf pass: timeline virtualization for many clips; mixer meters throttling.
+- [ ] I050 Lock Producer board once arrangement/mixer/device chain loop is usable and consistent.
+
+### Live Performance Board (Hybrid Performance) (I051–I075)
+
+- [ ] I051 Create `cardplay/src/boards/builtins/live-performance-board.ts` board definition.
+- [ ] I052 Set id/name/description/icon to match `cardplayui.md` Live Performance Board.
+- [ ] I053 Set `controlLevel: 'collaborative'` and “performance-first, mix manual + arranger” philosophy string.
+- [ ] I054 Enable tools: arranger (chord-follow or autonomous), generators (on-demand), phrase DB (browse-only).
+- [ ] I055 Choose `primaryView: 'session'` for this board.
+- [ ] I056 Define layout: session grid (center), arranger (top), modular routing (right), mixer (bottom).
+- [ ] I057 Add deck `clip-session` as primary deck (scene/clip launch optimized).
+- [ ] I058 Add deck `arranger` as top deck (sections + energy controls for live structure).
+- [ ] I059 Add deck `modular` as right deck (routing + modulation patching visible live).
+- [ ] I060 Add deck `mixer` as bottom deck (quick mute/solo + meters).
+- [ ] I061 Add deck `transport` with tempo tap, count-in, and quantized launch settings.
+- [ ] I062 Add a “performance macros” strip (8 macro knobs) that drives parameter resolver targets.
+- [ ] I063 Integrate `deck-reveal.ts` concepts: reveal a track’s instrument on click for deep tweaks.
+- [ ] I064 Add MIDI activity visualization per track (reuse `midi-visualization.ts` where possible).
+- [ ] I065 Add “panic” controls (all notes off, stop all clips, reset routing).
+- [ ] I066 Add “capture performance” action that records session launch history into arrangement timeline.
+- [ ] I067 Implement per-track control levels: some tracks arranged/generative, some manual live input.
+- [ ] I068 Show per-track control level colors in session headers and mixer strips (Phase J control colors).
+- [ ] I069 Add shortcuts: launch scene, stop, tempo tap, next/prev scene, toggle reveal, panic.
+- [ ] I070 Add docs: `cardplay/docs/boards/live-performance-board.md` (setup + performance workflow).
+- [ ] I071 Add smoke test: launching clips updates transport and visual play states at 60fps without leaks.
+- [ ] I072 Add smoke test: tempo tap changes generator timing and metronome sync.
+- [ ] I073 Add perf pass: meter updates throttled; render loop uses requestAnimationFrame.
+- [ ] I074 Add resilience pass: disconnect/reconnect MIDI devices without crashing.
+- [ ] I075 Lock Live Performance board once live workflow is responsive and reliable.
+
+<!-- NEXT_PHASE -->
+## Phase H: Generative Boards (H001–H075)
+
+### AI Arranger Board (Directed) (H001–H025)
+
+- [ ] H001 Create `cardplay/src/boards/builtins/ai-arranger-board.ts` board definition.
+- [ ] H002 Set id/name/description/icon to match `cardplayui.md` AI Arranger Board.
+- [ ] H003 Set `controlLevel: 'directed'` and “you set direction, AI fills in” philosophy string.
+- [ ] H004 Enable `arrangerCard` tool in `chord-follow` mode (or `manual-trigger` for MVP).
+- [ ] H005 Enable `phraseGenerators` tool in `on-demand` mode for fills (optional).
+- [ ] H006 Choose `primaryView: 'arranger'` for this board.
+- [ ] H007 Define layout: arranger (top/center), clip-session (center), generator (right), mixer (bottom).
+- [ ] H008 Add deck `arranger` as primary deck (sections + style/energy controls).
+- [ ] H009 Add deck `clip-session` for launching arranged parts as clips.
+- [ ] H010 Add deck `generator` for on-demand variations and fills.
+- [ ] H011 Add deck `mixer` for balancing generated parts.
+- [ ] H012 Add deck `properties` for per-part generation settings (seed, density, swing).
+- [ ] H013 Implement arranger deck UI: chord progression input + section blocks + part toggles (drums/bass/pad).
+- [ ] H014 Wire arranger to write outputs to per-track streams in `SharedEventStore` (one stream per part).
+- [ ] H015 Ensure session grid references those streams via clips (ClipRegistry), not copies.
+- [ ] H016 Add “Regenerate section” action that updates only the chosen section’s events.
+- [ ] H017 Add “Freeze section” action that marks generated events as user-owned and stops regeneration.
+- [ ] H018 Add “Humanize” (timing/velocity) controls per part and persist per board.
+- [ ] H019 Add “Style” presets (lofi, house, ambient) mapped to generator params (no network required).
+- [ ] H020 Add control-level indicators per track/part (generated vs manual override).
+- [ ] H021 Add a “Capture to manual board” CTA that switches to a manual board with same streams active.
+- [ ] H022 Add smoke test: arranger generates events; tracker/piano roll can view the same streams.
+- [ ] H023 Add test: freeze prevents regeneration and is undoable.
+- [ ] H024 Add docs: `cardplay/docs/boards/ai-arranger-board.md`.
+- [ ] H025 Lock AI Arranger board once generation/freeze/session integration is stable.
+
+### AI Composition Board (Directed) (H026–H050)
+
+- [ ] H026 Create `cardplay/src/boards/builtins/ai-composition-board.ts` board definition.
+- [ ] H027 Set id/name/description/icon to match `cardplayui.md` AI Composition Board.
+- [ ] H028 Set `controlLevel: 'directed'` and “describe intent, system drafts” philosophy string.
+- [ ] H029 Enable `aiComposer` tool in `command-palette` mode (MVP: local prompt templates).
+- [ ] H030 Enable `phraseGenerators` tool in `on-demand` mode for iterative drafts.
+- [ ] H031 Choose `primaryView: 'composer'` (AI composer panel) for this board.
+- [ ] H032 Define layout: AI composer (left/right), notation (center), tracker (tab), timeline (bottom).
+- [ ] H033 Add deck `ai-composer` as the prompt/command surface.
+- [ ] H034 Add deck `notation-score` for editing the AI draft in notation.
+- [ ] H035 Add deck `pattern-editor` as a tabbed alternative editor for the same stream.
+- [ ] H036 Add deck `timeline` to arrange generated clips linearly.
+- [ ] H037 Implement AI composer deck UI: prompt box, target scope (clip/section/track), and “Generate” button.
+- [ ] H038 Define a local “prompt → generator config” mapping (no external model dependency).
+- [ ] H039 Implement “Generate draft” to write events into a new stream + clip (ClipRegistry) for review.
+- [ ] H040 Implement “Replace selection” vs “Append” vs “Generate variation” actions.
+- [ ] H041 Add “diff preview” UI comparing existing vs proposed events (accept/reject with undo).
+- [ ] H042 Add “constraints” UI (key, chord progression, density, register, rhythm feel).
+- [ ] H043 If chord stream exists, allow “compose to chords” by passing chord context to generators.
+- [ ] H044 Add “commit to library” actions (save generated phrase to phrase database).
+- [ ] H045 Add shortcuts: open composer palette (Cmd+K), accept draft, reject draft, regenerate.
+- [ ] H046 Add safety rails: never overwrite without an undo group + confirmation.
+- [ ] H047 Add smoke test: generate draft creates clip + events, visible in notation and tracker.
+- [ ] H048 Add test: reject draft restores original events and selection.
+- [ ] H049 Add docs: `cardplay/docs/boards/ai-composition-board.md`.
+- [ ] H050 Lock AI Composition board once command palette loop is stable and non-destructive.
+
+### Generative Ambient Board (Generative) (H051–H075)
+
+- [ ] H051 Create `cardplay/src/boards/builtins/generative-ambient-board.ts` board definition.
+- [ ] H052 Set id/name/description/icon to match `cardplayui.md` Generative Ambient Board.
+- [ ] H053 Set `controlLevel: 'generative'` and “system generates, you curate” philosophy string.
+- [ ] H054 Enable `phraseGenerators` in `continuous` mode (background generation stream).
+- [ ] H055 Enable `arrangerCard` in `autonomous` mode (optional; MVP can be continuous generators only).
+- [ ] H056 Choose `primaryView: 'generator'` for this board.
+- [ ] H057 Define layout: generator stream (center), mixer (bottom), timeline (right), properties (left).
+- [ ] H058 Add deck `generator` as primary deck with continuous output view.
+- [ ] H059 Add deck `mixer` to balance evolving layers.
+- [ ] H060 Add deck `timeline` to capture “best moments” as arranged clips.
+- [ ] H061 Add deck `properties` for global constraints (tempo range, density, harmony, randomness).
+- [ ] H062 Implement continuous generation loop that proposes candidate clips/phrases over time.
+- [ ] H063 Implement “accept” action to commit a candidate into `SharedEventStore` + ClipRegistry.
+- [ ] H064 Implement “reject” action to discard candidate without mutating shared stores.
+- [ ] H065 Implement “capture live” action that records a time window of generated output into a clip.
+- [ ] H066 Add “freeze layer” action per generated layer (stop updates, keep events editable).
+- [ ] H067 Add “regenerate layer” action with seed control and undo support.
+- [ ] H068 Add “mood” presets (drone, shimmer, granular, minimalist) mapped to generator params.
+- [ ] H069 Add visual “generated” badges and density meters in generator deck.
+- [ ] H070 Add background CPU guardrails (max events/sec, max layers) and surface warnings.
+- [ ] H071 Add smoke test: continuous generator produces candidates; accept commits into stores.
+- [ ] H072 Add test: freeze prevents further mutation of frozen layers.
+- [ ] H073 Add docs: `cardplay/docs/boards/generative-ambient-board.md`.
+- [ ] H074 Run playground: let it generate, accept a few clips, then switch to a manual board to edit them.
+- [ ] H075 Lock Generative Ambient board once continuous generation + curation loop is stable.
+
+<!-- NEXT_PHASE -->
+## Phase G: Assisted Boards (G001–G120)
+
+### Tracker + Harmony Board (Assisted Hints) (G001–G030)
+
+- [ ] G001 Create `cardplay/src/boards/builtins/tracker-harmony-board.ts` board definition.
+- [ ] G002 Set id/name/description/icon to match `cardplayui.md` Tracker + Harmony Board.
+- [ ] G003 Set `controlLevel: 'manual-with-hints'` and “you write, it hints” philosophy string.
+- [ ] G004 Enable `harmonyExplorer` tool in `display-only` mode; keep other tools hidden.
+- [ ] G005 Choose `primaryView: 'tracker'` and keep tracker as the composition surface.
+- [ ] G006 Define layout: harmony helper (left), pattern editor (center), properties (right/bottom).
+- [ ] G007 Add deck `harmony-display` in left panel.
+- [ ] G008 Add deck `pattern-editor` in center panel.
+- [ ] G009 Add deck `instrument-browser` as a tab in left panel (optional).
+- [ ] G010 Add deck `properties` in right panel for event/chord settings.
+- [ ] G011 Implement `harmony-display` deck UI: key, current chord, chord tones list.
+- [ ] G012 Choose chord source for harmony display (ChordTrack stream, or manual chord picker).
+- [ ] G013 If chord track exists, bind harmony display to a dedicated chord stream in `SharedEventStore`.
+- [ ] G014 Add action “Set Chord” that writes/updates chord events in chord stream.
+- [ ] G015 Add action “Set Key” that updates key context in `ActiveContext` (or board-local prefs).
+- [ ] G016 Update tracker deck to accept “harmony context” (key + chord) from board context.
+- [ ] G017 Add tracker cell color-coding for chord tones vs scale tones vs out-of-key (spec table in §2.3.2).
+- [ ] G018 Ensure the coloring is purely view-layer (does not mutate events).
+- [ ] G019 Add toggle “show harmony colors” and persist per board.
+- [ ] G020 Add toggle “roman numeral view” for harmony display (reuse chord roman numeral helpers).
+- [ ] G021 Add shortcuts: “set chord”, “toggle harmony colors”, “toggle roman numerals”.
+- [ ] G022 Add board theme defaults (hint color palette distinct from manual).
+- [ ] G023 Register board in builtin registry and show it under Assisted category.
+- [ ] G024 Add recommendation mapping for “learning harmony” workflows.
+- [ ] G025 Add smoke test: harmony deck visible; phrase/generator/AI decks hidden.
+- [ ] G026 Add test: changing chord updates tracker coloring deterministically.
+- [ ] G027 Add test: chord edits are undoable via UndoStack.
+- [ ] G028 Add docs: `cardplay/docs/boards/tracker-harmony-board.md`.
+- [ ] G029 Run playground: set chord and verify tracker/piano roll/notation show consistent harmony hints.
+- [ ] G030 Lock Tracker + Harmony board once hints are stable and non-invasive.
+
+### Tracker + Phrases Board (Assisted) (G031–G060)
+
+- [ ] G031 Create `cardplay/src/boards/builtins/tracker-phrases-board.ts` board definition.
+- [ ] G032 Set id/name/description/icon to match `cardplayui.md` Tracker + Phrases Board.
+- [ ] G033 Set `controlLevel: 'assisted'` and “drag phrases, then edit” philosophy string.
+- [ ] G034 Enable `phraseDatabase` tool in `drag-drop` mode; keep AI composer hidden.
+- [ ] G035 Choose `primaryView: 'tracker'` (pattern editor remains the main surface).
+- [ ] G036 Define layout: phrase library (left), pattern editor (center), properties (right).
+- [ ] G037 Add deck `phrase-library` in left panel.
+- [ ] G038 Add deck `pattern-editor` in center panel.
+- [ ] G039 Add deck `instrument-browser` as a tab in left panel (optional).
+- [ ] G040 Add deck `properties` in right panel for phrase/event settings.
+- [ ] G041 Decide phrase library UI implementation (DOM vs canvas) and commit to one for this board.
+- [ ] G042 Ensure phrase library supports search, tags, categories, and favorites (minimum).
+- [ ] G043 Implement phrase drag payload with notes + duration + metadata.
+- [ ] G044 Implement drop: phrase → tracker at cursor row/track (writes events into active stream).
+- [ ] G045 If harmony context exists, adapt phrase using `src/cards/phrase-adapter.ts` before writing.
+- [ ] G046 Add phrase adaptation settings (transpose/chord-tone/scale-degree/voice-leading) in properties panel.
+- [ ] G047 Persist phrase adaptation settings per board (or per phrase category).
+- [ ] G048 Implement phrase preview: temporary stream + transport play + stop on release.
+- [ ] G049 Implement “commit phrase to library” from tracker selection (save as new phrase record).
+- [ ] G050 Ensure phrase save includes tags (instrument, mood) and optional chord context.
+- [ ] G051 Add shortcut: “open phrase search”, “preview phrase”, “commit selection as phrase”.
+- [ ] G052 Add board theme defaults (phrase library accent color distinct from harmony hints).
+- [ ] G053 Register board in builtin registry and show it under Assisted category.
+- [ ] G054 Add recommendation mapping for “fast controlled tracker workflow”.
+- [ ] G055 Add smoke test: phrase library visible and drag enabled; generators/AI hidden.
+- [ ] G056 Add test: dropping phrase writes correct event timings into `SharedEventStore`.
+- [ ] G057 Add test: dropping phrase is undoable and restores previous events.
+- [ ] G058 Add docs: `cardplay/docs/boards/tracker-phrases-board.md`.
+- [ ] G059 Run playground: drag phrases into tracker, then edit notes; confirm cross-view sync.
+- [ ] G060 Lock Tracker + Phrases board once phrase drag/drop and adaptation are stable.
+
+### Session + Generators Board (Assisted) (G061–G090)
+
+- [ ] G061 Create `cardplay/src/boards/builtins/session-generators-board.ts` board definition.
+- [ ] G062 Set id/name/description/icon to match `cardplayui.md` Session + Generators Board.
+- [ ] G063 Set `controlLevel: 'assisted'` and “trigger generation, then curate” philosophy string.
+- [ ] G064 Enable `phraseGenerators` tool in `on-demand` mode; keep AI composer hidden initially.
+- [ ] G065 Choose `primaryView: 'session'` (clip grid is the main surface).
+- [ ] G066 Define layout: clip-session (center), generator deck (right), mixer (bottom), browser (left).
+- [ ] G067 Add deck `clip-session` in center panel.
+- [ ] G068 Add deck `generator` in right panel (on-demand generators).
+- [ ] G069 Add deck `mixer` in bottom panel.
+- [ ] G070 Add deck `instrument-browser` in left panel (manual instruments + assisted helpers).
+- [ ] G071 Add deck `properties` as a right/bottom tab for clip/generator settings.
+- [ ] G072 Implement generator deck UI: list generators (melody/bass/drums/arp) + “Generate” button.
+- [ ] G073 Wire generator execution to write into `SharedEventStore` (via existing generator integration helpers).
+- [ ] G074 On generate, create/update a clip’s stream events; keep edits undoable.
+- [ ] G075 Add “Generate into new clip” action (creates stream + clip, assigns to selected slot).
+- [ ] G076 Add “Regenerate” action that replaces generated events (with undo support).
+- [ ] G077 Add “Freeze” action that marks events as user-owned (or sets meta.generated=false).
+- [ ] G078 Add “Humanize” and “Quantize” actions as post-process operations.
+- [ ] G079 If chord track exists, provide chord-follow generation options (use chord stream as input).
+- [ ] G080 Persist generator settings per track/slot (seed, style, density) in per-board deck state.
+- [ ] G081 Ensure session grid selection sets active clip/stream context for generator deck.
+- [ ] G082 Add shortcuts: generate, regenerate, freeze, next/prev slot, launch clip.
+- [ ] G083 Add board theme defaults (generator deck accent + clear “generated” badges).
+- [ ] G084 Register board in builtin registry and show it under Assisted category.
+- [ ] G085 Add recommendation mapping for “quick sketching with control”.
+- [ ] G086 Add smoke test: generator deck visible; phrase library optional; AI composer hidden.
+- [ ] G087 Add test: generate action writes events to store and updates session clip length.
+- [ ] G088 Add test: freeze action preserves events and disables auto-regeneration.
+- [ ] G089 Add docs: `cardplay/docs/boards/session-generators-board.md`.
+- [ ] G090 Lock Session + Generators board once generation loop is stable and undoable.
+
+### Notation + Harmony Board (Assisted) (G091–G120)
+
+- [ ] G091 Create `cardplay/src/boards/builtins/notation-harmony-board.ts` board definition.
+- [ ] G092 Set id/name/description/icon to match `cardplayui.md` Notation + Harmony Board.
+- [ ] G093 Set `controlLevel: 'assisted'` and “write notes, get harmonic guidance” philosophy string.
+- [ ] G094 Enable `harmonyExplorer` in `suggest` mode (or `display-only` for MVP) and document choice.
+- [ ] G095 Choose `primaryView: 'notation'` (notation is the composition surface).
+- [ ] G096 Define layout: harmony helper (left), score (center), properties (right).
+- [ ] G097 Add deck `notation-score` in center panel.
+- [ ] G098 Add deck `harmony-display` in left panel.
+- [ ] G099 Add deck `instrument-browser` as a left tab (optional).
+- [ ] G100 Add deck `properties` in right panel (note/chord/voice settings).
+- [ ] G101 Implement harmony display: show current chord, scale, suggested next chords.
+- [ ] G102 Add clickable chord suggestions that write new chord events to chord stream.
+- [ ] G103 Add “apply chord tones highlight” overlay in notation view (non-destructive coloring).
+- [ ] G104 Add “snap selection to chord tones” helper action (optional assisted transform with undo).
+- [ ] G105 Integrate `phrase-adapter.ts` as a “harmonize selection” tool (voice-leading mode).
+- [ ] G106 Add “reharmonize” action that proposes alternate chord symbols without auto-applying.
+- [ ] G107 Persist key/chord context settings per board.
+- [ ] G108 Add shortcuts: open harmony suggestions, accept suggestion, toggle highlights.
+- [ ] G109 Add board theme defaults (assisted color palette + readable highlights on staff).
+- [ ] G110 Register board in builtin registry and show it under Assisted category.
+- [ ] G111 Add recommendation mapping for “orchestral/education” workflows.
+- [ ] G112 Add smoke test: harmony deck visible; phrase/generator/AI decks hidden (unless explicitly enabled).
+- [ ] G113 Add test: clicking a chord suggestion updates chord stream and refreshes overlays.
+- [ ] G114 Add test: “snap to chord tones” is undoable and preserves rhythm.
+- [ ] G115 Add docs: `cardplay/docs/boards/notation-harmony-board.md`.
+- [ ] G116 Add empty-state UX: “Set a key/chord to see harmony hints” (no forced generation).
+- [ ] G117 Run playground: write melody, set chords, and verify suggested next chords appear.
+- [ ] G118 Verify harmony overlays do not break notation selection hit-testing.
+- [ ] G119 Verify board switching away preserves chord stream and key context.
+- [ ] G120 Lock Notation + Harmony board once suggestions are useful, safe, and undoable.
+
+<!-- NEXT_PHASE -->
+## Phase F: Manual Boards (F001–F120)
+
+### Notation Board (Manual) (F001–F030)
+
+- [ ] F001 Create `cardplay/src/boards/builtins/notation-board-manual.ts` board definition.
+- [ ] F002 Set id/name/description/icon to match `cardplayui.md` Notation Board (Manual).
+- [ ] F003 Set `controlLevel: 'full-manual'` and a “no suggestions” philosophy string.
+- [ ] F004 Set `compositionTools` to full-manual: all tools disabled/hidden.
+- [ ] F005 Choose `primaryView: 'notation'` for this board.
+- [ ] F006 Define layout panels: players (left), score (center), properties (right).
+- [ ] F007 Add deck `notation-score` as the primary deck in the center panel.
+- [ ] F008 Add deck `instrument-browser` in the left panel (manual instruments only).
+- [ ] F009 Add deck `properties` in the right panel (selection inspector).
+- [ ] F010 Add deck `dsp-chain` as a secondary panel/tab (manual effect chain).
+- [ ] F011 Define default deck layout states (tabs, sizes) via `createDefaultLayoutRuntime`.
+- [ ] F012 Ensure deck factories exist for `notation-score/instrument-browser/properties/dsp-chain`.
+- [ ] F013 Bind notation deck to `ActiveContext.activeStreamId` (score edits write to shared store).
+- [ ] F014 Ensure notation deck uses read/write adapter (`notation-store-adapter.ts`).
+- [ ] F015 Ensure instrument browser only lists allowed manual instrument cards (Phase D gating).
+- [ ] F016 Ensure dsp-chain deck only accepts effect cards (Phase D drop validation).
+- [ ] F017 Ensure properties deck can edit selected notation events without breaking type safety.
+- [ ] F018 Add board-specific shortcut map (note entry, selection tools, zoom, print/export).
+- [ ] F019 Register board shortcuts on activation; unregister on switch away.
+- [ ] F020 Add board theme defaults (manual control color, notation-focused typography).
+- [ ] F021 Add board to `registerBuiltinBoards()` and ensure it appears in board browser.
+- [ ] F022 Add board to recommendations for “traditional-composer”.
+- [ ] F023 Add a smoke test that manual notation board hides phrase/generator/AI decks.
+- [ ] F024 Add a smoke test that manual notation board shows exactly the defined deck types.
+- [ ] F025 Add a smoke test: switching into this board preserves active stream/clip context.
+- [ ] F026 Add docs: `cardplay/docs/boards/notation-board-manual.md` (when to use, shortcuts).
+- [ ] F027 Add empty-state UX: “No score yet — add notes or import MIDI” (manual-only messaging).
+- [ ] F028 Add import actions: MIDI→notation (manual board allows import but no generation).
+- [ ] F029 Run playground: create notes in notation and confirm they appear in piano roll/tracker (shared stream).
+- [ ] F030 Lock Notation Manual board once UX, gating, and sync are stable.
+
+### Basic Tracker Board (Manual) (F031–F060)
+
+- [ ] F031 Create `cardplay/src/boards/builtins/basic-tracker-board.ts` board definition.
+- [ ] F032 Set id/name/description/icon to match `cardplayui.md` Basic Tracker Board.
+- [ ] F033 Set `controlLevel: 'full-manual'` and “pure tracker” philosophy string.
+- [ ] F034 Set `compositionTools` to full-manual: all tools disabled/hidden.
+- [ ] F035 Choose `primaryView: 'tracker'` for this board.
+- [ ] F036 Define layout panels: sidebar (left), pattern editor (center), optional properties (right/bottom).
+- [ ] F037 Add deck `pattern-editor` as primary deck in center panel.
+- [ ] F038 Add deck `instrument-browser` in sidebar (tracker instruments/samplers).
+- [ ] F039 Add deck `dsp-chain` for per-track effects chain (manual only).
+- [ ] F040 Add deck `properties` for editing selected events/track settings.
+- [ ] F041 Ensure tracker deck uses the canonical tracker UI (panel vs card) chosen in Phase A.
+- [ ] F042 Ensure tracker deck binds to `ActiveContext.activeStreamId` and recomputes view from store.
+- [ ] F043 Ensure tracker deck uses tracker shortcuts (hex entry, note entry, navigation).
+- [ ] F044 Ensure tracker deck renders beat highlights based on transport/PPQ settings.
+- [ ] F045 Ensure instrument browser lists only manual instruments (no generators).
+- [ ] F046 Ensure dsp-chain drop rules allow only effects; deny generators with clear reason.
+- [ ] F047 Add board shortcut overrides (pattern length, octave, follow playback, toggle loop).
+- [ ] F048 Add board theme defaults (tracker monospace font, classic column colors).
+- [ ] F049 Add board to `registerBuiltinBoards()` and ensure it appears under Manual category.
+- [ ] F050 Add board to recommendations for “tracker-purist” and “renoise-user”.
+- [ ] F051 Add a smoke test that manual tracker board hides phrase library and all generator decks.
+- [ ] F052 Add a smoke test that manual tracker board shows only defined deck types.
+- [ ] F053 Add a test: entering a note writes an event to store and is visible in piano roll.
+- [ ] F054 Add a test: undo/redo of tracker edits works via UndoStack integration.
+- [ ] F055 Add empty-state UX: “No pattern — press + to create stream/pattern” (manual wording).
+- [ ] F056 Add docs: `cardplay/docs/boards/basic-tracker-board.md` (mapping from Renoise).
+- [ ] F057 Add an optional “hex/decimal” toggle and persist per board.
+- [ ] F058 Run playground: rapid note entry + scrolling; confirm performance stays acceptable.
+- [ ] F059 Verify board switching away preserves stream data (no local tracker state leak).
+- [ ] F060 Lock Basic Tracker board once gating, sync, and shortcuts match the manual spec.
+
+### Basic Sampler Board (Manual) (F061–F090)
+
+- [ ] F061 Create `cardplay/src/boards/builtins/basic-sampler-board.ts` board definition.
+- [ ] F062 Set id/name/description/icon to match `cardplayui.md` Basic Sampler Board.
+- [ ] F063 Set `controlLevel: 'full-manual'` and “you chop, you arrange” philosophy string.
+- [ ] F064 Set `compositionTools` to full-manual: all tools disabled/hidden.
+- [ ] F065 Choose `primaryView: 'sampler'` (or `'session'` if sampler is clip-based) and document choice.
+- [ ] F066 Define layout panels: sample pool (left), arrangement/timeline (center), waveform editor (bottom).
+- [ ] F067 Add deck `sample-browser` in left panel (sample pool).
+- [ ] F068 Add deck `timeline` in center panel (manual arrangement of clips/samples).
+- [ ] F069 Add deck `dsp-chain` for processing (manual effects).
+- [ ] F070 Add deck `properties` for sample/clip/event settings.
+- [ ] F071 Ensure sample browser integrates waveform preview (`sample-waveform-preview.ts`).
+- [ ] F072 Ensure sample browser supports import and tagging (manual operations only).
+- [ ] F073 Ensure timeline deck can host audio clips or sample-trigger clips (define MVP representation).
+- [ ] F074 Add chop actions (grid chop, manual slice markers) and ensure undo integration.
+- [ ] F075 Add stretch actions (time stretch, pitch shift) and ensure parameters flow through resolver.
+- [ ] F076 Ensure dsp-chain is compatible with sampler output routing (audio connections in routing graph).
+- [ ] F077 Ensure properties panel can edit `ClipRecord` (duration/loop) and sample metadata.
+- [ ] F078 Add board shortcut map (import, chop, zoom waveform, audition sample, toggle snap).
+- [ ] F079 Add board theme defaults (sampler colors, waveform contrast, large transport buttons).
+- [ ] F080 Add board to `registerBuiltinBoards()` and show it under Manual category.
+- [ ] F081 Add board to recommendations for “sample-based” workflows.
+- [ ] F082 Add smoke test: sampler manual board hides phrase/generator/AI decks.
+- [ ] F083 Add smoke test: sample drop onto sampler deck creates a sampler card/slot with the sample loaded.
+- [ ] F084 Add smoke test: placing a clip on timeline writes to ClipRegistry and is reflected in session grid (if open).
+- [ ] F085 Add docs: `cardplay/docs/boards/basic-sampler-board.md` (workflow + shortcuts).
+- [ ] F086 Add empty-state UX: “No samples — import WAV/AIFF” and “No arrangement — drag clips”.
+- [ ] F087 Run playground: import a sample, chop, and confirm edits are undoable and persistent.
+- [ ] F088 Ensure board switching away preserves clips and samples (no UI-local storage of assets).
+- [ ] F089 Verify audio routing is visible via routing overlay (Phase J) for sampler output.
+- [ ] F090 Lock Basic Sampler board once core manual sampling loop is stable.
+
+### Basic Session Board (Manual) (F091–F120)
+
+- [ ] F091 Create `cardplay/src/boards/builtins/basic-session-board.ts` board definition.
+- [ ] F092 Set id/name/description/icon to match `cardplayui.md` Basic Session Board.
+- [ ] F093 Set `controlLevel: 'full-manual'` and “manual clip launching” philosophy string.
+- [ ] F094 Set `compositionTools` to full-manual: all tools disabled/hidden.
+- [ ] F095 Choose `primaryView: 'session'` for this board.
+- [ ] F096 Define layout panels: clip-session (center), instrument browser (left), mixer (bottom), properties (right).
+- [ ] F097 Add deck `clip-session` as primary deck in the center panel.
+- [ ] F098 Add deck `instrument-browser` in the left panel (manual instruments only).
+- [ ] F099 Add deck `mixer` in the bottom panel (mixing controls + meters).
+- [ ] F100 Add deck `properties` in the right panel (clip/event inspector).
+- [ ] F101 Ensure session grid panel is fully ClipRegistry-backed (no local clip copies).
+- [ ] F102 Ensure selecting a slot sets `ActiveContext.activeClipId` and `activeStreamId`.
+- [ ] F103 Ensure clip launch uses transport quantization (bar/beat) and reflects queued/playing state.
+- [ ] F104 Ensure session grid supports duplicate/delete/rename actions with undo integration.
+- [ ] F105 Ensure instrument browser drag/drop creates instrument card instances on the selected track.
+- [ ] F106 Ensure mixer panel reflects track mute/solo/arm and writes changes to shared state.
+- [ ] F107 Ensure properties panel edits clip name/color/loop and persists via ClipRegistry.
+- [ ] F108 Add board shortcut map (launch clip, launch scene, stop, arm track, duplicate slot).
+- [ ] F109 Add board theme defaults (session grid contrast, clip color readability).
+- [ ] F110 Add board to `registerBuiltinBoards()` and show it under Manual category.
+- [ ] F111 Add board to recommendations for “ableton-user” manual workflows (no generators).
+- [ ] F112 Add smoke test: manual session board hides generator/arranger/AI composer decks.
+- [ ] F113 Add smoke test: creating a clip in session grid creates a stream + clip record in shared stores.
+- [ ] F114 Add smoke test: launching a clip updates play state and playhead UI in transport deck.
+- [ ] F115 Add docs: `cardplay/docs/boards/basic-session-board.md` (workflow + shortcuts).
+- [ ] F116 Add empty-state UX: “No clips — click an empty slot to create one”.
+- [ ] F117 Run playground: create clips, launch them, switch boards, and ensure state persists.
+- [ ] F118 Ensure board switching away does not reset session grid assignments (slot mapping persists).
+- [ ] F119 Ensure the manual session board can coexist with arrangement timeline (clips share registry).
+- [ ] F120 Lock Basic Session board once clip creation/launch + mixer + properties loop is stable.
+
+<!-- NEXT_PHASE -->
+## Phase E: Deck/Stack/Panel Unification (E001–E090)
+
+- [ ] E001 Create `cardplay/src/boards/decks/` (if not already) for deck instance runtime.
+- [ ] E002 Add `cardplay/src/boards/decks/deck-instance.ts` defining `DeckInstance` (id, type, title, render).
+- [ ] E003 Add `cardplay/src/boards/decks/deck-container.ts` (UI) rendering a deck header + body + tabs.
+- [ ] E004 In `deck-container.ts`, support `cardLayout: tabs` (tab bar + active tab content).
+- [ ] E005 In `deck-container.ts`, support `cardLayout: stack` (StackComponent inside).
+- [ ] E006 In `deck-container.ts`, support `cardLayout: split` (two child panes).
+- [ ] E007 In `deck-container.ts`, support `cardLayout: floating` (draggable/resizable wrapper).
+- [ ] E008 In `deck-container.ts`, add a consistent deck header (title, +, overflow, close).
+- [ ] E009 In `deck-container.ts`, add deck-level context menu (move to panel, reset state).
+- [ ] E010 In `deck-container.ts`, persist deck UI state via `BoardStateStore.perBoardDeckState`.
+- [ ] E011 Create `cardplay/src/boards/decks/deck-factories.ts` registering factories for each `DeckType`.
+- [ ] E012 Implement `createDeckInstances(board, activeContext)` using deck factories + gating visibility.
+- [ ] E013 Implement `validateBoardFactories(board)` at runtime and surface missing deck types clearly.
+- [ ] E014 Decide how `DeckLayoutAdapter` fits: audio/runtime backing for mixer/routing decks.
+- [ ] E015 Create `cardplay/src/boards/decks/audio-deck-adapter.ts` wrapping `DeckLayoutAdapter` for board use.
+- [ ] E016 Ensure `audio-deck-adapter.ts` exposes `getInputNode()/getOutputNode()` for routing overlay.
+- [ ] E017 Create `cardplay/src/ui/components/deck-panel-host.ts` to render panels with multiple decks.
+- [ ] E018 In `deck-panel-host.ts`, render decks in a panel based on `BoardLayoutRuntime`.
+- [ ] E019 In `deck-panel-host.ts`, support moving a deck between panels (dock left/right/bottom).
+- [ ] E020 Wire `BoardHost` → `deck-panel-host.ts` so boards actually show decks on screen.
+- [ ] E021 Implement `DeckType: pattern-editor` deck factory using tracker (panel or card, per A049 decision).
+- [ ] E022 In tracker deck, bind to `ActiveContext.activeStreamId` and update on context changes.
+- [ ] E023 In tracker deck, provide pattern-length control and ensure it maps to stream tick range.
+- [ ] E024 In tracker deck, expose key commands via tooltip/help (note entry, navigation, undo).
+- [ ] E025 Implement `DeckType: piano-roll` deck factory using `piano-roll-panel.ts`.
+- [ ] E026 In piano-roll deck, bind to `ActiveContext.activeStreamId` and update on context changes.
+- [ ] E027 In piano-roll deck, render velocity lane and ensure edits write back to store.
+- [ ] E028 Implement `DeckType: notation-score` deck factory using `notation/panel.ts` via `notation-store-adapter.ts`.
+- [ ] E029 In notation deck, bind to `ActiveContext.activeStreamId` and update on context changes.
+- [ ] E030 In notation deck, ensure engraving settings persist per board (zoom, page config, staff config).
+- [ ] E031 Implement `DeckType: timeline` deck factory using `arrangement-panel.ts` (or a wrapper view).
+- [ ] E032 In timeline deck, bind to `ClipRegistry` and show clips referencing streams.
+- [ ] E033 In timeline deck, bind selection to `SelectionStore` by clip/event IDs.
+- [ ] E034 Implement `DeckType: clip-session` deck factory (new UI surface; state exists in `session-view.ts`).
+- [ ] E035 Create `cardplay/src/ui/components/session-grid-panel.ts` to render an Ableton-like session grid.
+- [ ] E036 Wire `session-grid-panel.ts` to `SessionViewStoreBridge` (ClipRegistry-backed).
+- [ ] E037 In session grid deck, support clip launch state (playing/queued/stopped) from transport.
+- [ ] E038 In session grid deck, support selecting a slot to set `ActiveContext.activeClipId`.
+- [ ] E039 Implement `DeckType: instrument-browser` deck factory listing instrument cards available to this board.
+- [ ] E040 In instrument browser deck, query allowed cards via Phase D gating helpers.
+- [ ] E041 In instrument browser deck, implement drag payload “card template” (type + default params).
+- [ ] E042 Implement `DeckType: dsp-chain` deck factory as an effect stack (StackComponent of effect cards).
+- [ ] E043 In dsp-chain deck, integrate with routing graph (effect chain connections).
+- [ ] E044 Implement `DeckType: mixer` deck factory using `DeckLayoutAdapter` + a UI strip list.
+- [ ] E045 Create `cardplay/src/ui/components/mixer-panel.ts` (track strips, meters, mute/solo/arm, volume/pan).
+- [ ] E046 In mixer panel, derive strips from streams/clips (or from deck registry) consistently.
+- [ ] E047 Implement `DeckType: properties` deck factory as an inspector for selection (event/clip/card).
+- [ ] E048 Create `cardplay/src/ui/components/properties-panel.ts` showing editable fields for selected entity.
+- [ ] E049 In properties panel, support editing `ClipRecord` (name/color/loop) via ClipRegistry.
+- [ ] E050 In properties panel, support editing `Event` payload fields via SharedEventStore (safe typed editing).
+- [ ] E051 Implement `DeckType: phrase-library` deck factory using existing phrase UI (`phrase-library-panel.ts` or `phrase-browser-ui.ts`).
+- [ ] E052 Decide phrase UI surface (DOM vs canvas); pick one and document why in `docs/boards/decks.md`.
+- [ ] E053 In phrase library deck, implement drag payload “phrase” with notes + duration + tags.
+- [ ] E054 In phrase library deck, implement preview playback hook (transport + temporary stream).
+- [ ] E055 Implement `DeckType: sample-browser` deck factory using `sample-browser.ts` and waveform preview components.
+- [ ] E056 Implement `DeckType: generator` deck factory as a stack of generator cards (melody/bass/drums).
+- [ ] E057 Implement `DeckType: arranger` deck factory using arranger modules (sections bar + arranger card integration).
+- [ ] E058 Implement `DeckType: harmony-display` deck factory using chord track + scale context display.
+- [ ] E059 Implement `DeckType: chord-track` deck factory using `chord-track-lane.ts` + renderer.
+- [ ] E060 Implement `DeckType: transport` deck factory (transport controls + tempo + loop region).
+- [ ] E061 Implement `DeckType: modular` deck factory for routing graph visualization + edit UI.
+- [ ] E062 Reconcile connection overlay: reuse `ui/components/connection-router.ts` if applicable.
+- [ ] E063 Add a shared drag/drop payload model in `cardplay/src/ui/drag-drop-system.ts` for deck-to-deck transfers.
+- [ ] E064 Define payload types: `card-template`, `phrase`, `clip`, `events`, `sample`.
+- [ ] E065 Implement drop handlers: phrase→pattern-editor (writes events to active stream).
+- [ ] E066 Implement drop handlers: clip→timeline (places clip on track lane in arrangement).
+- [ ] E067 Implement drop handlers: card-template→deck slot (instantiates card in stack/deck).
+- [ ] E068 Implement drop handlers: sample→sampler instrument card (loads sample asset reference).
+- [ ] E069 Add visual affordances for drop targets (highlight zones) consistent with theme tokens.
+- [ ] E070 Add undo integration for all drops (wrap mutations in `executeWithUndo`).
+- [ ] E071 Implement per-deck “tab stack” behavior for multiple patterns/clips in one deck.
+- [ ] E072 In pattern-editor deck, implement tabs for multiple streams/pattern contexts (optional MVP: two tabs).
+- [ ] E073 In notation deck, implement tabs for multiple staves/scores (optional MVP: one tab).
+- [ ] E074 In clip-session deck, implement tabs for different session pages/sets (optional).
+- [ ] E075 Ensure deck tabs integrate with `Cmd+1..9` shortcut scoping (active deck only).
+- [ ] E076 Persist active deck tab per board via `perBoardDeckState`.
+- [ ] E077 Add unit tests for `deck-container` state persistence and tab switching.
+- [ ] E078 Add unit tests for session-grid panel: slot selection sets active clip context.
+- [ ] E079 Add unit tests for drag/drop: phrase drop writes events into SharedEventStore.
+- [ ] E080 Add unit tests for drag/drop: disallowed drop rejected with reason (Phase D validate-deck-drop).
+- [ ] E081 Add an integration test: board layout renders expected panel/deck arrangement from a stub board.
+- [ ] E082 Add an integration test: switching boards replaces decks according to board definition.
+- [ ] E083 Add an integration test: closing a deck updates persisted deck state.
+- [ ] E084 Add docs: `cardplay/docs/boards/decks.md` describing each deck type and backing component.
+- [ ] E085 Add docs: `cardplay/docs/boards/panels.md` describing panel roles and layout mapping.
+- [ ] E086 Add a performance pass: ensure tracker/piano roll decks use virtualization where needed.
+- [ ] E087 Add an accessibility pass: ensure deck headers, tabs, and close buttons are keyboard reachable.
+- [ ] E088 Run playground and verify at least 4 decks can mount without errors (tracker, piano roll, notation, properties).
+- [ ] E089 Run `npm test` and ensure new deck/container tests pass.
+- [ ] E090 Mark Phase E “done” once decks/panels are renderable, switchable, and persist state.
+
+<!-- NEXT_PHASE -->
+## Phase D: Card Availability & Tool Gating (D001–D080)
+
+- [ ] D001 Create `cardplay/src/boards/gating/` folder for runtime gating logic.
+- [ ] D002 Add `cardplay/src/boards/gating/card-kinds.ts` defining `BoardCardKind` taxonomy.
+- [ ] D003 In `card-kinds.ts`, define `classifyCard(meta: CardMeta): BoardCardKind[]`.
+- [ ] D004 In `classifyCard`, map `category/tags` from `src/cards/card.ts` into manual/hint/assisted/generative kinds.
+- [ ] D005 In `classifyCard`, treat core editors (tracker/notation/piano roll) as `manual` kind.
+- [ ] D006 In `classifyCard`, treat phrase database / phrase browser as `assisted` kind.
+- [ ] D007 In `classifyCard`, treat harmony helper / scale overlay as `hint` kind.
+- [ ] D008 In `classifyCard`, treat arranger/AI composer/generators as `generative` kind.
+- [ ] D009 Add `cardplay/src/boards/gating/tool-visibility.ts` implementing `computeVisibleDeckTypes(board)`.
+- [ ] D010 In `tool-visibility.ts`, hide phrase decks when `phraseDatabase.mode === 'hidden'`.
+- [ ] D011 In `tool-visibility.ts`, hide harmony decks when `harmonyExplorer.mode === 'hidden'`.
+- [ ] D012 In `tool-visibility.ts`, hide generator decks when `phraseGenerators.mode === 'hidden'`.
+- [ ] D013 In `tool-visibility.ts`, hide arranger decks when `arrangerCard.mode === 'hidden'`.
+- [ ] D014 In `tool-visibility.ts`, hide AI composer decks when `aiComposer.mode === 'hidden'`.
+- [ ] D015 Add `cardplay/src/boards/gating/is-card-allowed.ts` implementing `isCardAllowed(board, meta)`.
+- [ ] D016 In `is-card-allowed.ts`, compute allowed kinds from `board.controlLevel` + tool config.
+- [ ] D017 In `is-card-allowed.ts`, support deck-level `controlLevel` overrides.
+- [ ] D018 Add `cardplay/src/boards/gating/why-not.ts` returning human-readable denial reasons.
+- [ ] D019 In `why-not.ts`, include which board/tool setting blocks the card (e.g., “Phrase DB hidden”).
+- [ ] D020 Add `cardplay/src/boards/gating/get-allowed-cards.ts` to query `CardRegistry` and filter entries.
+- [ ] D021 In `get-allowed-cards.ts`, implement `getAllowedCardEntries(board)` and `getAllCardEntries(board, includeDisabled)`.
+- [ ] D022 Decide canonical card registry for gating (`src/cards/registry.ts`) and document it in code.
+- [ ] D023 Add an adapter mapping `audio/instrument-cards.ts` to `CardMeta`-like records (if needed for UI).
+- [ ] D024 In the adapter, assign instrument cards to `manual` (instruments) or `effect` kinds based on type.
+- [ ] D025 Add `cardplay/src/boards/gating/validate-deck-drop.ts` for drag/drop acceptance checks.
+- [ ] D026 In `validate-deck-drop.ts`, enforce deck type constraints (e.g., dsp-chain accepts effects only).
+- [ ] D027 In `validate-deck-drop.ts`, enforce tool mode constraints (e.g., phrase drag disabled in browse-only).
+- [ ] D028 Add `cardplay/src/boards/gating/validate-connection.ts` validating routing connections by port type.
+- [ ] D029 In `validate-connection.ts`, disallow connecting incompatible port types (audio→midi, etc.).
+- [ ] D030 Add a single gating entry point: `computeBoardCapabilities(board)` returning allowed decks/cards/actions.
+- [ ] D031 Update deck creation pipeline to filter out decks not in `computeVisibleDeckTypes(board)`.
+- [ ] D032 Update any “add card” UX to consult `isCardAllowed(board, meta)` before showing the card.
+- [ ] D033 In `StackComponent` add-card flow, hide disallowed card types by default.
+- [ ] D034 In `StackComponent` add-card flow, add “Show disabled” toggle to reveal disallowed cards.
+- [ ] D035 In “Show disabled” view, show `whyNotAllowed(board, meta)` tooltip per card.
+- [ ] D036 Ensure disallowed cards cannot be dropped into a deck; show toast explanation on drop.
+- [ ] D037 Add a board-level “capabilities” UI panel (dev-only) listing visible decks and enabled tools.
+- [ ] D038 Ensure gating changes update live when board switches (no stale cached gating results).
+- [ ] D039 Add unit tests for `classifyCard` against a representative set of card metas.
+- [ ] D040 Add unit tests for `computeVisibleDeckTypes` across all tool mode combinations.
+- [ ] D041 Add unit tests for `isCardAllowed` across `full-manual/manual-with-hints/assisted/directed/generative`.
+- [ ] D042 Add unit tests for `whyNotAllowed` messaging (stable copy strings).
+- [ ] D043 Add unit tests for `validate-deck-drop` (effect into dsp-chain allowed; generator into manual deck denied).
+- [ ] D044 Add unit tests for `validate-connection` (audio ports compatible; mismatch rejected).
+- [ ] D045 Add a smoke test that a manual board exposes no phrase/generator/AI decks via gating.
+- [ ] D046 Add a smoke test that an assisted board exposes phrase library deck but not AI composer deck.
+- [ ] D047 Add a smoke test that a directed board exposes generator + arranger decks.
+- [ ] D048 Add a smoke test that a generative board exposes all decks (subject to board definition).
+- [ ] D049 Implement a “capability flag” surface for UI: `canDragPhrases`, `canAutoSuggest`, `canInvokeAI`.
+- [ ] D050 Wire `canDragPhrases` into phrase library UI drag start behavior.
+- [ ] D051 Wire `canAutoSuggest` into any “suggestions” UI (hide if false).
+- [ ] D052 Wire `canInvokeAI` into command palette visibility (hide AI actions if false).
+- [ ] D053 Add a `BoardPolicy` concept: some boards may allow tool toggles, others fixed.
+- [ ] D054 Implement `BoardPolicy` fields: `allowToolToggles`, `allowControlLevelOverridePerTrack`.
+- [ ] D055 Add UI for tool toggles (dev-only first): flip phrase DB mode and see decks show/hide.
+- [ ] D056 Ensure toggling tools updates persisted per-board settings (if policy allows it).
+- [ ] D057 Add “safe defaults” for missing tool config fields during board migration (avoid crashes).
+- [ ] D058 Add `validateToolConfig(board)` that warns when modes are inconsistent with control level.
+- [ ] D059 Integrate `validateToolConfig(board)` into `validateBoard(board)` (Phase B).
+- [ ] D060 Add documentation: `docs/boards/gating.md` explaining control level gating rules.
+- [ ] D061 In docs, include examples of why a card is disabled and how to switch boards to enable it.
+- [ ] D062 Add documentation: `docs/boards/tool-modes.md` summarizing each tool mode and UI behavior.
+- [ ] D063 Ensure gating does not block loading legacy projects (always show a migration path).
+- [ ] D064 Add a “this project uses disabled tools” warning banner if project contains disallowed cards.
+- [ ] D065 Provide one-click “switch to recommended board” action from the warning banner.
+- [ ] D066 Add integration: when board switches, recompute visible decks and re-render deck containers.
+- [ ] D067 Add integration: when board switches, recompute allowed cards list for add-card UI.
+- [ ] D068 Add integration: when board switches, clear any cached “why not” results to avoid stale copy.
+- [ ] D069 Add a perf check: gating computation must be O(#cards + #decks) and memoized safely.
+- [ ] D070 Add a perf test (micro-benchmark) for `getAllowedCardEntries` on large card registries.
+- [ ] D071 Add a “gating debug overlay” in playground showing current board + enabled tools.
+- [ ] D072 Ensure gating debug overlay is hidden in production builds.
+- [ ] D073 Add a linter rule or code review note: never bypass `isCardAllowed` in UI.
+- [ ] D074 Audit existing UIs that add cards (preset browser, stack add button) for gating compliance.
+- [ ] D075 Update any remaining add-card surfaces to use the gating helpers.
+- [ ] D076 Add a final integration test: disallowed card hidden; enabling via board switch reveals it.
+- [ ] D077 Add a final integration test: phrase drag disabled in browse-only mode.
+- [ ] D078 Add a final integration test: phrase drag enabled in drag-drop mode.
+- [ ] D079 Re-run `npm test` and ensure gating module coverage is meaningful.
+- [ ] D080 Mark Phase D “done” once all gating rules are implemented, integrated, and tested.
+
+<!-- NEXT_PHASE -->
+## Phase C: Board Switching UI & Persistence (C001–C100)
+
+- [ ] C001 Create `cardplay/src/ui/components/board-host.ts` to mount the active board workspace.
+- [ ] C002 In `board-host.ts`, subscribe to `BoardStateStore` and re-render on board changes.
+- [ ] C003 In `board-host.ts`, read `BoardRegistry.get(currentBoardId)` and handle missing boards gracefully.
+- [ ] C004 In `board-host.ts`, render a minimal “board chrome” header (board icon + name + control level).
+- [ ] C005 In `board-host.ts`, expose a slot where decks/panels will be rendered (Phase E).
+- [ ] C006 Create `cardplay/src/ui/components/board-switcher.ts` (Cmd+B quick switch modal).
+- [ ] C007 In `board-switcher.ts`, render recent boards from `BoardStateStore.recentBoardIds`.
+- [ ] C008 In `board-switcher.ts`, render favorite boards from `BoardStateStore.favoriteBoardIds`.
+- [ ] C009 In `board-switcher.ts`, add a search input filtering `BoardRegistry.search(text)`.
+- [ ] C010 In `board-switcher.ts`, show board category chips (Manual/Assisted/Generative/Hybrid).
+- [ ] C011 In `board-switcher.ts`, display board metadata (icon, description, difficulty).
+- [ ] C012 In `board-switcher.ts`, add “favorite/unfavorite” toggle inline for each result.
+- [ ] C013 In `board-switcher.ts`, add keyboard navigation (Up/Down to move selection).
+- [ ] C014 In `board-switcher.ts`, bind Enter to `switchBoard(selectedBoardId)`.
+- [ ] C015 In `board-switcher.ts`, bind Esc to close the modal without switching.
+- [ ] C016 In `board-switcher.ts`, implement focus trap (Tab cycles within modal).
+- [ ] C017 In `board-switcher.ts`, set ARIA roles (dialog, labelledby, describedby).
+- [ ] C018 In `board-switcher.ts`, restore focus to prior element on close.
+- [ ] C019 In `board-switcher.ts`, add a “Reset layout on switch” checkbox (wires to switch options).
+- [ ] C020 In `board-switcher.ts`, add a “Reset deck tabs” checkbox (wires to switch options).
+- [ ] C021 Create `cardplay/src/ui/components/board-browser.ts` (full board library view).
+- [ ] C022 In `board-browser.ts`, group boards by category (control level buckets).
+- [ ] C023 In `board-browser.ts`, add a “difficulty” filter (beginner→expert).
+- [ ] C024 In `board-browser.ts`, add a “tools enabled” filter (phrase/harmony/generator/AI).
+- [ ] C025 In `board-browser.ts`, show a per-board deck list preview (deck types + count).
+- [ ] C026 In `board-browser.ts`, add “open” action that calls `switchBoard(boardId)`.
+- [ ] C027 In `board-browser.ts`, add “favorite” action and persist via `BoardStateStore`.
+- [ ] C028 In `board-browser.ts`, add “export board definition JSON” debug action (dev-only).
+- [ ] C029 Create `cardplay/src/ui/components/first-run-board-selection.ts` (new user flow).
+- [ ] C030 In `first-run-board-selection.ts`, detect `BoardStateStore.firstRunCompleted === false`.
+- [ ] C031 In `first-run-board-selection.ts`, render 3–5 recommended boards based on user answers.
+- [ ] C032 Reuse onboarding intent signals from `what-brings-you-selector.ts` (or map to `UserType`).
+- [ ] C033 Reuse background/persona from `beginner-bridge.ts` (or map to `UserType`).
+- [ ] C034 In `first-run-board-selection.ts`, call `getRecommendedBoards(userType)` to rank choices.
+- [ ] C035 In `first-run-board-selection.ts`, show “control spectrum” explanation per `cardplayui.md` Part I.
+- [ ] C036 In `first-run-board-selection.ts`, make selection set `currentBoardId` and mark first-run complete.
+- [ ] C037 In `first-run-board-selection.ts`, provide “skip” option that defaults to a safe manual board.
+- [ ] C038 In `first-run-board-selection.ts`, provide “learn more” link to open `board-browser`.
+- [ ] C039 Create `cardplay/src/ui/components/control-spectrum-badge.ts` (small board indicator).
+- [ ] C040 In `control-spectrum-badge.ts`, color-code by `controlLevel` (manual→generative).
+- [ ] C041 In `control-spectrum-badge.ts`, show tooltip describing what tools are enabled/disabled.
+- [ ] C042 Add a global “Boards” button in board chrome that opens `board-browser`.
+- [ ] C043 Add a global “Switch Board” button in board chrome that opens `board-switcher`.
+- [ ] C044 Decide where global modals live (one overlay root for switcher/browser/help).
+- [ ] C045 Create `cardplay/src/ui/components/modal-root.ts` managing z-index stacking and focus traps.
+- [ ] C046 Style board modals using theme tokens from `src/ui/theme.ts` and `design-system-bridge.ts`.
+- [ ] C047 Add `injectBoardSwitcherStyles()` pattern (single style tag, deduped) like other components.
+- [ ] C048 Ensure board switcher respects reduced-motion preference (`prefersReducedMotion`).
+- [ ] C049 Ensure board switcher is usable with keyboard only (no mouse required).
+- [ ] C050 Add analytics hooks (optional) to record board switches (dev-only initially).
+- [ ] C051 Wire `Cmd+B` to open board switcher via `KeyboardShortcutManager` (or unified shortcut system).
+- [ ] C052 Add shortcut entry “switch-board” to the active board’s shortcut map (Appendix B alignment).
+- [ ] C053 Ensure shortcut handling is paused when typing in inputs (search box) except undo/redo.
+- [ ] C054 Decide whether `keyboard-navigation.ts` or `keyboard-shortcuts.ts` owns modal shortcuts.
+- [ ] C055 Implement a single “UI event bus” for opening/closing board modals (avoid cross-import tangles).
+- [ ] C056 In playground, mount `BoardHost` as the root and ensure it updates when switching boards.
+- [ ] C057 In playground, add a top-level toggle to simulate “first run” (clears persisted board state).
+- [ ] C058 In playground, verify first-run selection runs once and persists completion state.
+- [ ] C059 In playground, verify favorites persist across reload.
+- [ ] C060 In playground, verify recent boards persist and are ordered by last-used.
+- [ ] C061 Add `cardplay/src/ui/components/board-switcher.test.ts` (jsdom) for open/close/switch behaviors.
+- [ ] C062 Test: typing filters results and highlights the first match.
+- [ ] C063 Test: arrow keys move selection; Enter switches board and closes.
+- [ ] C064 Test: Esc closes modal and restores focus.
+- [ ] C065 Add `cardplay/src/ui/components/board-browser.test.ts` verifying grouping and filter logic.
+- [ ] C066 Add `cardplay/src/ui/components/first-run-board-selection.test.ts` verifying persistence on select.
+- [ ] C067 Add `cardplay/src/ui/components/board-host.test.ts` verifying re-render on store updates.
+- [ ] C068 Add a “Reset layout” action per board in board chrome (clears persisted per-board layout).
+- [ ] C069 Add a “Reset board state” action per board (clears persisted deck state + layout state).
+- [ ] C070 Add a “Reset all board prefs” action (clears board state store key entirely).
+- [ ] C071 Add a “Help” button in board chrome that opens shortcuts + board description panel.
+- [ ] C072 Create `cardplay/src/ui/components/board-help-panel.ts` listing active board decks/tools/shortcuts.
+- [ ] C073 In `board-help-panel.ts`, include links to docs: `docs/boards/*` and `cardplayui.md` sections.
+- [ ] C074 Ensure help panel content is board-driven (no hard-coded board ids).
+- [ ] C075 Add a small “Board changed” announcement for screen readers (reuse announcer from `FocusManager`).
+- [ ] C076 Decide on board-switch transition UX (instant vs fade) and implement it.
+- [ ] C077 Ensure switching boards does not destroy shared stores (streams/clips remain).
+- [ ] C078 Ensure switching boards preserves transport by default (unless option says otherwise).
+- [ ] C079 Ensure switching boards preserves active selection by default (unless option says otherwise).
+- [ ] C080 Add an option: “on switch, clear selection” for users who prefer it.
+- [ ] C081 Add a “board quick switch” list limited to 9 entries to pair with numeric shortcuts.
+- [ ] C082 Wire `Cmd+1..9` to “switch to recent board N” only when board switcher is open.
+- [ ] C083 Ensure `Cmd+1..9` remains reserved for deck tabs when switcher is closed.
+- [ ] C084 Add board switcher affordance for power users: `Cmd+B`, type, Enter (no mouse).
+- [ ] C085 Add a “board search” fuzzy match (prefix + contains) without extra deps.
+- [ ] C086 Add consistent empty states: “No boards registered”, “No results”, “First run not completed”.
+- [ ] C087 Add `BoardRegistry` sanity check UI in dev mode (lists all registered boards).
+- [ ] C088 Ensure board UI modules do not import editor internals directly (go through deck factories).
+- [ ] C089 Add a compile-time check that `registerBuiltinBoards()` is invoked by whoever boots the UI.
+- [ ] C090 Document the required boot sequence in `docs/boards/board-api.md` (registry → store → host).
+- [ ] C091 Add a “board state inspector” dev panel that prints JSON of persisted state (dev-only).
+- [ ] C092 Add a “copy board state JSON” button to help debug persistence issues.
+- [ ] C093 Add a “copy layout runtime JSON” button to help debug layout issues.
+- [ ] C094 Ensure localStorage writes are throttled to avoid performance regressions during resizing.
+- [ ] C095 Ensure modal-root z-index works with existing reveal panels and tooltips.
+- [ ] C096 Ensure board modals don’t break pointer events on underlying canvas/DOM editors.
+- [ ] C097 Re-run `npm run typecheck` and confirm new board UI components compile.
+- [ ] C098 Re-run `npm test` and confirm board UI tests pass.
+- [ ] C099 Re-run playground manual test: switch boards rapidly and confirm no leaks/crashes.
+- [ ] C100 Lock Phase C as “done” once switcher/browser/first-run flows are stable and tested.
+
+<!-- NEXT_PHASE -->
+## Phase B: Board System Core (B001–B150)
+
+- [ ] B001 Create `cardplay/src/boards/` and add `cardplay/src/boards/index.ts` barrel export.
+- [ ] B002 Add `cardplay/src/boards/types.ts` and define `ControlLevel` union.
+- [ ] B003 In `types.ts`, define `ViewType` union (`tracker|notation|session|arranger|composer|sampler`).
+- [ ] B004 In `types.ts`, define `BoardDifficulty` union (`beginner|intermediate|advanced|expert`).
+- [ ] B005 In `types.ts`, define `ToolKind` union (`phraseDatabase|harmonyExplorer|phraseGenerators|arrangerCard|aiComposer`).
+- [ ] B006 In `types.ts`, define `ToolMode<K>` conditional type per `cardplayui.md`.
+- [ ] B007 In `types.ts`, define `ToolConfig<K>` with `enabled` and `mode`.
+- [ ] B008 In `types.ts`, define `CompositionToolConfig` record of tool configs.
+- [ ] B009 In `types.ts`, define `UIBehavior<K,M>` type mapping mode → capabilities.
+- [ ] B010 In `types.ts`, define `PanelRole` union (`browser|composition|properties|mixer|timeline|toolbar|transport`).
+- [ ] B011 In `types.ts`, define `PanelPosition` union (`left|right|top|bottom|center`).
+- [ ] B012 In `types.ts`, define `PanelDefinition` interface (id, role, position, optional defaults).
+- [ ] B013 In `types.ts`, define `BoardLayout` interface (type, panels, orientation hints).
+- [ ] B014 In `types.ts`, define `DeckType` union per Part VII deck types.
+- [ ] B015 In `types.ts`, define `DeckCardLayout` union (`stack|tabs|split|floating`).
+- [ ] B016 In `types.ts`, define `BoardDeck` interface (id, type, cardLayout, allowReordering, allowDragOut, optional controlLevel override).
+- [ ] B017 In `types.ts`, define `BoardConnection` interface (source deck/port, target deck/port, connectionType).
+- [ ] B018 In `types.ts`, define `BoardTheme` interface (colors, typography, control indicators).
+- [ ] B019 In `types.ts`, define `BoardShortcutMap` type (string → action id/handler name).
+- [ ] B020 In `types.ts`, define `Board` interface matching `cardplayui.md` §2.1 fields.
+- [ ] B021 In `types.ts`, define `Board<L,C,V>` generic alias for typed environments.
+- [ ] B022 In `types.ts`, add `CardKind` taxonomy (`manual|hint|assisted|collaborative|generative`).
+- [ ] B023 In `types.ts`, define `CardFilter<L,C>` conditional type (type-level allowed card kinds).
+- [ ] B024 Add runtime counterparts: `AllowedCardKinds` and `AllowedToolModes`.
+- [ ] B025 Add `cardplay/src/boards/validate.ts` with `validateBoard(board)` runtime checks.
+- [ ] B026 In `validate.ts`, validate board IDs are unique and non-empty.
+- [ ] B027 In `validate.ts`, validate deck IDs are unique per board.
+- [ ] B028 In `validate.ts`, validate each deck’s `DeckType` is known.
+- [ ] B029 In `validate.ts`, validate tool config modes are consistent with `enabled`.
+- [ ] B030 In `validate.ts`, validate panel IDs are unique and positions are valid.
+- [ ] B031 Create `cardplay/src/boards/registry.ts` implementing `BoardRegistry` class.
+- [ ] B032 In `registry.ts`, implement `register(board)` and throw on duplicate id.
+- [ ] B033 In `registry.ts`, run `validateBoard(board)` during registration.
+- [ ] B034 In `registry.ts`, implement `get(boardId)` returning board or undefined.
+- [ ] B035 In `registry.ts`, implement `list()` returning all boards sorted by category/name.
+- [ ] B036 In `registry.ts`, implement `getByControlLevel(level)` filter.
+- [ ] B037 In `registry.ts`, implement `search(text)` over name/description/tags.
+- [ ] B038 In `registry.ts`, implement `getByDifficulty(difficulty)` filter.
+- [ ] B039 In `registry.ts`, export `getBoardRegistry()` singleton.
+- [ ] B040 Create `cardplay/src/boards/recommendations.ts` with `UserType` → board ids mapping.
+- [ ] B041 In `recommendations.ts`, align mapping with `cardplayui.md` §10.1 recommendations.
+- [ ] B042 In `recommendations.ts`, add `getRecommendedBoards(userType, registry)` helper.
+- [ ] B043 Create `cardplay/src/boards/store/types.ts` defining persisted BoardState schema.
+- [ ] B044 In `store/types.ts`, include `version`, `currentBoardId`, `recentBoardIds`, `favoriteBoardIds`.
+- [ ] B045 In `store/types.ts`, include `perBoardLayout` and `perBoardDeckState` maps.
+- [ ] B046 In `store/types.ts`, include `firstRunCompleted` and `lastOpenedAt`.
+- [ ] B047 Create `cardplay/src/boards/store/storage.ts` with localStorage read/write helpers.
+- [ ] B048 In `storage.ts`, implement `loadBoardState()` with safe JSON parsing.
+- [ ] B049 In `storage.ts`, implement `saveBoardState(state)` debounced.
+- [ ] B050 Create `cardplay/src/boards/store/migrations.ts` with `migrateBoardState(raw)` function.
+- [ ] B051 In `migrations.ts`, define `BoardStateV1` and migrate missing fields with defaults.
+- [ ] B052 Create `cardplay/src/boards/store/store.ts` implementing `BoardStateStore`.
+- [ ] B053 In `store.ts`, implement `getState()` and `subscribe(listener)` pub/sub.
+- [ ] B054 In `store.ts`, implement `setCurrentBoard(boardId)` updating `recentBoardIds`.
+- [ ] B055 In `store.ts`, implement `addRecentBoard(boardId)` with max length (e.g., 10).
+- [ ] B056 In `store.ts`, implement `toggleFavorite(boardId)` updating `favoriteBoardIds`.
+- [ ] B057 In `store.ts`, implement `setFirstRunCompleted()` for onboarding.
+- [ ] B058 In `store.ts`, implement `getLayoutState(boardId)` accessors.
+- [ ] B059 In `store.ts`, implement `setLayoutState(boardId, layoutState)` with persistence.
+- [ ] B060 In `store.ts`, implement `resetLayoutState(boardId)` (remove entry).
+- [ ] B061 In `store.ts`, implement `getDeckState(boardId)` accessors.
+- [ ] B062 In `store.ts`, implement `setDeckState(boardId, deckState)` with persistence.
+- [ ] B063 In `store.ts`, implement `resetDeckState(boardId)` (remove entry).
+- [ ] B064 In `store.ts`, export `getBoardStateStore()` singleton.
+- [ ] B065 Create `cardplay/src/boards/context/types.ts` defining `ActiveContext`.
+- [ ] B066 In `context/types.ts`, include `activeStreamId`, `activeClipId`, `activeTrackId`, `activeDeckId`.
+- [ ] B067 In `context/types.ts`, include `activeViewType` (tracker/notation/session/etc).
+- [ ] B068 Create `cardplay/src/boards/context/store.ts` with `BoardContextStore` (active context state).
+- [ ] B069 In `context/store.ts`, implement `setActiveStream(streamId)` and `setActiveClip(clipId)`.
+- [ ] B070 In `context/store.ts`, implement `subscribe(listener)` and ensure cross-board persistence.
+- [ ] B071 In `context/store.ts`, implement persistence key `cardplay.activeContext.v1`.
+- [ ] B072 Create `cardplay/src/boards/project/types.ts` for `Project` minimal structure.
+- [ ] B073 In `project/types.ts`, represent project as references to stream ids + clip ids (no duplication).
+- [ ] B074 Create `cardplay/src/boards/project/create.ts` with `createNewProject()` seeding default stream/clip.
+- [ ] B075 In `project/create.ts`, seed one stream in `SharedEventStore` with name “Main”.
+- [ ] B076 In `project/create.ts`, seed one clip in `ClipRegistry` referencing that stream.
+- [ ] B077 In `project/create.ts`, set `ActiveContext.activeStreamId/activeClipId` to the seeded IDs.
+- [ ] B078 Create `cardplay/src/boards/switching/types.ts` defining `BoardSwitchOptions`.
+- [ ] B079 In `switching/types.ts`, include `resetLayout`, `resetDecks`, `preserveActiveContext`, `preserveTransport`.
+- [ ] B080 Create `cardplay/src/boards/switching/switch-board.ts` implementing `switchBoard(boardId, options)`.
+- [ ] B081 In `switch-board.ts`, validate board exists in registry before switching.
+- [ ] B082 In `switch-board.ts`, update `BoardStateStore.setCurrentBoard(boardId)` and persist.
+- [ ] B083 In `switch-board.ts`, optionally reset layout/deck state for the target board.
+- [ ] B084 In `switch-board.ts`, preserve `ActiveContext` by default; only reset if requested.
+- [ ] B085 Create `cardplay/src/boards/switching/migration-plan.ts` defining `BoardMigrationPlan`.
+- [ ] B086 In `migration-plan.ts`, include deck-to-deck mapping rules by `DeckType`.
+- [ ] B087 In `migration-plan.ts`, define default heuristic: keep matching `DeckType` decks open.
+- [ ] B088 In `migration-plan.ts`, define fallback: if target lacks a deck type, close it.
+- [ ] B089 In `migration-plan.ts`, define mapping for primary view (`ViewType`) when switching.
+- [ ] B090 Create `cardplay/src/boards/layout/runtime-types.ts` representing persisted layout runtime.
+- [ ] B091 In `runtime-types.ts`, represent dock tree nodes compatible with `ui/layout.ts` structures.
+- [ ] B092 In `runtime-types.ts`, include panel sizes, collapsed states, and active tab IDs.
+- [ ] B093 Create `cardplay/src/boards/layout/adapter.ts` mapping `Board.layout` → layout runtime.
+- [ ] B094 In `layout/adapter.ts`, implement `createDefaultLayoutRuntime(board)` (stable initial layout).
+- [ ] B095 In `layout/adapter.ts`, implement `mergePersistedLayout(board, persisted)` (apply safe overrides).
+- [ ] B096 Create `cardplay/src/boards/layout/serialize.ts` to serialize runtime without functions/DOM refs.
+- [ ] B097 Create `cardplay/src/boards/layout/deserialize.ts` to rebuild runtime with defaults.
+- [ ] B098 Add `cardplay/src/boards/layout/guards.ts` to validate persisted layout shapes.
+- [ ] B099 Create `cardplay/src/boards/decks/runtime-types.ts` for per-deck state persistence.
+- [ ] B100 In `decks/runtime-types.ts`, include active tab, scroll positions, focused item, filters/search.
+- [ ] B101 Create `cardplay/src/boards/decks/factory-types.ts` defining `DeckFactory` interface.
+- [ ] B102 In `factory-types.ts`, define `create(deckDef, ctx)` returning a `DeckInstance`.
+- [ ] B103 Create `cardplay/src/boards/decks/factory-registry.ts` storing factories keyed by `DeckType`.
+- [ ] B104 In `factory-registry.ts`, implement `registerFactory(deckType, factory)` with duplicate guards.
+- [ ] B105 In `factory-registry.ts`, implement `getFactory(deckType)` and `hasFactory(deckType)`.
+- [ ] B106 In `factory-registry.ts`, add `validateBoardFactories(board)` to ensure all deck types are buildable.
+- [ ] B107 Create `cardplay/src/boards/builtins/ids.ts` listing builtin board ids (string literal union).
+- [ ] B108 Create `cardplay/src/boards/builtins/register.ts` exporting `registerBuiltinBoards()`.
+- [ ] B109 In `register.ts`, register builtin boards (initially stubs) to prove plumbing.
+- [ ] B110 In `register.ts`, ensure each builtin board has at least one deck (primary view).
+- [ ] B111 Add `cardplay/src/boards/builtins/stub-basic-tracker.ts` as the first stub board object.
+- [ ] B112 Add `cardplay/src/boards/builtins/stub-tracker-phrases.ts` as the second stub board object.
+- [ ] B113 Add `cardplay/src/boards/builtins/stub-notation.ts` as the third stub board object.
+- [ ] B114 Add `cardplay/src/boards/builtins/stub-session.ts` as the fourth stub board object.
+- [ ] B115 Ensure stub boards’ tool configs match their control level (manual vs assisted).
+- [ ] B116 Add `cardplay/src/boards/builtins/index.ts` exporting all builtins.
+- [ ] B117 Update `cardplay/src/boards/index.ts` to export registry/store/context/switching/builtins.
+- [ ] B118 Add `cardplay/src/boards/registry.test.ts` verifying register/get/list/search.
+- [ ] B119 Add `cardplay/src/boards/validate.test.ts` verifying invalid boards are rejected.
+- [ ] B120 Add `cardplay/src/boards/recommendations.test.ts` verifying userType mapping returns boards.
+- [ ] B121 Add `cardplay/src/boards/store/store.test.ts` verifying persistence round-trips.
+- [ ] B122 Add `cardplay/src/boards/store/migrations.test.ts` verifying older schemas migrate.
+- [ ] B123 Add `cardplay/src/boards/context/store.test.ts` verifying active context persistence.
+- [ ] B124 Add `cardplay/src/boards/switching/switch-board.test.ts` verifying recents/favorites behavior.
+- [ ] B125 Add `cardplay/src/boards/layout/adapter.test.ts` verifying default layout runtime generation.
+- [ ] B126 Add `cardplay/src/boards/layout/serialize.test.ts` verifying serialize/deserialize stability.
+- [ ] B127 Add `cardplay/src/boards/decks/factory-registry.test.ts` verifying factory registration.
+- [ ] B128 Decide whether boards are exported from `cardplay/src/index.ts` (public API decision).
+- [ ] B129 If exporting, add `export * from './boards'` in `cardplay/src/index.ts`.
+- [ ] B130 If not exporting yet, export boards only from `cardplay/src/ui/index.ts` for internal use.
+- [ ] B131 Add `cardplay/docs/boards/board-api.md` documenting the Board types and stores.
+- [ ] B132 Add `cardplay/docs/boards/board-state.md` documenting persistence keys and schema.
+- [ ] B133 Add `cardplay/docs/boards/layout-runtime.md` documenting panel/deck layout persistence model.
+- [ ] B134 Add `cardplay/docs/boards/migration.md` documenting board switching migration heuristics.
+- [ ] B135 Ensure `npm run typecheck` passes after adding `src/boards` modules.
+- [ ] B136 Ensure `npm test` passes after adding board tests.
+- [ ] B137 Run `npm run lint` and fix style issues in `src/boards`.
+- [ ] B138 Update `cardplay/docs/index.md` to include links to the new board docs.
+- [ ] B139 Add a “Board MVP” doc section listing the two stub MVP boards.
+- [ ] B140 Wire stub board registry initialization in the playground (registry has content).
+- [ ] B141 In playground, display current board id/name from `BoardStateStore`.
+- [ ] B142 In playground, add a temporary UI to switch between stub boards using `switchBoard()`.
+- [ ] B143 In playground, verify board switching preserves active stream/clip IDs.
+- [ ] B144 In playground, verify board switching persists recent boards list.
+- [ ] B145 In playground, verify board switching persists favorites list.
+- [ ] B146 Add a fallback: if persisted `currentBoardId` is missing, select a default builtin board.
+- [ ] B147 Add an invariant: registry must contain at least one board at startup.
+- [ ] B148 Add startup validation that logs any invalid builtin definition (and skips it).
+- [ ] B149 Confirm board core modules have no DOM dependency (UI-only code stays in `src/ui`).
+- [ ] B150 Mark Board Core “ready” once registry/store/switching/layout runtime are tested and stable.
+
+<!-- NEXT_PHASE -->

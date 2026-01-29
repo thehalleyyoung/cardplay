@@ -203,6 +203,29 @@ export const DEFAULT_ADAPTER_CONFIG: PrologAdapterConfig = {
 };
 
 // ============================================================================
+// QUERY OPTIMIZATION TYPES (L368)
+// ============================================================================
+
+/**
+ * L368: Profiling entry recorded for each query when profiling is enabled.
+ */
+export interface QueryProfilingEntry {
+  readonly predicate: string;
+  readonly timeMs: number;
+  readonly timestamp: number;
+}
+
+/**
+ * L368: Optimization suggestion based on profiling data.
+ */
+export interface QueryOptimizationSuggestion {
+  readonly predicate: string;
+  readonly avgTimeMs: number;
+  readonly callCount: number;
+  readonly suggestion: string;
+}
+
+// ============================================================================
 // PROLOG ADAPTER CLASS
 // ============================================================================
 
@@ -215,7 +238,13 @@ export class PrologAdapter {
   private loadedPrograms: Set<string> = new Set();
   private cache: Map<string, { result: QueryResult; timestamp: number }> = new Map();
   private initialized: boolean = false;
-  
+
+  /** L368: Whether query profiling is active. */
+  private _profilingEnabled: boolean = false;
+
+  /** L368: Recorded profiling data for executed queries. */
+  private _profilingData: QueryProfilingEntry[] = [];
+
   constructor(config: Partial<PrologAdapterConfig> = {}) {
     this.config = { ...DEFAULT_ADAPTER_CONFIG, ...config };
     this.session = pl.create();
@@ -346,6 +375,7 @@ export class PrologAdapter {
           timeMs,
         };
         this.setCached(queryString, result);
+        this.recordProfiling(queryString, timeMs);
         resolve(result);
       }, opts.timeoutMs);
       
@@ -367,6 +397,7 @@ export class PrologAdapter {
 	                timeMs,
 	              };
 	              this.setCached(queryString, result);
+	              this.recordProfiling(queryString, timeMs);
 	              resolve(result);
             }
           );
@@ -375,6 +406,7 @@ export class PrologAdapter {
 	          clearTimeout(timeoutId);
 	          const message = this.formatError(err);
 	          const timeMs = performance.now() - startTime;
+	          this.recordProfiling(queryString, timeMs);
 	          resolve({
 	            success: false,
 	            solutions: [],
@@ -496,6 +528,124 @@ export class PrologAdapter {
     };
   }
   
+  // ============================================================================
+  // L368: QUERY PERFORMANCE OPTIMIZATION
+  // ============================================================================
+
+  /**
+   * L368: Enable query profiling to identify slow predicates.
+   */
+  enableQueryProfiling(): void {
+    this._profilingEnabled = true;
+  }
+
+  /**
+   * L368: Disable query profiling.
+   */
+  disableQueryProfiling(): void {
+    this._profilingEnabled = false;
+  }
+
+  /**
+   * L368: Clear all collected profiling data.
+   */
+  clearProfilingData(): void {
+    this._profilingData = [];
+  }
+
+  /**
+   * L368: Get the raw profiling data entries.
+   */
+  getProfilingData(): readonly QueryProfilingEntry[] {
+    return this._profilingData;
+  }
+
+  /**
+   * L368: Get optimization suggestions based on profiling data.
+   * Returns predicates that might benefit from restructuring.
+   */
+  getOptimizationSuggestions(): QueryOptimizationSuggestion[] {
+    const suggestions: QueryOptimizationSuggestion[] = [];
+
+    // Group profiling data by predicate name
+    const grouped = new Map<string, number[]>();
+    for (const entry of this._profilingData) {
+      const times = grouped.get(entry.predicate);
+      if (times) {
+        times.push(entry.timeMs);
+      } else {
+        grouped.set(entry.predicate, [entry.timeMs]);
+      }
+    }
+
+    grouped.forEach((times, predicate) => {
+      const callCount = times.length;
+      const sum = times.reduce((a, b) => a + b, 0);
+      const avgTimeMs = sum / callCount;
+
+      // Calculate variance for consistency check
+      const variance = times.reduce((acc, t) => acc + (t - avgTimeMs) ** 2, 0) / callCount;
+      const stdDev = Math.sqrt(variance);
+      // Coefficient of variation: high means inconsistent performance
+      const cv = avgTimeMs > 0 ? stdDev / avgTimeMs : 0;
+
+      // Suggestion: slow predicates
+      if (avgTimeMs > 10) {
+        suggestions.push({
+          predicate,
+          avgTimeMs,
+          callCount,
+          suggestion: 'Consider adding cut (!) to reduce backtracking',
+        });
+      }
+
+      // Suggestion: frequently called predicates
+      if (callCount > 50) {
+        suggestions.push({
+          predicate,
+          avgTimeMs,
+          callCount,
+          suggestion: 'Frequently called - ensure first-argument indexing',
+        });
+      }
+
+      // Suggestion: high variance (CV > 1.0 indicates high inconsistency)
+      if (cv > 1.0 && callCount >= 5) {
+        suggestions.push({
+          predicate,
+          avgTimeMs,
+          callCount,
+          suggestion: 'Inconsistent performance - check for non-deterministic branches',
+        });
+      }
+    });
+
+    return suggestions;
+  }
+
+  /**
+   * L368: Extract the primary predicate name from a query string.
+   * For example, "parent(tom, X)" returns "parent",
+   * "findall(X, foo(X), L)" returns "findall".
+   */
+  private extractPredicateName(queryString: string): string {
+    const trimmed = queryString.trim().replace(/\.$/, '');
+    const match = trimmed.match(/^([a-zA-Z_][a-zA-Z0-9_]*)/);
+    return match ? match[1]! : trimmed;
+  }
+
+  /**
+   * L368: Record profiling data for a completed query.
+   */
+  private recordProfiling(queryString: string, timeMs: number): void {
+    if (!this._profilingEnabled) return;
+    this._profilingData.push({
+      predicate: this.extractPredicateName(queryString),
+      timeMs,
+      timestamp: Date.now(),
+    });
+  }
+
   // ============================================================================
   // PRIVATE HELPERS
   // ============================================================================

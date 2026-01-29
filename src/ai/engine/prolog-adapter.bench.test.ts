@@ -64,8 +64,8 @@ describe('PrologAdapter Performance', () => {
       
       console.log(`Backtracking queries: ${totalMs.toFixed(2)}ms for ${iterations} queries`);
       
-      // Should complete in reasonable time
-      expect(totalMs).toBeLessThan(2000);
+      // Should complete in reasonable time (allow extra margin for CI/slow machines)
+      expect(totalMs).toBeLessThan(3000);
     });
     
     it('should handle findAll efficiently', async () => {

@@ -299,6 +299,46 @@ tension(6, 1).   % Submediant
 tension(7, 5).   % Leading tone - highest tension
 
 %% ============================================================================
+%% CHORD TENDENCY (Voice Leading and Resolution)
+%% ============================================================================
+
+%% chord_tendency/2 - Describes typical chord progressions
+%% Based on harmonic function theory - chords tend to progress in specific ways
+
+%% From tonic (I, i)
+chord_tendency(tonic, subdominant).
+chord_tendency(tonic, dominant).
+chord_tendency(tonic, submediant).
+chord_tendency(tonic, supertonic).
+
+%% From supertonic (ii, ii°)
+chord_tendency(supertonic, dominant).
+chord_tendency(supertonic, subdominant).
+chord_tendency(supertonic, tonic).
+
+%% From mediant (iii, III)
+chord_tendency(mediant, subdominant).
+chord_tendency(mediant, submediant).
+
+%% From subdominant (IV, iv)
+chord_tendency(subdominant, dominant).
+chord_tendency(subdominant, tonic).
+chord_tendency(subdominant, supertonic).
+
+%% From dominant (V, v)
+chord_tendency(dominant, tonic).        % Strong resolution
+chord_tendency(dominant, submediant).   % Deceptive cadence
+
+%% From submediant (vi, VI)
+chord_tendency(submediant, subdominant).
+chord_tendency(submediant, supertonic).
+chord_tendency(submediant, dominant).
+
+%% From leading tone / subtonic (vii°, VII)
+chord_tendency(leading_tone, tonic).
+chord_tendency(subtonic, subdominant).
+
+%% ============================================================================
 %% L041: CADENCES
 %% ============================================================================
 

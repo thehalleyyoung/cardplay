@@ -25,11 +25,66 @@ import {
   EffectCommand,
   SpecialNote,
   defaultDisplayConfig,
-  emptyNoteCell,
-  RowIndex,
-  asRowIndex,
+  TrackId,
+  asTrackId,
 } from './types';
-import { FX, getEffectName, EFFECT_META } from './effects';
+import { getEffectName, EFFECT_META } from './effects';
+
+// =============================================================================
+// LEGACY COMPATIBILITY TYPES
+// =============================================================================
+
+/**
+ * A multi-track row view for rendering.
+ * This bridges the new track-first layout to the row-first layout expected by the renderer.
+ */
+export interface MultiTrackRow {
+  readonly tracks: ReadonlyArray<TrackerRow>;
+}
+
+/**
+ * Convert a Pattern to a row-first view for rendering.
+ */
+export function getPatternRowView(pattern: Pattern, rowIndex: number): MultiTrackRow {
+  const tracks: TrackerRow[] = [];
+  const sortedTrackIds = Array.from(pattern.tracks.keys()).sort();
+  for (const trackId of sortedTrackIds) {
+    const trackData = pattern.tracks.get(trackId);
+    if (trackData && trackData.rows[rowIndex]) {
+      tracks.push(trackData.rows[rowIndex]!);
+    }
+  }
+  return { tracks };
+}
+
+/**
+ * Get pattern length from config.
+ */
+export function getPatternLength(pattern: Pattern): number {
+  return pattern.config.length;
+}
+
+/**
+ * Get track configs from pattern.
+ */
+export function getTrackConfigs(pattern: Pattern): TrackConfig[] {
+  const configs: TrackConfig[] = [];
+  const sortedTrackIds = Array.from(pattern.tracks.keys()).sort();
+  for (const trackId of sortedTrackIds) {
+    const trackData = pattern.tracks.get(trackId);
+    if (trackData) {
+      configs.push(trackData.config);
+    }
+  }
+  return configs;
+}
+
+/**
+ * Get sorted track IDs from pattern.
+ */
+export function getSortedTrackIds(pattern: Pattern): TrackId[] {
+  return Array.from(pattern.tracks.keys()).sort();
+}
 
 // =============================================================================
 // CONSTANTS
@@ -137,13 +192,13 @@ export function formatInstrument(inst: number | null, base: DisplayBase): string
  * Format effect command (e.g., "G50" for portamento, ".00" for empty)
  */
 export function formatEffectCommand(fx: EffectCommand | null, base: DisplayBase): string {
-  if (!fx || fx.command === 0 && fx.value === 0) {
+  if (!fx || fx.code === 0 && fx.param === 0) {
     return '...';
   }
   
   // Get effect letter (00=0, 01=1, ..., 0F=F, 10=G, etc.)
-  const cmdChar = fx.command.toString(16).toUpperCase().padStart(2, '0').slice(-1);
-  const param = formatHex(fx.value, 2, base);
+  const cmdChar = fx.code.toString(16).toUpperCase().padStart(2, '0').slice(-1);
+  const param = formatHex(fx.param, 2, base);
   return `${cmdChar}${param}`;
 }
 
@@ -188,16 +243,18 @@ export interface RenderedTrackCells {
 }
 
 /**
- * Render a single tracker row to structured data
+ * Render a single multi-track row to structured data.
+ * Takes a MultiTrackRow (row-first view of pattern data).
  */
 export function renderRow(
-  row: TrackerRow,
+  row: MultiTrackRow,
   rowIndex: number,
   trackConfigs: TrackConfig[],
   config: DisplayConfig,
   cursor?: CursorPosition,
-  selection?: TrackerSelection,
+  _selection?: TrackerSelection,
 ): RenderedRow {
+  const sortedTrackIds = trackConfigs.map((_, i) => asTrackId(`track-${i}`));
   const isCursorRow = cursor?.row === rowIndex;
   const isHighlight = rowIndex % config.highlightInterval === 0;
   
@@ -213,9 +270,10 @@ export function renderRow(
   
   // Render each track
   for (let t = 0; t < row.tracks.length; t++) {
-    const trackCells = row.tracks[t];
+    const trackCells = row.tracks[t]!;
     const trackConfig = trackConfigs[t];
-    const isCursorTrack = cursor?.trackId === t;
+    const trackId = sortedTrackIds[t];
+    const isCursorTrack = cursor?.trackId === trackId;
     
     // Note cell
     const noteCell: RenderedCell = {
@@ -226,36 +284,36 @@ export function renderRow(
     
     // Instrument
     const instCell: RenderedCell = {
-      text: formatInstrument(trackCells.note.instrument, config.base),
+      text: formatInstrument(trackCells.note.instrument ?? null, config.base),
       cursor: isCursorRow && isCursorTrack && cursor?.column === 1,
-      dim: trackCells.note.instrument === null,
+      dim: trackCells.note.instrument === undefined,
     };
     
     // Volume
     const volCell: RenderedCell = {
-      text: trackCells.note.volume !== null 
+      text: trackCells.note.volume !== undefined 
         ? formatHex(trackCells.note.volume, 2, config.base)
         : '..',
       cursor: isCursorRow && isCursorTrack && cursor?.column === 2,
-      dim: trackCells.note.volume === null,
+      dim: trackCells.note.volume === undefined,
     };
     
     // Pan
     const panCell: RenderedCell = {
-      text: trackCells.note.pan !== null
+      text: trackCells.note.pan !== undefined
         ? formatHex(trackCells.note.pan, 2, config.base)
         : '..',
       cursor: isCursorRow && isCursorTrack && cursor?.column === 3,
-      dim: trackCells.note.pan === null,
+      dim: trackCells.note.pan === undefined,
     };
     
     // Delay
     const delayCell: RenderedCell = {
-      text: trackCells.note.delay !== null
+      text: trackCells.note.delay !== undefined
         ? formatHex(trackCells.note.delay, 2, config.base)
         : '..',
       cursor: isCursorRow && isCursorTrack && cursor?.column === 4,
-      dim: trackCells.note.delay === null,
+      dim: trackCells.note.delay === undefined,
     };
     
     // Effects
@@ -263,11 +321,13 @@ export function renderRow(
     const numEffects = trackConfig?.effectColumns ?? 1;
     
     for (let e = 0; e < numEffects; e++) {
-      const fx = trackCells.effects[e]?.command ?? null;
+      // EffectCell has an effects array - get first effect from that cell
+      const effectCell = trackCells.effects[e];
+      const fx = effectCell?.effects?.[0] ?? null;
       const fxCell: RenderedCell = {
         text: formatEffectCommand(fx, config.base),
         cursor: isCursorRow && isCursorTrack && cursor?.column === 5 + e,
-        dim: !fx || (fx.command === 0 && fx.value === 0),
+        dim: !fx || (fx.code === 0 && fx.param === 0),
       };
       setEffectColor(fxCell, fx);
       effectCells.push(fxCell);
@@ -313,25 +373,41 @@ function setNoteColor(cell: RenderedCell, note: NoteCell): void {
 function setEffectColor(cell: RenderedCell, fx: EffectCommand | null): void {
   if (!fx) return;
   
-  const meta = EFFECT_META.get(fx.command);
+  const meta = EFFECT_META.get(fx.code);
   if (!meta) return;
   
-  switch (meta.category) {
+  // Import EffectCategory from effects.ts would create circular dep
+  // Match on the string values of the enum directly
+  const category = meta.category as string;
+  switch (category) {
     case 'pitch':
       cell.color = 'effectPitch';
       break;
     case 'volume':
       cell.color = 'effectVolume';
       break;
-    case 'pan':
-      cell.color = 'effectPan';
+    case 'modulation':
+      cell.color = 'effectModulation';
       break;
-    case 'flow':
-      cell.color = 'effectFlow';
+    case 'timing':
+    case 'pattern':
+      cell.color = 'effectTiming';
       break;
-    case 'cardplay':
+    case 'card':
+    case 'generator':
+    case 'session':
+    case 'event':
       cell.color = 'effectCardPlay';
       cell.bold = true;
+      break;
+    case 'sample':
+      cell.color = 'effectSample';
+      break;
+    case 'phrase':
+      cell.color = 'effectPhrase';
+      break;
+    default:
+      cell.color = 'effectDefault';
       break;
   }
 }
@@ -350,23 +426,24 @@ export function renderPatternToANSI(
   visibleRows?: { start: number; end: number },
 ): string {
   const lines: string[] = [];
+  const trackConfigs = getTrackConfigs(pattern);
   
   // Header with track names
-  const headerLine = buildHeaderLine(pattern.tracks, config);
+  const headerLine = buildHeaderLine(trackConfigs, config);
   lines.push(headerLine);
   
   // Separator
-  lines.push(buildSeparatorLine(pattern.tracks, config));
+  lines.push(buildSeparatorLine(trackConfigs, config));
   
   // Rows
   const startRow = visibleRows?.start ?? 0;
-  const endRow = visibleRows?.end ?? pattern.length;
+  const endRow = visibleRows?.end ?? getPatternLength(pattern);
   
   for (let r = startRow; r < endRow; r++) {
-    const row = pattern.rows[r];
-    if (!row) continue;
+    const row = getPatternRowView(pattern, r);
+    if (row.tracks.length === 0) continue;
     
-    const rowLine = buildRowLine(row, r, pattern.tracks, config, cursor);
+    const rowLine = buildRowLine(row, r, trackConfigs, config, cursor);
     lines.push(rowLine);
   }
   
@@ -376,11 +453,11 @@ export function renderPatternToANSI(
 /**
  * Build header line with track names
  */
-function buildHeaderLine(tracks: { config: TrackConfig }[], config: DisplayConfig): string {
+function buildHeaderLine(trackConfigs: TrackConfig[], _config: DisplayConfig): string {
   let line = ANSI.dim + '    ' + ANSI.reset; // Row number column
   
-  for (let t = 0; t < tracks.length; t++) {
-    const track = tracks[t].config;
+  for (let t = 0; t < trackConfigs.length; t++) {
+    const track = trackConfigs[t]!;
     const name = track.name.slice(0, 8).padEnd(8);
     line += ANSI.bold + ANSI.cyan + ' ' + name;
     
@@ -398,11 +475,11 @@ function buildHeaderLine(tracks: { config: TrackConfig }[], config: DisplayConfi
 /**
  * Build separator line
  */
-function buildSeparatorLine(tracks: { config: TrackConfig }[], config: DisplayConfig): string {
+function buildSeparatorLine(trackConfigs: TrackConfig[], _config: DisplayConfig): string {
   let line = '────';
   
-  for (let t = 0; t < tracks.length; t++) {
-    const track = tracks[t].config;
+  for (let t = 0; t < trackConfigs.length; t++) {
+    const track = trackConfigs[t]!;
     const width = 3 + 2 + 2 + 2 + 2 + track.effectColumns * 4 + 5; // note+inst+vol+pan+delay+fx+spaces
     line += '─'.repeat(width) + '┼';
   }
@@ -414,13 +491,13 @@ function buildSeparatorLine(tracks: { config: TrackConfig }[], config: DisplayCo
  * Build a single row line
  */
 function buildRowLine(
-  row: TrackerRow,
+  row: MultiTrackRow,
   rowIndex: number,
-  tracks: { config: TrackConfig }[],
+  trackConfigs: TrackConfig[],
   config: DisplayConfig,
-  cursor?: CursorPosition,
+  _cursor?: CursorPosition,
 ): string {
-  const isCursorRow = cursor?.row === rowIndex;
+  const isCursorRow = _cursor?.row === rowIndex;
   const isHighlight = rowIndex % config.highlightInterval === 0;
   
   // Row number
@@ -434,9 +511,11 @@ function buildRowLine(
   
   // Each track
   for (let t = 0; t < row.tracks.length; t++) {
-    const trackCells = row.tracks[t];
-    const trackConfig = tracks[t].config;
-    const isCursorTrack = cursor?.trackId === t;
+    const trackCells = row.tracks[t]!;
+    const trackConfig = trackConfigs[t];
+    // Note: isCursorTrack could be used for cursor highlighting in future
+    // const trackId = sortedTrackIds[t];
+    // const isCursorTrack = cursor?.trackId === trackId;
     
     // Note
     const noteText = formatNote(trackCells.note);
@@ -452,8 +531,8 @@ function buildRowLine(
     line += ' ';
     
     // Instrument
-    const instText = formatInstrument(trackCells.note.instrument, config.base);
-    if (trackCells.note.instrument === null) {
+    const instText = formatInstrument(trackCells.note.instrument ?? null, config.base);
+    if (trackCells.note.instrument === undefined) {
       line += ANSI.dim + instText + ANSI.reset;
     } else {
       line += ANSI.brightYellow + instText + ANSI.reset;
@@ -461,10 +540,10 @@ function buildRowLine(
     line += ' ';
     
     // Volume
-    const volText = trackCells.note.volume !== null
+    const volText = trackCells.note.volume !== undefined
       ? formatHex(trackCells.note.volume, 2, config.base)
       : '..';
-    if (trackCells.note.volume === null) {
+    if (trackCells.note.volume === undefined) {
       line += ANSI.dim + volText + ANSI.reset;
     } else {
       line += ANSI.green + volText + ANSI.reset;
@@ -472,10 +551,10 @@ function buildRowLine(
     line += ' ';
     
     // Pan  
-    const panText = trackCells.note.pan !== null
+    const panText = trackCells.note.pan !== undefined
       ? formatHex(trackCells.note.pan, 2, config.base)
       : '..';
-    if (trackCells.note.pan === null) {
+    if (trackCells.note.pan === undefined) {
       line += ANSI.dim + panText + ANSI.reset;
     } else {
       line += ANSI.blue + panText + ANSI.reset;
@@ -483,10 +562,10 @@ function buildRowLine(
     line += ' ';
     
     // Delay
-    const delayText = trackCells.note.delay !== null
+    const delayText = trackCells.note.delay !== undefined
       ? formatHex(trackCells.note.delay, 2, config.base)
       : '..';
-    if (trackCells.note.delay === null) {
+    if (trackCells.note.delay === undefined) {
       line += ANSI.dim + delayText + ANSI.reset;
     } else {
       line += ANSI.magenta + delayText + ANSI.reset;
@@ -494,19 +573,22 @@ function buildRowLine(
     line += ' ';
     
     // Effects
-    for (let e = 0; e < trackConfig.effectColumns; e++) {
-      const fx = trackCells.effects[e]?.command ?? null;
+    const numEffectCols = trackConfig?.effectColumns ?? 1;
+    for (let e = 0; e < numEffectCols; e++) {
+      const effectCell = trackCells.effects[e];
+      const fx = effectCell?.effects?.[0] ?? null;
       const fxText = formatEffectCommand(fx, config.base);
       
-      if (!fx || (fx.command === 0 && fx.value === 0)) {
+      if (!fx || (fx.code === 0 && fx.param === 0)) {
         line += ANSI.dim + fxText + ANSI.reset;
       } else {
-        const meta = EFFECT_META.get(fx.command);
-        if (meta?.category === 'cardplay') {
+        const meta = EFFECT_META.get(fx.code);
+        const category = meta?.category as string;
+        if (category === 'card' || category === 'generator' || category === 'session') {
           line += ANSI.brightMagenta + ANSI.bold + fxText + ANSI.reset;
-        } else if (meta?.category === 'pitch') {
+        } else if (category === 'pitch') {
           line += ANSI.cyan + fxText + ANSI.reset;
-        } else if (meta?.category === 'volume') {
+        } else if (category === 'volume') {
           line += ANSI.green + fxText + ANSI.reset;
         } else {
           line += ANSI.white + fxText + ANSI.reset;
@@ -604,19 +686,21 @@ export function renderPatternToVDOM(
   visibleRows?: { start: number; end: number },
 ): VNode {
   const nodes: VNode[] = [];
+  const patternLength = getPatternLength(pattern);
+  const trackConfigs = getTrackConfigs(pattern);
   const startRow = visibleRows?.start ?? 0;
-  const endRow = visibleRows?.end ?? Math.min(pattern.length, startRow + 32);
+  const endRow = visibleRows?.end ?? Math.min(patternLength, startRow + 32);
   
   let y = 0;
   
   for (let r = startRow; r < endRow; r++) {
-    const row = pattern.rows[r];
-    if (!row) continue;
+    const row = getPatternRowView(pattern, r);
+    if (row.tracks.length === 0) continue;
     
     const rendered = renderRow(
       row,
       r,
-      pattern.tracks.map(t => t.config),
+      trackConfigs,
       displayConfig,
       cursor,
       selection,
@@ -643,7 +727,7 @@ function renderRowToVNode(
   row: RenderedRow,
   y: number,
   config: VRenderConfig,
-  displayConfig: DisplayConfig,
+  _displayConfig: DisplayConfig,
 ): VNode {
   const children: VNode[] = [];
   let x = 0;
@@ -776,14 +860,18 @@ function cellToVNode(cell: RenderedCell, x: number, y: number, config: VRenderCo
 /**
  * Resolve color name to hex value
  */
-function resolveColor(colorName: string, config: VRenderConfig): string {
+function resolveColor(colorName: string | undefined, config: VRenderConfig): string {
+  if (!colorName) {
+    return config.colors.foreground;
+  }
+  
   if (colorName.startsWith('#')) {
     return colorName;
   }
   
   if (colorName.startsWith('octave')) {
     const index = parseInt(colorName.slice(6), 10);
-    return config.colors.octave[index % config.colors.octave.length];
+    return config.colors.octave[index % config.colors.octave.length]!;
   }
   
   const colorMap: Record<string, string> = {
@@ -796,6 +884,11 @@ function resolveColor(colorName: string, config: VRenderConfig): string {
     effectCardPlay: config.colors.effectCardPlay,
     highlight: config.colors.highlight,
     dim: config.colors.dim,
+    effectDefault: config.colors.foreground,
+    effectModulation: config.colors.effectPitch,
+    effectTiming: config.colors.effectFlow,
+    effectSample: config.colors.effectPan,
+    effectPhrase: config.colors.effectCardPlay,
   };
   
   return colorMap[colorName] ?? config.colors.foreground;
@@ -879,18 +972,18 @@ export interface AccessibleTrack {
  * Generate accessible description of a row
  */
 export function generateAccessibleRow(
-  row: TrackerRow,
+  row: MultiTrackRow,
   rowIndex: number,
   trackConfigs: TrackConfig[],
 ): AccessibleRow {
   const trackDescs: AccessibleTrack[] = [];
   
   for (let t = 0; t < row.tracks.length; t++) {
-    const trackCells = row.tracks[t];
+    const trackCells = row.tracks[t]!;
     const config = trackConfigs[t];
     
     const trackDesc: AccessibleTrack = {
-      trackName: config.name,
+      trackName: config?.name ?? `Track ${t + 1}`,
       effects: [],
     };
     
@@ -903,22 +996,23 @@ export function generateAccessibleRow(
       } else {
         const noteText = formatNote(trackCells.note);
         trackDesc.note = `${noteText}`;
-        if (trackCells.note.velocity !== null) {
-          trackDesc.note += ` velocity ${trackCells.note.velocity}`;
+        if (trackCells.note.volume !== undefined) {
+          trackDesc.note += ` velocity ${trackCells.note.volume}`;
         }
       }
     }
     
     // Describe instrument
-    if (trackCells.note.instrument !== null) {
+    if (trackCells.note.instrument !== undefined) {
       trackDesc.instrument = `instrument ${trackCells.note.instrument}`;
     }
     
     // Describe effects
-    for (const fx of trackCells.effects) {
-      if (fx.command && (fx.command.command !== 0 || fx.command.value !== 0)) {
-        const name = getEffectName(fx.command.command);
-        trackDesc.effects.push(`${name} ${fx.command.value}`);
+    for (const fxCell of trackCells.effects) {
+      const fx = fxCell.effects[0];
+      if (fx && (fx.code !== 0 || fx.param !== 0)) {
+        const name = getEffectName(fx.code);
+        trackDesc.effects.push(`${name} ${fx.param}`);
       }
     }
     

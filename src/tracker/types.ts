@@ -10,6 +10,8 @@
 // Note: Tracker module is self-contained with its own type definitions
 // to avoid circular dependencies and ensure portability
 
+import type { ClipId as StateClipId, EventStreamId as StateEventStreamId } from '../state/types';
+
 // ============================================================================
 // LOCAL BRANDED TYPES (self-contained for tracker module)
 // ============================================================================
@@ -24,10 +26,10 @@ export type Velocity = number & { readonly __brand: 'Velocity' };
 export type EventId = string & { readonly __brand: 'EventId' };
 
 /** Event stream identifier */
-export type EventStreamId = string & { readonly __brand: 'EventStreamId' };
+export type EventStreamId = StateEventStreamId;
 
 /** Clip identifier */
-export type ClipId = string & { readonly __brand: 'ClipId' };
+export type ClipId = StateClipId;
 
 /** Time position in ticks */
 export type Tick = number & { readonly __brand: 'Tick' };

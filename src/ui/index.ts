@@ -1577,3 +1577,72 @@ export {
   // Keyboard
   handleDeckBarShortcut,
 } from './composer-deck-bar';
+
+// ============================================================================
+// AI ADVISOR INTEGRATION EXPORTS
+// ============================================================================
+
+export {
+  // Registration
+  registerRevealPanel,
+  getRevealPanel,
+
+  // Actions
+  openAIAdvisor,
+
+  // Initialization
+  initializeAIAdvisorIntegration,
+  cleanupAIAdvisorIntegration,
+} from './ai-advisor-integration';
+
+// ============================================================================
+// COMMAND PALETTE EXPORTS
+// ============================================================================
+
+export {
+  // Component
+  CommandPalette,
+
+  // Command Registration
+  registerCommand,
+  unregisterCommand,
+  getAllCommands,
+  clearCommands,
+
+  // Palette Actions
+  getCommandPalette,
+  openCommandPalette,
+  initializeCommandPalette,
+
+  // Types
+  type Command,
+  type CommandContext,
+} from './components/command-palette';
+
+// ============================================================================
+// AI CONTEXT MENU EXPORTS
+// ============================================================================
+
+export {
+  // Context Menu Setup
+  addAIContextMenu,
+  addAIContextMenuToAll,
+  setupAIContextMenuObserver,
+  initializeAIContextMenus,
+
+  // Context Extractors
+  extractChordContext,
+  extractNoteContext,
+  extractPatternContext,
+  extractProgressionContext,
+
+  // Built-in Menu Items
+  CHORD_MENU_ITEMS,
+  NOTE_MENU_ITEMS,
+  PATTERN_MENU_ITEMS,
+  PROGRESSION_MENU_ITEMS,
+
+  // Types
+  type AIContextMenuItem,
+  type AIContextMenuConfig,
+} from './ai-context-menu';

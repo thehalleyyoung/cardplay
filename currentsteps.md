@@ -54,9 +54,9 @@ The roadmap is organized into **logical phases** that build upon each other:
 
 ### Build Health & Type Safety (A015–A029)
 
-- [ ] A015 Run `cd cardplay && npm run typecheck` and capture output to a file.
-- [ ] A016 Run `cd cardplay && npm test` and capture output to a file.
-- [ ] A017 Run `cd cardplay && npm run build` and capture output to a file.
+- [x] A015 Run `cd cardplay && npm run typecheck` and capture output to a file (`cardplay/typecheck-output-20260128-180002.txt`).
+- [x] A016 Run `cd cardplay && npm test` and capture output to a file (`cardplay/test-output-20260128-180224.txt`).
+- [x] A017 Run `cd cardplay && npm run build` and capture output to a file (`cardplay/build-output-20260128-180002.txt`).
 - [ ] A018 Categorize typecheck failures by file and dependency fan-out.
 - [ ] A019 Prioritize fixes: pick the 5 files blocking the most imports.
 - [ ] A020 Open `src/state/event-store.ts` and confirm the canonical store API surface.

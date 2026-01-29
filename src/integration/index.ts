@@ -367,6 +367,50 @@ export {
 } from '../ui/reveal-panel-audio';
 
 export {
+  createAIAdvisorRevealTab,
+  createAIAdvisorTabs,
+  type AIAdvisorRevealTabOptions,
+} from '../ui/reveal-panel-ai-advisor';
+
+export {
+  registerRevealPanel,
+  getRevealPanel,
+  openAIAdvisor,
+  initializeAIAdvisorIntegration,
+  cleanupAIAdvisorIntegration,
+} from '../ui/ai-advisor-integration';
+
+export {
+  CommandPalette,
+  registerCommand,
+  unregisterCommand,
+  getAllCommands,
+  clearCommands,
+  getCommandPalette,
+  openCommandPalette,
+  initializeCommandPalette,
+  type Command,
+  type CommandContext,
+} from '../ui/components/command-palette';
+
+export {
+  addAIContextMenu,
+  addAIContextMenuToAll,
+  setupAIContextMenuObserver,
+  initializeAIContextMenus,
+  extractChordContext,
+  extractNoteContext,
+  extractPatternContext,
+  extractProgressionContext,
+  CHORD_MENU_ITEMS,
+  NOTE_MENU_ITEMS,
+  PATTERN_MENU_ITEMS,
+  PROGRESSION_MENU_ITEMS,
+  type AIContextMenuItem,
+  type AIContextMenuConfig,
+} from '../ui/ai-context-menu';
+
+export {
   // MIDI learn functions
   setMidiBinding,
   clearMidiBinding,

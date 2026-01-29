@@ -1,0 +1,255 @@
+
+> @cardplay/core@0.1.0 test
+> vitest run
+
+Testing types with tsc and vue-tsc is an experimental feature.
+Breaking changes might not follow SemVer, please pin Vitest's version when using it.
+
+ RUN  v1.6.1 /Users/halleyyoung/Documents/behavioral/cardplay
+
+ ✓ src/ui/components/sample-browser.test.ts  (131 tests) 26ms
+ ✓ src/cards/generators.test.ts  (164 tests) 28ms
+ ✓ src/cards/card-visuals.test.ts  (162 tests) 22ms
+ ✓ src/ui/components/arrangement-panel.test.ts  (238 tests) 30ms
+ ✓ src/ui/components/piano-roll-panel.test.ts  (132 tests) 22ms
+ ✓ src/ui/components/tracker-panel.test.ts  (139 tests) 26ms
+ ✓ src/cards/transforms.test.ts  (123 tests) 17ms
+ ✓ src/cards/arranger.test.ts  (222 tests) 32ms
+ ✓ src/ui/session-view.test.ts  (166 tests) 26ms
+ ✓ src/cards/drum-machine.test.ts  (128 tests | 3 skipped) 21ms
+ ✓ src/containers/container.test.ts  (75 tests) 16ms
+ ✓ src/cards/effects.test.ts  (112 tests) 15ms
+ ✓ src/ui/cards.test.ts  (94 tests) 11ms
+ ✓ src/notation/playback.test.ts  (75 tests) 18ms
+ ✓ src/cards/presets.test.ts  (58 tests) 11ms
+ ✓ src/ui/beginner.test.ts  (73 tests) 11ms
+ ✓ src/cards/bassline.test.ts  (144 tests | 2 skipped) 16ms
+ ✓ src/ui/achievements.test.ts  (71 tests) 17ms
+ ✓ src/cards/parameters.test.ts  (73 tests) 11ms
+ ✓ src/notation/notation.test.ts  (96 tests) 16ms
+ ✓ src/cards/lead-synth.test.ts  (105 tests) 16ms
+ ✓ src/audio/web-midi.test.ts  (54 tests) 8ms
+ ✓ src/cards/organ.test.ts  (117 tests) 34ms
+ ✓ src/audio/event-flattener.test.ts  (48 tests) 17ms
+ ✓ src/cards/score-notation.test.ts  (45 tests) 16ms
+ ✓ src/cards/pad-synth.test.ts  (107 tests) 18ms
+ ✓ src/cards/loop-player.test.ts  (87 tests) 22ms
+ ✓ src/cards/sequencer.test.ts  (79 tests | 2 skipped) 22ms
+ ✓ src/cards/arpeggiator.test.ts  (88 tests | 2 skipped) 45ms
+ ✓ src/ui/arrangement-operations.test.ts  (44 tests) 8ms
+ ✓ src/cards/recording-manager.test.ts  (46 tests) 11ms
+ ✓ src/audio/drum-patterns.test.ts  (73 tests) 24ms
+stderr | src/audio/drum-patterns.test.ts > Clip Creation > createArrangementClip > should return null for invalid pattern IDs
+Pattern not found: nonexistent-pattern
+
+stderr | src/audio/drum-patterns.test.ts > DrumPatternPlayer > should return false for unknown pattern ID
+Pattern not found: nonexistent
+
+stderr | src/audio/drum-patterns.test.ts > Sampler Integration > quickPlayPattern > should return null for unknown pattern
+Pattern not found: unknown
+
+ ✓ src/ui/visualization.test.ts  (82 tests) 11ms
+ ✓ src/cards/macro-controls.test.ts  (65 tests) 12ms
+ ✓ src/cards/sampler.test.ts  (73 tests) 12ms
+ ✓ src/audio/sampler-core.test.ts  (59 tests) 19ms
+ ✓ src/ui/components.test.ts  (72 tests) 10ms
+ ✓ src/cards/chord-progression.test.ts  (70 tests | 2 skipped) 21ms
+ ✓ src/audio/midi-input-handler.test.ts  (40 tests) 9ms
+stdout | src/cards/phrase-system.test.ts > Phrase System > IdeaTool - rateIdea() > should accept rating for an idea
+Rated idea idea-1769641346682 with 5 stars
+
+ ✓ src/cards/phrase-system.test.ts  (48 tests) 17ms
+ ✓ src/user-cards/deck-template-advanced.test.ts  (42 tests) 10ms
+ ✓ src/audio/audio-engine.test.ts  (49 tests) 13ms
+ ✓ src/cards/melody.test.ts  (71 tests | 2 skipped) 21ms
+ ✓ src/audio/sampler-modulation.test.ts  (56 tests) 29ms
+ ✓ src/cards/drum-kit.test.ts  (62 tests) 18ms
+ ✓ src/audio/sample-manipulation-ui.test.ts  (40 tests) 24ms
+ ✓ src/ui/layout.test.ts  (66 tests) 11ms
+ ✓ src/notation/editing.test.ts  (39 tests) 9ms
+ ✓ src/audio/wavetable.test.ts  (56 tests) 590ms
+ ✓ src/audio/sample-editor.test.ts  (43 tests) 130ms
+ ✓ src/cards/modulation.test.ts  (43 tests) 7ms
+ ✓ src/cards/graph.test.ts  (32 tests) 8ms
+ ✓ src/audio/scheduler.test.ts  (63 tests) 10ms
+ ✓ src/ui/onboarding.test.ts  (49 tests) 11ms
+ ✓ src/ui/session-recording.test.ts  (25 tests) 8ms
+ ✓ src/audio/synth.test.ts  (56 tests) 13ms
+ ✓ src/audio/audio-optimization.test.ts  (47 tests) 18ms
+ ✓ src/audio/mixer.test.ts  (54 tests) 11ms
+ ✓ src/audio/sample.test.ts  (51 tests) 10ms
+ ✓ src/audio/sample-mapper.test.ts  (38 tests) 147ms
+ ✓ src/cards/registry.test.ts  (38 tests) 13ms
+ ✓ src/ui/tooltips.test.ts  (43 tests) 6ms
+ ✓ src/audio/freesound.test.ts  (37 tests) 9ms
+ ✓ src/streams/stream.test.ts  (35 tests) 10ms
+ ✓ src/cards/audio-transforms.test.ts  (43 tests) 10ms
+ ✓ src/notation/event-bridge.test.ts  (29 tests) 13ms
+ ✓ src/cards/card.test.ts  (23 tests) 8ms
+ ✓ src/cards/keyboard-instruments.test.ts  (47 tests) 9ms
+ ✓ src/tests/integration-verification.test.ts  (12 tests) 8ms
+stderr | src/ai/engine/prolog-adapter.test.ts > PrologAdapter > Query result structure > should return error for invalid query
+Error getting answer: [object Object]
+
+stderr | src/ai/engine/prolog-adapter.test.ts > PrologAdapter > Reset and reload > should reset session and clear loaded programs
+Error getting answer: [object Object]
+
+ ✓ src/ai/engine/prolog-adapter.test.ts  (35 tests | 1 skipped) 193ms
+stderr | src/ai/queries/board-queries.test.ts > Board & Deck Query Functions > Tutorial Sequence (L118) > should get tutorial sequence for board
+Error getting answer: [object Object]
+
+stderr | src/ai/queries/board-queries.test.ts > Board & Deck Query Functions > Tutorial Sequence (L118) > should get empty state suggestion for deck
+Error getting answer: [object Object]
+
+stderr | src/ai/queries/board-queries.test.ts > Board & Deck Query Functions > Tutorial Sequence (L118) > should get help topic for action
+Error getting answer: [object Object]
+
+ ✓ src/audio/sample-slicer.test.ts  (29 tests) 13ms
+stderr | src/ai/queries/board-queries.test.ts > Board & Deck Query Functions > Performance & Accessibility > should get accessibility rules for deck
+Error getting answer: [object Object]
+
+ ✓ src/ui/components/export-dialog.test.ts  (49 tests) 241ms
+ ✓ src/ui/theme.test.ts  (55 tests) 9ms
+ ✓ src/ai/adaptation/prolog-phrase-adapter.test.ts  (25 tests) 1649ms
+ ✓ src/audio/midi-mapping.test.ts  (29 tests) 12ms
+stderr | src/audio/midi-mapping.test.ts > MIDI Mapping System > preset management > handles invalid JSON
+Failed to parse MIDI preset JSON: SyntaxError: Unexpected token 'i', "invalid json" is not valid JSON
+    at JSON.parse (<anonymous>)
+    at Module.presetFromJSON (/Users/halleyyoung/Documents/behavioral/cardplay/src/audio/midi-mapping.ts:423:25)
+    at /Users/halleyyoung/Documents/behavioral/cardplay/src/audio/midi-mapping.test.ts:350:14
+    at file:///Users/halleyyoung/Documents/behavioral/cardplay/node_modules/@vitest/runner/dist/index.js:135:14
+    at file:///Users/halleyyoung/Documents/behavioral/cardplay/node_modules/@vitest/runner/dist/index.js:60:26
+    at runTest (file:///Users/halleyyoung/Documents/behavioral/cardplay/node_modules/@vitest/runner/dist/index.js:781:17)
+    at runSuite (file:///Users/halleyyoung/Documents/behavioral/cardplay/node_modules/@vitest/runner/dist/index.js:909:15)
+    at runSuite (file:///Users/halleyyoung/Documents/behavioral/cardplay/node_modules/@vitest/runner/dist/index.js:909:15)
+    at runSuite (file:///Users/halleyyoung/Documents/behavioral/cardplay/node_modules/@vitest/runner/dist/index.js:909:15)
+    at runFiles (file:///Users/halleyyoung/Documents/behavioral/cardplay/node_modules/@vitest/runner/dist/index.js:958:5)
+
+ ✓ src/ai/queries/board-queries.test.ts  (41 tests) 1599ms
+ ✓ src/storage/indexeddb-backend.test.ts  (24 tests) 206ms
+ ✓ src/events/operations.test.ts  (40 tests) 8ms
+stderr | src/ai/advisor/advisor-interface.test.ts > AIAdvisor > board questions > should list boards when asked generically
+Error getting answer: [object Object]
+
+ ✓ src/ai/advisor/advisor-interface.test.ts  (34 tests) 176ms
+ ✓ src/user-cards/card-editor-panel.test.ts  (35 tests) 109ms
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should generate ascending arpeggio
+Error getting answer: [object Object]
+
+ ✓ src/audio/pitch-detect.test.ts  (43 tests) 102ms
+ ✓ src/cards/phrase-midi.test.ts  (20 tests) 6ms
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should generate descending arpeggio
+Error getting answer: [object Object]
+
+ ✓ src/voices/voice.test.ts  (39 tests) 7ms
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should generate chord pattern (all notes together)
+Error getting answer: [object Object]
+
+ ✓ src/cards/choir.test.ts  (29 tests) 12ms
+ ✓ src/cards/stack.test.ts  (25 tests) 6ms
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should generate alberti bass pattern
+Error getting answer: [object Object]
+
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should respect octave range
+Error getting answer: [object Object]
+
+stdout | src/audio/worklet.test.ts > workletDebug > should not throw when enabled
+[Worklet] test
+
+ ✓ src/audio/worklet.test.ts  (35 tests) 9ms
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should generate for chord progression
+Error getting answer: [object Object]
+
+ ✓ src/cards/adapter.test.ts  (28 tests) 8ms
+ ✓ src/rules/rules.test.ts  (14 tests) 6ms
+ ✓ src/audio/sample-pack-manager.test.ts  (33 tests) 220ms
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should handle extended chords
+Error getting answer: [object Object]
+
+ ✓ src/cards/protocol.test.ts  (29 tests) 6ms
+stderr | src/ai/generators/generators.test.ts > Generators > ArpeggioGenerator > should apply velocity curves
+Error getting answer: [object Object]
+
+ ✓ src/ai/generators/generators.test.ts  (43 tests) 3136ms
+ ✓ src/types/event.test.ts  (37 tests) 7ms
+ ✓ src/notation/comparison-sync.test.ts  (18 tests) 5ms
+ ✓ src/user-cards/card-metadata-ui.test.ts  (37 tests) 148ms
+ ✓ src/ai/harmony/harmony-explorer.test.ts  (31 tests) 2670ms
+ ✓ src/audio/freesound-api.test.ts  (27 tests) 7ms
+ ✓ src/ai/advisor/conversation-manager.test.ts  (30 tests) 157ms
+ ✓ src/ai/queries/composition-queries.test.ts  (38 tests) 2777ms
+stdout | src/cards/testing/card-test.test.ts > Card Testing Framework > Test Runner > should run unit tests successfully
+Result: {
+  "cardId": "double-card",
+  "cardName": "Double Card",
+  "totalTests": 3,
+  "passed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "duration": 0.16254099999969185,
+  "results": [
+    {
+      "testId": "unit-1769641350385-0.2004519181520683",
+      "testName": "should double positive number",
+      "testType": "unit",
+      "passed": true,
+      "duration": 0.03704199999992852,
+      "output": 10
+    },
+    {
+      "testId": "unit-1769641350385-0.8512278843943792",
+      "testName": "should double negative number",
+      "testType": "unit",
+      "passed": true,
+      "duration": 0.006457999999838648,
+      "output": -6
+    },
+    {
+      "testId": "unit-1769641350385-0.7842768591306715",
+      "testName": "should double zero",
+      "testType": "unit",
+      "passed": true,
+      "duration": 0.004167000000052212,
+      "output": 0
+    }
+  ],
+  "qualityScore": 100
+}
+
+ ✓ src/cards/testing/card-test.test.ts  (15 tests) 5ms
+ ✓ src/audio/context.test.ts  (24 tests) 106ms
+ ✓ src/test-utils/test-utils.test.ts  (18 tests) 8ms
+ ✓ src/events/serialization.test.ts  (13 tests) 5ms
+ ✓ src/user-cards/template-preview.test.ts  (11 tests) 6ms
+ ✓ src/cards/preset-sync.test.ts  (14 tests) 121ms
+ ✓ src/user-cards/pack-ratings.test.ts  (10 tests) 3ms
+ ✓ src/user-cards/pack-discovery.test.ts  (9 tests) 3ms
+ ✓ src/user-cards/pack-stats.test.ts  (7 tests) 4ms
+stdout | src/audio/sample-packs.test.ts > Sample Pack System > SamplePackLoader > should track load progress
+Pack loading skipped in test (network required)
+
+ ✓ src/audio/sample-packs.test.ts  (18 tests) 571ms
+ ✓ src/ui/components/sample-waveform-preview.test.ts  (70 tests) 509ms
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > L027: Query throughput > should handle 1000 simple queries in reasonable time
+Query throughput: 778 queries/sec
+Total time for 1000 queries: 1285.24ms
+
+ ✓ src/ai/queries/theory-queries.test.ts  (42 tests) 2289ms
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > L027: Query throughput > should handle queries with backtracking efficiently
+Backtracking queries: 1171.11ms for 100 queries
+
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > L027: Query throughput > should handle findAll efficiently
+findAll queries: 700.42ms for 500 queries
+
+ ✓ src/ai/engine/prolog-adapter.bench.test.ts  (7 tests) 3339ms
+stdout | src/ai/engine/prolog-adapter.bench.test.ts > PrologAdapter Performance > Cache performance > should benefit from caching repeated queries
+Cold query: 12.59ms, Warm query: 0.01ms
+
+ ✓ src/audio/export.test.ts  (23 tests) 4153ms
+
+ Test Files  112 passed (112)
+      Tests  6386 passed | 14 skipped (6400)
+Type Errors  no errors
+   Start at  18:02:24
+   Duration  9.84s (transform 6.15s, setup 4ms, collect 11.99s, tests 26.55s, environment 283ms, prepare 5.78s)
+
