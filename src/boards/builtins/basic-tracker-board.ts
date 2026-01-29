@@ -93,6 +93,13 @@ export const basicTrackerBoard: Board = {
       allowDragOut: true
     },
     {
+      id: 'dsp-chain-sidebar',
+      type: 'dsp-chain',
+      cardLayout: 'stack',
+      allowReordering: true,
+      allowDragOut: false
+    },
+    {
       id: 'properties-inspector',
       type: 'properties-deck',
       cardLayout: 'stack',

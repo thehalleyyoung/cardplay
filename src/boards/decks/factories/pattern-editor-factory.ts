@@ -38,21 +38,31 @@ export const patternEditorFactory: DeckFactory = {
         container.className = 'pattern-editor-deck';
         container.setAttribute('data-deck-id', deckDef.id);
 
+        // Header section
+        const header = document.createElement('div');
+        header.className = 'pattern-editor-header';
+        header.style.cssText = 'padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;';
+
         // E022: Bind to ActiveContext.activeStreamId
         const activeStreamId = ctx.activeContext.activeStreamId;
+        const streamInfo = document.createElement('div');
+        streamInfo.style.cssText = 'font-size: 0.875rem; color: rgba(255,255,255,0.6);';
         if (activeStreamId) {
+          streamInfo.textContent = `Stream: ${activeStreamId}`;
           container.setAttribute('data-stream-id', activeStreamId);
-          container.textContent = `Pattern Editor (Stream: ${activeStreamId})`;
         } else {
-          container.textContent = 'Pattern Editor (No active stream)';
+          streamInfo.textContent = 'No active stream';
         }
+        header.appendChild(streamInfo);
 
-        // E023: Pattern length control (stub)
+        // E023: Pattern length control
         const controls = document.createElement('div');
         controls.className = 'pattern-controls';
+        controls.style.cssText = 'display: flex; gap: 0.5rem; align-items: center;';
         
         const lengthLabel = document.createElement('label');
-        lengthLabel.textContent = 'Pattern Length: ';
+        lengthLabel.textContent = 'Length:';
+        lengthLabel.style.cssText = 'font-size: 0.875rem;';
         controls.appendChild(lengthLabel);
 
         const lengthInput = document.createElement('input');
@@ -62,14 +72,46 @@ export const patternEditorFactory: DeckFactory = {
         lengthInput.step = '16';
         lengthInput.value = '64';
         lengthInput.title = 'Pattern length in ticks';
+        lengthInput.style.cssText = 'width: 4rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.25rem; color: #fff;';
         controls.appendChild(lengthInput);
 
-        container.appendChild(controls);
+        header.appendChild(controls);
+        container.appendChild(header);
 
-        // E024: Key commands (stub - actual tracker UI would handle this)
+        // Tracker grid visualization (beautiful placeholder)
+        const grid = document.createElement('div');
+        grid.className = 'pattern-grid';
+        grid.style.cssText = 'padding: 1rem; font-family: monospace; font-size: 0.875rem; line-height: 1.5;';
+        
+        const rows = [
+          '00 │ C-4 01 .40 │ --- -- --- │ --- -- --- │',
+          '01 │ ... .. ... │ ... .. ... │ ... .. ... │',
+          '02 │ D-4 01 .60 │ --- -- --- │ --- -- --- │',
+          '03 │ ... .. ... │ ... .. ... │ ... .. ... │',
+          '04 │ E-4 01 .50 │ --- -- --- │ --- -- --- │',
+          '05 │ ... .. ... │ ... .. ... │ ... .. ... │',
+          '06 │ ... .. ... │ ... .. ... │ ... .. ... │',
+          '07 │ ... .. ... │ ... .. ... │ ... .. ... │',
+        ];
+        
+        rows.forEach((row, i) => {
+          const rowDiv = document.createElement('div');
+          rowDiv.style.cssText = `
+            padding: 0.25rem 0;
+            ${i % 4 === 0 ? 'border-top: 1px solid rgba(255,255,255,0.15);' : ''}
+            color: ${i % 4 === 0 ? '#4a90e2' : 'rgba(255,255,255,0.7)'};
+          `;
+          rowDiv.textContent = row;
+          grid.appendChild(rowDiv);
+        });
+        
+        container.appendChild(grid);
+
+        // E024: Key commands help
         const helpText = document.createElement('div');
         helpText.className = 'pattern-help';
-        helpText.textContent = 'Tracker shortcuts: Note entry, Navigation, Undo';
+        helpText.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.75rem; color: rgba(255,255,255,0.4); border-top: 1px solid rgba(255,255,255,0.1);';
+        helpText.textContent = '⌨️ Shortcuts: Enter notes, ←→ navigate, Ctrl+Z undo';
         container.appendChild(helpText);
 
         containerElement = container;

@@ -9,6 +9,7 @@ import { getBoardStateStore } from '../../boards/store/store';
 import { getBoardRegistry } from '../../boards/registry';
 import { switchBoard } from '../../boards/switching/switch-board';
 import type { Board } from '../../boards/types';
+import { getUIEventBus } from '../ui-event-bus';
 
 export interface BoardSwitcherOptions {
   onClose?: () => void;
@@ -285,6 +286,37 @@ export function createBoardSwitcher(options: BoardSwitcherOptions = {}): HTMLEle
   updateResults();
   
   return overlay;
+}
+
+/**
+ * Initialize board switcher to listen for keyboard shortcuts (C051)
+ */
+export function initBoardSwitcher(): () => void {
+  const eventBus = getUIEventBus();
+  let currentSwitcher: HTMLElement | null = null;
+  
+  const unsubOpen = eventBus.on('board-switcher:open', () => {
+    if (!currentSwitcher) {
+      currentSwitcher = createBoardSwitcher({
+        onClose: () => {
+          currentSwitcher = null;
+        },
+      });
+      document.body.appendChild(currentSwitcher);
+    }
+  });
+  
+  const unsubClose = eventBus.on('board-switcher:close', () => {
+    if (currentSwitcher) {
+      currentSwitcher.remove();
+      currentSwitcher = null;
+    }
+  });
+  
+  return () => {
+    unsubOpen();
+    unsubClose();
+  };
 }
 
 // Inject styles

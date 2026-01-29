@@ -14,6 +14,7 @@ import type { Board } from '../../boards/types';
 export interface FirstRunSelectionOptions {
   onComplete?: (boardId: string) => void;
   onSkip?: () => void;
+  userType?: UserType; // For testing: skip to board selection
 }
 
 export function createFirstRunSelection(options: FirstRunSelectionOptions = {}): HTMLElement {
@@ -30,8 +31,8 @@ export function createFirstRunSelection(options: FirstRunSelectionOptions = {}):
   const store = getBoardStateStore();
   const registry = getBoardRegistry();
   
-  let selectedUserType: UserType | null = null;
-  let step: 'intro' | 'select-persona' | 'show-boards' = 'intro';
+  let selectedUserType: UserType | null = options.userType ?? null;
+  let step: 'intro' | 'select-persona' | 'show-boards' = options.userType ? 'show-boards' : 'intro';
   
   const userTypeLabels: Record<UserType, { title: string; description: string; icon: string }> = {
     'notation-composer': {
@@ -272,6 +273,13 @@ export function createFirstRunSelection(options: FirstRunSelectionOptions = {}):
   
   // Initial render
   render();
+  
+  // Add destroy method
+  Object.assign(overlay, {
+    destroy: () => {
+      // Cleanup subscriptions if any
+    }
+  });
   
   return overlay;
 }

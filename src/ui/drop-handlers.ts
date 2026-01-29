@@ -99,10 +99,11 @@ export async function handleDrop(
 // ============================================================================
 
 /**
- * Handle phrase drop into pattern editor
- * Writes events from phrase into active stream at drop position
+ * Handle phrase drop into pattern editor (G045)
+ * Writes events from phrase into active stream at drop position.
+ * If harmony context exists, adapts phrase using phrase-adapter.
  */
-export const handlePhraseToPatternEditor: DropHandler<PhrasePayload> = (
+export const handlePhraseToPatternEditor: DropHandler<PhrasePayload> = async (
   payload,
   context
 ) => {
@@ -123,11 +124,37 @@ export const handlePhraseToPatternEditor: DropHandler<PhrasePayload> = (
   const eventStore = getSharedEventStore();
   const undoStack = getUndoStack();
   
+  // G045: Check if harmony context exists for phrase adaptation
+  let notesToDrop = payload.notes;
+  
+  if (context.harmonyContext && 
+      payload.metadata?.sourceChord && 
+      context.harmonyContext.currentChord) {
+    // Dynamic import to avoid circular dependencies
+    const phraseAdapterModule = await import('../cards/phrase-adapter');
+    const settingsModule = await import('./components/phrase-adaptation-settings');
+    
+    // Get adaptation settings for this board/category
+    const settings = settingsModule.getAdaptationSettings(
+      context.boardId || 'default',
+      payload.metadata?.category
+    );
+    const options = settingsModule.settingsToOptions(settings);
+    
+    // Adapt phrase
+    notesToDrop = phraseAdapterModule.adaptPhrase(
+      payload.notes as any,
+      payload.metadata.sourceChord,
+      context.harmonyContext.currentChord,
+      options
+    ) as any;
+  }
+  
   // Transform phrase notes to events at drop position
   const baseTime = asTick(Math.round(context.time));
-  const newEvents: Event<unknown>[] = payload.notes.map(note => ({
+  const newEvents: Event<unknown>[] = notesToDrop.map(note => ({
     ...note,
-    start: asTick(note.start + baseTime),
+    start: asTick((note.start as number) + (baseTime as number)),
   }));
   
   // Execute with undo support (E070)
@@ -139,7 +166,7 @@ export const handlePhraseToPatternEditor: DropHandler<PhrasePayload> = (
   // Create undo action
   undoStack.push({
     type: 'events-add',
-    description: `Drop phrase "${payload.phraseName}"`,
+    description: `Drop phrase "${payload.phraseName}"${context.harmonyContext ? ' (adapted)' : ''}`,
     redo: () => {
       eventStore.addEvents(context.streamId!, newEvents);
     },

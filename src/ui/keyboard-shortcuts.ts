@@ -97,6 +97,80 @@ export class KeyboardShortcutManager {
   // ==========================================================================
 
   /**
+   * Register a board-specific shortcut map (C052)
+   */
+  registerBoardShortcuts(boardId: string, shortcuts: Record<string, ShortcutHandler>): void {
+    for (const [key, handler] of Object.entries(shortcuts)) {
+      const shortcut: KeyboardShortcut = {
+        id: `board:${boardId}:${key}`,
+        key,
+        modifiers: this.parseKeyString(key),
+        description: `Board action: ${key}`,
+        category: 'custom',
+        action: handler,
+      };
+      this.shortcuts.set(shortcut.id, shortcut);
+    }
+  }
+
+  /**
+   * Unregister board-specific shortcuts (C052)
+   */
+  unregisterBoardShortcuts(boardId: string): void {
+    const prefix = `board:${boardId}:`;
+    for (const [id] of this.shortcuts) {
+      if (id.startsWith(prefix)) {
+        this.shortcuts.delete(id);
+      }
+    }
+  }
+
+  /**
+   * Pause shortcut handling when typing in inputs (C053)
+   */
+  pauseForInput(): void {
+    this.paused = true;
+  }
+
+  /**
+   * Resume shortcut handling (C053)
+   */
+  resumeAfterInput(): void {
+    this.paused = false;
+  }
+
+  /**
+   * Check if currently in an input context (C053)
+   */
+  private isInInputContext(target: EventTarget | null): boolean {
+    if (!target || !(target instanceof HTMLElement)) {
+      return false;
+    }
+    
+    const tagName = target.tagName.toLowerCase();
+    return tagName === 'input' || 
+           tagName === 'textarea' || 
+           target.isContentEditable;
+  }
+
+  /**
+   * Parse a key string into modifiers (helper)
+   */
+  private parseKeyString(keyString: string): KeyboardShortcut['modifiers'] {
+    const parts = keyString.toLowerCase().split('+');
+    const modifiers: { ctrl?: boolean; shift?: boolean; alt?: boolean; meta?: boolean } = {};
+    
+    for (const part of parts) {
+      if (part === 'ctrl' || part === 'control') modifiers.ctrl = true;
+      else if (part === 'shift') modifiers.shift = true;
+      else if (part === 'alt') modifiers.alt = true;
+      else if (part === 'cmd' || part === 'meta') modifiers.meta = true;
+    }
+    
+    return modifiers;
+  }
+
+  /**
    * Starts listening for keyboard events.
    */
   start(): void {
@@ -182,14 +256,9 @@ export class KeyboardShortcutManager {
   private handleKeyDown(event: KeyboardEvent): void {
     if (!this.enabled || this.paused) return;
 
-    // Skip if in input element
-    const target = event.target as HTMLElement;
-    if (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.contentEditable === 'true'
-    ) {
-      // Allow some shortcuts even in inputs
+    // Skip if in input element (C053)
+    if (this.isInInputContext(event.target)) {
+      // Allow some shortcuts even in inputs (undo/redo)
       const key = this.makeKey(event.key, {
         ctrl: event.ctrlKey,
         shift: event.shiftKey,
@@ -387,6 +456,23 @@ export class KeyboardShortcutManager {
       category: 'edit',
       action: () => {
         document.dispatchEvent(new CustomEvent('cardplay:delete'));
+      },
+    });
+
+    // ========== VIEW ==========
+
+    // Board switcher (Cmd/Ctrl+B) - C051
+    this.register({
+      id: 'switch-board',
+      key: 'b',
+      modifiers: { [cmdKey]: true },
+      description: 'Open board switcher',
+      category: 'view',
+      action: () => {
+        // Use dynamic import to avoid circular dependencies
+        import('./ui-event-bus').then(({ emitUIEvent }) => {
+          emitUIEvent('board-switcher:open');
+        });
       },
     });
 

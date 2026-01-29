@@ -46,6 +46,16 @@ export interface ActiveContext {
 
   /** Last update timestamp */
   lastUpdatedAt: number;
+
+  // G015: Harmony context for assisted boards
+  /** Current musical key (e.g., 'C', 'Am') */
+  currentKey: string | null;
+
+  /** Current chord (e.g., 'Cmaj7', 'Dm7') */
+  currentChord: string | null;
+
+  /** Chord stream ID (dedicated stream for chord progression) */
+  chordStreamId: string | null;
 }
 
 /**
@@ -61,6 +71,9 @@ export const DEFAULT_ACTIVE_CONTEXT: ActiveContext = {
   isPlaying: false,
   transportPosition: 0,
   lastUpdatedAt: Date.now(),
+  currentKey: null,
+  currentChord: null,
+  chordStreamId: null,
 };
 
 // ============================================================================

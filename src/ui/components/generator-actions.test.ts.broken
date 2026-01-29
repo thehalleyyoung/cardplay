@@ -1,0 +1,360 @@
+/**
+ * @fileoverview Tests for Generator Actions (G075-G078)
+ * @vitest-environment jsdom
+ */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  generateIntoNewClip,
+  regenerateClip,
+  freezeClip,
+  humanizeEvents,
+  quantizeEvents
+} from './generator-actions';
+import { SharedEventStore } from '../../state/event-store';
+import { ClipRegistry } from '../../state/clip-registry';
+import { UndoStack } from '../../state/undo-stack';
+
+// Mock localStorage
+beforeEach(() => {
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn()
+  });
+});
+
+describe('Generator Actions (G075-G078)', () => {
+  describe('G075: Generate into new clip', () => {
+    it('creates stream + clip with generated events', () => {
+      const result = generateIntoNewClip(
+        { type: 'melody', density: 0.5, seed: 42 },
+        0,
+        0
+      );
+      
+      expect(result.success).toBe(true);
+      expect(result.streamId).toBeDefined();
+      expect(result.clipId).toBeDefined();
+      expect(result.eventCount).toBeGreaterThan(0);
+      
+      // Verify stream exists
+      const stream = SharedEventStore.getStream(result.streamId!);
+      expect(stream).toBeDefined();
+      expect(stream!.events.length).toBe(result.eventCount);
+      
+      // Verify clip exists
+      const clip = ClipRegistry.getClip(result.clipId!);
+      expect(clip).toBeDefined();
+      expect(clip!.streamId).toBe(result.streamId);
+    });
+
+    it('assigns clip to specified slot', () => {
+      const trackIndex = 2;
+      const sceneIndex = 1;
+      
+      const result = generateIntoNewClip(
+        { type: 'bass', density: 0.7 },
+        trackIndex,
+        sceneIndex
+      );
+      
+      expect(result.success).toBe(true);
+      
+      // Stream name should include slot coordinates
+      const stream = SharedEventStore.getStream(result.streamId!);
+      expect(stream!.name).toContain(`${trackIndex}`);
+      expect(stream!.name).toContain(`${sceneIndex}`);
+    });
+
+    it('is undoable', () => {
+      const result = generateIntoNewClip(
+        { type: 'drums', density: 0.8 },
+        0,
+        0
+      );
+      
+      expect(result.success).toBe(true);
+      
+      // Undo should remove stream and clip
+      UndoStack.undo();
+      
+      const stream = SharedEventStore.getStream(result.streamId!);
+      expect(stream).toBeUndefined();
+      
+      const clip = ClipRegistry.getClip(result.clipId!);
+      expect(clip).toBeUndefined();
+    });
+  });
+
+  describe('G076: Regenerate clip', () => {
+    it('replaces events with new generation', () => {
+      // Create initial clip
+      const initial = generateIntoNewClip(
+        { type: 'melody', density: 0.5, seed: 42 },
+        0,
+        0
+      );
+      
+      const stream1 = SharedEventStore.getStream(initial.streamId!);
+      const oldEvents = [...stream1!.events];
+      
+      // Regenerate
+      const result = regenerateClip(initial.clipId!, {
+        type: 'melody',
+        density: 0.8,
+        seed: 99
+      });
+      
+      expect(result.success).toBe(true);
+      
+      // Events should be different
+      const stream2 = SharedEventStore.getStream(initial.streamId!);
+      expect(stream2!.events.length).not.toBe(oldEvents.length);
+    });
+
+    it('preserves clip metadata', () => {
+      // Create initial clip
+      const initial = generateIntoNewClip(
+        { type: 'bass', density: 0.6 },
+        0,
+        0
+      );
+      
+      const clip1 = ClipRegistry.getClip(initial.clipId!);
+      const originalName = clip1!.name;
+      const originalColor = clip1!.color;
+      
+      // Regenerate
+      regenerateClip(initial.clipId!, {
+        type: 'bass',
+        density: 0.9
+      });
+      
+      // Metadata should be preserved
+      const clip2 = ClipRegistry.getClip(initial.clipId!);
+      expect(clip2!.name).toBe(originalName);
+      expect(clip2!.color).toBe(originalColor);
+    });
+
+    it('is undoable and restores old events', () => {
+      // Create initial clip
+      const initial = generateIntoNewClip(
+        { type: 'arp', density: 0.4 },
+        0,
+        0
+      );
+      
+      const stream1 = SharedEventStore.getStream(initial.streamId!);
+      const oldEventCount = stream1!.events.length;
+      
+      // Regenerate
+      regenerateClip(initial.clipId!, {
+        type: 'arp',
+        density: 0.9
+      });
+      
+      // Undo should restore old events
+      UndoStack.undo();
+      
+      const stream2 = SharedEventStore.getStream(initial.streamId!);
+      expect(stream2!.events.length).toBe(oldEventCount);
+    });
+  });
+
+  describe('G077: Freeze clip', () => {
+    it('marks events as user-owned', () => {
+      // Create generated clip
+      const result = generateIntoNewClip(
+        { type: 'melody', density: 0.5 },
+        0,
+        0
+      );
+      
+      // Verify events are marked as generated
+      const stream1 = SharedEventStore.getStream(result.streamId!);
+      expect(stream1!.events[0]?.meta?.generated).toBe(true);
+      
+      // Freeze
+      const freezeResult = freezeClip(result.clipId!);
+      expect(freezeResult.success).toBe(true);
+      
+      // Events should no longer be marked as generated
+      const stream2 = SharedEventStore.getStream(result.streamId!);
+      expect(stream2!.events[0]?.meta?.generated).toBe(false);
+    });
+
+    it('prevents auto-regeneration', () => {
+      // Create generated clip
+      const result = generateIntoNewClip(
+        { type: 'bass', density: 0.6 },
+        0,
+        0
+      );
+      
+      // Freeze
+      freezeClip(result.clipId!);
+      
+      // Clip should be marked as frozen
+      const clip = ClipRegistry.getClip(result.clipId!);
+      expect(clip!.meta?.frozen).toBe(true);
+    });
+
+    it('is undoable', () => {
+      // Create generated clip
+      const result = generateIntoNewClip(
+        { type: 'drums', density: 0.7 },
+        0,
+        0
+      );
+      
+      // Freeze
+      freezeClip(result.clipId!);
+      
+      // Undo freeze
+      UndoStack.undo();
+      
+      // Events should be marked as generated again
+      const stream = SharedEventStore.getStream(result.streamId!);
+      expect(stream!.events[0]?.meta?.generated).toBe(true);
+      
+      const clip = ClipRegistry.getClip(result.clipId!);
+      expect(clip!.meta?.frozen).toBe(false);
+    });
+  });
+
+  describe('G078: Humanize events', () => {
+    it('applies timing and velocity variations', () => {
+      // Create clip with mechanical events
+      const result = generateIntoNewClip(
+        { type: 'melody', density: 0.5 },
+        0,
+        0
+      );
+      
+      const stream1 = SharedEventStore.getStream(result.streamId!);
+      const oldEvents = stream1!.events.map(e => ({ start: e.start, velocity: e.payload.velocity }));
+      
+      // Humanize
+      const humanizeResult = humanizeEvents(result.streamId!, 0.8);
+      expect(humanizeResult.success).toBe(true);
+      
+      // Events should have different timings/velocities
+      const stream2 = SharedEventStore.getStream(result.streamId!);
+      const newEvents = stream2!.events.map(e => ({ start: e.start, velocity: e.payload.velocity }));
+      
+      // At least some events should be different
+      let changedCount = 0;
+      for (let i = 0; i < oldEvents.length; i++) {
+        if (oldEvents[i]!.start !== newEvents[i]!.start || 
+            oldEvents[i]!.velocity !== newEvents[i]!.velocity) {
+          changedCount++;
+        }
+      }
+      expect(changedCount).toBeGreaterThan(0);
+    });
+
+    it('is undoable', () => {
+      // Create clip
+      const result = generateIntoNewClip(
+        { type: 'bass', density: 0.6 },
+        0,
+        0
+      );
+      
+      const stream1 = SharedEventStore.getStream(result.streamId!);
+      const oldStart = stream1!.events[0]!.start;
+      
+      // Humanize
+      humanizeEvents(result.streamId!, 0.5);
+      
+      // Undo
+      UndoStack.undo();
+      
+      // Should restore original timing
+      const stream2 = SharedEventStore.getStream(result.streamId!);
+      expect(stream2!.events[0]!.start).toBe(oldStart);
+    });
+  });
+
+  describe('G078: Quantize events', () => {
+    it('snaps events to grid', () => {
+      // Create clip with off-grid events
+      const result = generateIntoNewClip(
+        { type: 'drums', density: 0.7 },
+        0,
+        0
+      );
+      
+      // Humanize first to create off-grid events
+      humanizeEvents(result.streamId!, 0.9);
+      
+      const stream1 = SharedEventStore.getStream(result.streamId!);
+      const offGridStart = stream1!.events[0]!.start;
+      
+      // Quantize to 16th note grid (96 ticks at 480 PPQ)
+      const quantizeResult = quantizeEvents(result.streamId!, 96, 1.0);
+      expect(quantizeResult.success).toBe(true);
+      
+      // Events should be on grid
+      const stream2 = SharedEventStore.getStream(result.streamId!);
+      const onGridStart = stream2!.events[0]!.start;
+      
+      expect(onGridStart % 96).toBe(0); // Should be exact multiple of grid size
+    });
+
+    it('respects quantize strength', () => {
+      // Create clip
+      const result = generateIntoNewClip(
+        { type: 'arp', density: 0.5 },
+        0,
+        0
+      );
+      
+      // Humanize to create off-grid events
+      humanizeEvents(result.streamId!, 1.0);
+      
+      const stream1 = SharedEventStore.getStream(result.streamId!);
+      const originalStart = stream1!.events[0]!.start;
+      
+      // Quantize with 50% strength
+      quantizeEvents(result.streamId!, 96, 0.5);
+      
+      // Should be between original and grid
+      const stream2 = SharedEventStore.getStream(result.streamId!);
+      const halfQuantizedStart = stream2!.events[0]!.start;
+      
+      const nearestGrid = Math.round(originalStart / 96) * 96;
+      
+      // Should be closer to grid than original, but not exactly on grid
+      const originalDistance = Math.abs(originalStart - nearestGrid);
+      const newDistance = Math.abs(halfQuantizedStart - nearestGrid);
+      
+      expect(newDistance).toBeLessThan(originalDistance);
+      expect(halfQuantizedStart).not.toBe(nearestGrid);
+    });
+
+    it('is undoable', () => {
+      // Create clip
+      const result = generateIntoNewClip(
+        { type: 'melody', density: 0.6 },
+        0,
+        0
+      );
+      
+      const stream1 = SharedEventStore.getStream(result.streamId!);
+      const oldStart = stream1!.events[0]!.start;
+      
+      // Quantize
+      quantizeEvents(result.streamId!, 96, 1.0);
+      
+      // Undo
+      UndoStack.undo();
+      
+      // Should restore original timing
+      const stream2 = SharedEventStore.getStream(result.streamId!);
+      expect(stream2!.events[0]!.start).toBe(oldStart);
+    });
+  });
+});

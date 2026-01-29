@@ -74,7 +74,7 @@ describe('PropertiesPanel', () => {
     
     // Clear any previous selection
     const selectionStore = getSelectionStore();
-    selectionStore.clear();
+    selectionStore.clearSelection();
     
     // Create a test stream with multiple events
     const eventStore = getSharedEventStore();

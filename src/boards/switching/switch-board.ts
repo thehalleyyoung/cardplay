@@ -11,6 +11,7 @@
 import { getBoardRegistry } from '../registry';
 import { getBoardStateStore } from '../store/store';
 import { getBoardContextStore } from '../context/store';
+import { applyBoardTheme, clearBoardTheme } from '../ui/theme-applier';
 import type { BoardSwitchOptions } from './types';
 import { DEFAULT_SWITCH_OPTIONS } from './types';
 // Reserved for future use:
@@ -58,6 +59,11 @@ export function switchBoard(
       console.error('Error in board onDeactivate hook:', error);
     }
   }
+  
+  // Clear current board theme
+  if (currentBoard) {
+    clearBoardTheme();
+  }
 
   // Create migration plan (reserved for future use)
   // const migrationPlan = createMigrationPlan(currentBoard, targetBoard);
@@ -99,6 +105,9 @@ export function switchBoard(
       console.error('Error in board onActivate hook:', error);
     }
   }
+  
+  // Apply new board theme
+  applyBoardTheme(targetBoard);
 
   return true;
 }

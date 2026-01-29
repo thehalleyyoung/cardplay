@@ -3,6 +3,7 @@
  * 
  * Mounts the active board workspace and manages board lifecycle.
  * Subscribes to BoardStateStore and re-renders on board changes.
+ * Enhanced with beautiful visual effects and smooth animations.
  */
 
 import { getBoardStateStore } from '../../boards/store/store';
@@ -15,6 +16,8 @@ import { createBoardBrowser } from './board-browser';
 import { createDeckInstances, registerStubFactories } from '../../boards/decks/deck-factories';
 import { createDeckPanelHost, type DeckPanelHost } from './deck-panel-host';
 import { getBoardContextStore } from '../../boards/context/store';
+import { fadeIn, duration } from '../animations';
+import { shadows } from '../visual-effects';
 
 export interface BoardHostElement extends HTMLElement {
   destroy(): void;
@@ -99,6 +102,18 @@ export function createBoardHost(): BoardHostElement {
     browseBtn.textContent = 'Browse Boards';
     browseBtn.title = 'Open board browser';
     browseBtn.onclick = () => openBoardBrowser();
+    
+    // Add subtle hover effect to button
+    browseBtn.style.transition = 'all 0.2s ease';
+    browseBtn.addEventListener('mouseenter', () => {
+      browseBtn.style.transform = 'translateY(-1px)';
+      browseBtn.style.boxShadow = shadows.sm;
+    });
+    browseBtn.addEventListener('mouseleave', () => {
+      browseBtn.style.transform = 'translateY(0)';
+      browseBtn.style.boxShadow = 'none';
+    });
+    
     actions.appendChild(browseBtn);
     
     const switchBtn = document.createElement('button');
@@ -106,10 +121,25 @@ export function createBoardHost(): BoardHostElement {
     switchBtn.textContent = 'Switch Board';
     switchBtn.title = 'Switch Board (Cmd+B)';
     switchBtn.onclick = () => openBoardSwitcher();
+    
+    // Add subtle hover effect to primary button
+    switchBtn.style.transition = 'all 0.2s ease';
+    switchBtn.addEventListener('mouseenter', () => {
+      switchBtn.style.transform = 'translateY(-1px)';
+      switchBtn.style.boxShadow = shadows.md;
+    });
+    switchBtn.addEventListener('mouseleave', () => {
+      switchBtn.style.transform = 'translateY(0)';
+      switchBtn.style.boxShadow = shadows.sm;
+    });
+    
     actions.appendChild(switchBtn);
     
     chrome.appendChild(actions);
     header.appendChild(chrome);
+    
+    // Animate header entrance
+    fadeIn(header, duration.normal);
   }
   
   function openBoardSwitcher() {
@@ -238,83 +268,100 @@ export function injectBoardHostStyles() {
       flex-direction: column;
       height: 100%;
       overflow: hidden;
+      background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
     }
     
     .board-host__header {
       flex-shrink: 0;
-      border-bottom: 1px solid var(--border-color, #444);
-      background: var(--surface-color, #2a2a2a);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(42, 42, 42, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
     .board-host__chrome {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.5rem 1rem;
+      padding: 0.75rem 1.5rem;
       gap: 1rem;
     }
     
     .board-host__info {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
     
     .board-host__icon {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
     
     .board-host__name {
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 1.125rem;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
     
     .board-host__control-level {
       font-size: 0.75rem;
-      padding: 0.125rem 0.5rem;
-      border-radius: 0.25rem;
-      background: var(--control-level-bg, #444);
-      color: var(--control-level-fg, #fff);
+      padding: 0.25rem 0.625rem;
+      border-radius: 0.375rem;
+      background: linear-gradient(135deg, #4a6fa5 0%, #3a5f95 100%);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      font-weight: 500;
+      letter-spacing: 0.5px;
     }
     
     .control-level--full-manual .board-host__control-level {
-      background: #4a6fa5;
+      background: linear-gradient(135deg, #4a6fa5 0%, #3a5f95 100%);
     }
     
     .control-level--manual-with-hints .board-host__control-level {
-      background: #5a8fbb;
+      background: linear-gradient(135deg, #5a8fbb 0%, #4a7fab 100%);
     }
     
     .control-level--assisted .board-host__control-level {
-      background: #6aafcc;
+      background: linear-gradient(135deg, #6aafcc 0%, #5a9fbc 100%);
     }
     
     .control-level--directed .board-host__control-level {
-      background: #7acfdd;
+      background: linear-gradient(135deg, #7acfdd 0%, #6abfcd 100%);
     }
     
     .control-level--generative .board-host__control-level {
-      background: #8aefee;
+      background: linear-gradient(135deg, #8aefee 0%, #7adfde 100%);
       color: #000;
     }
     
     .board-host__actions {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.625rem;
     }
     
     .board-host__btn {
-      padding: 0.375rem 0.75rem;
-      border: 1px solid var(--border-color, #555);
-      border-radius: 0.25rem;
-      background: var(--button-bg, #333);
-      color: var(--button-fg, #fff);
+      padding: 0.5rem 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 0.5rem;
+      background: rgba(51, 51, 51, 0.8);
+      color: #e0e0e0;
       cursor: pointer;
       font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
     }
     
     .board-host__btn:hover {
-      background: var(--button-hover-bg, #444);
+      background: rgba(68, 68, 68, 0.9);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
     
     .board-host__btn:active {

@@ -85,6 +85,9 @@ function validateContext(raw: unknown): ActiveContext {
     isPlaying: typeof obj.isPlaying === 'boolean' ? obj.isPlaying : false,
     transportPosition: typeof obj.transportPosition === 'number' ? obj.transportPosition : 0,
     lastUpdatedAt: typeof obj.lastUpdatedAt === 'number' ? obj.lastUpdatedAt : Date.now(),
+    currentKey: typeof obj.currentKey === 'string' ? obj.currentKey : null,
+    currentChord: typeof obj.currentChord === 'string' ? obj.currentChord : null,
+    chordStreamId: typeof obj.chordStreamId === 'string' ? obj.chordStreamId : null,
   };
 }
 
@@ -312,6 +315,67 @@ export class BoardContextStore {
    */
   getTransportPosition(): number {
     return this.context.transportPosition;
+  }
+
+  // ============================================================================
+  // HARMONY CONTEXT (G014-G015)
+  // ============================================================================
+
+  /**
+   * Sets the current musical key.
+   * Used by harmony-assisted boards to provide context.
+   */
+  setCurrentKey(key: string | null): void {
+    this.context = {
+      ...this.context,
+      currentKey: key,
+    };
+    this.notify();
+  }
+
+  /**
+   * Gets the current musical key.
+   */
+  getCurrentKey(): string | null {
+    return this.context.currentKey;
+  }
+
+  /**
+   * Sets the current chord.
+   * Used by harmony-assisted boards to provide context.
+   */
+  setCurrentChord(chord: string | null): void {
+    this.context = {
+      ...this.context,
+      currentChord: chord,
+    };
+    this.notify();
+  }
+
+  /**
+   * Gets the current chord.
+   */
+  getCurrentChord(): string | null {
+    return this.context.currentChord;
+  }
+
+  /**
+   * Sets the chord stream ID (dedicated stream for chord progression).
+   * Used by boards that need to store/edit chord progressions.
+   */
+  setChordStreamId(streamId: string | null): void {
+    this.context = {
+      ...this.context,
+      chordStreamId: streamId,
+    };
+    this.notify();
+  }
+
+  /**
+   * Gets the chord stream ID.
+   */
+  getChordStreamId(): string | null {
+    return this.context.chordStreamId;
   }
 
   // ============================================================================

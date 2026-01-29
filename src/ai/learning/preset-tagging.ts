@@ -352,7 +352,6 @@ export class PresetTaggingStore {
     const { collection: _, ...rest } = existing;
     const updated: TaggedPreset = {
       ...rest,
-      collection: undefined,
       updatedAt: Date.now(),
     };
     this.presets.set(presetId, updated);
@@ -380,7 +379,8 @@ export class PresetTaggingStore {
     // Unassign all presets from this collection
     for (const [id, preset] of this.presets.entries()) {
       if (preset.collection === collectionId) {
-        this.presets.set(id, { ...preset, collection: undefined, updatedAt: Date.now() });
+        const { collection: _, ...rest } = preset;
+        this.presets.set(id, { ...rest, updatedAt: Date.now() });
       }
     }
     return this.collections.delete(collectionId);

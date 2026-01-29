@@ -10,7 +10,7 @@
 import { getBoardRegistry } from '../registry';
 import { basicTrackerBoard } from './basic-tracker-board';
 import { pianoRollProducerBoard } from './piano-roll-producer-board';
-import { trackerPhrasesBoard } from './stub-tracker-phrases';
+import { trackerPhrasesBoard } from './tracker-phrases-board';
 import { trackerHarmonyBoard } from './tracker-harmony-board';
 import { notationBoardManual } from './notation-board-manual';
 import { basicSessionBoard } from './basic-session-board';
@@ -18,6 +18,11 @@ import { basicSamplerBoard } from './basic-sampler-board';
 import { livePerformanceTrackerBoard } from './live-performance-tracker-board';
 import { modularRoutingBoard } from './modular-routing-board';
 import { producerBoard } from './producer-board';
+import { sessionGeneratorsBoard } from './session-generators-board';
+import { notationHarmonyBoard } from './notation-harmony-board';
+import { aiArrangerBoard } from './ai-arranger-board';
+import { aiCompositionBoard } from './ai-composition-board';
+import { generativeAmbientBoard } from './generative-ambient-board';
 
 /**
  * Register all builtin boards.
@@ -44,17 +49,15 @@ export function registerBuiltinBoards(): void {
   registry.register(modularRoutingBoard);
 
   // Phase G: Assisted Boards
-  registry.register(trackerPhrasesBoard);
-  registry.register(trackerHarmonyBoard);
+  registry.register(trackerPhrasesBoard);       // G031-G060: Tracker + Phrases
+  registry.register(trackerHarmonyBoard);       // G001-G030: Tracker + Harmony
+  registry.register(sessionGeneratorsBoard);    // G061-G090: Session + Generators
+  registry.register(notationHarmonyBoard);      // G091-G120: Notation + Harmony
 
-  // Phase G: (other assisted boards - not yet implemented)
-  // registry.register(sessionGeneratorsBoard);
-  // registry.register(notationHarmonyBoard);
-
-  // Phase H: Generative Boards (not yet implemented)
-  // registry.register(aiArrangerBoard);
-  // registry.register(aiCompositionBoard);
-  // registry.register(generativeAmbientBoard);
+  // Phase H: Generative Boards
+  registry.register(aiArrangerBoard);           // H001-H025: AI Arranger
+  registry.register(aiCompositionBoard);        // H026-H050: AI Composition
+  registry.register(generativeAmbientBoard);    // H051-H075: Generative Ambient
 
   // M257: Producer Board
   registry.register(producerBoard);

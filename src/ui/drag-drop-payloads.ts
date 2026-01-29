@@ -44,6 +44,13 @@ export interface PhrasePayload {
   tags?: string[];
   key?: string;
   chordContext?: string;
+  /** Phrase metadata including source chord and category (G045) */
+  metadata?: {
+    category?: string;
+    sourceChord?: import('../cards/score-notation').ChordSymbolInput;
+    durationTicks?: number;
+    [key: string]: unknown;
+  };
 }
 
 /**
@@ -158,6 +165,13 @@ export interface DropTargetContext {
   trackIndex?: number;
   time?: number; // For timeline drops
   note?: number; // For piano roll drops
+  boardId?: string; // For adaptation settings (G045)
+  
+  // Harmony context for phrase adaptation (G045)
+  harmonyContext?: {
+    currentKey?: string;
+    currentChord: import('../cards/score-notation').ChordSymbolInput;
+  };
 }
 
 // ============================================================================

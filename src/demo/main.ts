@@ -10,7 +10,9 @@ import { createBoardHost } from '../ui/components/board-host';
 import { createFirstRunSelection, injectFirstRunStyles } from '../ui/components/first-run-board-selection';
 import { injectBoardHostStyles } from '../ui/components/board-host';
 import { injectBoardSwitcherStyles } from '../ui/components/board-switcher';
+import { injectBoardThemeStyles } from '../boards/ui/theme-applier';
 import { createNewProject } from '../boards/project/create';
+import { createTestPanel } from '../ui/components/test-panel';
 
 /**
  * Main application initialization
@@ -25,6 +27,7 @@ async function main() {
   injectFirstRunStyles();
   injectBoardHostStyles();
   injectBoardSwitcherStyles();
+  injectBoardThemeStyles();  // Phase J: Beautiful board theme styling
   
   // Step 3: Get the app container
   const app = document.getElementById('app');
@@ -86,6 +89,10 @@ function mountBoardHost(container: HTMLElement) {
   
   container.innerHTML = '';
   container.appendChild(boardHost);
+  
+  // Add test panel for manual testing (A068-A075)
+  const testPanel = createTestPanel();
+  document.body.appendChild(testPanel);
   
   console.log('[CardPlay] Application ready!');
 }

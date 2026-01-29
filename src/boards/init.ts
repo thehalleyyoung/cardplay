@@ -9,6 +9,10 @@
 
 import { registerBuiltinBoards } from './builtins/register';
 import { registerBuiltinDeckFactories } from './decks/factories';
+import { initBoardSwitcher } from '../ui/components/board-switcher';
+import { KeyboardShortcutManager } from '../ui/keyboard-shortcuts';
+import { getBoardStateStore } from './store/store';
+import { getBoardRegistry } from './registry';
 
 /**
  * Initialize the board system.
@@ -16,31 +20,104 @@ import { registerBuiltinDeckFactories } from './decks/factories';
  * This function:
  * 1. Registers all builtin deck factories
  * 2. Registers all builtin board definitions
+ * 3. Initializes board switcher UI (C051, C055)
+ * 4. Sets up keyboard shortcuts (Cmd+B)
+ * 5. Ensures a default board is selected
  * 
  * Call this once during app startup, before any boards are accessed.
+ * 
+ * @returns Cleanup function to call on shutdown
  * 
  * @example
  * ```ts
  * import { initializeBoardSystem } from '@cardplay/boards/init';
  * 
  * // At app startup:
- * initializeBoardSystem();
+ * const cleanup = initializeBoardSystem();
  * 
- * // Now boards can be accessed:
- * import { getBoardRegistry } from '@cardplay/boards/registry';
- * const boards = getBoardRegistry().list();
+ * // On shutdown:
+ * cleanup();
  * ```
  */
-export function initializeBoardSystem(): void {
+export function initializeBoardSystem(): () => void {
   // Step 1: Register deck factories
   // These are needed before boards can be validated/created
   registerBuiltinDeckFactories();
   
-  // Step 2: Register builtin boards
+  // Step 2: Register builtin boards with validation (B148)
   // This validates each board and ensures all deck types have factories
-  registerBuiltinBoards();
+  try {
+    registerBuiltinBoards();
+  } catch (error) {
+    console.error('[BoardSystem] Failed to register builtin boards:', error);
+    // Continue with whatever boards were successfully registered
+  }
   
-  console.log('[BoardSystem] Initialized: deck factories and builtin boards registered');
+  // Step 3: Initialize board switcher to listen for Cmd+B (C051, C055)
+  const unsubSwitcher = initBoardSwitcher();
+  
+  // Step 4: Start keyboard shortcut manager (C051)
+  const shortcutManager = KeyboardShortcutManager.getInstance();
+  shortcutManager.start();
+  
+  // Step 5: Ensure at least one board exists (B147)
+  const registry = getBoardRegistry();
+  const boards = registry.list();
+  if (boards.length === 0) {
+    throw new Error('No boards registered! Cannot initialize board system.');
+  }
+  
+  // Step 6: Set default board if none selected (B146)
+  const store = getBoardStateStore();
+  const state = store.getState();
+  if (!state.currentBoardId || !registry.get(state.currentBoardId)) {
+    const defaultBoard = boards.find(b => b.id === 'basic-tracker') || boards[0];
+    if (defaultBoard) {
+      store.setCurrentBoard(defaultBoard.id);
+    }
+  }
+  
+  // Step 7: Apply initial board theme
+  const currentBoardId = store.getState().currentBoardId;
+  if (currentBoardId) {
+    const currentBoard = registry.get(currentBoardId);
+    if (currentBoard) {
+      // Import theme applier dynamically to avoid circular deps
+      import('./ui/theme-applier').then(({ applyBoardTheme }) => {
+        applyBoardTheme(currentBoard);
+      });
+    }
+  }
+  
+  console.log(`[BoardSystem] Initialized with ${boards.length} boards`);
+  
+  // Return cleanup function
+  return () => {
+    unsubSwitcher();
+    shortcutManager.stop();
+    
+    // Clean up theme on shutdown
+    import('./ui/theme-applier').then(({ clearBoardTheme }) => {
+      clearBoardTheme();
+    });
+  };
+}
+
+/**
+ * Get the current board ID from the store.
+ */
+export function getCurrentBoardId(): string | null {
+  return getBoardStateStore().getState().currentBoardId;
+}
+
+/**
+ * Get the current board definition from the registry.
+ */
+export function getCurrentBoard() {
+  const boardId = getCurrentBoardId();
+  if (!boardId) return null;
+  
+  return getBoardRegistry().get(boardId);
 }
 
 /**
@@ -48,3 +125,4 @@ export function initializeBoardSystem(): void {
  */
 export { registerBuiltinBoards } from './builtins/register';
 export { registerBuiltinDeckFactories } from './decks/factories';
+

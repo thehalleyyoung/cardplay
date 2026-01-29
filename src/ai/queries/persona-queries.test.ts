@@ -946,6 +946,115 @@ describe('Persona-Specific Query Functions', () => {
   });
 
   // ===========================================================================
+  // M213: Macro Assignments Group Related Parameters
+  // ===========================================================================
+
+  describe('Sound Designer: Macro Grouping (M213)', () => {
+    it('M213: pad macros group related parameters', async () => {
+      const layout = await suggestMacroLayout('pad');
+      expect(layout).not.toBeNull();
+      expect(layout!.macros.length).toBe(4);
+      // Each macro should have a coherent name and related targets
+      const brightness = layout!.macros.find(m => m.name === 'brightness');
+      expect(brightness).toBeDefined();
+      expect(brightness!.targets).toContain('filter_cutoff');
+      const space = layout!.macros.find(m => m.name === 'space');
+      expect(space).toBeDefined();
+      expect(space!.targets).toContain('reverb_mix');
+    });
+
+    it('M213: bass macros group related parameters', async () => {
+      const layout = await suggestMacroLayout('bass');
+      expect(layout).not.toBeNull();
+      const growl = layout!.macros.find(m => m.name === 'growl');
+      expect(growl).toBeDefined();
+      expect(growl!.targets.length).toBeGreaterThanOrEqual(2);
+      // Growl should include filter-related params
+      expect(growl!.targets).toContain('filter_cutoff');
+    });
+
+    it('M213: lead macros include performance-related groups', async () => {
+      const layout = await suggestMacroLayout('lead');
+      expect(layout).not.toBeNull();
+      const vibrato = layout!.macros.find(m => m.name === 'vibrato');
+      expect(vibrato).toBeDefined();
+      expect(vibrato!.targets).toContain('vibrato_rate');
+      expect(vibrato!.targets).toContain('vibrato_depth');
+    });
+
+    it('M213: drum macros group percussive parameters', async () => {
+      const layout = await suggestMacroLayout('drum');
+      expect(layout).not.toBeNull();
+      const snap = layout!.macros.find(m => m.name === 'snap');
+      expect(snap).toBeDefined();
+      expect(snap!.targets).toContain('amp_attack');
+    });
+  });
+
+  // ===========================================================================
+  // M214: MIDI Mapping Handles All Controller Types
+  // ===========================================================================
+
+  describe('Sound Designer: MIDI Mapping Coverage (M214)', () => {
+    it('M214: maps mod_wheel for pad, lead, and bass', async () => {
+      const padMap = await mapMIDIController('mod_wheel', 'pad');
+      const leadMap = await mapMIDIController('mod_wheel', 'lead');
+      const bassMap = await mapMIDIController('mod_wheel', 'bass');
+      expect(padMap).not.toBeNull();
+      expect(leadMap).not.toBeNull();
+      expect(bassMap).not.toBeNull();
+      // All should include filter_cutoff
+      expect(padMap!.targets).toContain('filter_cutoff');
+      expect(leadMap!.targets).toContain('filter_cutoff');
+      expect(bassMap!.targets).toContain('filter_cutoff');
+    });
+
+    it('M214: maps aftertouch for pad and lead', async () => {
+      const padMap = await mapMIDIController('aftertouch', 'pad');
+      const leadMap = await mapMIDIController('aftertouch', 'lead');
+      expect(padMap).not.toBeNull();
+      expect(leadMap).not.toBeNull();
+    });
+
+    it('M214: maps pitch_bend for lead', async () => {
+      const leadMap = await mapMIDIController('pitch_bend', 'lead');
+      expect(leadMap).not.toBeNull();
+      expect(leadMap!.targets).toContain('osc_pitch');
+    });
+
+    it('M214: maps expression_pedal for pad', async () => {
+      const padMap = await mapMIDIController('expression_pedal', 'pad');
+      expect(padMap).not.toBeNull();
+      expect(padMap!.targets).toContain('volume');
+    });
+
+    it('M214: maps breath_controller for lead', async () => {
+      const leadMap = await mapMIDIController('breath_controller', 'lead');
+      expect(leadMap).not.toBeNull();
+      expect(leadMap!.targets).toContain('amplitude');
+      expect(leadMap!.targets).toContain('vibrato_depth');
+    });
+
+    it('M214: maps sustain_pedal for keys', async () => {
+      const keysMap = await mapMIDIController('sustain_pedal', 'keys');
+      expect(keysMap).not.toBeNull();
+      expect(keysMap!.targets).toContain('sustain_on_off');
+    });
+
+    it('M214: all CC types have known uses', async () => {
+      const ccTypes = await getMIDICCTypes();
+      expect(ccTypes.length).toBeGreaterThanOrEqual(8);
+      // Verify standard CC numbers
+      const modWheel = ccTypes.find(c => c.ccNumber === 1);
+      expect(modWheel).toBeDefined();
+      expect(modWheel!.typicalUse).toBe('mod_wheel');
+      const sustain = ccTypes.find(c => c.ccNumber === 64);
+      expect(sustain).toBeDefined();
+      expect(sustain!.typicalUse).toBe('sustain_pedal');
+    });
+  });
+
+  // ===========================================================================
   // M212: MIDI Learn Mode
   // ===========================================================================
 

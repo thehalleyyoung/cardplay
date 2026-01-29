@@ -1,0 +1,488 @@
+/**
+ * @fileoverview Generator Actions (G075-G078)
+ * 
+ * Actions for Session + Generators board:
+ * - Generate into new clip
+ * - Regenerate existing clip
+ * - Freeze generated content
+ * - Humanize and Quantize post-processing
+ * 
+ * @module @cardplay/ui/components/generator-actions
+ */
+
+import type { Event, TickDuration } from '../../types';
+import { asTick, asTickDuration } from '../../types';
+import type { EventStreamId, ClipId } from '../../state/types';
+import { getSharedEventStore, getClipRegistry, getUndoStack } from '../../state';
+
+/**
+ * Generator action result
+ */
+export interface GeneratorActionResult {
+  success: boolean;
+  streamId?: EventStreamId;
+  clipId?: ClipId;
+  eventCount?: number;
+  error?: string;
+}
+
+/**
+ * Generator settings for action
+ */
+export interface GeneratorSettings {
+  /** Generator type (melody, bass, drums, arp) */
+  type: 'melody' | 'bass' | 'drums' | 'arp';
+  /** Random seed for reproducibility */
+  seed?: number;
+  /** Note density (0-1) */
+  density?: number;
+  /** Rhythmic style */
+  style?: string;
+}
+
+/**
+ * G075: Generate into new clip
+ * 
+ * Creates a new stream + clip and populates it with generated events.
+ * Assigns the clip to the specified slot in session grid.
+ * 
+ * @param settings Generator settings
+ * @param trackIndex Track number for slot assignment
+ * @param sceneIndex Scene number for slot assignment
+ * @returns Action result with new stream/clip IDs
+ */
+export function generateIntoNewClip(
+  settings: GeneratorSettings,
+  trackIndex: number,
+  sceneIndex: number
+): GeneratorActionResult {
+  try {
+    // Create new stream
+    const streamName = `${settings.type}-${trackIndex}-${sceneIndex}`;
+    const stream = SharedEventStore.createStream({ name: streamName });
+    
+    // Generate events (simplified - real implementation would use generator modules)
+    const events = generateEvents(settings);
+    
+    // Add events to stream
+    const added = SharedEventStore.addEvents(stream.id, events);
+    if (added.length === 0) {
+      return { success: false, error: 'Failed to add events to stream' };
+    }
+    
+    // Create clip referencing the stream
+    const duration = calculateDuration(events);
+    const clip = ClipRegistry.createClip({
+      name: `${settings.type} Clip`,
+      streamId: stream.id,
+      duration,
+      loop: true,
+      color: getGeneratorColor(settings.type)
+    });
+    
+    // Wrap in undo action
+    UndoStack.push({
+      type: UndoActionType.CREATE_CLIP,
+      description: `Generate ${settings.type} into new clip`,
+      undo: () => {
+        ClipRegistry.deleteClip(clip.id);
+        SharedEventStore.deleteStream(stream.id);
+      },
+      redo: () => {
+        // Re-create would be handled by clip registry
+        // For now, this is a simplified stub
+      }
+    });
+    
+    return {
+      success: true,
+      streamId: stream.id,
+      clipId: clip.id,
+      eventCount: events.length
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * G076: Regenerate existing clip
+ * 
+ * Replaces events in an existing clip with newly generated content.
+ * Preserves clip metadata (name, color, loop settings).
+ * Fully undoable.
+ * 
+ * @param clipId Clip to regenerate
+ * @param settings Generator settings
+ * @returns Action result
+ */
+export function regenerateClip(
+  clipId: ClipId,
+  settings: GeneratorSettings
+): GeneratorActionResult {
+  try {
+    // Get existing clip
+    const clip = ClipRegistry.getClip(clipId);
+    if (!clip) {
+      return { success: false, error: 'Clip not found' };
+    }
+    
+    // Get stream
+    const stream = SharedEventStore.getStream(clip.streamId);
+    if (!stream) {
+      return { success: false, error: 'Stream not found' };
+    }
+    
+    // Save old events for undo
+    const oldEvents = [...stream.events];
+    
+    // Generate new events
+    const newEvents = generateEvents(settings);
+    
+    // Replace stream events
+    SharedEventStore.removeAllEvents(clip.streamId);
+    const added = SharedEventStore.addEvents(clip.streamId, newEvents);
+    
+    if (added.length === 0) {
+      // Restore old events on failure
+      SharedEventStore.addEvents(clip.streamId, oldEvents);
+      return { success: false, error: 'Failed to regenerate events' };
+    }
+    
+    // Update clip duration
+    const newDuration = calculateDuration(newEvents);
+    ClipRegistry.updateClip(clipId, { duration: newDuration });
+    
+    // Wrap in undo action
+    UndoStack.push({
+      type: UndoActionType.EDIT_EVENTS,
+      description: `Regenerate ${settings.type} clip`,
+      undo: () => {
+        SharedEventStore.removeAllEvents(clip.streamId);
+        SharedEventStore.addEvents(clip.streamId, oldEvents);
+        ClipRegistry.updateClip(clipId, { duration: clip.duration });
+      },
+      redo: () => {
+        SharedEventStore.removeAllEvents(clip.streamId);
+        SharedEventStore.addEvents(clip.streamId, newEvents);
+        ClipRegistry.updateClip(clipId, { duration: newDuration });
+      }
+    });
+    
+    return {
+      success: true,
+      streamId: clip.streamId,
+      clipId,
+      eventCount: newEvents.length
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * G077: Freeze clip
+ * 
+ * Marks all generated events in a clip as user-owned.
+ * Prevents auto-regeneration and allows manual editing.
+ * 
+ * @param clipId Clip to freeze
+ * @returns Action result
+ */
+export function freezeClip(clipId: ClipId): GeneratorActionResult {
+  try {
+    // Get clip
+    const clip = ClipRegistry.getClip(clipId);
+    if (!clip) {
+      return { success: false, error: 'Clip not found' };
+    }
+    
+    // Get stream
+    const stream = SharedEventStore.getStream(clip.streamId);
+    if (!stream) {
+      return { success: false, error: 'Stream not found' };
+    }
+    
+    // Mark all events as non-generated (remove meta.generated flag)
+    const frozenEvents = stream.events.map(event => ({
+      ...event,
+      meta: {
+        ...event.meta,
+        generated: false
+      }
+    }));
+    
+    // Replace events
+    SharedEventStore.removeAllEvents(clip.streamId);
+    SharedEventStore.addEvents(clip.streamId, frozenEvents);
+    
+    // Update clip metadata
+    ClipRegistry.updateClip(clipId, {
+      meta: {
+        ...clip.meta,
+        frozen: true
+      }
+    });
+    
+    // Wrap in undo action
+    UndoStack.push({
+      type: UndoActionType.EDIT_CLIP_METADATA,
+      description: 'Freeze clip',
+      undo: () => {
+        SharedEventStore.removeAllEvents(clip.streamId);
+        SharedEventStore.addEvents(clip.streamId, stream.events);
+        ClipRegistry.updateClip(clipId, {
+          meta: {
+            ...clip.meta,
+            frozen: false
+          }
+        });
+      },
+      redo: () => {
+        SharedEventStore.removeAllEvents(clip.streamId);
+        SharedEventStore.addEvents(clip.streamId, frozenEvents);
+        ClipRegistry.updateClip(clipId, {
+          meta: {
+            ...clip.meta,
+            frozen: true
+          }
+        });
+      }
+    });
+    
+    return {
+      success: true,
+      clipId,
+      eventCount: frozenEvents.length
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * G078: Humanize events
+ * 
+ * Applies subtle timing and velocity variations to make events feel
+ * more human and less mechanical. Post-processing operation.
+ * 
+ * @param streamId Stream to humanize
+ * @param amount Humanization amount (0-1)
+ * @returns Action result
+ */
+export function humanizeEvents(
+  streamId: EventStreamId,
+  amount: number = 0.5
+): GeneratorActionResult {
+  try {
+    // Get stream
+    const stream = SharedEventStore.getStream(streamId);
+    if (!stream) {
+      return { success: false, error: 'Stream not found' };
+    }
+    
+    // Save old events for undo
+    const oldEvents = [...stream.events];
+    
+    // Apply humanization
+    const humanized = stream.events.map(event => {
+      // Random timing offset (±10% of amount)
+      const timingOffset = Math.floor((Math.random() - 0.5) * 10 * amount);
+      const newStart = asTick(Math.max(0, event.start + timingOffset));
+      
+      // Random velocity variation (±10% of amount)
+      if (event.kind === 'note' && event.payload.velocity !== undefined) {
+        const velocityOffset = Math.floor((Math.random() - 0.5) * 10 * amount);
+        const newVelocity = Math.max(1, Math.min(127, event.payload.velocity + velocityOffset));
+        
+        return {
+          ...event,
+          start: newStart,
+          payload: {
+            ...event.payload,
+            velocity: newVelocity
+          }
+        };
+      }
+      
+      return {
+        ...event,
+        start: newStart
+      };
+    });
+    
+    // Replace events
+    SharedEventStore.removeAllEvents(streamId);
+    SharedEventStore.addEvents(streamId, humanized);
+    
+    // Wrap in undo action
+    UndoStack.push({
+      type: UndoActionType.EDIT_EVENTS,
+      description: `Humanize events (${Math.round(amount * 100)}%)`,
+      undo: () => {
+        SharedEventStore.removeAllEvents(streamId);
+        SharedEventStore.addEvents(streamId, oldEvents);
+      },
+      redo: () => {
+        SharedEventStore.removeAllEvents(streamId);
+        SharedEventStore.addEvents(streamId, humanized);
+      }
+    });
+    
+    return {
+      success: true,
+      streamId,
+      eventCount: humanized.length
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * G078: Quantize events
+ * 
+ * Snaps event timings to grid for perfect rhythmic alignment.
+ * Post-processing operation.
+ * 
+ * @param streamId Stream to quantize
+ * @param gridSize Grid size in ticks (e.g., 96 for 16th notes at 480 PPQ)
+ * @param strength Quantization strength (0-1, 1 = snap to grid)
+ * @returns Action result
+ */
+export function quantizeEvents(
+  streamId: EventStreamId,
+  gridSize: number = 96,
+  strength: number = 1.0
+): GeneratorActionResult {
+  try {
+    // Get stream
+    const stream = SharedEventStore.getStream(streamId);
+    if (!stream) {
+      return { success: false, error: 'Stream not found' };
+    }
+    
+    // Save old events for undo
+    const oldEvents = [...stream.events];
+    
+    // Apply quantization
+    const quantized = stream.events.map(event => {
+      // Find nearest grid point
+      const nearestGrid = Math.round(event.start / gridSize) * gridSize;
+      
+      // Apply strength (interpolate between original and grid)
+      const newStart = asTick(Math.round(
+        event.start * (1 - strength) + nearestGrid * strength
+      ));
+      
+      return {
+        ...event,
+        start: newStart
+      };
+    });
+    
+    // Replace events
+    SharedEventStore.removeAllEvents(streamId);
+    SharedEventStore.addEvents(streamId, quantized);
+    
+    // Wrap in undo action
+    UndoStack.push({
+      type: UndoActionType.EDIT_EVENTS,
+      description: `Quantize events (${Math.round(strength * 100)}%)`,
+      undo: () => {
+        SharedEventStore.removeAllEvents(streamId);
+        SharedEventStore.addEvents(streamId, oldEvents);
+      },
+      redo: () => {
+        SharedEventStore.removeAllEvents(streamId);
+        SharedEventStore.addEvents(streamId, quantized);
+      }
+    });
+    
+    return {
+      success: true,
+      streamId,
+      eventCount: quantized.length
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Generate events (simplified stub - real implementation uses generator modules)
+ */
+function generateEvents(settings: GeneratorSettings): Event[] {
+  // This is a simplified stub
+  // Real implementation would call melody-generator, bass-generator, etc.
+  const events: Event[] = [];
+  
+  const eventCount = Math.floor((settings.density || 0.5) * 32);
+  for (let i = 0; i < eventCount; i++) {
+    events.push({
+      id: `gen-${Date.now()}-${i}` as any,
+      kind: 'note' as const,
+      start: asTick(i * 96),
+      duration: asTickDuration(96),
+      payload: {
+        pitch: 60 + Math.floor(Math.random() * 24),
+        velocity: 64 + Math.floor(Math.random() * 32)
+      },
+      meta: {
+        generated: true,
+        generatorType: settings.type,
+        seed: settings.seed
+      }
+    });
+  }
+  
+  return events;
+}
+
+/**
+ * Calculate total duration from events
+ */
+function calculateDuration(events: Event[]): TickDuration {
+  if (events.length === 0) {
+    return asTickDuration(1920); // Default 1 bar at 480 PPQ
+  }
+  
+  const maxEnd = events.reduce((max, event) => {
+    const end = event.start + (event.duration || 0);
+    return Math.max(max, end);
+  }, 0);
+  
+  return asTickDuration(maxEnd);
+}
+
+/**
+ * Get color for generator type
+ */
+function getGeneratorColor(type: string): string {
+  const colors: Record<string, string> = {
+    melody: '#3b82f6',
+    bass: '#8b5cf6',
+    drums: '#ef4444',
+    arp: '#10b981'
+  };
+  return colors[type] || '#6b7280';
+}

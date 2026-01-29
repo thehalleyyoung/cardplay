@@ -513,6 +513,44 @@ export class DeckContainer {
       timestamp: Date.now(),
     };
   }
+
+  /**
+   * Sets the active tab index.
+   * E077: Support for tab switching with state persistence.
+   */
+  public setActiveTab(index: number): void {
+    this.updateState({ activeTabId: `tab-${index}` });
+    this.renderDeckContent();
+  }
+
+  /**
+   * Sets the scroll position.
+   * E077: Support for scroll position persistence.
+   */
+  public setScrollPosition(position: { x: number; y: number }): void {
+    this.updateState({ scrollLeft: position.x, scrollTop: position.y });
+    this.bodyElement.scrollLeft = position.x;
+    this.bodyElement.scrollTop = position.y;
+  }
+
+  /**
+   * Sets the focused item.
+   * E077: Support for focused item persistence.
+   */
+  public setFocusedItem(itemId: string | null): void {
+    this.updateState({ focusedItemId: itemId });
+  }
+
+  /**
+   * Sets the filter state.
+   * E077: Support for filter state persistence.
+   */
+  public setFilterState(filterState: { search: string; tags: string[] }): void {
+    this.updateState({ 
+      searchQuery: filterState.search,
+      filters: { tags: filterState.tags }
+    });
+  }
 }
 
 /**

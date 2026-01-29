@@ -900,3 +900,10 @@ schema_score_for_spec(Schema, Constraints, Score) :-
   ; PosBonus is 0
   ),
   Score is BaseScore + CadBonus + PosBonus.
+
+%% deck_requires_schema_tools(+DeckType, -RequiredTools)
+%% Which schema tools are needed for galant-related deck types. (C348)
+deck_requires_schema_tools(galant_analysis, [schema_matcher, voice_leading_checker, schema_sequence]).
+deck_requires_schema_tools(partimento_realization, [schema_matcher, bass_pattern_analyzer, figured_bass]).
+deck_requires_schema_tools(schema_composition, [schema_matcher, schema_sequencer, voice_leading_checker]).
+deck_requires_schema_tools(style_analysis, [schema_matcher, period_detector, cadence_analyzer]).

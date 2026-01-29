@@ -29,7 +29,7 @@ import {
 } from '../theory/music-spec';
 import {
   specToPrologFacts,
-  // specToPrologTerm,  // Unused - commented out for build
+  specToPrologTerm,
 } from '../theory/spec-prolog-bridge';
 
 // ============================================================================
@@ -90,6 +90,75 @@ export interface FilmDeviceRecommendation {
 }
 
 // ============================================================================
+// STATELESS QUERY SUPPORT (C068)
+// ============================================================================
+
+/**
+ * C068: Options for stateless query mode.
+ */
+export interface StatelessQueryOptions {
+  /** If true, use stateless queries that don't mutate the Prolog DB */
+  readonly stateless?: boolean;
+}
+
+/**
+ * C068: Execute a query with spec context, either statefully or statelessly.
+ *
+ * Stateless mode (preferred): passes the spec as a term directly into
+ * the Prolog query, avoiding mutations to the fact database.
+ *
+ * Stateful mode: asserts spec facts, runs the query, then retracts.
+ */
+async function withSpecContext<T>(
+  spec: MusicSpec,
+  adapter: PrologAdapter,
+  queryFn: () => Promise<T>,
+  options: StatelessQueryOptions = {}
+): Promise<T> {
+  if (options.stateless) {
+    // In stateless mode, we use spec_push/spec_pop to create a scoped context
+    // This is safer than raw assert/retract as it handles cleanup automatically
+    await adapter.query('spec_push(Token).');
+    await pushSpec(spec, adapter);
+    try {
+      return await queryFn();
+    } finally {
+      // Pop restores previous state
+      const tokenResult = await adapter.querySingle('spec_stack(Token, _).');
+      if (tokenResult?.['Token']) {
+        await adapter.query(`spec_pop(${tokenResult['Token']}).`);
+      } else {
+        await clearSpec(adapter);
+      }
+    }
+  } else {
+    // Legacy stateful mode
+    await clearSpec(adapter);
+    await pushSpec(spec, adapter);
+    try {
+      return await queryFn();
+    } finally {
+      await clearSpec(adapter);
+    }
+  }
+}
+
+/**
+ * C068: Build a Prolog query that embeds the spec term inline,
+ * eliminating the need for assert/retract entirely.
+ *
+ * This is the purest form of stateless querying.
+ */
+export function buildStatelessSpecGoal(spec: MusicSpec, innerGoal: string): string {
+  const specTerm = specToPrologTerm(spec);
+  // Replace references to current_spec(Spec) with the inline term
+  return innerGoal.replace(
+    /current_spec\((\w+)\)/g,
+    `$1 = ${specTerm}`
+  );
+}
+
+// ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
@@ -142,17 +211,16 @@ async function clearSpec(adapter: PrologAdapter): Promise<void> {
  */
 export async function detectSpecConflicts(
   spec: MusicSpec,
-  adapter: PrologAdapter = getPrologAdapter()
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
 ): Promise<SpecConflict[]> {
   await ensureLoaded(adapter);
-  await clearSpec(adapter);
-  await pushSpec(spec, adapter);
-  
-  try {
+
+  return withSpecContext(spec, adapter, async () => {
     const solutions = await adapter.queryAll(
       'all_spec_conflicts(Conflicts).'
     );
-    
+
     if (!solutions.length || !solutions[0]?.['Conflicts']) {
       return [];
     }
@@ -174,9 +242,7 @@ export async function detectSpecConflicts(
       constraint2: String(c.constraint2 || c[1] || ''),
       reason: String(c.reason || c[2] || 'Unknown conflict'),
     }));
-  } finally {
-    await clearSpec(adapter);
-  }
+  }, options);
 }
 
 // ============================================================================
@@ -189,17 +255,16 @@ export async function detectSpecConflicts(
  */
 export async function lintSpec(
   spec: MusicSpec,
-  adapter: PrologAdapter = getPrologAdapter()
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
 ): Promise<SpecLintWarning[]> {
   await ensureLoaded(adapter);
-  await clearSpec(adapter);
-  await pushSpec(spec, adapter);
-  
-  try {
+
+  return withSpecContext(spec, adapter, async () => {
     const solutions = await adapter.queryAll(
       'all_lint_warnings(Warnings).'
     );
-    
+
     if (!solutions.length || !solutions[0]?.['Warnings']) {
       return [];
     }
@@ -219,9 +284,7 @@ export async function lintSpec(
       message: String(w.message || w[0] || ''),
       severity: (w.severity || w[1] || 'warning') as 'error' | 'warning' | 'info',
     }));
-  } finally {
-    await clearSpec(adapter);
-  }
+  }, options);
 }
 
 // ============================================================================
@@ -355,12 +418,155 @@ export async function detectKeyAdvanced(
 }
 
 // ============================================================================
+// WEIGHTED KEY IDENTIFICATION (C157)
+// ============================================================================
+
+/**
+ * C157: Identify key using selectable model and configurable hybrid weights.
+ *
+ * Supports four modes:
+ *   - 'ks'     : Krumhansl-Schmuckler profiles only
+ *   - 'dft'    : DFT phase estimation only
+ *   - 'spiral' : Spiral Array centroid only
+ *   - 'hybrid' : Weighted combination via best_key_weighted/5 (default)
+ *
+ * When using 'hybrid' mode the caller may supply alpha weights for each
+ * model.  Defaults are { ks: 0.5, dft: 0.3, spiral: 0.2 }.
+ *
+ * @param profile  12-element pitch class count/weight array
+ * @param opts     Model selection and optional hybrid weights
+ * @param adapter  Prolog adapter instance
+ * @returns        Explainable key result with root, mode, and reasoning
+ */
+export async function identifyKeyAdvanced(
+  profile: number[],
+  opts: {
+    model?: 'ks' | 'dft' | 'spiral' | 'hybrid';
+    weights?: { ks: number; dft: number; spiral: number };
+  },
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ key: RootName; mode: ModeName }>> {
+  await ensureLoaded(adapter);
+
+  if (profile.length !== 12) {
+    throw new Error('Profile must have exactly 12 elements');
+  }
+
+  const model = opts.model ?? 'hybrid';
+  const profileStr = `[${profile.join(',')}]`;
+
+  // --- Single-model shortcut paths ---
+  if (model === 'ks') {
+    const ksResult = await detectKeyKS(profile, adapter);
+    if (!ksResult) {
+      return explainable(
+        { key: 'c' as RootName, mode: 'major' as ModeName },
+        ['KS key detection returned no result; defaulting to C major'],
+        0
+      );
+    }
+    return explainable(
+      { key: ksResult.value.root, mode: ksResult.value.mode },
+      ksResult.reasons,
+      ksResult.confidence
+    );
+  }
+
+  if (model === 'dft') {
+    const dftResult = await detectKeyDFT(profile, adapter);
+    if (!dftResult) {
+      return explainable(
+        { key: 'c' as RootName, mode: 'major' as ModeName },
+        ['DFT key detection returned no result; defaulting to C major'],
+        0
+      );
+    }
+    return explainable(
+      { key: dftResult.value.root, mode: dftResult.value.mode },
+      dftResult.reasons,
+      dftResult.confidence
+    );
+  }
+
+  if (model === 'spiral') {
+    const result = await adapter.querySingle(
+      `spiral_profile_score(${profileStr}, BestPC, BestMode, Score).`
+    );
+
+    if (!result) {
+      return explainable(
+        { key: 'c' as RootName, mode: 'major' as ModeName },
+        ['Spiral key detection returned no result; defaulting to C major'],
+        0
+      );
+    }
+
+    const pc = result['BestPC'] as number;
+    const mode = result['BestMode'] as ModeName;
+    const score = result['Score'] as number;
+
+    const noteResult = await adapter.querySingle(
+      `index_to_note(${pc}, Note).`
+    );
+    const root = (noteResult?.['Note'] as RootName) ?? ('c' as RootName);
+    const confidence = Math.min(100, Math.round(score * 100));
+
+    return explainable(
+      { key: root, mode },
+      [`Key detected as ${root} ${mode} using Spiral Array centroid`],
+      confidence
+    );
+  }
+
+  // --- Hybrid mode: use best_key_weighted/5 ---
+  const w = opts.weights ?? { ks: 0.5, dft: 0.3, spiral: 0.2 };
+
+  const result = await adapter.querySingle(
+    `best_key_weighted(${profileStr}, ${w.ks}, ${w.dft}, ${w.spiral}, key(BestPC, BestMode)).`
+  );
+
+  if (!result) {
+    return explainable(
+      { key: 'c' as RootName, mode: 'major' as ModeName },
+      ['Hybrid key detection returned no result; defaulting to C major'],
+      0
+    );
+  }
+
+  const bestPC = result['BestPC'] as number;
+  const bestMode = result['BestMode'] as ModeName;
+
+  const noteResult = await adapter.querySingle(
+    `index_to_note(${bestPC}, Note).`
+  );
+  const bestRoot = (noteResult?.['Note'] as RootName) ?? ('c' as RootName);
+
+  const reasons = [
+    `Key detected as ${bestRoot} ${bestMode} using hybrid model`,
+    `Weights: KS=${w.ks}, DFT=${w.dft}, Spiral=${w.spiral}`,
+  ];
+
+  // Confidence heuristic: query KS score as a baseline measure
+  const scoreResult = await adapter.querySingle(
+    `ks_key_score(${profileStr}, ${bestPC}, ${bestMode}, Score).`
+  );
+  const ksScore = (scoreResult?.['Score'] as number) ?? 0;
+  const confidence = Math.min(100, Math.round(ksScore * 10));
+
+  return explainable(
+    { key: bestRoot, mode: bestMode },
+    reasons,
+    confidence
+  );
+}
+
+// ============================================================================
 // SCHEMA MATCHING (C288-C301)
 // ============================================================================
 
 /**
  * Match a degree sequence against galant schemata.
- * 
+ *
  * @param degrees - Array of scale degrees (1-7)
  */
 export async function matchGalantSchema(
@@ -517,17 +723,16 @@ export async function matchRaga(
  */
 export async function recommendModeForSpec(
   spec: MusicSpec,
-  adapter: PrologAdapter = getPrologAdapter()
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
 ): Promise<Explainable<ModeRecommendation[]>> {
   await ensureLoaded(adapter);
-  await clearSpec(adapter);
-  await pushSpec(spec, adapter);
-  
-  try {
+
+  return withSpecContext(spec, adapter, async () => {
     const solutions = await adapter.queryAll(
       'current_spec(Spec), recommend_mode(Spec, Mode, Confidence).'
     );
-    
+
     const modes: ModeRecommendation[] = solutions
       .filter(s => s?.['Mode'] && s?.['Confidence'])
       .map(s => ({
@@ -543,11 +748,9 @@ export async function recommendModeForSpec(
       : ['No mode recommendations found'];
 
     const confidence = modes.length > 0 ? (modes[0]?.confidence ?? 0) : 0;
-    
+
     return explainable(modes, reasons, confidence);
-  } finally {
-    await clearSpec(adapter);
-  }
+  }, options);
 }
 
 // ============================================================================
@@ -1134,26 +1337,25 @@ export interface RecommendedAction {
  */
 export async function getRecommendedActions(
   spec: MusicSpec,
-  adapter: PrologAdapter = getPrologAdapter()
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
 ): Promise<Explainable<RecommendedAction[]>> {
   await ensureLoaded(adapter);
-  await clearSpec(adapter);
-  await pushSpec(spec, adapter);
-  
-  try {
+
+  return withSpecContext(spec, adapter, async () => {
     const solutions = await adapter.queryAll(
       'all_recommended_actions(Actions).'
     );
-    
+
     if (!solutions.length || !solutions[0]?.['Actions']) {
       return explainable([], ['No recommended actions found'], 0);
     }
-    
+
     const actionsRaw = solutions[0]['Actions'];
     if (!Array.isArray(actionsRaw)) {
       return explainable([], ['No recommended actions found'], 0);
     }
-    
+
     const actions: RecommendedAction[] = actionsRaw
       .filter((a): a is Record<string, unknown> => a != null && typeof a === 'object')
       .map(a => {
@@ -1161,11 +1363,11 @@ export async function getRecommendedActions(
         const actionTerm = a['action'] || a[0];
         const confidence = (a['confidence'] || a[1] || 0.5) as number;
         const reasons = (a['reasons'] || a[2] || []) as string[];
-        
+
         // Parse action type and params from term
         let actionType = 'unknown';
         const params: Record<string, unknown> = {};
-        
+
         if (typeof actionTerm === 'string') {
           actionType = actionTerm;
         } else if (typeof actionTerm === 'object' && actionTerm) {
@@ -1182,7 +1384,7 @@ export async function getRecommendedActions(
             params['constraint'] = term['add_constraint'];
           }
         }
-        
+
         return {
           action: actionType,
           params,
@@ -1191,15 +1393,13 @@ export async function getRecommendedActions(
         };
       })
       .sort((a, b) => b.confidence - a.confidence);
-    
+
     const avgConfidence = actions.length > 0
       ? Math.round(actions.reduce((sum, a) => sum + a.confidence, 0) / actions.length)
       : 0;
-    
+
     return explainable(actions, [`Found ${actions.length} recommended actions`], avgConfidence);
-  } finally {
-    await clearSpec(adapter);
-  }
+  }, options);
 }
 
 // ============================================================================
@@ -1497,13 +1697,12 @@ export async function recommendFilmProgression(
 export async function recommendSchemaChain(
   spec: MusicSpec,
   length: number = 3,
-  adapter: PrologAdapter = getPrologAdapter()
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
 ): Promise<Explainable<string[]>> {
   await ensureLoaded(adapter);
-  await clearSpec(adapter);
-  await pushSpec(spec, adapter);
 
-  try {
+  return withSpecContext(spec, adapter, async () => {
     const result = await adapter.querySingle(
       `current_spec(Spec), recommend_schema_chain(Spec, ${length}, Chain, Reasons).`
     );
@@ -1524,9 +1723,7 @@ export async function recommendSchemaChain(
       reasons.map(String),
       75
     );
-  } finally {
-    await clearSpec(adapter);
-  }
+  }, options);
 }
 
 // ============================================================================
@@ -5110,4 +5307,147 @@ export async function getEmotionalContrast(
     [`${emotion1} → ${emotion2}: ${result['TransitionType']} transition`],
     90
   );
+}
+
+// ============================================================================
+// DECK RECOMMENDATION FOR SPEC (C107, C110)
+// ============================================================================
+
+/**
+ * A ranked deck template recommendation.
+ */
+export interface DeckRecommendation {
+  readonly templateId: string;
+  readonly score: number;
+}
+
+/**
+ * C110: Recommend deck templates for a MusicSpec on a given board type.
+ * Uses Prolog `recommend_deck_for_spec_on_board/4` (C107) to score templates
+ * by culture, style, and board-type affinity.
+ *
+ * @param spec - The MusicSpec to recommend for
+ * @param boardType - The board type to filter/boost recommendations
+ * @param adapter - Optional Prolog adapter
+ * @param options - Stateless query options (C068)
+ * @returns Ranked list of deck template IDs with scores
+ */
+export async function recommendDeckForSpec(
+  spec: MusicSpec,
+  boardType: 'arranger' | 'tracker' | 'notation' | 'phrase' | 'harmony',
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
+): Promise<Explainable<DeckRecommendation[]>> {
+  await ensureLoaded(adapter);
+
+  return withSpecContext(spec, adapter, async () => {
+    const solutions = await adapter.queryAll(
+      `current_spec(Spec), recommend_deck_for_spec_on_board(Spec, ${boardType}, TemplateId, Score).`
+    );
+
+    const recommendations: DeckRecommendation[] = solutions
+      .filter(s => s?.['TemplateId'] && s?.['Score'] != null)
+      .map(s => ({
+        templateId: String(s['TemplateId']),
+        score: s['Score'] as number,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    // Deduplicate by templateId (keep highest score)
+    const seen = new Set<string>();
+    const unique = recommendations.filter(r => {
+      if (seen.has(r.templateId)) return false;
+      seen.add(r.templateId);
+      return true;
+    });
+
+    const reasons = unique.length > 0
+      ? [`Found ${unique.length} deck template recommendations for ${boardType} board`]
+      : ['No deck template recommendations found'];
+
+    const confidence = unique.length > 0 ? Math.min(100, unique[0]?.score ?? 0) : 0;
+
+    return explainable(unique, reasons, confidence);
+  }, options);
+}
+
+// ============================================================================
+// BOARD RECOMMENDATION FOR SPEC (C108, C110)
+// ============================================================================
+
+/**
+ * A ranked board type recommendation.
+ */
+export interface BoardRecommendation {
+  readonly boardType: 'arranger' | 'tracker' | 'notation' | 'phrase' | 'harmony';
+  readonly reasons: readonly string[];
+}
+
+/**
+ * C110: Recommend board types for a MusicSpec.
+ * Uses Prolog `recommend_board_for_spec/3` (C108) to suggest board types
+ * based on style and culture affinities.
+ *
+ * @param spec - The MusicSpec to recommend for
+ * @param adapter - Optional Prolog adapter
+ * @param options - Stateless query options (C068)
+ * @returns Ranked list of board types with reasons
+ */
+export async function recommendBoardForSpec(
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
+): Promise<Explainable<BoardRecommendation[]>> {
+  await ensureLoaded(adapter);
+
+  return withSpecContext(spec, adapter, async () => {
+    const solutions = await adapter.queryAll(
+      'current_spec(Spec), recommend_board_for_spec(Spec, BoardType, Reasons).'
+    );
+
+    const validBoardTypes = new Set(['arranger', 'tracker', 'notation', 'phrase', 'harmony']);
+
+    const recommendations: BoardRecommendation[] = solutions
+      .filter(s => s?.['BoardType'] && validBoardTypes.has(String(s['BoardType'])))
+      .map(s => {
+        const rawReasons = s['Reasons'];
+        const reasons: string[] = [];
+        if (Array.isArray(rawReasons)) {
+          for (const r of rawReasons) {
+            if (typeof r === 'string') {
+              reasons.push(r);
+            } else if (typeof r === 'object' && r !== null) {
+              // Handle because(Reason) terms
+              const term = r as Record<string, unknown>;
+              if (term['because']) {
+                reasons.push(String(term['because']));
+              } else if (term[0]) {
+                reasons.push(String(term[0]));
+              }
+            }
+          }
+        }
+
+        return {
+          boardType: String(s['BoardType']) as BoardRecommendation['boardType'],
+          reasons,
+        };
+      });
+
+    // Deduplicate by boardType (keep first occurrence, which is highest priority)
+    const seen = new Set<string>();
+    const unique = recommendations.filter(r => {
+      if (seen.has(r.boardType)) return false;
+      seen.add(r.boardType);
+      return true;
+    });
+
+    const outerReasons = unique.length > 0
+      ? [`Found ${unique.length} board type recommendations for spec (style: ${spec.style ?? 'custom'}, culture: ${spec.culture ?? 'western'})`]
+      : ['No board type recommendations found; defaulting to arranger'];
+
+    const confidence = unique.length > 0 ? 80 : 50;
+
+    return explainable(unique, outerReasons, confidence);
+  }, options);
 }

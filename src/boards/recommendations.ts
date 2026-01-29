@@ -36,12 +36,14 @@ const RECOMMENDATIONS: Record<UserType, readonly string[]> = {
   
   'producer': [
     'basic-session',
+    'session-generators',
     'producer-board',
     'piano-roll-producer',
   ],
   
   'live-performer': [
     'basic-session',
+    'session-generators',
     'live-performance-tracker',
     'tracker-phrases-board',
   ],
@@ -53,6 +55,7 @@ const RECOMMENDATIONS: Record<UserType, readonly string[]> = {
   ],
   
   'ai-explorer': [
+    'session-generators',
     'tracker-harmony-board',
     'tracker-phrases-board',
     'producer-board',
