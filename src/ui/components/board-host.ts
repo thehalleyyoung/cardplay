@@ -174,45 +174,81 @@ export function createBoardHost(): BoardHostElement {
     const state = store.getState();
     const boardId = state.currentBoardId;
     
-    if (boardId) {
-      currentBoard = registry.get(boardId) || null;
+    // Check if board actually changed
+    const newBoard = boardId ? registry.get(boardId) : null;
+    const boardChanged = currentBoard?.id !== newBoard?.id;
+    
+    if (newBoard) {
+      currentBoard = newBoard;
     } else {
       currentBoard = null;
     }
     
     renderBoardChrome(currentBoard);
     
-    // E020: Render decks/panels in workspace
-    if (deckPanelHost) {
-      deckPanelHost.destroy();
-      deckPanelHost = null;
+    // C076: Check reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const transitionMs = prefersReducedMotion ? 0 : 200;
+    
+    // E020: Render decks/panels in workspace with transition
+    if (deckPanelHost && boardChanged) {
+      // C076: Fade out old board before destroying (if transitions enabled)
+      if (transitionMs > 0) {
+        workspace.style.opacity = '0';
+        workspace.style.transition = `opacity ${transitionMs}ms ease-out`;
+      }
+      
+      setTimeout(() => {
+        if (deckPanelHost) {
+          deckPanelHost.destroy();
+          deckPanelHost = null;
+        }
+        
+        renderNewBoard(transitionMs);
+      }, transitionMs);
+    } else if (!deckPanelHost) {
+      renderNewBoard(transitionMs);
     }
     
-    if (currentBoard) {
-      // Get active context
-      const contextStore = getBoardContextStore();
-      const activeContext = contextStore.getContext();
-      
-      // Create deck instances
-      const instances = createDeckInstances(currentBoard, activeContext);
-      
-      // Create deck panel host
-      deckPanelHost = createDeckPanelHost({
-        board: currentBoard,
-        instances,
-        onDeckClose: (deckId) => {
-          console.log(`Deck closed: ${deckId}`);
-        },
-      });
-      
-      workspace.innerHTML = '';
-      workspace.appendChild(deckPanelHost.getElement());
-    } else {
-      workspace.innerHTML = `
-        <div class="board-host__placeholder">
-          <p>No board selected</p>
-        </div>
-      `;
+    function renderNewBoard(durationMs: number) {
+      if (currentBoard) {
+        // Get active context
+        const contextStore = getBoardContextStore();
+        const activeContext = contextStore.getContext();
+        
+        // Create deck instances
+        const instances = createDeckInstances(currentBoard, activeContext);
+        
+        // Create deck panel host
+        deckPanelHost = createDeckPanelHost({
+          board: currentBoard,
+          instances,
+          onDeckClose: (deckId) => {
+            console.log(`Deck closed: ${deckId}`);
+          },
+        });
+        
+        workspace.innerHTML = '';
+        workspace.appendChild(deckPanelHost.getElement());
+        
+        // C076: Fade in new board (respecting reduced motion)
+        if (durationMs > 0) {
+          workspace.style.opacity = '0';
+          requestAnimationFrame(() => {
+            workspace.style.transition = `opacity ${durationMs}ms ease-in`;
+            workspace.style.opacity = '1';
+          });
+        } else {
+          workspace.style.opacity = '1';
+        }
+      } else {
+        workspace.innerHTML = `
+          <div class="board-host__placeholder">
+            <p>No board selected</p>
+          </div>
+        `;
+        workspace.style.opacity = '1';
+      }
     }
   }
   

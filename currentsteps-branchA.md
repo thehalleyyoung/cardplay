@@ -865,7 +865,7 @@ The board system core is functionally complete. Remaining test failures are test
 
 ### Board Switch Transition & Preservation (C076–C085)
 
-- [ ] C076 Decide on board-switch transition UX (instant vs fade) and implement it.
+- [x] C076 Decide on board-switch transition UX (instant vs fade) and implement it.
 - [x] C077 Ensure switching boards does not destroy shared stores (streams/clips remain).
 - [x] C078 Ensure switching boards preserves transport by default (unless option says otherwise).
 - [x] C079 Ensure switching boards preserves active selection by default (unless option says otherwise).
