@@ -326,15 +326,51 @@ export class RoutingOverlay {
    * J024: Handle port click for click-to-connect
    */
   private handlePortClick(portId: string, type: ConnectionType, direction: 'input' | 'output'): void {
-    // Implementation will connect to state/routing-graph.ts
-    console.log('Port clicked:', { portId, type, direction });
+    const parts = portId.split(':');
+    if (parts.length < 2 || !parts[0] || !parts[1]) {
+      console.warn('Invalid port ID format:', portId);
+      return;
+    }
     
-    // TODO: Implement connection creation logic
-    // - If no dragFrom: set dragFrom to this port
-    // - If dragFrom exists and compatible: create connection
-    // - Validate via Phase D rules
-    // - Add to routing graph store
-    // - Integrate with undo stack (J026)
+    const nodeId: string = parts[0];
+    const port: string = parts[1];
+    
+    if (!this.state.dragFrom) {
+      // First click - start connection
+      if (direction === 'output') {
+        this.state.dragFrom = { nodeId, portId: port, type };
+        this.render();
+      }
+    } else {
+      // Second click - complete connection
+      if (direction === 'input' && this.state.dragFrom.type === type) {
+        // Create connection
+        if (this.graph) {
+          try {
+            // J026: Connection created with undo support via routing graph
+            this.graph.connect(
+              this.state.dragFrom.nodeId,
+              this.state.dragFrom.portId,
+              nodeId,
+              port,
+              type
+            );
+            
+            this.state.dragFrom = null;
+            this.render();
+          } catch (error) {
+            // Show error feedback (J032)
+            console.warn('Connection failed:', error);
+            this.state.dragFrom = null;
+            this.render();
+          }
+        }
+      } else {
+        // Incompatible - cancel
+        this.state.dragFrom = null;
+        this.render();
+      }
+    }
   }
 
   /**
@@ -506,11 +542,34 @@ export class RoutingOverlay {
   }
 
   /**
-   * Show tooltip (reserved for future use)
+   * Show tooltip - J032: Visual feedback system
+   * Reserved for future use - will be integrated with connection validation feedback
    */
   /*
-  private showTooltip(_element: SVGElement, _text: string, _type: 'info' | 'error' = 'info'): void {
-    // TODO: Implement tooltip system with type-based styling
+  private showTooltip(element: SVGElement, text: string, type: 'info' | 'error' = 'info'): void {
+    const tooltip = document.createElement('div');
+    tooltip.className = `routing-tooltip routing-tooltip--${type}`;
+    tooltip.textContent = text;
+    tooltip.style.position = 'absolute';
+    tooltip.style.padding = '4px 8px';
+    tooltip.style.borderRadius = '4px';
+    tooltip.style.fontSize = '12px';
+    tooltip.style.pointerEvents = 'none';
+    tooltip.style.zIndex = '10000';
+    tooltip.style.backgroundColor = type === 'error' ? 'var(--color-error, #dc2626)' : 'var(--color-info, #3b82f6)';
+    tooltip.style.color = 'white';
+    
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+    tooltip.style.top = `${rect.top - 30}px`;
+    tooltip.style.transform = 'translateX(-50%)';
+    
+    document.body.appendChild(tooltip);
+    
+    // Auto-remove after 2 seconds
+    setTimeout(() => {
+      tooltip.remove();
+    }, 2000);
   }
   */
 

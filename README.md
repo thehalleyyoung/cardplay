@@ -4,6 +4,67 @@
 
 CardPlay reimagines music software by treating every musical action—notes, automation, modulation, structure—as typed **Events** flowing through composable **Cards**. Whether you're a beatmaker, classical composer, tracker enthusiast, or algorithmic artist, CardPlay speaks your language through a single, consistent data model.
 
+## 🚀 Getting Started
+
+### Quick Start: Board-First Workflow
+
+CardPlay uses a **Board-Centric Architecture** where you choose your workspace based on your workflow:
+
+```bash
+# Install and run
+npm install
+npm run dev
+```
+
+**On first run**, you'll see the **Board Selector** where you choose your starting point:
+
+| If you're a... | Start with... | Control Level |
+|----------------|---------------|---------------|
+| **Tracker user** (Renoise, FastTracker) | Basic Tracker Board | full-manual |
+| **Traditional composer** (notation-first) | Basic Notation Board | full-manual |
+| **Session performer** (Ableton Live) | Basic Session Board | full-manual |
+| **Sample-based producer** (MPC, chopping) | Basic Sampler Board | full-manual |
+| **Learning harmony** | Tracker + Harmony Board | manual-with-hints |
+| **Fast workflow** (phrase building) | Tracker + Phrases Board | assisted |
+| **Chord progression → arrangement** | AI Arranger Board | directed |
+| **Ambient/generative** | Generative Ambient Board | generative |
+
+**Press `Cmd+B` anytime** to open the board switcher and change your workspace.
+
+### The Control Spectrum
+
+CardPlay boards exist on a **Control Spectrum** from full manual to autonomous generation:
+
+- **Full Manual** (`full-manual`) — You write every note (Basic Tracker, Basic Notation)
+- **Manual with Hints** (`manual-with-hints`) — Visual harmony hints while you compose (Tracker + Harmony)
+- **Assisted** (`assisted`) — Drag phrases, trigger generation on-demand (Tracker + Phrases, Session + Generators)
+- **Directed** (`directed`) — Set structure/chords, system generates parts (AI Arranger, AI Composition)
+- **Generative** (`generative`) — Continuous generation, you curate results (Generative Ambient)
+- **Collaborative** (`collaborative`) — Mix manual and generated per-track (Composer, Producer, Live Performance)
+
+**You choose your level of control.** All boards share the same project data—switching boards never loses your work.
+
+### Key Concepts
+
+**Boards** — Configurable workspaces (17 builtin boards spanning all control levels)  
+**Decks** — UI containers within boards (pattern editor, mixer, properties, etc.)  
+**Cards** — Individual components (instruments, effects, tools)  
+**Streams** — Event data shared across all boards (same notes visible in tracker/notation/piano roll)  
+**Gating** — Tool visibility controlled by board's control level (manual boards hide AI tools)
+
+### Documentation
+
+**Start here:**
+- [Board System Overview](./docs/boards/index.md) — What are boards and how do they work?
+- [Control Spectrum Guide](./docs/boards/control-spectrum.md) — Choosing your control level
+- [Board Switcher](./docs/boards/board-switching.md) — How to switch between boards
+
+**Advanced:**
+- [Board API Reference](./docs/boards/board-api.md) — Types and interfaces
+- [Deck System](./docs/boards/deck-stack-system.md) — Understanding decks and stacks
+- [Authoring Boards](./docs/boards/authoring-boards.md) — Create custom boards
+- [Gating Rules](./docs/boards/gating.md) — Tool visibility logic
+
 ---
 
 ## ✨ Vision

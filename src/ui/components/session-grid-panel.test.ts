@@ -3,6 +3,7 @@
  *
  * E078: Unit tests for session-grid panel: slot selection sets active clip context.
  *
+ * @vitest-environment jsdom
  * @module @cardplay/ui/components/session-grid-panel.test
  */
 

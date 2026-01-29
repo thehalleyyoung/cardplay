@@ -30,39 +30,47 @@ import { livePerformanceBoard } from './live-performance-board';
  * Register all builtin boards.
  *
  * Call this once during app initialization to populate the board registry
- * with all built-in board definitions.
+ * with all built-in board definitions. Can be called multiple times safely
+ * (already-registered boards are skipped).
  *
- * @throws {Error} If any board fails validation or has duplicate ID
+ * @throws {Error} If any board fails validation
  */
 export function registerBuiltinBoards(): void {
   const registry = getBoardRegistry();
 
+  // Helper to safely register (skip if already exists)
+  const safeRegister = (board: any) => {
+    if (!registry.get(board.id)) {
+      registry.register(board);
+    }
+  };
+
   // Phase F: Manual Boards
-  registry.register(basicTrackerBoard);          // F031-F060
-  registry.register(pianoRollProducerBoard);
-  registry.register(notationBoardManual);        // F001-F030
-  registry.register(basicSessionBoard);          // F091-F120
-  registry.register(basicSamplerBoard);          // F061-F090
+  safeRegister(basicTrackerBoard);          // F031-F060
+  safeRegister(pianoRollProducerBoard);
+  safeRegister(notationBoardManual);        // F001-F030
+  safeRegister(basicSessionBoard);          // F091-F120
+  safeRegister(basicSamplerBoard);          // F061-F090
 
   // M147: Live Performance Board (tracker-based)
-  registry.register(livePerformanceTrackerBoard);
+  safeRegister(livePerformanceTrackerBoard);
 
   // M177: Modular Routing Board
-  registry.register(modularRoutingBoard);
+  safeRegister(modularRoutingBoard);
 
   // Phase G: Assisted Boards
-  registry.register(trackerPhrasesBoard);        // G031-G060: Tracker + Phrases
-  registry.register(trackerHarmonyBoard);        // G001-G030: Tracker + Harmony
-  registry.register(sessionGeneratorsBoard);     // G061-G090: Session + Generators
-  registry.register(notationHarmonyBoard);       // G091-G120: Notation + Harmony
+  safeRegister(trackerPhrasesBoard);        // G031-G060: Tracker + Phrases
+  safeRegister(trackerHarmonyBoard);        // G001-G030: Tracker + Harmony
+  safeRegister(sessionGeneratorsBoard);     // G061-G090: Session + Generators
+  safeRegister(notationHarmonyBoard);       // G091-G120: Notation + Harmony
 
   // Phase H: Generative Boards
-  registry.register(aiArrangerBoard);            // H001-H025: AI Arranger
-  registry.register(aiCompositionBoard);         // H026-H050: AI Composition
-  registry.register(generativeAmbientBoard);     // H051-H075: Generative Ambient
+  safeRegister(aiArrangerBoard);            // H001-H025: AI Arranger
+  safeRegister(aiCompositionBoard);         // H026-H050: AI Composition
+  safeRegister(generativeAmbientBoard);     // H051-H075: Generative Ambient
 
   // Phase I: Hybrid Boards
-  registry.register(composerBoard);              // I001-I025: Composer Board (Hybrid)
-  registry.register(producerBoard);              // I026-I050: Producer Board (Hybrid)
-  registry.register(livePerformanceBoard);       // I051-I075: Live Performance Board (Hybrid)
+  safeRegister(composerBoard);              // I001-I025: Composer Board (Hybrid)
+  safeRegister(producerBoard);              // I026-I050: Producer Board (Hybrid)
+  safeRegister(livePerformanceBoard);       // I051-I075: Live Performance Board (Hybrid)
 }

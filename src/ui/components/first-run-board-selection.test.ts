@@ -110,8 +110,11 @@ describe('FirstRunBoardSelection', () => {
     const boardCards = selection.querySelectorAll('.first-run__board');
     expect(boardCards.length).toBeGreaterThan(0);
     
+    // Cleanup
+    if (selection.parentNode) {
+      selection.parentNode.removeChild(selection);
+    }
     selection.destroy();
-    document.body.removeChild(selection);
   });
 
   it('should mark first-run complete on selection', async () => {
@@ -137,8 +140,11 @@ describe('FirstRunBoardSelection', () => {
       expect(store.getState().firstRunCompleted).toBe(true);
     }
     
+    // Cleanup
+    if (selection.parentNode) {
+      selection.parentNode.removeChild(selection);
+    }
     selection.destroy();
-    document.body.removeChild(selection);
   });
 
   it('should provide skip option', () => {
@@ -149,8 +155,11 @@ describe('FirstRunBoardSelection', () => {
     expect(skipBtn).toBeDefined();
     expect(skipBtn?.textContent).toContain('Skip');
     
+    // Cleanup
+    if (selection.parentNode) {
+      selection.parentNode.removeChild(selection);
+    }
     selection.destroy();
-    document.body.removeChild(selection);
   });
 
   it('should show control spectrum explanation', () => {
@@ -162,8 +171,11 @@ describe('FirstRunBoardSelection', () => {
     expect(explanation).toBeDefined();
     expect(explanation?.textContent).toBeTruthy();
     
+    // Cleanup
+    if (selection.parentNode) {
+      selection.parentNode.removeChild(selection);
+    }
     selection.destroy();
-    document.body.removeChild(selection);
   });
 
   it('should persist first-run completion', async () => {
@@ -186,8 +198,11 @@ describe('FirstRunBoardSelection', () => {
       expect(state.currentBoardId).toBeDefined();
     }
     
+    // Cleanup
+    if (selection.parentNode) {
+      selection.parentNode.removeChild(selection);
+    }
     selection.destroy();
-    document.body.removeChild(selection);
   });
 
   it('should support user type mapping', () => {
@@ -203,7 +218,10 @@ describe('FirstRunBoardSelection', () => {
     // Verify at least one board is shown
     expect(boardCards.length).toBeGreaterThan(0);
     
+    // Cleanup
+    if (selection.parentNode) {
+      selection.parentNode.removeChild(selection);
+    }
     selection.destroy();
-    document.body.removeChild(selection);
   });
 });

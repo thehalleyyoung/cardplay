@@ -14,7 +14,7 @@ import {
 } from './harmony-analysis';
 import { getSharedEventStore } from '../../state/event-store';
 import { getUndoStack } from '../../state/undo-stack';
-import { EventKinds } from '../../events/event-kinds';
+import { EventKinds } from '../../types/event-kind';
 import { asTick, asTickDuration } from '../../types/primitives';
 import type { EventStreamId, EventId } from '../../state/types';
 
