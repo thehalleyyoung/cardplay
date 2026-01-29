@@ -1,5 +1,5 @@
 /**
- * @fileoverview Preset Tagging System (M217–M219)
+ * @fileoverview Preset Tagging System (M217–M224)
  *
  * Client-side system for tagging, searching, and managing preset favorites
  * and collections. All data is stored locally (no network).
@@ -7,6 +7,8 @@
  * M217: Implement preset tagging system (genre, mood, type, character).
  * M218: Implement preset search by tags and characteristics.
  * M219: Implement preset favorites and collections.
+ * M223: Add preset rating/review system (local only).
+ * M224: Add preset comparison mode (A/B testing).
  *
  * @module @cardplay/ai/learning/preset-tagging
  */
@@ -14,6 +16,40 @@
 // =============================================================================
 // Types
 // =============================================================================
+
+/** A preset review with text and rating. */
+export interface PresetReview {
+  readonly id: string;
+  readonly presetId: string;
+  readonly rating: number;         // 1–5
+  readonly text: string;
+  readonly pros?: string[];
+  readonly cons?: string[];
+  readonly createdAt: number;
+  readonly updatedAt: number;
+}
+
+/** A/B comparison session. */
+export interface PresetComparison {
+  readonly id: string;
+  readonly presetA: string;
+  readonly presetB: string;
+  readonly winner?: 'A' | 'B' | 'tie';
+  readonly notes?: string;
+  readonly criteria?: ComparisonCriteria;
+  readonly createdAt: number;
+  readonly completedAt?: number;
+}
+
+/** Criteria for comparing presets. */
+export interface ComparisonCriteria {
+  readonly warmth?: 'A' | 'B' | 'tie';
+  readonly brightness?: 'A' | 'B' | 'tie';
+  readonly punch?: 'A' | 'B' | 'tie';
+  readonly clarity?: 'A' | 'B' | 'tie';
+  readonly character?: 'A' | 'B' | 'tie';
+  readonly usability?: 'A' | 'B' | 'tie';
+}
 
 /** A tagged preset with metadata. */
 export interface TaggedPreset {
@@ -82,6 +118,10 @@ export interface PresetCollection {
 export class PresetTaggingStore {
   private presets: Map<string, TaggedPreset> = new Map();
   private collections: Map<string, { name: string; description: string; createdAt: number }> = new Map();
+  private reviews: Map<string, PresetReview> = new Map();
+  private comparisons: Map<string, PresetComparison> = new Map();
+  private reviewIdCounter = 0;
+  private comparisonIdCounter = 0;
 
   // ---------------------------------------------------------------------------
   // M217: Tagging
@@ -394,28 +434,263 @@ export class PresetTaggingStore {
   }
 
   // ---------------------------------------------------------------------------
+  // M223: Reviews
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Add a review for a preset.
+   */
+  addReview(presetId: string, rating: number, text: string, pros?: string[], cons?: string[]): PresetReview {
+    const id = `review_${++this.reviewIdCounter}`;
+    const now = Date.now();
+    const review: PresetReview = {
+      id,
+      presetId,
+      rating: Math.max(1, Math.min(5, Math.round(rating))),
+      text,
+      ...(pros !== undefined && { pros }),
+      ...(cons !== undefined && { cons }),
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.reviews.set(id, review);
+    
+    // Also update the preset's rating (average of all reviews)
+    this.updatePresetRatingFromReviews(presetId);
+    
+    return review;
+  }
+
+  /**
+   * Update a review.
+   */
+  updateReview(reviewId: string, updates: { rating?: number; text?: string; pros?: string[]; cons?: string[] }): PresetReview | null {
+    const existing = this.reviews.get(reviewId);
+    if (!existing) return null;
+    
+    const updated: PresetReview = {
+      ...existing,
+      rating: updates.rating != null ? Math.max(1, Math.min(5, Math.round(updates.rating))) : existing.rating,
+      text: updates.text ?? existing.text,
+      ...(updates.pros !== undefined && { pros: updates.pros }),
+      ...(updates.cons !== undefined && { cons: updates.cons }),
+      updatedAt: Date.now(),
+    };
+    this.reviews.set(reviewId, updated);
+    
+    // Update preset rating
+    this.updatePresetRatingFromReviews(updated.presetId);
+    
+    return updated;
+  }
+
+  /**
+   * Delete a review.
+   */
+  deleteReview(reviewId: string): boolean {
+    const review = this.reviews.get(reviewId);
+    if (!review) return false;
+    
+    const deleted = this.reviews.delete(reviewId);
+    if (deleted) {
+      this.updatePresetRatingFromReviews(review.presetId);
+    }
+    return deleted;
+  }
+
+  /**
+   * Get all reviews for a preset.
+   */
+  getReviewsForPreset(presetId: string): readonly PresetReview[] {
+    return Array.from(this.reviews.values())
+      .filter(r => r.presetId === presetId)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  /**
+   * Get review statistics for a preset.
+   */
+  getReviewStats(presetId: string): { count: number; avgRating: number; distribution: Record<number, number> } {
+    const reviews = this.getReviewsForPreset(presetId);
+    if (reviews.length === 0) {
+      return { count: 0, avgRating: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+    }
+    
+    const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let total = 0;
+    for (const review of reviews) {
+      distribution[review.rating] = (distribution[review.rating] ?? 0) + 1;
+      total += review.rating;
+    }
+    
+    return {
+      count: reviews.length,
+      avgRating: total / reviews.length,
+      distribution,
+    };
+  }
+
+  /**
+   * Update preset rating based on review average.
+   */
+  private updatePresetRatingFromReviews(presetId: string): void {
+    const preset = this.presets.get(presetId);
+    if (!preset) return;
+    
+    const stats = this.getReviewStats(presetId);
+    const newRating = stats.count > 0 ? Math.round(stats.avgRating) : 0;
+    
+    if (preset.rating !== newRating) {
+      this.presets.set(presetId, {
+        ...preset,
+        rating: newRating,
+        updatedAt: Date.now(),
+      });
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // M224: A/B Comparison
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Start a new A/B comparison session.
+   */
+  startComparison(presetAId: string, presetBId: string): PresetComparison {
+    const id = `comparison_${++this.comparisonIdCounter}`;
+    const comparison: PresetComparison = {
+      id,
+      presetA: presetAId,
+      presetB: presetBId,
+      createdAt: Date.now(),
+    };
+    this.comparisons.set(id, comparison);
+    return comparison;
+  }
+
+  /**
+   * Complete a comparison with a winner.
+   */
+  completeComparison(
+    comparisonId: string,
+    winner: 'A' | 'B' | 'tie',
+    notes?: string,
+    criteria?: ComparisonCriteria
+  ): PresetComparison | null {
+    const existing = this.comparisons.get(comparisonId);
+    if (!existing) return null;
+    
+    const completed: PresetComparison = {
+      ...existing,
+      winner,
+      ...(notes !== undefined && { notes }),
+      ...(criteria !== undefined && { criteria }),
+      completedAt: Date.now(),
+    };
+    this.comparisons.set(comparisonId, completed);
+    return completed;
+  }
+
+  /**
+   * Get comparison by ID.
+   */
+  getComparison(comparisonId: string): PresetComparison | undefined {
+    return this.comparisons.get(comparisonId);
+  }
+
+  /**
+   * Get all comparisons involving a preset.
+   */
+  getComparisonsForPreset(presetId: string): readonly PresetComparison[] {
+    return Array.from(this.comparisons.values())
+      .filter(c => c.presetA === presetId || c.presetB === presetId)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  /**
+   * Get comparison history (all completed comparisons).
+   */
+  getComparisonHistory(): readonly PresetComparison[] {
+    return Array.from(this.comparisons.values())
+      .filter(c => c.completedAt != null)
+      .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
+  }
+
+  /**
+   * Get win/loss record for a preset.
+   */
+  getPresetRecord(presetId: string): { wins: number; losses: number; ties: number } {
+    let wins = 0, losses = 0, ties = 0;
+    
+    for (const comparison of this.comparisons.values()) {
+      if (!comparison.winner) continue;
+      
+      if (comparison.presetA === presetId) {
+        if (comparison.winner === 'A') wins++;
+        else if (comparison.winner === 'B') losses++;
+        else ties++;
+      } else if (comparison.presetB === presetId) {
+        if (comparison.winner === 'B') wins++;
+        else if (comparison.winner === 'A') losses++;
+        else ties++;
+      }
+    }
+    
+    return { wins, losses, ties };
+  }
+
+  /**
+   * Delete a comparison.
+   */
+  deleteComparison(comparisonId: string): boolean {
+    return this.comparisons.delete(comparisonId);
+  }
+
+  // ---------------------------------------------------------------------------
   // Export / Import
   // ---------------------------------------------------------------------------
 
   /**
-   * Export all preset data.
+   * Export all preset data including reviews and comparisons.
    */
-  exportData(): { presets: TaggedPreset[]; collections: Array<{ id: string; name: string; description: string; createdAt: number }> } {
+  exportData(): {
+    presets: TaggedPreset[];
+    collections: Array<{ id: string; name: string; description: string; createdAt: number }>;
+    reviews: PresetReview[];
+    comparisons: PresetComparison[];
+  } {
     return {
       presets: Array.from(this.presets.values()),
       collections: Array.from(this.collections.entries()).map(([id, c]) => ({ id, ...c })),
+      reviews: Array.from(this.reviews.values()),
+      comparisons: Array.from(this.comparisons.values()),
     };
   }
 
   /**
    * Import preset data (merges with existing).
    */
-  importData(data: { presets: TaggedPreset[]; collections: Array<{ id: string; name: string; description: string; createdAt: number }> }): void {
+  importData(data: {
+    presets: TaggedPreset[];
+    collections: Array<{ id: string; name: string; description: string; createdAt: number }>;
+    reviews?: PresetReview[];
+    comparisons?: PresetComparison[];
+  }): void {
     for (const preset of data.presets) {
       this.presets.set(preset.id, preset);
     }
     for (const col of data.collections) {
       this.collections.set(col.id, { name: col.name, description: col.description, createdAt: col.createdAt });
+    }
+    if (data.reviews) {
+      for (const review of data.reviews) {
+        this.reviews.set(review.id, review);
+      }
+    }
+    if (data.comparisons) {
+      for (const comparison of data.comparisons) {
+        this.comparisons.set(comparison.id, comparison);
+      }
     }
   }
 
@@ -425,6 +700,10 @@ export class PresetTaggingStore {
   clear(): void {
     this.presets.clear();
     this.collections.clear();
+    this.reviews.clear();
+    this.comparisons.clear();
+    this.reviewIdCounter = 0;
+    this.comparisonIdCounter = 0;
   }
 
   /**

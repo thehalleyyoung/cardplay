@@ -103,6 +103,11 @@ export const DECK_TYPE_ICONS: Record<DeckType, IconName> = {
   'ai-advisor-deck': 'ai-advisor',
   'sample-manager-deck': 'samples',
   'modulation-matrix-deck': 'modulation',
+  'track-groups-deck': 'mixer',
+  'mix-bus-deck': 'mixer',
+  'reference-track-deck': 'samples',
+  'spectrum-analyzer-deck': 'mixer',
+  'waveform-editor-deck': 'samples',
 };
 
 /**

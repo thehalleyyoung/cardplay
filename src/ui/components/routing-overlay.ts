@@ -57,6 +57,13 @@ export class RoutingOverlay {
     this.canvas.style.left = '0';
     this.canvas.style.pointerEvents = 'auto';
     this.canvas.style.zIndex = '1000';
+    
+    // J051: Add ARIA attributes for accessibility
+    this.canvas.setAttribute('role', 'application');
+    this.canvas.setAttribute('aria-label', 'Routing graph editor');
+    this.canvas.setAttribute('aria-description', 'Visualizes and edits audio/MIDI routing connections. Use arrow keys to navigate, Enter to select, Delete to remove connections.');
+    this.canvas.setAttribute('tabindex', '0');
+    
     this.container.appendChild(this.canvas);
   }
 
@@ -65,6 +72,12 @@ export class RoutingOverlay {
     this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
     this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
     this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    
+    // J051: Add keyboard navigation support
+    this.canvas.addEventListener('keydown', this.handleKeyDown.bind(this));
+    this.canvas.addEventListener('focus', this.handleFocus.bind(this));
+    this.canvas.addEventListener('blur', this.handleBlur.bind(this));
+    
     window.addEventListener('resize', this.handleResize.bind(this));
   }
 
@@ -354,6 +367,144 @@ export class RoutingOverlay {
     if (this.state.visible) {
       this.render();
     }
+  }
+
+  /**
+   * J051: Handle keyboard navigation
+   */
+  private handleKeyDown(e: KeyboardEvent): void {
+    const graph = getRoutingGraph();
+    const state = graph.getState();
+    
+    // Delete key: remove selected connection
+    if (e.key === 'Delete' && this.state.selectedConnection) {
+      e.preventDefault();
+      const conn = Array.from(state.edges).find(c => c.id === this.state.selectedConnection);
+      if (conn) {
+        const action: UndoAction = {
+          type: 'routing:disconnect',
+          timestamp: Date.now(),
+          undo: () => {
+            graph.connect(conn.from, conn.sourcePort, conn.to, conn.targetPort, conn.type);
+          },
+          redo: () => {
+            graph.disconnect(conn.id);
+          },
+          description: `Disconnect ${conn.from} from ${conn.to}`,
+        };
+        
+        graph.disconnect(conn.id);
+        getUndoStack().push(action);
+        this.state.selectedConnection = null;
+        this.render();
+        this.announceChange('Connection deleted');
+      }
+    }
+    
+    // Arrow keys: navigate between nodes
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      this.navigateNodes(e.key);
+    }
+    
+    // Enter: focus selected node details
+    if (e.key === 'Enter' && this.state.selectedNode) {
+      e.preventDefault();
+      this.announceChange(`Node ${this.state.selectedNode} selected`);
+    }
+    
+    // Escape: clear selection
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      this.state.selectedNode = null;
+      this.state.selectedConnection = null;
+      this.render();
+      this.announceChange('Selection cleared');
+    }
+  }
+
+  /**
+   * J051: Navigate between nodes with arrow keys
+   */
+  private navigateNodes(key: string): void {
+    const graph = getRoutingGraph();
+    const state = graph.getState();
+    const nodes = Array.from(state.nodes.values());
+    
+    if (nodes.length === 0) return;
+    
+    if (!this.state.selectedNode) {
+      // Select first node if none selected
+      const firstNode = nodes[0];
+      if (!firstNode) return;
+      this.state.selectedNode = firstNode.id;
+      this.render();
+      this.announceChange(`Node ${firstNode.name} selected`);
+      return;
+    }
+    
+    const currentIndex = nodes.findIndex(n => n.id === this.state.selectedNode);
+    if (currentIndex === -1) return;
+    
+    let nextIndex = currentIndex;
+    
+    switch (key) {
+      case 'ArrowUp':
+      case 'ArrowLeft':
+        nextIndex = (currentIndex - 1 + nodes.length) % nodes.length;
+        break;
+      case 'ArrowDown':
+      case 'ArrowRight':
+        nextIndex = (currentIndex + 1) % nodes.length;
+        break;
+    }
+    
+    const nextNode = nodes[nextIndex];
+    if (!nextNode) return;
+    this.state.selectedNode = nextNode.id;
+    this.state.selectedConnection = null;
+    this.render();
+    this.announceChange(`Node ${nextNode.name} selected`);
+  }
+
+  /**
+   * J051: Announce changes for screen readers
+   */
+  private announceChange(message: string): void {
+    // Update canvas aria-label with current state
+    this.canvas.setAttribute('aria-label', `Routing graph editor. ${message}`);
+    
+    // Create a live region for announcements if it doesn't exist
+    let liveRegion = document.getElementById('routing-overlay-announcements');
+    if (!liveRegion) {
+      liveRegion = document.createElement('div');
+      liveRegion.id = 'routing-overlay-announcements';
+      liveRegion.setAttribute('role', 'status');
+      liveRegion.setAttribute('aria-live', 'polite');
+      liveRegion.style.position = 'absolute';
+      liveRegion.style.left = '-10000px';
+      liveRegion.style.width = '1px';
+      liveRegion.style.height = '1px';
+      liveRegion.style.overflow = 'hidden';
+      document.body.appendChild(liveRegion);
+    }
+    
+    liveRegion.textContent = message;
+  }
+
+  /**
+   * J051: Handle focus - show visual focus indicator
+   */
+  private handleFocus(): void {
+    this.canvas.style.outline = '2px solid var(--color-focus, #4a9eff)';
+    this.canvas.style.outlineOffset = '2px';
+  }
+
+  /**
+   * J051: Handle blur - remove visual focus indicator
+   */
+  private handleBlur(): void {
+    this.canvas.style.outline = 'none';
   }
 
   destroy(): void {

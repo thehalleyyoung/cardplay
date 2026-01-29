@@ -140,10 +140,8 @@ describe('SessionGridPanel', () => {
         onSlotClick: (slot) => {
           // E078: Slot selection sets active clip context
           if (slot.clipId) {
-            contextStore.setContext({
-              activeClipId: slot.clipId as any, // Cast to branded type
-              activeStreamId: null, // Will be set by clip resolution
-            });
+            contextStore.setActiveClip(slot.clipId as any); // Cast to branded type
+            // activeStreamId will be resolved from clip
           }
         },
       });

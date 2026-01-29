@@ -1,18 +1,20 @@
 /**
- * @fileoverview Tests for Preset Tagging System (M217–M221)
+ * @fileoverview Tests for Preset Tagging System (M217–M224)
  *
  * M217: Preset tagging (genre, mood, type, character)
  * M218: Preset search by tags and characteristics
  * M219: Preset favorites and collections
  * M220: Preset search finds relevant sounds quickly
  * M221: Tagging system is consistent and useful
+ * M223: Preset rating/review system (local only)
+ * M224: Preset comparison mode (A/B testing)
  *
  * @module @cardplay/ai/learning/preset-tagging.test
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PresetTaggingStore } from './preset-tagging';
-import type { TaggedPreset } from './preset-tagging';
+import type { TaggedPreset, ComparisonCriteria } from './preset-tagging';
 
 describe('PresetTaggingStore', () => {
   let store: PresetTaggingStore;
@@ -329,6 +331,198 @@ describe('PresetTaggingStore', () => {
       store.clear();
       expect(store.size).toBe(0);
       expect(store.listCollections().length).toBe(0);
+    });
+  });
+
+  // ===========================================================================
+  // M223: Reviews
+  // ===========================================================================
+  describe('M223: Preset rating/review system', () => {
+    beforeEach(() => {
+      store.addPreset({ id: 'p1', name: 'Test Preset', category: 'pad', tags: [], author: 'user', favorite: false, rating: 0 });
+    });
+
+    it('adds a review for a preset', () => {
+      const review = store.addReview('p1', 4, 'Great warm sound!', ['Warm', 'Rich'], ['CPU heavy']);
+      expect(review.id).toMatch(/^review_/);
+      expect(review.presetId).toBe('p1');
+      expect(review.rating).toBe(4);
+      expect(review.text).toBe('Great warm sound!');
+      expect(review.pros).toEqual(['Warm', 'Rich']);
+      expect(review.cons).toEqual(['CPU heavy']);
+    });
+
+    it('updates preset rating based on review average', () => {
+      store.addReview('p1', 5, 'Excellent!');
+      store.addReview('p1', 3, 'Okay.');
+      store.addReview('p1', 4, 'Good.');
+      
+      const preset = store.getPreset('p1');
+      // Average is 4, should round to 4
+      expect(preset!.rating).toBe(4);
+    });
+
+    it('updates a review', () => {
+      const review = store.addReview('p1', 3, 'Initial review');
+      // Wait a tiny bit to ensure different timestamp
+      const updated = store.updateReview(review.id, { rating: 5, text: 'Changed my mind!' });
+      
+      expect(updated).not.toBeNull();
+      expect(updated!.rating).toBe(5);
+      expect(updated!.text).toBe('Changed my mind!');
+      // updatedAt should be >= createdAt (may be same millisecond)
+      expect(updated!.updatedAt).toBeGreaterThanOrEqual(updated!.createdAt);
+    });
+
+    it('deletes a review and updates preset rating', () => {
+      const r1 = store.addReview('p1', 5, 'Great!');
+      store.addReview('p1', 1, 'Bad!');
+      
+      // Before delete: avg = 3
+      expect(store.getPreset('p1')!.rating).toBe(3);
+      
+      store.deleteReview(r1.id);
+      
+      // After delete: only 1-star review remains
+      expect(store.getPreset('p1')!.rating).toBe(1);
+    });
+
+    it('gets reviews for a preset', () => {
+      store.addReview('p1', 5, 'Review 1');
+      store.addReview('p1', 4, 'Review 2');
+      store.addReview('p1', 3, 'Review 3');
+      
+      const reviews = store.getReviewsForPreset('p1');
+      expect(reviews).toHaveLength(3);
+      // All reviews belong to p1
+      expect(reviews.every(r => r.presetId === 'p1')).toBe(true);
+    });
+
+    it('gets review statistics', () => {
+      store.addReview('p1', 5, 'A');
+      store.addReview('p1', 5, 'B');
+      store.addReview('p1', 4, 'C');
+      store.addReview('p1', 3, 'D');
+      
+      const stats = store.getReviewStats('p1');
+      expect(stats.count).toBe(4);
+      expect(stats.avgRating).toBeCloseTo(4.25);
+      expect(stats.distribution[5]).toBe(2);
+      expect(stats.distribution[4]).toBe(1);
+      expect(stats.distribution[3]).toBe(1);
+    });
+
+    it('clamps rating to 1-5 range', () => {
+      const r1 = store.addReview('p1', 10, 'Too high');
+      const r2 = store.addReview('p1', -5, 'Too low');
+      
+      expect(r1.rating).toBe(5);
+      expect(r2.rating).toBe(1);
+    });
+  });
+
+  // ===========================================================================
+  // M224: A/B Comparison
+  // ===========================================================================
+  describe('M224: Preset comparison mode (A/B testing)', () => {
+    beforeEach(() => {
+      store.addPreset({ id: 'pA', name: 'Preset A', category: 'pad', tags: [], author: 'user', favorite: false, rating: 0 });
+      store.addPreset({ id: 'pB', name: 'Preset B', category: 'pad', tags: [], author: 'user', favorite: false, rating: 0 });
+      store.addPreset({ id: 'pC', name: 'Preset C', category: 'pad', tags: [], author: 'user', favorite: false, rating: 0 });
+    });
+
+    it('starts a comparison session', () => {
+      const comparison = store.startComparison('pA', 'pB');
+      
+      expect(comparison.id).toMatch(/^comparison_/);
+      expect(comparison.presetA).toBe('pA');
+      expect(comparison.presetB).toBe('pB');
+      expect(comparison.winner).toBeUndefined();
+      expect(comparison.completedAt).toBeUndefined();
+    });
+
+    it('completes a comparison with a winner', () => {
+      const comp = store.startComparison('pA', 'pB');
+      const completed = store.completeComparison(comp.id, 'A', 'Preset A had more warmth');
+      
+      expect(completed).not.toBeNull();
+      expect(completed!.winner).toBe('A');
+      expect(completed!.notes).toBe('Preset A had more warmth');
+      expect(completed!.completedAt).toBeGreaterThan(0);
+    });
+
+    it('completes a comparison with criteria', () => {
+      const comp = store.startComparison('pA', 'pB');
+      const criteria: ComparisonCriteria = {
+        warmth: 'A',
+        brightness: 'B',
+        punch: 'A',
+        clarity: 'tie',
+        character: 'A',
+        usability: 'B',
+      };
+      
+      const completed = store.completeComparison(comp.id, 'A', 'Close match', criteria);
+      
+      expect(completed!.criteria).toEqual(criteria);
+    });
+
+    it('gets comparison by ID', () => {
+      const comp = store.startComparison('pA', 'pB');
+      const retrieved = store.getComparison(comp.id);
+      
+      expect(retrieved).toBeDefined();
+      expect(retrieved!.presetA).toBe('pA');
+    });
+
+    it('gets comparisons for a preset', () => {
+      store.startComparison('pA', 'pB');
+      store.startComparison('pA', 'pC');
+      store.startComparison('pB', 'pC');
+      
+      const compsA = store.getComparisonsForPreset('pA');
+      const compsC = store.getComparisonsForPreset('pC');
+      
+      expect(compsA).toHaveLength(2);
+      expect(compsC).toHaveLength(2);
+    });
+
+    it('gets comparison history (completed only)', () => {
+      const c1 = store.startComparison('pA', 'pB');
+      const c2 = store.startComparison('pA', 'pC');
+      store.startComparison('pB', 'pC'); // Not completed
+      
+      store.completeComparison(c1.id, 'A');
+      store.completeComparison(c2.id, 'B');
+      
+      const history = store.getComparisonHistory();
+      expect(history).toHaveLength(2);
+    });
+
+    it('tracks win/loss record for a preset', () => {
+      const c1 = store.startComparison('pA', 'pB');
+      const c2 = store.startComparison('pA', 'pC');
+      const c3 = store.startComparison('pB', 'pA');
+      const c4 = store.startComparison('pC', 'pA');
+      
+      store.completeComparison(c1.id, 'A'); // pA wins
+      store.completeComparison(c2.id, 'A'); // pA wins
+      store.completeComparison(c3.id, 'B'); // pA wins (as B)
+      store.completeComparison(c4.id, 'tie'); // tie
+      
+      const record = store.getPresetRecord('pA');
+      expect(record.wins).toBe(3);
+      expect(record.losses).toBe(0);
+      expect(record.ties).toBe(1);
+    });
+
+    it('deletes a comparison', () => {
+      const comp = store.startComparison('pA', 'pB');
+      expect(store.getComparison(comp.id)).toBeDefined();
+      
+      const deleted = store.deleteComparison(comp.id);
+      expect(deleted).toBe(true);
+      expect(store.getComparison(comp.id)).toBeUndefined();
     });
   });
 });

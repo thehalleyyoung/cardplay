@@ -215,6 +215,34 @@ describe('Notation + Harmony Board (G091-G120)', () => {
     });
   });
 
+  describe('Deck Visibility (G112)', () => {
+    it('G112: harmony deck visible, phrase/generator/AI decks hidden', () => {
+      const deckTypes = notationHarmonyBoard.decks.map(d => d.type);
+      
+      // Harmony deck should be visible
+      expect(deckTypes).toContain('harmony-deck');
+      
+      // No phrase library deck
+      expect(deckTypes).not.toContain('phrase-library-deck');
+      
+      // No generator decks
+      expect(deckTypes).not.toContain('generator-deck');
+      expect(deckTypes).not.toContain('arranger-deck');
+      
+      // No AI composer deck
+      expect(deckTypes).not.toContain('ai-composer-deck');
+      
+      // Verify tool configuration matches
+      expect(notationHarmonyBoard.compositionTools.phraseDatabase.enabled).toBe(false);
+      expect(notationHarmonyBoard.compositionTools.phraseGenerators.enabled).toBe(false);
+      expect(notationHarmonyBoard.compositionTools.aiComposer.enabled).toBe(false);
+      expect(notationHarmonyBoard.compositionTools.arrangerCard.enabled).toBe(false);
+      
+      // Only harmony is enabled
+      expect(notationHarmonyBoard.compositionTools.harmonyExplorer.enabled).toBe(true);
+    });
+  });
+
   describe('Undo Integration (G113-G114)', () => {
     it('G113: clicking chord suggestion updates chord stream and refreshes overlays', async () => {
       const { BoardSettingsStore } = await import('../settings/store');

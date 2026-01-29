@@ -1713,3 +1713,405 @@ spiral_profile_centroid_(PC, [Val|Rest], SX0, SY0, SZ0, W0, SX, SY, SZ, W) :-
   W1 is W0 + Val,
   PC1 is PC + 1,
   spiral_profile_centroid_(PC1, Rest, SX1, SY1, SZ1, W1, SX, SY, SZ, W).
+
+%% ============================================================================
+%% NEW CONSTRAINT TYPE PREDICATES (C411, C511-C513, C689-C691, C789-C791)
+%% ============================================================================
+
+%% Constraint type registrations for new constraint domains
+constraint_type(trailer_build(_, _, _), trailer_build).
+constraint_type(leitmotif(_, _), leitmotif).
+constraint_type(leitmotif(_), leitmotif).
+constraint_type(drone(_, _), drone).
+constraint_type(heterophony(_, _, _), heterophony).
+constraint_type(arranger_style(_), arranger_style).
+constraint_type(scene_arc(_), scene_arc).
+
+%% ============================================================================
+%% TRAILER BUILD PREDICATES (C411)
+%% ============================================================================
+
+%% trailer_build_structure(+BuildBars, +HitCount, -HitPositions)
+%% Compute evenly-spaced hit positions within a build section.
+trailer_build_structure(BuildBars, HitCount, HitPositions) :-
+  HitCount > 0,
+  Interval is BuildBars / HitCount,
+  trailer_hit_positions(0, HitCount, Interval, BuildBars, HitPositions).
+
+trailer_hit_positions(_, 0, _, _, []) :- !.
+trailer_hit_positions(Current, Remaining, Interval, Max, [Current|Rest]) :-
+  Current =< Max,
+  Next is Current + Interval,
+  R1 is Remaining - 1,
+  trailer_hit_positions(Next, R1, Interval, Max, Rest).
+
+%% trailer_riser_type(+Style, -RiserPattern)
+trailer_riser_type(noise_sweep, [noise_sweep]).
+trailer_riser_type(pitch_rise, [pitch_rise]).
+trailer_riser_type(percussion_roll, [percussion_roll]).
+trailer_riser_type(string_trem, [string_trem]).
+trailer_riser_type(combined, [noise_sweep, pitch_rise, percussion_roll]).
+
+%% recommend trailer build parameters from spec
+recommend_param(trailer_build_card, build_bars, 32, 0.8) :-
+  spec_style(current, trailer),
+  spec_tempo(current, T),
+  T >= 120.
+
+recommend_param(trailer_build_card, build_bars, 16, 0.7) :-
+  spec_style(current, trailer),
+  spec_tempo(current, T),
+  T < 120.
+
+%% ============================================================================
+%% LEITMOTIF PREDICATES (C228-C229)
+%% ============================================================================
+
+%% Dynamic storage for motif fingerprints
+:- dynamic(motif_fingerprint/4).  %% motif_fingerprint(MotifId, Intervals, RhythmRatios, Label)
+
+%% Store a motif fingerprint
+store_motif(MotifId, Intervals, RhythmRatios, Label) :-
+  retractall(motif_fingerprint(MotifId, _, _, _)),
+  assertz(motif_fingerprint(MotifId, Intervals, RhythmRatios, Label)).
+
+%% motif_similarity(+Intervals1, +Intervals2, -Score)
+%% Compute normalized interval-sequence similarity (0-1).
+motif_similarity(I1, I2, Score) :-
+  length(I1, L1),
+  length(I2, L2),
+  MinLen is min(L1, L2),
+  MaxLen is max(L1, L2),
+  ( MaxLen =:= 0 -> Score is 1.0
+  ; motif_common_intervals(I1, I2, MinLen, 0, Matches),
+    Score is Matches / MaxLen
+  ).
+
+motif_common_intervals(_, _, 0, Acc, Acc) :- !.
+motif_common_intervals([H1|T1], [H2|T2], N, Acc, Matches) :-
+  N > 0,
+  ( H1 =:= H2 -> Acc1 is Acc + 1 ; Acc1 is Acc ),
+  N1 is N - 1,
+  motif_common_intervals(T1, T2, N1, Acc1, Matches).
+motif_common_intervals(_, _, _, Acc, Acc).
+
+%% motif_transform(+Intervals, +Op, -Transformed)
+motif_transform(Intervals, inversion, Transformed) :-
+  maplist([I, NI]>>(NI is -I), Intervals, Transformed).
+motif_transform(Intervals, retrograde, Transformed) :-
+  reverse(Intervals, Transformed).
+motif_transform(Intervals, augmentation, Transformed) :-
+  maplist([I, NI]>>(NI is I * 2), Intervals, Transformed).
+motif_transform(Intervals, diminution, Transformed) :-
+  maplist([I, NI]>>(NI is I // 2), Intervals, Transformed).
+
+%% ============================================================================
+%% DRONE PREDICATES (C511)
+%% ============================================================================
+
+%% drone_tones_for_raga(+Raga, -DroneTones)
+%% Canonical drone tones for each raga (Sa + Pa or Sa + Ma).
+drone_tones_for_raga(mohanam, [sa, pa]).
+drone_tones_for_raga(hamsadhwani, [sa, pa]).
+drone_tones_for_raga(kalyani, [sa, pa]).
+drone_tones_for_raga(keeravani, [sa, pa]).
+drone_tones_for_raga(shankarabharanam, [sa, pa]).
+drone_tones_for_raga(hindolam, [sa, ma1]).
+drone_tones_for_raga(abhogi, [sa, pa]).
+drone_tones_for_raga(todi, [sa, pa]).
+drone_tones_for_raga(bhairavi, [sa, pa]).
+drone_tones_for_raga(kambhoji, [sa, pa]).
+
+%% drone_tones_for_celtic_tune(+TuneType, +Key, -DroneTones)
+drone_tones_for_celtic_tune(reel, Key, [Key, Fifth]) :- fifth_of(Key, Fifth).
+drone_tones_for_celtic_tune(jig, Key, [Key, Fifth]) :- fifth_of(Key, Fifth).
+drone_tones_for_celtic_tune(air, Key, [Key]).
+drone_tones_for_celtic_tune(_, Key, [Key]).
+
+%% fifth_of(+Root, -Fifth) - compute the fifth above a root
+fifth_of(Root, Fifth) :-
+  note_index(Root, Idx),
+  FifthIdx is (Idx + 7) mod 12,
+  note_index(Fifth, FifthIdx).
+
+%% drone_style_for_culture(+Culture, -Style)
+drone_style_for_culture(carnatic, sruti_box).
+drone_style_for_culture(celtic, pipes).
+drone_style_for_culture(chinese, open_strings).
+drone_style_for_culture(western, sustained).
+
+%% ============================================================================
+%% KORVAI/MORA PREDICATES (C513)
+%% ============================================================================
+
+%% korvai_valid(+TotalBeats, +GapBeats, +PatternLength)
+%% Check if a korvai structure is mathematically valid:
+%% 3 * PatternLength + 2 * GapBeats = TotalBeats
+korvai_valid(TotalBeats, GapBeats, PatternLength) :-
+  PatternLength is (TotalBeats - 2 * GapBeats) / 3,
+  PatternLength > 0,
+  PatternLength =:= round(PatternLength).
+
+%% mora_valid(+TotalBeats, +GapBeats, +PatternLength)
+%% Mora: 3 * PatternLength + 2 * GapBeats = TotalBeats (same math, different context)
+mora_valid(TotalBeats, GapBeats, PatternLength) :-
+  korvai_valid(TotalBeats, GapBeats, PatternLength).
+
+%% tihai_landing_beat(+StartBeat, +PatternLength, +GapBeats, -LandingBeat)
+%% Compute the sam (landing beat) for a tihai.
+tihai_landing_beat(StartBeat, PatternLength, GapBeats, LandingBeat) :-
+  LandingBeat is StartBeat + 3 * PatternLength + 2 * GapBeats.
+
+%% ============================================================================
+%% HETEROPHONY PREDICATES (C789)
+%% ============================================================================
+
+%% heterophony_variation(+ReferenceNotes, +Depth, +VoiceIdx, -VariedNotes)
+%% Generate a variation of the reference melody for a heterophonic voice.
+heterophony_variation(Notes, subtle, _, Notes).  %% subtle = unison (no change)
+heterophony_variation(Notes, moderate, VoiceIdx, Varied) :-
+  Offset is (VoiceIdx mod 3) - 1,  %% -1, 0, or +1 scale degrees
+  maplist(heterophony_offset(Offset), Notes, Varied).
+heterophony_variation(Notes, free, VoiceIdx, Varied) :-
+  Offset is (VoiceIdx mod 5) - 2,  %% -2..+2 scale degrees
+  maplist(heterophony_offset(Offset), Notes, Varied).
+
+heterophony_offset(Offset, Note, VariedNote) :-
+  VariedNote is Note + Offset.
+
+%% heterophony_timing_spread(+BaseOnset, +SpreadAmount, +VoiceIdx, -AdjustedOnset)
+heterophony_timing_spread(Onset, Spread, VoiceIdx, Adjusted) :-
+  Jitter is Spread * ((VoiceIdx mod 7) - 3) / 3.0,
+  Adjusted is Onset + Jitter.
+
+%% ============================================================================
+%% SPEC LINT EXTENSIONS (C837-C838)
+%% ============================================================================
+
+%% Lint: ornament density exceeds instrument technique constraints
+spec_lint_check(Warning, warning) :-
+  constraint(ornament_budget(N)),
+  N > 3,
+  spec_tempo(current, T),
+  T > 140,
+  format(atom(Warning),
+    'Ornament density ~w/beat at tempo ~w exceeds typical technique limits',
+    [N, T]).
+
+%% Lint: heterophony with too many voices may cause masking
+spec_lint_check(Warning, info) :-
+  spec_constraint(current, heterophony(V, _, _), _, _),
+  V > 4,
+  format(atom(Warning),
+    'Heterophony with ~w voices may cause masking; consider 2-4 voices', [V]).
+
+%% Lint: trailer build with sparse percussion is unusual
+spec_lint_check(Warning, info) :-
+  spec_constraint(current, trailer_build(_, _, sparse), _, _),
+  format(atom(Warning),
+    'Trailer builds typically use dense percussion; sparse is unusual', []).
+
+%% ============================================================================
+%% NEW THEORY CARD CONSTRAINT PLUMBING (extensions to C100)
+%% ============================================================================
+
+theory_card_constraint(trailer_build, build_bars, trailer_build).
+theory_card_constraint(trailer_build, hit_count, trailer_build).
+theory_card_constraint(trailer_build, percussion_density, trailer_build).
+theory_card_constraint(leitmotif_library, active_motif_id, leitmotif).
+theory_card_constraint(leitmotif_library, transform_op, leitmotif).
+theory_card_constraint(drone, drone_tone_1, drone).
+theory_card_constraint(drone, drone_tone_2, drone).
+theory_card_constraint(drone, drone_style, drone).
+theory_card_constraint(mridangam_pattern, tala, tala).
+theory_card_constraint(mridangam_pattern, pattern_density, phrase_density).
+theory_card_constraint(korvai_generator, structure, tala).
+theory_card_constraint(korvai_generator, target_beats, tala).
+theory_card_constraint(ornament_generator, instrument, ornament_budget).
+theory_card_constraint(ornament_generator, ornament_budget, ornament_budget).
+theory_card_constraint(bodhran, tune_type, celtic_tune).
+theory_card_constraint(bodhran, humanize, swing).
+theory_card_constraint(heterophony, voice_count, heterophony).
+theory_card_constraint(heterophony, variation_depth, heterophony).
+theory_card_constraint(heterophony, timing_spread, heterophony).
+theory_card_constraint(guzheng_gliss, mode, chinese_mode).
+theory_card_constraint(guzheng_gliss, gliss_rate, ornament_budget).
+theory_card_constraint(erhu_ornament, slide_density, ornament_budget).
+theory_card_constraint(erhu_ornament, vibrato_density, ornament_budget).
+
+%% New theory card recommendations
+recommend_theory_card(style(trailer), trailer_build, 0.9).
+recommend_theory_card(film_device(trailer_rise), trailer_build, 0.95).
+recommend_theory_card(culture(carnatic), drone, 0.8).
+recommend_theory_card(culture(celtic), drone, 0.6).
+recommend_theory_card(culture(carnatic), mridangam_pattern, 0.7).
+recommend_theory_card(culture(carnatic), korvai_generator, 0.6).
+recommend_theory_card(culture(celtic), ornament_generator, 0.8).
+recommend_theory_card(culture(celtic), bodhran, 0.7).
+recommend_theory_card(culture(chinese), heterophony, 0.8).
+recommend_theory_card(culture(chinese), guzheng_gliss, 0.6).
+recommend_theory_card(culture(chinese), erhu_ornament, 0.6).
+
+%% ============================================================================
+%% NEW CONSTRAINT PACKS (extending C091)
+%% ============================================================================
+
+constraint_pack(trailer_heroic, [
+  style(trailer),
+  film_mood(heroic),
+  film_device(trailer_rise),
+  trailer_build(16, 3, dense),
+  culture(western)
+]).
+
+constraint_pack(carnatic_kriti, [
+  culture(carnatic),
+  phrase_density(medium),
+  ornament_budget(2),
+  gamaka_density(medium)
+]).
+
+constraint_pack(celtic_session, [
+  culture(celtic),
+  celtic_tune(reel),
+  ornament_budget(2),
+  accent_model(celtic_dance)
+]).
+
+constraint_pack(chinese_ensemble, [
+  culture(chinese),
+  chinese_mode(gong),
+  heterophony(3, moderate, 0.3),
+  phrase_density(medium)
+]).
+
+%% ============================================================================
+%% SELECTION ANALYZER PREDICATES (C882-C883)
+%% ============================================================================
+
+%% analyze_selection(+Events, -Profile)
+%% Extract a musical profile from a list of note events.
+%% Events: list of event(Pitch, Onset, Duration, Velocity)
+analyze_selection(Events, profile(PitchClasses, IntervalSet, DensityEstimate, RangeSpan)) :-
+  extract_pitch_classes(Events, PitchClasses),
+  extract_intervals(Events, IntervalSet),
+  estimate_density(Events, DensityEstimate),
+  compute_range(Events, RangeSpan).
+
+extract_pitch_classes(Events, PCs) :-
+  findall(PC, (member(event(P, _, _, _), Events), PC is P mod 12), PCsRaw),
+  sort(PCsRaw, PCs).
+
+extract_intervals(Events, Intervals) :-
+  findall(I, (
+    append(_, [event(P1, _, _, _), event(P2, _, _, _)|_], Events),
+    I is P2 - P1
+  ), IntervalsRaw),
+  sort(IntervalsRaw, Intervals).
+
+estimate_density(Events, Density) :-
+  length(Events, N),
+  ( N =< 2 -> Density = sparse
+  ; N =< 8 -> Density = medium
+  ; Density = dense
+  ).
+
+compute_range(Events, Range) :-
+  findall(P, member(event(P, _, _, _), Events), Pitches),
+  ( Pitches = [] -> Range is 0
+  ; min_list(Pitches, Min),
+    max_list(Pitches, Max),
+    Range is Max - Min
+  ).
+
+%% profile_to_culture_match(+Profile, -Culture, -Confidence)
+%% Match a selection profile to a likely culture.
+profile_to_culture_match(profile(PCs, _, _, _), carnatic, 0.8) :-
+  length(PCs, L),
+  L =< 7,
+  L >= 5.
+profile_to_culture_match(profile(PCs, _, _, _), chinese, 0.7) :-
+  length(PCs, L),
+  L =:= 5.
+profile_to_culture_match(profile(PCs, _, _, _), western, 0.6) :-
+  length(PCs, L),
+  L >= 6.
+profile_to_culture_match(profile(_, _, _, _), western, 0.4).  %% fallback
+
+%% profile_to_raga_match(+Profile, -Raga, -Confidence)
+profile_to_raga_match(profile(PCs, _, _, _), Raga, Confidence) :-
+  raga_pcs(Raga, RagaPCs),
+  intersection(PCs, RagaPCs, Common),
+  length(Common, NC),
+  length(PCs, NP),
+  ( NP > 0 -> Confidence is NC / NP ; Confidence is 0 ),
+  Confidence > 0.5.
+
+%% profile_to_chinese_mode_match(+Profile, -Mode, -Confidence)
+profile_to_chinese_mode_match(profile(PCs, _, _, _), Mode, Confidence) :-
+  chinese_pentatonic_mode(Mode, ModePCs),
+  intersection(PCs, ModePCs, Common),
+  length(Common, NC),
+  length(PCs, NP),
+  ( NP > 0 -> Confidence is NC / NP ; Confidence is 0 ),
+  Confidence > 0.5.
+
+%% ============================================================================
+%% MODE SHIFT RECOMMENDATION (C847)
+%% ============================================================================
+
+%% recommend_mode_shift(+CurrentMode, +Context, -TargetMode, -Reasons)
+%% Suggest a mode shift instead of a chord modulation.
+recommend_mode_shift(major, tension_increase, mixolydian,
+  [because('Mixolydian adds bluesy tension while staying close to major')]).
+recommend_mode_shift(major, darken, dorian,
+  [because('Dorian provides a darker color without full minor shift')]).
+recommend_mode_shift(major, brighten, lydian,
+  [because('Lydian raises the 4th for bright, floating quality')]).
+recommend_mode_shift(natural_minor, tension_increase, phrygian,
+  [because('Phrygian adds exotic tension via lowered 2nd')]).
+recommend_mode_shift(natural_minor, lighten, dorian,
+  [because('Dorian raises the 6th for a lighter minor feel')]).
+recommend_mode_shift(dorian, darken, natural_minor,
+  [because('Natural minor darkens by lowering the 6th')]).
+recommend_mode_shift(dorian, brighten, mixolydian,
+  [because('Mixolydian brightens by raising the 3rd')]).
+recommend_mode_shift(phrygian, lighten, natural_minor,
+  [because('Natural minor lightens by raising the 2nd')]).
+recommend_mode_shift(lydian, darken, major,
+  [because('Major restores standard 4th for less ambiguity')]).
+recommend_mode_shift(mixolydian, brighten, major,
+  [because('Major raises the 7th for stronger dominant resolution')]).
+recommend_mode_shift(mixolydian, darken, dorian,
+  [because('Dorian lowers the 3rd for a minor-ish feel')]).
+
+%% ============================================================================
+%% MASKING AVOIDANCE (C851-C853)
+%% ============================================================================
+
+%% masking_avoidance(+Role1, +Role2, -RegisterSeparation)
+%% Minimum register separation (in semitones) to avoid timbral masking.
+masking_avoidance(melody, countermelody, 5).
+masking_avoidance(melody, pad, 12).
+masking_avoidance(melody, bass, 24).
+masking_avoidance(countermelody, pad, 7).
+masking_avoidance(countermelody, bass, 19).
+masking_avoidance(pad, bass, 12).
+masking_avoidance(drone, melody, 12).
+masking_avoidance(drone, countermelody, 7).
+masking_avoidance(R1, R2, Sep) :-
+  R1 @> R2,
+  masking_avoidance(R2, R1, Sep).
+
+%% allocate_registers(+Roles, +TotalRange, -Allocations)
+%% Allocate register ranges to avoid masking.
+allocate_registers(Roles, range(Low, High), Allocations) :-
+  length(Roles, N),
+  Span is High - Low,
+  SliceSize is Span / N,
+  allocate_registers_(Roles, Low, SliceSize, Allocations).
+
+allocate_registers_([], _, _, []).
+allocate_registers_([Role|Rest], Current, Slice, [Role-range(Current, Top)|Allocs]) :-
+  Top is Current + Slice,
+  allocate_registers_(Rest, Top, Slice, Allocs).

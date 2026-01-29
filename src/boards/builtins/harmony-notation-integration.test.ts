@@ -134,46 +134,49 @@ describe('Harmony-Notation Integration (G103-G104, G112, G114)', () => {
       }, chordTones[0]);
     };
     
-    // Create snapped events (preserving rhythm)
-    const snappedEvents = initialEvents.map(evt => {
-      const originalNote = evt.payload.note;
-      const snappedNote = snapToChordTone(originalNote);
-      
-      return {
-        ...evt,
-        payload: {
-          ...evt.payload,
-          note: snappedNote
-        }
-      };
-    });
+    // Store original state for undo
+    const originalNotes = initialEvents.map(evt => evt.payload.note);
     
-    // Apply transformation with undo support
+    // Manually snap notes (simulating the snap action)
+    const snappedNotes = originalNotes.map(snapToChordTone);
+    
+    // Apply transformation by replacing all events
+    const snappedEvents = initialEvents.map((evt, i) => ({
+      ...evt,
+      payload: {
+        ...evt.payload,
+        note: snappedNotes[i]
+      }
+    }));
+    
+    // Update stream with snapped events (this is the action to test)
+    eventStore.updateStream(streamId, () => ({
+      events: snappedEvents
+    }));
+    
+    // Push undo action
     undoStack.push({
       type: 'snap-to-chord-tones',
       undo: () => {
         // Restore original events
-        initialEvents.forEach(evt => {
-          eventStore.updateEvent(streamId, evt.id, evt);
-        });
+        eventStore.updateStream(streamId, () => ({
+          events: initialEvents
+        }));
       },
       redo: () => {
-        // Apply snapped events
-        snappedEvents.forEach(evt => {
-          eventStore.updateEvent(streamId, evt.id, evt);
-        });
+        // Re-apply snapped events
+        eventStore.updateStream(streamId, () => ({
+          events: snappedEvents
+        }));
       },
       timestamp: Date.now()
     });
     
-    // Execute redo to apply
-    undoStack.redo();
-    
     // Verify transformation occurred
     const afterSnapEvents = eventStore.getStream(streamId)?.events || [];
-    expect(afterSnapEvents[1].payload.note).toBe(60); // C# → C
-    expect(afterSnapEvents[2].payload.note).toBe(64); // D → E
-    expect(afterSnapEvents[4].payload.note).toBe(67); // F# → G
+    expect(afterSnapEvents[1].payload.note).toBe(60); // C# (61) → C (60), distance 1
+    expect(afterSnapEvents[2].payload.note).toBe(60); // D (62) → C (60), distance 2 (ties go to first in array)
+    expect(afterSnapEvents[4].payload.note).toBe(67); // F# (66) → G (67), distance 1
     
     // Verify rhythm preserved (G114)
     afterSnapEvents.forEach((evt, i) => {

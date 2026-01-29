@@ -15,6 +15,11 @@ import {
 } from '../theme/theme-applier';
 
 export function applyBoardTheme(board: Board): void {
+  // Skip in non-browser environments (tests)
+  if (typeof document === 'undefined') {
+    return;
+  }
+  
   // Get the complete theme for this board
   const theme = board.theme ?? getBoardTheme(board.controlLevel, board.id);
   
@@ -33,6 +38,11 @@ export function applyBoardTheme(board: Board): void {
 }
 
 export function clearBoardTheme(): void {
+  // Skip in non-browser environments (tests)
+  if (typeof document === 'undefined') {
+    return;
+  }
+  
   const root = document.documentElement;
   
   // Remove all board theme properties

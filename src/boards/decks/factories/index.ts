@@ -26,6 +26,12 @@ export { automationFactory } from './automation-factory';
 export { sampleManagerFactory } from './sample-manager-factory';
 export { effectsRackFactory } from './effects-rack-factory';
 export { modulationMatrixFactory } from './modulation-matrix-factory';
+export { trackGroupsDeckFactory } from './track-groups-factory';
+export { mixBusDeckFactory } from './mix-bus-factory';
+export { referenceTrackDeckFactory } from './reference-track-factory';
+// export { spectrumAnalyzerDeckFactory } from './spectrum-analyzer-factory'; // TODO: implement
+// export { waveformEditorDeckFactory } from './waveform-editor-factory'; // TODO: implement
+export { aiAdvisorFactory } from './ai-advisor-factory';
 
 import { getDeckFactoryRegistry } from '../factory-registry';
 import { patternEditorFactory } from './pattern-editor-factory';
@@ -48,6 +54,12 @@ import { automationFactory } from './automation-factory';
 import { sampleManagerFactory } from './sample-manager-factory';
 import { effectsRackFactory } from './effects-rack-factory';
 import { modulationMatrixFactory } from './modulation-matrix-factory';
+import { trackGroupsDeckFactory } from './track-groups-factory';
+import { mixBusDeckFactory } from './mix-bus-factory';
+import { referenceTrackDeckFactory } from './reference-track-factory';
+// import { spectrumAnalyzerDeckFactory } from './spectrum-analyzer-factory'; // TODO: implement
+// import { waveformEditorDeckFactory } from './waveform-editor-factory'; // TODO: implement
+import { aiAdvisorFactory } from './ai-advisor-factory';
 
 /**
  * Registers all builtin deck factories.
@@ -75,4 +87,10 @@ export function registerBuiltinDeckFactories(): void {
   registry.registerFactory('sample-manager-deck', sampleManagerFactory);
   registry.registerFactory('effects-deck', effectsRackFactory);
   registry.registerFactory('modulation-matrix-deck', modulationMatrixFactory);
+  registry.registerFactory('track-groups-deck', trackGroupsDeckFactory);
+  registry.registerFactory('mix-bus-deck', mixBusDeckFactory);
+  registry.registerFactory('reference-track-deck', referenceTrackDeckFactory);
+  // registry.registerFactory('spectrum-analyzer-deck', spectrumAnalyzerDeckFactory); // TODO: implement
+  // registry.registerFactory('waveform-editor-deck', waveformEditorDeckFactory); // TODO: implement
+  registry.registerFactory('ai-advisor-deck', aiAdvisorFactory);
 }

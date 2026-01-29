@@ -101,23 +101,23 @@ Notes:
 - [ ] C028 Define how to represent microtiming/swing across cultures (where applicable).
 - [ ] C029 Define minimal MIDI↔note-name utilities shared by theory and cards.
 - [ ] C030 Define “pitch class set” representation usable for key detection and raga matching.
-- [ ] C031 Define “voice” representation for multi-voice schemata and arranger patterns.
-- [ ] C032 Define “register model” (octave ranges) for each board (tracker vs arranger).
-- [ ] C033 Define “density” model (events per beat, per voice) for all generators.
-- [ ] C034 Define “tension” model beyond diatonic degrees (chromatic mediants, modal mixture).
-- [ ] C035 Define “cadence” model beyond V–I (galant cadences, cinematic cadences, etc.).
-- [ ] C036 Define “harmonic rhythm” model (rate of chord change) and constraints.
-- [ ] C037 Define “melodic contour” vocabulary shared by GTTM + melody generator.
-- [ ] C038 Define “motivic identity” representation for leitmotifs (interval/rhythm fingerprints).
+- [x] C031 Define "voice" representation for multi-voice schemata and arranger patterns. *(VoiceRole type in music-spec.ts)*
+- [x] C032 Define "register model" (octave ranges) for each board (tracker vs arranger). *(RegisterModel interface in music-spec.ts)*
+- [x] C033 Define "density" model (events per beat, per voice) for all generators. *(DensityLevel type in music-spec.ts)*
+- [x] C034 Define "tension" model beyond diatonic degrees (chromatic mediants, modal mixture). *(TensionDevice type in music-spec.ts)*
+- [x] C035 Define "cadence" model beyond V–I (galant cadences, cinematic cadences, etc.). *(ExtendedCadenceType type in music-spec.ts)*
+- [x] C036 Define "harmonic rhythm" model (rate of chord change) and constraints. *(HarmonicRhythmLevel type in music-spec.ts)*
+- [x] C037 Define "melodic contour" vocabulary shared by GTTM + melody generator. *(MelodicContour type in music-spec.ts)*
+- [x] C038 Define "motivic identity" representation for leitmotifs (interval/rhythm fingerprints). *(MotifFingerprint interface in music-spec.ts)*
 - [ ] C039 Define “schema similarity” metric for fuzzy matching to real phrases.
 - [ ] C040 Define “raga similarity” metric for approximate matching in 12‑TET.
 - [ ] C041 Define “mode similarity” metric (shared degrees + leading-tone behavior).
 - [ ] C042 Define “ornament budget” model (density of ornaments per beat/phrase).
-- [ ] C043 Define “articulation vocabulary” shared by orchestration and tracker (staccato, legato…).
-- [ ] C044 Define “instrument family roles” vocabulary (pad, ostinato, drone, melody, counterline…).
-- [ ] C045 Define “arranger style” taxonomy hooks (style → meter → groove → orchestration).
-- [ ] C046 Define “phrase type” taxonomy hooks (pickup, cadence, fill, turnaround, response…).
-- [ ] C047 Define “tracker pattern role” taxonomy (groove cell, fill, break, build, transition…).
+- [x] C043 Define "articulation vocabulary" shared by orchestration and tracker (staccato, legato…). *(Articulation type in music-spec.ts)*
+- [x] C044 Define "instrument family roles" vocabulary (pad, ostinato, drone, melody, counterline…). *(InstrumentFamily type in music-spec.ts)*
+- [x] C045 Define "arranger style" taxonomy hooks (style → meter → groove → orchestration). *(ArrangerStyle type in music-spec.ts)*
+- [x] C046 Define "phrase type" taxonomy hooks (pickup, cadence, fill, turnaround, response…). *(PhraseType type in music-spec.ts)*
+- [x] C047 Define "tracker pattern role" taxonomy (groove cell, fill, break, build, transition…). *(PatternRole type in music-spec.ts)*
 - [ ] C048 Define “validation rules” for cross-card consistency (spec conflicts).
 - [x] C049 Add Prolog predicate `spec_conflict/3` for explaining incompatible constraints. *(Implemented in music-spec.pl)*
 - [x] C050 Add Prolog predicate `spec_normalize/2` to canonicalize equivalent specs. *(Implemented in music-spec.pl)*
@@ -308,8 +308,8 @@ Notes:
 - [x] C225 Add predicate `motif_fingerprint/2` and `motif_similarity/3`.
 - [ ] C226 Add “leitmotif tracker” that matches motifs against library in project.
 - [ ] C227 Add query wrapper `findMotifOccurrences(events, library)` in TS.
-- [ ] C228 Add card: `LeitmotifLibraryCard` to store motif fingerprints + labels.
-- [ ] C229 Add card: `LeitmotifMatcherCard` to detect motifs in tracker/notation.
+- [x] C228 Add card: `LeitmotifLibraryCard` to store motif fingerprints + labels. *(LEITMOTIF_LIBRARY_CARD in theory-cards.ts)*
+- [x] C229 Add card: `LeitmotifMatcherCard` to detect motifs in tracker/notation. *(LEITMOTIF_MATCHER_CARD in theory-cards.ts)*
 - [x] C230 Add Prolog predicate `motif_label/2` and `motif_occurs/4`.
 - [ ] C231 Add test: motif similarity returns 100 for identical motifs.
 - [ ] C232 Add test: motif similarity decreases with interval perturbations.
@@ -501,7 +501,7 @@ Notes:
 - [x] C408 Add card: `FilmScoringCard` (mood, devices, orchestration roles, motif id).
 - [x] C409 Add card: `OrchestrationRoleCard` (role→instrument family allocation).
 - [x] C410 Add card: `OstinatoCard` (cell length, rhythmic grid, pitch set constraints).
-- [ ] C411 Add card: `TrailerBuildCard` (build length, hits, risers, percussion density).
+- [x] C411 Add card: `TrailerBuildCard` (build length, hits, risers, percussion density). *(TRAILER_BUILD_CARD in theory-cards.ts)*
 - [ ] C412 Add leitmotif library integration with film scoring card (motif → cue suggestions).
 - [x] C413 Add predicate `motif_for_mood/3` recommending motifs or transformations per mood.
 - [x] C414 Add “motif transformation” ops: augmentation, diminution, inversion, reharmonization.
@@ -606,9 +606,9 @@ Notes:
 - [ ] C508 Add integration: phrase generator supports raga constraints for melody generation.
 - [ ] C509 Add integration: arranger supports drone + percussion roles for Carnatic ensemble.
 - [ ] C510 Add card: `CarnaticRagaTalaCard` (raga, tala, jati, eduppu, gamaka density).
-- [ ] C511 Add card: `DroneCard` (sa/pa drone, sruti box controls).
-- [ ] C512 Add card: `MridangamPatternCard` (tala pattern + konnakol mapping).
-- [ ] C513 Add card: `KorvaiGeneratorCard` (korvai/mora builder).
+- [x] C511 Add card: `DroneCard` (sa/pa drone, sruti box controls). *(DRONE_CARD in theory-cards.ts)*
+- [x] C512 Add card: `MridangamPatternCard` (tala pattern + konnakol mapping). *(MRIDANGAM_PATTERN_CARD in theory-cards.ts)*
+- [x] C513 Add card: `KorvaiGeneratorCard` (korvai/mora builder). *(KORVAI_GENERATOR_CARD in theory-cards.ts)*
 - [x] C514 Add “raga phrase insert” tool for tracker (pakad insertion).
 - [x] C515 Add predicate `recommend_pakad/3` (Raga, Context, Pakad).
 - [x] C516 Add “raga mood” mapping (bhava/rasa approximations; optional and cautious).
@@ -789,8 +789,8 @@ Notes:
 - [x] C686 Add “session dynamics” model: gradual layering, instrument entries, endings.
 - [x] C687 Add predicate `celtic_session_arrangement/3`.
 - [ ] C688 Add card: `CelticTuneCard` (tune type, mode, ornaments, form, drone).
-- [ ] C689 Add card: `OrnamentGeneratorCard` (instrument-specific ornaments).
-- [ ] C690 Add card: `BodhranCard` (pattern picker + humanization).
+- [x] C689 Add card: `OrnamentGeneratorCard` (instrument-specific ornaments). *(ORNAMENT_GENERATOR_CARD in theory-cards.ts)*
+- [x] C690 Add card: `BodhranCard` (pattern picker + humanization). *(BODHRAN_CARD in theory-cards.ts)*
 - [ ] C691 Add card: `DroneCard` reused with Celtic presets (pipes drone vs fiddle open strings).
 - [ ] C692 Add integration: phrase generator can emit Celtic ornamentation under constraints.
 - [ ] C693 Add integration: tracker shows AABB form markers and repeat controls.
@@ -894,9 +894,9 @@ Notes:
 - [x] C786 Add “instrument technique” constraints (pipa tremolo, guzheng glissandi).
 - [x] C787 Add predicate `technique/2` and `technique_constraint/3`.
 - [ ] C788 Add card: `ChineseModeCard` (mode, bian tones, heterophony, ornament style).
-- [ ] C789 Add card: `HeterophonyCard` (voices, variation depth, timing spread).
-- [ ] C790 Add card: `GuzhengGlissCard` (gliss rate, pitch set constraints).
-- [ ] C791 Add card: `ErhuOrnamentCard` (slides/vibrato density).
+- [x] C789 Add card: `HeterophonyCard` (voices, variation depth, timing spread). *(HETEROPHONY_CARD in theory-cards.ts)*
+- [x] C790 Add card: `GuzhengGlissCard` (gliss rate, pitch set constraints). *(GUZHENG_GLISS_CARD in theory-cards.ts)*
+- [x] C791 Add card: `ErhuOrnamentCard` (slides/vibrato density). *(ERHU_ORNAMENT_CARD in theory-cards.ts)*
 - [ ] C792 Add integration: arranger supports heterophony role assignment across voices.
 - [ ] C793 Add integration: phrase generator can emit pentatonic melodies with bian tones.
 - [ ] C794 Add integration: tracker shows heterophony lanes (same melody variants).
@@ -942,8 +942,8 @@ Notes:
 - [ ] C834 Add “chinese board” template (phrase + heterophony + ornament + arranger roles).
 - [ ] C835 Add UI overlays: show pentatonic “safe notes” and bian tones distinctly in tracker.
 - [ ] C836 Add UI overlays: show heterophony variation depth per voice.
-- [ ] C837 Add lint: warn if ornament density exceeds instrument technique constraints.
-- [ ] C838 Add `spec_lint/2` warnings for technique overload.
+- [x] C837 Add lint: warn if ornament density exceeds instrument technique constraints. *(spec_lint/2 extension in music-spec.pl)*
+- [x] C838 Add `spec_lint/2` warnings for technique overload. *(In music-spec.pl)*
 - [x] C839 Add notation export mapping for ornaments (slides, grace notes).
 - [x] C840 Add predicate `chinese_ornament_to_notation/3`.
 - [ ] C841 Add TS export path from ornament annotations to notation renderer.
@@ -958,7 +958,7 @@ Notes:
 - [ ] C850 Add integration: heterophony generator uses phrase heads for stable anchors.
 - [x] C851 Add “timbral blend” rules for heterophony (avoid masking).
 - [x] C852 Add predicate `masking_avoidance/3`.
-- [ ] C853 Add integration: arranger voice allocation respects masking avoidance.
+- [x] C853 Add integration: arranger voice allocation respects masking avoidance. *(masking_avoidance/3 and allocate_registers/3 in music-spec.pl)*
 - [ ] C854 Add tests: masking avoidance yields different registers for competing roles.
 - [ ] C855 Add docs: “Heterophony in CardPlay” (why it’s different from polyphony).
 - [ ] C856 Add example: “Same melody, three instruments, varied ornaments”.
@@ -992,13 +992,13 @@ Notes:
 - [ ] C879 Add “schema recognition” on selected tracker region (suggest matching schemata).
 - [ ] C880 Add “film device recognition” on selected chord region (suggest devices in play).
 - [ ] C881 Add “culture recognition” on selected melody (suggest raga/mode match).
-- [ ] C882 Add TS pipeline: selection → extract events/chords → build profile → query KB.
-- [ ] C883 Add a shared `SelectionAnalyzer` utility for tracker/notation/session selections.
+- [x] C882 Add TS pipeline: selection → extract events/chords → build profile → query KB. *(analyzeSelection in selection-analyzer.ts)*
+- [x] C883 Add a shared `SelectionAnalyzer` utility for tracker/notation/session selections. *(selection-analyzer.ts)*
 - [ ] C884 Add “analysis result cards” that display model outputs with explainers.
-- [ ] C885 Add card: `TonalityAnalysisCard` (KS vs DFT vs Spiral comparison).
-- [ ] C886 Add card: `GroupingAnalysisCard` (GTTM boundaries + heads + cadence).
-- [ ] C887 Add card: `SchemaAnalysisCard` (galant schema matches + score).
-- [ ] C888 Add card: `CultureAnalysisCard` (raga/mode matches + confidence).
+- [x] C885 Add card: `TonalityAnalysisCard` (KS vs DFT vs Spiral comparison). *(TONALITY_ANALYSIS_CARD in theory-cards.ts)*
+- [x] C886 Add card: `GroupingAnalysisCard` (GTTM boundaries + heads + cadence). *(GROUPING_ANALYSIS_CARD in theory-cards.ts)*
+- [x] C887 Add card: `SchemaAnalysisCard` (galant schema matches + score). *(SCHEMA_ANALYSIS_CARD in theory-cards.ts)*
+- [x] C888 Add card: `CultureAnalysisCard` (raga/mode matches + confidence). *(CULTURE_ANALYSIS_CARD in theory-cards.ts)*
 - [x] C889 Add “recommend next action” Prolog rules based on analysis results.
 - [x] C890 Add predicate `next_action/3` (Context, HostAction, Reasons).
 - [x] C891 Add “arranger style recommendation” from film mood + culture tags.
@@ -1023,9 +1023,9 @@ Notes:
 - [ ] C910 Add “progressive disclosure” slider that changes visibility and recommendation verbosity.
 - [x] C911 Add Prolog rule `explanation_level/2` derived from control level.
 - [ ] C912 Add UI: explanation level affects how many reasons are shown.
-- [ ] C913 Add “parameter linking” between cards (e.g., tonality model affects harmony explorer).
-- [ ] C914 Add TS linking layer: card param changes trigger updates to dependent cards.
-- [ ] C915 Add “spec event bus” shared by all cards (publish/subscribe to spec changes).
+- [x] C913 Add "parameter linking" between cards (e.g., tonality model affects harmony explorer). *(ParamLink in spec-event-bus.ts)*
+- [x] C914 Add TS linking layer: card param changes trigger updates to dependent cards. *(registerDefaultLinks in spec-event-bus.ts)*
+- [x] C915 Add "spec event bus" shared by all cards (publish/subscribe to spec changes). *(SpecEventBus class in spec-event-bus.ts)*
 - [ ] C916 Add tests: changing TonalityModelCard re-runs harmony suggestions with new model.
 - [ ] C917 Add tests: changing SchemaCard constrains phrase generator output.
 - [ ] C918 Add tests: changing CarnaticRagaTalaCard constrains melody generator pitch set.

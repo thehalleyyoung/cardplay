@@ -32,6 +32,9 @@ import type {
   FilmDevice,
   AccentModel,
   CadenceType,
+  // DensityLevel,
+  // PatternRole,
+  // ArrangerStyle,
   // Explainable,
 } from './music-spec';
 
@@ -791,6 +794,859 @@ export const CHINESE_MODE_CARD: TheoryCardDef = {
 };
 
 // ============================================================================
+// C411 — TRAILER BUILD CARD
+// ============================================================================
+
+export const TRAILER_BUILD_CARD: TheoryCardDef = {
+  cardId: 'theory:trailer_build',
+  displayName: 'Trailer Build',
+  description: 'Build length, hits, risers, and percussion density for trailer cues',
+  category: 'style',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'buildBars',
+      label: 'Build length (bars)',
+      type: 'range',
+      range: { min: 4, max: 64, step: 4 },
+      defaultValue: 16,
+      constraintType: 'trailer_build',
+      hard: false,
+      weight: 0.7,
+      description: 'Number of bars for the build section before the hit/drop',
+    },
+    {
+      id: 'hitCount',
+      label: 'Hit points',
+      type: 'range',
+      range: { min: 0, max: 8, step: 1 },
+      defaultValue: 3,
+      constraintType: 'trailer_build',
+      hard: false,
+      weight: 0.6,
+      description: 'Number of synchronized hit points in the build',
+    },
+    {
+      id: 'percussionDensity',
+      label: 'Percussion density',
+      type: 'enum',
+      enumValues: ['sparse', 'medium', 'dense', 'very_dense'],
+      defaultValue: 'dense',
+      constraintType: 'trailer_build',
+      hard: false,
+      weight: 0.5,
+      description: 'Percussion event density during the build',
+    },
+    {
+      id: 'riserType',
+      label: 'Riser type',
+      type: 'enum',
+      enumValues: ['noise_sweep', 'pitch_rise', 'percussion_roll', 'string_trem', 'combined'],
+      defaultValue: 'combined',
+      constraintType: 'trailer_build',
+      hard: false,
+      weight: 0.4,
+      description: 'Type of riser effect leading to the hit',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const buildBars = getParam<number>(state, 'buildBars');
+    const hitCount = getParam<number>(state, 'hitCount');
+    const density = getParam<string>(state, 'percussionDensity');
+    if (buildBars !== undefined && hitCount !== undefined) {
+      constraints.push({
+        type: 'trailer_build', hard: false, weight: 0.7,
+        buildBars, hitCount,
+        percussionDensity: (density ?? 'dense') as 'sparse' | 'medium' | 'dense' | 'very_dense',
+      });
+    }
+    constraints.push({ type: 'style', hard: false, weight: 0.5, style: 'trailer' as StyleTag });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(spec, 'trailer_build'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C228 — LEITMOTIF LIBRARY CARD
+// ============================================================================
+
+export const LEITMOTIF_LIBRARY_CARD: TheoryCardDef = {
+  cardId: 'theory:leitmotif_library',
+  displayName: 'Leitmotif Library',
+  description: 'Store and manage motif fingerprints with labels for recurring themes',
+  category: 'analysis',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'activeMotifId',
+      label: 'Active motif',
+      type: 'enum',
+      enumValues: ['motif_a', 'motif_b', 'motif_c', 'motif_d', 'motif_e'],
+      defaultValue: 'motif_a',
+      constraintType: 'leitmotif',
+      hard: false,
+      weight: 0.6,
+      description: 'Select the active leitmotif for detection and transformation',
+    },
+    {
+      id: 'transformOp',
+      label: 'Transform',
+      type: 'enum',
+      enumValues: ['none', 'augmentation', 'diminution', 'inversion', 'retrograde', 'reharmonize'],
+      defaultValue: 'none',
+      constraintType: 'leitmotif',
+      hard: false,
+      weight: 0.4,
+      description: 'Transformation to apply when inserting the motif',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const motifId = getParam<string>(state, 'activeMotifId');
+    if (!motifId) return [];
+    const transformOp = getParam<string>(state, 'transformOp');
+    if (transformOp && transformOp !== 'none') {
+      return [{ type: 'leitmotif', hard: false, weight: 0.6, motifId, transformOp: transformOp as 'augmentation' | 'diminution' | 'inversion' | 'retrograde' | 'reharmonize' }];
+    }
+    return [{ type: 'leitmotif', hard: false, weight: 0.6, motifId }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(spec, 'leitmotif'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C229 — LEITMOTIF MATCHER CARD
+// ============================================================================
+
+export const LEITMOTIF_MATCHER_CARD: TheoryCardDef = {
+  cardId: 'theory:leitmotif_matcher',
+  displayName: 'Leitmotif Matcher',
+  description: 'Detect occurrences of stored motifs in tracker/notation selections',
+  category: 'analysis',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'matchThreshold',
+      label: 'Match threshold',
+      type: 'range',
+      range: { min: 0.3, max: 1.0, step: 0.05 },
+      defaultValue: 0.7,
+      constraintType: 'leitmotif',
+      hard: false,
+      weight: 0.5,
+      description: 'Minimum similarity score (0-1) to report a motif match',
+    },
+    {
+      id: 'allowTransposed',
+      label: 'Allow transposed',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'leitmotif',
+      hard: false,
+      weight: 0.3,
+      description: 'Whether to detect motifs transposed to different keys',
+    },
+  ],
+  extractConstraints(): MusicConstraint[] {
+    return [];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return spec;
+  },
+};
+
+// ============================================================================
+// C511 — DRONE CARD
+// ============================================================================
+
+export const DRONE_CARD: TheoryCardDef = {
+  cardId: 'theory:drone',
+  displayName: 'Drone',
+  description: 'Tonic/dominant drone, sruti box, or pipes drone controls',
+  category: 'world',
+  cultures: ['carnatic', 'celtic', 'chinese', 'hybrid'],
+  params: [
+    {
+      id: 'droneTone1',
+      label: 'Drone tone 1',
+      type: 'enum',
+      enumValues: ['c', 'd', 'e', 'f', 'g', 'a', 'b', 'csharp', 'eflat', 'fsharp', 'gsharp', 'bflat'],
+      defaultValue: 'c',
+      constraintType: 'drone',
+      hard: false,
+      weight: 0.6,
+      description: 'Primary drone pitch (typically tonic/Sa)',
+    },
+    {
+      id: 'droneTone2',
+      label: 'Drone tone 2',
+      type: 'enum',
+      enumValues: ['none', 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'csharp', 'eflat', 'fsharp', 'gsharp', 'bflat'],
+      defaultValue: 'g',
+      constraintType: 'drone',
+      hard: false,
+      weight: 0.4,
+      description: 'Secondary drone pitch (typically Pa/dominant, or none)',
+    },
+    {
+      id: 'droneStyle',
+      label: 'Style',
+      type: 'enum',
+      enumValues: ['sustained', 'pulsing', 'sruti_box', 'pipes', 'open_strings'],
+      defaultValue: 'sustained',
+      constraintType: 'drone',
+      hard: false,
+      weight: 0.5,
+      description: 'Drone articulation style',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const tone1 = getParam<string>(state, 'droneTone1');
+    const tone2 = getParam<string>(state, 'droneTone2');
+    const style = getParam<string>(state, 'droneStyle');
+    if (!tone1) return [];
+    const tones = [tone1] as string[];
+    if (tone2 && tone2 !== 'none') tones.push(tone2);
+    return [{
+      type: 'drone', hard: false, weight: 0.6,
+      droneTones: tones as unknown as readonly import('./music-spec').RootName[],
+      droneStyle: (style ?? 'sustained') as 'sustained' | 'pulsing' | 'sruti_box' | 'pipes' | 'open_strings',
+    }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(spec, 'drone'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C512 — MRIDANGAM PATTERN CARD
+// ============================================================================
+
+export const MRIDANGAM_PATTERN_CARD: TheoryCardDef = {
+  cardId: 'theory:mridangam_pattern',
+  displayName: 'Mridangam Pattern',
+  description: 'Tala pattern + konnakol mapping for Carnatic percussion',
+  category: 'world',
+  cultures: ['carnatic', 'hybrid'],
+  params: [
+    {
+      id: 'tala',
+      label: 'Tala',
+      type: 'enum',
+      enumValues: ['adi', 'rupaka', 'misra_chapu', 'khanda_chapu', 'jhampa', 'triputa', 'ata', 'eka'],
+      defaultValue: 'adi',
+      constraintType: 'tala',
+      hard: true,
+      weight: 1.0,
+      description: 'Tala cycle for the pattern',
+    },
+    {
+      id: 'patternDensity',
+      label: 'Pattern density',
+      type: 'enum',
+      enumValues: ['sparse', 'medium', 'dense'],
+      defaultValue: 'medium',
+      constraintType: 'phrase_density',
+      hard: false,
+      weight: 0.5,
+      description: 'Density of mridangam strokes per akshara',
+    },
+    {
+      id: 'showKonnakol',
+      label: 'Show konnakol',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'tala',
+      hard: false,
+      weight: 0.2,
+      description: 'Display konnakol syllables alongside pattern',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const tala = getParam<TalaName>(state, 'tala');
+    if (tala) {
+      constraints.push({ type: 'tala', hard: true, tala });
+    }
+    const density = getParam<'sparse' | 'medium' | 'dense'>(state, 'patternDensity');
+    if (density) {
+      constraints.push({ type: 'phrase_density', hard: false, weight: 0.5, density });
+    }
+    constraints.push({ type: 'culture', hard: true, culture: 'carnatic' });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(withoutConstraintType(spec, 'tala'), 'culture'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C513 — KORVAI GENERATOR CARD
+// ============================================================================
+
+export const KORVAI_GENERATOR_CARD: TheoryCardDef = {
+  cardId: 'theory:korvai_generator',
+  displayName: 'Korvai Generator',
+  description: 'Mathematical cadence builder (korvai/mora) for Carnatic tala cycles',
+  category: 'generation',
+  cultures: ['carnatic', 'hybrid'],
+  params: [
+    {
+      id: 'structure',
+      label: 'Structure',
+      type: 'enum',
+      enumValues: ['korvai_3x', 'mora_3x', 'tihai', 'custom'],
+      defaultValue: 'korvai_3x',
+      constraintType: 'tala',
+      hard: false,
+      weight: 0.7,
+      description: 'Korvai: 3-part cadence; Mora: 3x repeated phrase; Tihai: 3x ending',
+    },
+    {
+      id: 'targetBeats',
+      label: 'Target beats',
+      type: 'range',
+      range: { min: 4, max: 64, step: 1 },
+      defaultValue: 16,
+      constraintType: 'tala',
+      hard: false,
+      weight: 0.6,
+      description: 'Total beat count the korvai must fill exactly',
+    },
+    {
+      id: 'gapBeats',
+      label: 'Gap beats',
+      type: 'range',
+      range: { min: 0, max: 8, step: 1 },
+      defaultValue: 1,
+      constraintType: 'tala',
+      hard: false,
+      weight: 0.4,
+      description: 'Rest beats between repetitions',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    void state;
+    return [{ type: 'culture', hard: true, culture: 'carnatic' }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(spec, 'culture'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C689 — ORNAMENT GENERATOR CARD (Celtic)
+// ============================================================================
+
+export const ORNAMENT_GENERATOR_CARD: TheoryCardDef = {
+  cardId: 'theory:ornament_generator',
+  displayName: 'Ornament Generator',
+  description: 'Instrument-specific ornaments (cuts, taps, rolls, slides) for Celtic tunes',
+  category: 'generation',
+  cultures: ['celtic', 'hybrid'],
+  params: [
+    {
+      id: 'instrument',
+      label: 'Instrument',
+      type: 'enum',
+      enumValues: ['fiddle', 'flute', 'whistle', 'pipes', 'harp', 'bouzouki', 'concertina'],
+      defaultValue: 'fiddle',
+      constraintType: 'ornament_budget',
+      hard: false,
+      weight: 0.5,
+      description: 'Target instrument (determines available ornament types)',
+    },
+    {
+      id: 'ornamentBudget',
+      label: 'Max ornaments/beat',
+      type: 'range',
+      range: { min: 0, max: 4, step: 1 },
+      defaultValue: 2,
+      constraintType: 'ornament_budget',
+      hard: false,
+      weight: 0.6,
+      description: 'Maximum ornament density per beat',
+    },
+    {
+      id: 'preferredOrnaments',
+      label: 'Preferred types',
+      type: 'enum',
+      enumValues: ['cuts_taps', 'rolls', 'slides', 'crans', 'mixed'],
+      defaultValue: 'mixed',
+      constraintType: 'ornament_budget',
+      hard: false,
+      weight: 0.4,
+      description: 'Which ornament families to emphasize',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const budget = getParam<number>(state, 'ornamentBudget');
+    if (budget !== undefined) {
+      constraints.push({ type: 'ornament_budget', hard: false, weight: 0.6, maxPerBeat: budget });
+    }
+    constraints.push({ type: 'culture', hard: true, culture: 'celtic' });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(withoutConstraintType(spec, 'ornament_budget'), 'culture'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C690 — BODHRAN CARD
+// ============================================================================
+
+export const BODHRAN_CARD: TheoryCardDef = {
+  cardId: 'theory:bodhran',
+  displayName: 'Bodhrán Pattern',
+  description: 'Bodhrán pattern picker + humanization for Celtic tunes',
+  category: 'generation',
+  cultures: ['celtic', 'hybrid'],
+  params: [
+    {
+      id: 'tuneType',
+      label: 'Tune type',
+      type: 'enum',
+      enumValues: ['reel', 'jig', 'slip_jig', 'hornpipe', 'strathspey', 'polka'],
+      defaultValue: 'reel',
+      constraintType: 'celtic_tune',
+      hard: false,
+      weight: 0.7,
+      description: 'Tune type determines the base pattern',
+    },
+    {
+      id: 'humanize',
+      label: 'Humanize amount',
+      type: 'range',
+      range: { min: 0, max: 1, step: 0.1 },
+      defaultValue: 0.3,
+      constraintType: 'swing',
+      hard: false,
+      weight: 0.3,
+      description: 'Timing variation for natural feel (0=robot, 1=loose)',
+    },
+    {
+      id: 'accentPattern',
+      label: 'Accent pattern',
+      type: 'enum',
+      enumValues: ['standard', 'driving', 'relaxed', 'cross_rhythm'],
+      defaultValue: 'standard',
+      constraintType: 'accent',
+      hard: false,
+      weight: 0.5,
+      description: 'Accent pattern style',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const tuneType = getParam<CelticTuneType>(state, 'tuneType');
+    if (tuneType) {
+      constraints.push({ type: 'celtic_tune', hard: false, weight: 0.7, tuneType });
+    }
+    constraints.push({ type: 'culture', hard: true, culture: 'celtic' });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(spec, 'culture'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C789 — HETEROPHONY CARD (Chinese)
+// ============================================================================
+
+export const HETEROPHONY_CARD: TheoryCardDef = {
+  cardId: 'theory:heterophony',
+  displayName: 'Heterophony',
+  description: 'Voice count, variation depth, and timing spread for Chinese heterophonic texture',
+  category: 'generation',
+  cultures: ['chinese', 'hybrid'],
+  params: [
+    {
+      id: 'voiceCount',
+      label: 'Voice count',
+      type: 'range',
+      range: { min: 2, max: 6, step: 1 },
+      defaultValue: 3,
+      constraintType: 'heterophony',
+      hard: false,
+      weight: 0.7,
+      description: 'Number of simultaneous voices playing variants of the same melody',
+    },
+    {
+      id: 'variationDepth',
+      label: 'Variation depth',
+      type: 'enum',
+      enumValues: ['subtle', 'moderate', 'free'],
+      defaultValue: 'moderate',
+      constraintType: 'heterophony',
+      hard: false,
+      weight: 0.6,
+      description: 'How much each voice departs from the reference melody',
+    },
+    {
+      id: 'timingSpread',
+      label: 'Timing spread',
+      type: 'range',
+      range: { min: 0, max: 1, step: 0.1 },
+      defaultValue: 0.3,
+      constraintType: 'heterophony',
+      hard: false,
+      weight: 0.4,
+      description: 'How much timing varies between voices (0=unison, 1=very free)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const voices = getParam<number>(state, 'voiceCount');
+    const depth = getParam<string>(state, 'variationDepth');
+    const spread = getParam<number>(state, 'timingSpread');
+    if (voices !== undefined) {
+      constraints.push({
+        type: 'heterophony', hard: false, weight: 0.7,
+        voiceCount: voices,
+        variationDepth: (depth ?? 'moderate') as 'subtle' | 'moderate' | 'free',
+        timingSpread: spread ?? 0.3,
+      });
+    }
+    constraints.push({ type: 'culture', hard: true, culture: 'chinese' });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(withoutConstraintType(spec, 'heterophony'), 'culture'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C790 — GUZHENG GLISS CARD
+// ============================================================================
+
+export const GUZHENG_GLISS_CARD: TheoryCardDef = {
+  cardId: 'theory:guzheng_gliss',
+  displayName: 'Guzheng Glissandi',
+  description: 'Glissando rate, pitch set constraints for guzheng performance',
+  category: 'generation',
+  cultures: ['chinese', 'hybrid'],
+  params: [
+    {
+      id: 'glissRate',
+      label: 'Gliss rate',
+      type: 'enum',
+      enumValues: ['rare', 'occasional', 'frequent'],
+      defaultValue: 'occasional',
+      constraintType: 'ornament_budget',
+      hard: false,
+      weight: 0.5,
+      description: 'How often glissandi occur per phrase',
+    },
+    {
+      id: 'mode',
+      label: 'Mode',
+      type: 'enum',
+      enumValues: ['gong', 'shang', 'jiao', 'zhi', 'yu'],
+      defaultValue: 'gong',
+      constraintType: 'chinese_mode',
+      hard: true,
+      weight: 1.0,
+      description: 'Pentatonic mode restricting gliss pitch content',
+    },
+    {
+      id: 'tremoloDepth',
+      label: 'Tremolo depth',
+      type: 'range',
+      range: { min: 0, max: 1, step: 0.1 },
+      defaultValue: 0.5,
+      constraintType: 'ornament_budget',
+      hard: false,
+      weight: 0.4,
+      description: 'Intensity of right-hand tremolo technique',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const mode = getParam<ChineseModeName>(state, 'mode');
+    if (mode) {
+      constraints.push({ type: 'chinese_mode', hard: true, mode, includeBian: false });
+    }
+    constraints.push({ type: 'culture', hard: true, culture: 'chinese' });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(withoutConstraintType(spec, 'chinese_mode'), 'culture'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C791 — ERHU ORNAMENT CARD
+// ============================================================================
+
+export const ERHU_ORNAMENT_CARD: TheoryCardDef = {
+  cardId: 'theory:erhu_ornament',
+  displayName: 'Erhu Ornaments',
+  description: 'Slides/vibrato density for erhu performance',
+  category: 'generation',
+  cultures: ['chinese', 'hybrid'],
+  params: [
+    {
+      id: 'slideDensity',
+      label: 'Slide density',
+      type: 'enum',
+      enumValues: ['none', 'sparse', 'medium', 'dense'],
+      defaultValue: 'medium',
+      constraintType: 'ornament_budget',
+      hard: false,
+      weight: 0.5,
+      description: 'Frequency of portamento/glissando slides between notes',
+    },
+    {
+      id: 'vibratoDensity',
+      label: 'Vibrato density',
+      type: 'enum',
+      enumValues: ['none', 'light', 'medium', 'heavy'],
+      defaultValue: 'medium',
+      constraintType: 'ornament_budget',
+      hard: false,
+      weight: 0.4,
+      description: 'Amount of left-hand vibrato (yao zhong)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const slideDensity = getParam<string>(state, 'slideDensity');
+    const vibratoDensity = getParam<string>(state, 'vibratoDensity');
+    const densityMap: Record<string, number> = { none: 0, sparse: 1, light: 1, medium: 2, dense: 3, heavy: 3 };
+    const maxBudget = Math.max(densityMap[slideDensity ?? 'medium'] ?? 2, densityMap[vibratoDensity ?? 'medium'] ?? 2);
+    constraints.push({ type: 'ornament_budget', hard: false, weight: 0.5, maxPerBeat: maxBudget });
+    constraints.push({ type: 'culture', hard: true, culture: 'chinese' });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(withoutConstraintType(spec, 'ornament_budget'), 'culture'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C885 — TONALITY ANALYSIS CARD
+// ============================================================================
+
+export const TONALITY_ANALYSIS_CARD: TheoryCardDef = {
+  cardId: 'analysis:tonality',
+  displayName: 'Tonality Analysis',
+  description: 'Compare KS vs DFT vs Spiral Array key detection on selected events',
+  category: 'analysis',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'models',
+      label: 'Models to compare',
+      type: 'enum',
+      enumValues: ['all', 'ks_only', 'dft_only', 'spiral_only', 'ks_dft', 'ks_spiral', 'dft_spiral'],
+      defaultValue: 'all',
+      constraintType: 'tonality_model',
+      hard: false,
+      weight: 0.3,
+      description: 'Which tonality models to include in the comparison',
+    },
+    {
+      id: 'windowSize',
+      label: 'Window size (beats)',
+      type: 'range',
+      range: { min: 4, max: 64, step: 4 },
+      defaultValue: 16,
+      constraintType: 'grouping',
+      hard: false,
+      weight: 0.2,
+      description: 'Analysis window size in beats for windowed tonality detection',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const model = getParam<string>(state, 'models');
+    if (!model || model === 'all') return [];
+    const modelMap: Record<string, TonalityModel> = {
+      ks_only: 'ks_profile', dft_only: 'dft_phase', spiral_only: 'spiral_array',
+    };
+    const resolved = modelMap[model];
+    if (resolved) return [{ type: 'tonality_model', hard: false, weight: 0.3, model: resolved }];
+    return [];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return spec;
+  },
+};
+
+// ============================================================================
+// C886 — GROUPING ANALYSIS CARD
+// ============================================================================
+
+export const GROUPING_ANALYSIS_CARD: TheoryCardDef = {
+  cardId: 'analysis:grouping',
+  displayName: 'Grouping Analysis',
+  description: 'GTTM boundaries + phrase heads + cadence detection on selected events',
+  category: 'analysis',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'sensitivity',
+      label: 'Boundary sensitivity',
+      type: 'range',
+      range: { min: 0, max: 1, step: 0.05 },
+      defaultValue: 0.5,
+      constraintType: 'grouping',
+      hard: false,
+      weight: 0.5,
+      description: 'How aggressively to detect phrase boundaries',
+    },
+    {
+      id: 'showHeads',
+      label: 'Show phrase heads',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'grouping',
+      hard: false,
+      weight: 0.2,
+      description: 'Highlight structurally prominent tones per segment',
+    },
+    {
+      id: 'showCadences',
+      label: 'Show cadences',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'cadence',
+      hard: false,
+      weight: 0.2,
+      description: 'Detect and mark cadences at phrase endings',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const sensitivity = getParam<number>(state, 'sensitivity');
+    if (sensitivity !== undefined) {
+      return [{ type: 'grouping', hard: false, weight: 0.5, sensitivity }];
+    }
+    return [];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return spec;
+  },
+};
+
+// ============================================================================
+// C887 — SCHEMA ANALYSIS CARD
+// ============================================================================
+
+export const SCHEMA_ANALYSIS_CARD: TheoryCardDef = {
+  cardId: 'analysis:schema',
+  displayName: 'Schema Analysis',
+  description: 'Galant schema matches and fit scores on selected chord/degree sequences',
+  category: 'analysis',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'matchThreshold',
+      label: 'Match threshold',
+      type: 'range',
+      range: { min: 0.3, max: 1.0, step: 0.05 },
+      defaultValue: 0.6,
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.3,
+      description: 'Minimum fit score to report a schema match',
+    },
+    {
+      id: 'showVariations',
+      label: 'Show variations',
+      type: 'boolean',
+      defaultValue: false,
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.2,
+      description: 'Include schema variants in matching',
+    },
+  ],
+  extractConstraints(): MusicConstraint[] {
+    return [];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return spec;
+  },
+};
+
+// ============================================================================
+// C888 — CULTURE ANALYSIS CARD
+// ============================================================================
+
+export const CULTURE_ANALYSIS_CARD: TheoryCardDef = {
+  cardId: 'analysis:culture',
+  displayName: 'Culture Analysis',
+  description: 'Raga/mode matches and confidence scores on selected melodic material',
+  category: 'analysis',
+  cultures: ['carnatic', 'celtic', 'chinese', 'western', 'hybrid'],
+  params: [
+    {
+      id: 'cultures',
+      label: 'Cultures to check',
+      type: 'enum',
+      enumValues: ['all', 'carnatic', 'celtic', 'chinese', 'western'],
+      defaultValue: 'all',
+      constraintType: 'culture',
+      hard: false,
+      weight: 0.3,
+      description: 'Which cultural systems to match against',
+    },
+    {
+      id: 'matchThreshold',
+      label: 'Match threshold',
+      type: 'range',
+      range: { min: 0.3, max: 1.0, step: 0.05 },
+      defaultValue: 0.5,
+      constraintType: 'culture',
+      hard: false,
+      weight: 0.3,
+      description: 'Minimum confidence to report a match',
+    },
+  ],
+  extractConstraints(): MusicConstraint[] {
+    return [];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return spec;
+  },
+};
+
+// ============================================================================
 // CARD REGISTRY
 // ============================================================================
 
@@ -798,6 +1654,7 @@ export const CHINESE_MODE_CARD: TheoryCardDef = {
  * All theory card definitions.
  */
 export const THEORY_CARDS: readonly TheoryCardDef[] = [
+  // Core theory cards (C091-C099)
   CONSTRAINT_PACK_CARD,
   TONALITY_MODEL_CARD,
   METER_ACCENT_CARD,
@@ -807,6 +1664,26 @@ export const THEORY_CARDS: readonly TheoryCardDef[] = [
   CARNATIC_RAGA_TALA_CARD,
   CELTIC_TUNE_CARD,
   CHINESE_MODE_CARD,
+  // Film/trailer cards (C228-C229, C411)
+  TRAILER_BUILD_CARD,
+  LEITMOTIF_LIBRARY_CARD,
+  LEITMOTIF_MATCHER_CARD,
+  // Carnatic cards (C511-C513)
+  DRONE_CARD,
+  MRIDANGAM_PATTERN_CARD,
+  KORVAI_GENERATOR_CARD,
+  // Celtic cards (C689-C690)
+  ORNAMENT_GENERATOR_CARD,
+  BODHRAN_CARD,
+  // Chinese cards (C789-C791)
+  HETEROPHONY_CARD,
+  GUZHENG_GLISS_CARD,
+  ERHU_ORNAMENT_CARD,
+  // Analysis cards (C885-C888)
+  TONALITY_ANALYSIS_CARD,
+  GROUPING_ANALYSIS_CARD,
+  SCHEMA_ANALYSIS_CARD,
+  CULTURE_ANALYSIS_CARD,
 ];
 
 /**

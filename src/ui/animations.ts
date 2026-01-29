@@ -56,7 +56,7 @@ export function getAnimationDuration(ms: number): number {
 /**
  * Create a fade-in animation
  */
-export function fadeIn(element: HTMLElement, durationMs = duration.normal): Animation {
+export function fadeIn(element: HTMLElement, durationMs: number = 250): Animation {
   const dur = getAnimationDuration(durationMs);
   return element.animate(
     [
@@ -74,7 +74,7 @@ export function fadeIn(element: HTMLElement, durationMs = duration.normal): Anim
 /**
  * Create a fade-out animation
  */
-export function fadeOut(element: HTMLElement, durationMs = duration.normal): Animation {
+export function fadeOut(element: HTMLElement, durationMs: number = 250): Animation {
   const dur = getAnimationDuration(durationMs);
   return element.animate(
     [

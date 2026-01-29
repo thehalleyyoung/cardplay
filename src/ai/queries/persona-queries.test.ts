@@ -1163,6 +1163,65 @@ describe('Persona-Specific Query Functions', () => {
   });
 
   // ===========================================================================
+  // M286: Automation Suggestions Target Mix-Critical Params
+  // ===========================================================================
+
+  describe('Producer: Automation Targets Mix-Critical (M286)', () => {
+    it('M286: volume is always top priority for all track types', async () => {
+      const vocalLanes = await suggestAutomationLanes('vocals');
+      const drumLanes = await suggestAutomationLanes('drums');
+      const bassLanes = await suggestAutomationLanes('bass');
+      
+      // Volume should be the first suggested lane for all track types
+      expect(vocalLanes[0]!.parameter).toBe('volume');
+      expect(drumLanes[0]!.parameter).toBe('volume');
+      expect(bassLanes[0]!.parameter).toBe('volume');
+    });
+
+    it('M286: pan is high priority for stereo-relevant tracks', async () => {
+      const lanes = await suggestAutomationLanes('synths');
+      const panLane = lanes.find(l => l.parameter === 'pan');
+      expect(panLane).toBeDefined();
+      expect(panLane!.priority).toBeLessThanOrEqual(4); // Should be in top 4
+    });
+
+    it('M286: send levels are suggested for effect-heavy tracks', async () => {
+      const vocalLanes = await suggestAutomationLanes('vocals');
+      const synthLanes = await suggestAutomationLanes('synths');
+      
+      const vocalSends = vocalLanes.filter(l => l.parameter.startsWith('send_'));
+      const synthSends = synthLanes.filter(l => l.parameter.startsWith('send_'));
+      
+      expect(vocalSends.length).toBeGreaterThan(0);
+      expect(synthSends.length).toBeGreaterThan(0);
+    });
+
+    it('M286: filter automation is suggested for synth tracks', async () => {
+      const lanes = await suggestAutomationLanes('synths');
+      const filterParams = lanes.filter(l => 
+        l.parameter.includes('filter') || l.parameter.includes('cutoff')
+      );
+      expect(filterParams.length).toBeGreaterThan(0);
+    });
+
+    it('M286: critical params have lower priority numbers (higher importance)', async () => {
+      const all = await getAllAutomationLaneSuggestions();
+      
+      // Group by priority
+      const byPriority: Record<number, typeof all> = {};
+      for (const lane of all) {
+        byPriority[lane.priority] = byPriority[lane.priority] || [];
+        byPriority[lane.priority].push(lane);
+      }
+      
+      // Priority 1 should contain volume-related params
+      const priority1 = byPriority[1] || [];
+      const priority1Params = priority1.map(l => l.parameter);
+      expect(priority1Params).toContain('volume');
+    });
+  });
+
+  // ===========================================================================
   // M284: Track Coloring Consistency
   // ===========================================================================
 

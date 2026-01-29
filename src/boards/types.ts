@@ -180,7 +180,12 @@ export type DeckType =
   | 'arranger-deck'         // Arranger sections (E057)
   | 'ai-advisor-deck'       // AI Advisor panel (L299)
   | 'sample-manager-deck'   // Sample manager / organizer (M100)
-  | 'modulation-matrix-deck'; // Modulation matrix (M178)
+  | 'modulation-matrix-deck' // Modulation matrix (M178)
+  | 'track-groups-deck'     // Track groups for organizing stems (M258)
+  | 'mix-bus-deck'          // Mix bus for group processing (M259)
+  | 'reference-track-deck'  // Reference track A/B comparison (M260)
+  | 'spectrum-analyzer-deck' // Spectrum analyzer (M179)
+  | 'waveform-editor-deck'; // Waveform editor (M180)
 
 /**
  * Deck card layout style.

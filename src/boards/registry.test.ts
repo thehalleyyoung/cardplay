@@ -150,6 +150,26 @@ describe('BoardRegistry', () => {
       const results = registry.search('nonexistent');
       expect(results).toHaveLength(0);
     });
+    
+    it('C085: should prioritize prefix matches over contains', () => {
+      const board1 = { ...mockBoard, id: 'board-1', name: 'Test Board', description: 'First board' };
+      const board2 = { ...mockBoard, id: 'board-2', name: 'My Test', description: 'Second board' };
+      const board3 = { ...mockBoard, id: 'board-3', name: 'Another Board', description: 'Test description' };
+      
+      registry.register(board1);
+      registry.register(board2);
+      registry.register(board3);
+      
+      const results = registry.search('test');
+      
+      // All should match
+      expect(results).toHaveLength(3);
+      
+      // board1 and board3 start with "Test" - prefix matches first
+      const firstTwo = results.slice(0, 2).map(b => b.id);
+      expect(firstTwo).toContain('board-1');
+      expect(firstTwo).toContain('board-3');
+    });
   });
   
   describe('getByDifficulty', () => {

@@ -106,26 +106,78 @@ export class BoardRegistry {
   
   /**
    * Searches boards by text (name, description, tags).
+   * C085: Fuzzy match implementation (prefix + contains, no deps).
    */
   search(text: string): Board[] {
     const query = text.toLowerCase().trim();
     if (!query) return this.list();
     
-    return this.list().filter(board => {
-      // Search in name
-      if (board.name.toLowerCase().includes(query)) return true;
+    const boards = this.list();
+    const prefixMatches: Board[] = [];
+    const containsMatches: Board[] = [];
+    
+    for (const board of boards) {
+      let matched = false;
+      let isPrefix = false;
       
-      // Search in description
-      if (board.description.toLowerCase().includes(query)) return true;
+      // Check name (highest priority)
+      const name = board.name.toLowerCase();
+      if (name.startsWith(query)) {
+        isPrefix = true;
+        matched = true;
+      } else if (name.includes(query)) {
+        matched = true;
+      }
       
-      // Search in tags
-      if (board.tags?.some(tag => tag.toLowerCase().includes(query))) return true;
+      // Check description (medium priority)
+      if (!matched) {
+        const desc = board.description.toLowerCase();
+        if (desc.startsWith(query)) {
+          isPrefix = true;
+          matched = true;
+        } else if (desc.includes(query)) {
+          matched = true;
+        }
+      }
       
-      // Search in category
-      if (board.category?.toLowerCase().includes(query)) return true;
+      // Check tags (lower priority)
+      if (!matched && board.tags) {
+        for (const tag of board.tags) {
+          const tagLower = tag.toLowerCase();
+          if (tagLower.startsWith(query)) {
+            isPrefix = true;
+            matched = true;
+            break;
+          } else if (tagLower.includes(query)) {
+            matched = true;
+            break;
+          }
+        }
+      }
       
-      return false;
-    });
+      // Check category (lowest priority)
+      if (!matched && board.category) {
+        const category = board.category.toLowerCase();
+        if (category.startsWith(query)) {
+          isPrefix = true;
+          matched = true;
+        } else if (category.includes(query)) {
+          matched = true;
+        }
+      }
+      
+      // Add to appropriate list
+      if (matched) {
+        if (isPrefix) {
+          prefixMatches.push(board);
+        } else {
+          containsMatches.push(board);
+        }
+      }
+    }
+    
+    // Return prefix matches first, then contains matches
+    return [...prefixMatches, ...containsMatches];
   }
   
   /**

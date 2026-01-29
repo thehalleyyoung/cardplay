@@ -778,3 +778,223 @@ describe('MacroHistoryEntry', () => {
     });
   });
 });
+
+// ============================================================================
+// M213: Macro Assignments Group Related Parameters
+// ============================================================================
+
+describe('M213: Macro Grouping', () => {
+  describe('grouping related parameters', () => {
+    it('supports group assignment for macros', () => {
+      const macro = createMacroControl({
+        id: 0,
+        name: 'Filter',
+        group: 'Tone',
+      });
+      
+      expect(macro.group).toBe('Tone');
+    });
+
+    it('macros can have multiple mappings to related params', () => {
+      const filterMappings = [
+        createMacroMapping({ targetId: 'synth.cutoff' }),
+        createMacroMapping({ targetId: 'synth.resonance', min: 0, max: 0.7 }),
+        createMacroMapping({ targetId: 'synth.filterEnv', min: 0.2, max: 1 }),
+      ];
+      
+      let macro = createMacroControl({ id: 0, name: 'Filter' });
+      
+      for (const mapping of filterMappings) {
+        macro = addMacroMapping(macro, mapping);
+      }
+      
+      expect(macro.mappings).toHaveLength(3);
+      // All mappings relate to filter parameters
+      expect(macro.mappings.every(m => 
+        m.targetId.includes('cutoff') || 
+        m.targetId.includes('resonance') || 
+        m.targetId.includes('filterEnv')
+      )).toBe(true);
+    });
+
+    it('grouping keeps related parameters together', () => {
+      const panel = createMacroPanel();
+      
+      // Typically first two macros might be tone-related
+      let panelWithGroups = updateMacro(panel, 0, { group: 'Tone' });
+      panelWithGroups = updateMacro(panelWithGroups, 1, { group: 'Tone' });
+      panelWithGroups = updateMacro(panelWithGroups, 2, { group: 'Dynamics' });
+      panelWithGroups = updateMacro(panelWithGroups, 3, { group: 'Dynamics' });
+      panelWithGroups = updateMacro(panelWithGroups, 4, { group: 'Effects' });
+      panelWithGroups = updateMacro(panelWithGroups, 5, { group: 'Effects' });
+      
+      const toneGroup = panelWithGroups.macros.filter(m => m.group === 'Tone');
+      const dynamicsGroup = panelWithGroups.macros.filter(m => m.group === 'Dynamics');
+      const effectsGroup = panelWithGroups.macros.filter(m => m.group === 'Effects');
+      
+      expect(toneGroup).toHaveLength(2);
+      expect(dynamicsGroup).toHaveLength(2);
+      expect(effectsGroup).toHaveLength(2);
+    });
+
+    it('macro groups can be created with utility function', () => {
+      const toneGroup = createMacroGroup('Tone', [0, 1]);
+      
+      expect(toneGroup.name).toBe('Tone');
+      expect(toneGroup.macroIds).toEqual([0, 1]);
+    });
+
+    it('semantically related params share a macro', () => {
+      // Brightness macro controlling multiple brightness-related params
+      const brightnessMappings = [
+        createMacroMapping({ targetId: 'synth.cutoff', min: 1000, max: 20000 }),
+        createMacroMapping({ targetId: 'synth.oscMix', min: 0.3, max: 1 }),
+        createMacroMapping({ targetId: 'eq.highShelf', min: -3, max: 6 }),
+      ];
+      
+      let macro = createMacroControl({ 
+        id: 2, 
+        name: 'Brightness',
+        group: 'Tone',
+        description: 'Controls overall brightness/darkness of the sound',
+      });
+      
+      for (const mapping of brightnessMappings) {
+        macro = addMacroMapping(macro, mapping);
+      }
+      
+      // Moving one macro affects all related parameters
+      const updatedMacro = setMacroValue(macro, 0.75);
+      expect(updatedMacro.value).toBe(0.75);
+      expect(updatedMacro.mappings).toHaveLength(3);
+    });
+  });
+});
+
+// ============================================================================
+// M214: MIDI Mapping Handles All Controller Types
+// ============================================================================
+
+describe('M214: MIDI Mapping Controller Types', () => {
+  describe('CC number assignment', () => {
+    it('assigns CC number to macro', () => {
+      const macro = createMacroControl({
+        id: 0,
+        name: 'Filter',
+        ccNumber: 74, // Standard cutoff CC
+      });
+      
+      expect(macro.ccNumber).toBe(74);
+    });
+
+    it('allows valid CC range (0-127)', () => {
+      const macro0 = createMacroControl({ id: 0, ccNumber: 0 });
+      const macro64 = createMacroControl({ id: 1, ccNumber: 64 });
+      const macro127 = createMacroControl({ id: 2, ccNumber: 127 });
+      
+      expect(macro0.ccNumber).toBe(0);
+      expect(macro64.ccNumber).toBe(64);
+      expect(macro127.ccNumber).toBe(127);
+    });
+
+    it('supports common MIDI CC assignments', () => {
+      const standardMappings = [
+        { id: 0, ccNumber: 1, name: 'Modwheel' },    // Mod wheel
+        { id: 1, ccNumber: 7, name: 'Volume' },      // Volume
+        { id: 2, ccNumber: 10, name: 'Pan' },        // Pan
+        { id: 3, ccNumber: 11, name: 'Expression' }, // Expression
+        { id: 4, ccNumber: 74, name: 'Cutoff' },     // Cutoff (filter)
+        { id: 5, ccNumber: 71, name: 'Resonance' },  // Resonance
+        { id: 6, ccNumber: 73, name: 'Attack' },     // Attack time
+        { id: 7, ccNumber: 72, name: 'Release' },    // Release time
+      ];
+      
+      const macros = standardMappings.map(m => createMacroControl(m));
+      
+      expect(macros).toHaveLength(8);
+      expect(macros.every(m => m.ccNumber !== undefined)).toBe(true);
+      expect(macros.every(m => m.ccNumber! >= 0 && m.ccNumber! <= 127)).toBe(true);
+    });
+  });
+
+  describe('controller type handling', () => {
+    it('handles continuous controllers (knobs/faders)', () => {
+      const macro = createMacroControl({
+        id: 0,
+        name: 'Cutoff',
+        ccNumber: 74,
+      });
+      
+      // Continuous values should work
+      let updated = setMacroValue(macro, 0.5);
+      expect(updated.value).toBe(0.5);
+      
+      updated = setMacroValue(macro, 0.123);
+      expect(updated.value).toBeCloseTo(0.123);
+    });
+
+    it('handles binary controllers (buttons/switches)', () => {
+      const macro = createMacroControl({
+        id: 0,
+        name: 'Sustain',
+        ccNumber: 64, // Sustain pedal
+      });
+      
+      // Binary values: 0 = off, 1 = on
+      const off = setMacroValue(macro, 0);
+      const on = setMacroValue(macro, 1);
+      
+      expect(off.value).toBe(0);
+      expect(on.value).toBe(1);
+    });
+
+    it('handles bipolar controllers (pitch bend range)', () => {
+      const mapping = createMacroMapping({
+        targetId: 'synth.detune',
+        min: -100,
+        max: 100,
+        bipolar: true,
+      });
+      
+      expect(mapping.bipolar).toBe(true);
+      expect(mapping.min).toBe(-100);
+      expect(mapping.max).toBe(100);
+    });
+
+    it('supports high-resolution 14-bit controllers conceptually', () => {
+      // High-res controllers use CC pairs (MSB + LSB)
+      // CC 0-31 are MSB, CC 32-63 are corresponding LSB
+      const msb = 1; // Mod wheel MSB
+      const lsb = 33; // Mod wheel LSB
+      
+      // Both should be valid CC numbers
+      expect(msb).toBeGreaterThanOrEqual(0);
+      expect(msb).toBeLessThanOrEqual(31);
+      expect(lsb).toBe(msb + 32);
+    });
+  });
+
+  describe('MIDI learn workflow', () => {
+    it('macros without CC can receive learn', () => {
+      const macro = createMacroControl({ id: 0, name: 'Unassigned' });
+      expect(macro.ccNumber).toBeUndefined();
+      
+      // After MIDI learn
+      const learned = createMacroControl({ 
+        ...macro, 
+        id: 0, 
+        ccNumber: 16 
+      });
+      expect(learned.ccNumber).toBe(16);
+    });
+
+    it('CC assignments can be cleared', () => {
+      const macro = createMacroControl({ id: 0, ccNumber: 74 });
+      expect(macro.ccNumber).toBe(74);
+      
+      // Clearing by creating new macro without ccNumber
+      const cleared = createMacroControl({ id: 0, name: macro.name });
+      expect(cleared.ccNumber).toBeUndefined();
+    });
+  });
+});

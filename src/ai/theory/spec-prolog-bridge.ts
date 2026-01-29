@@ -162,6 +162,37 @@ function constraintToPrologFact(constraint: MusicConstraint, specId: string): st
     case 'cadence':
       return `spec_constraint(${specId}, cadence(${constraint.cadenceType}), ${hard}, ${weight}).`;
 
+    case 'trailer_build':
+      return `spec_constraint(${specId}, trailer_build(${constraint.buildBars}, ${constraint.hitCount}, ${constraint.percussionDensity}), ${hard}, ${weight}).`;
+
+    case 'leitmotif':
+      return constraint.transformOp
+        ? `spec_constraint(${specId}, leitmotif(${constraint.motifId}, ${constraint.transformOp}), ${hard}, ${weight}).`
+        : `spec_constraint(${specId}, leitmotif(${constraint.motifId}), ${hard}, ${weight}).`;
+
+    case 'drone': {
+      const tonesList = (constraint.droneTones as readonly string[]).join(', ');
+      return `spec_constraint(${specId}, drone([${tonesList}], ${constraint.droneStyle}), ${hard}, ${weight}).`;
+    }
+
+    case 'pattern_role':
+      return `spec_constraint(${specId}, pattern_role(${constraint.role}), ${hard}, ${weight}).`;
+
+    case 'swing':
+      return `spec_constraint(${specId}, swing(${constraint.amount}), ${hard}, ${weight}).`;
+
+    case 'heterophony':
+      return `spec_constraint(${specId}, heterophony(${constraint.voiceCount}, ${constraint.variationDepth}, ${constraint.timingSpread}), ${hard}, ${weight}).`;
+
+    case 'max_interval':
+      return `spec_constraint(${specId}, max_interval(${constraint.semitones}), ${hard}, ${weight}).`;
+
+    case 'arranger_style':
+      return `spec_constraint(${specId}, arranger_style(${constraint.style}), ${hard}, ${weight}).`;
+
+    case 'scene_arc':
+      return `spec_constraint(${specId}, scene_arc(${constraint.arcType}), ${hard}, ${weight}).`;
+
     default:
       // Should never reach here - custom constraints are handled before the switch (line 89)
       // and all built-in constraint types are handled in cases above
@@ -249,6 +280,28 @@ function constraintToTerm(constraint: MusicConstraint): string {
       return `style(${constraint.style})`;
     case 'culture':
       return `culture(${constraint.culture})`;
+    case 'trailer_build':
+      return `trailer_build(${constraint.buildBars}, ${constraint.hitCount}, ${constraint.percussionDensity})`;
+    case 'leitmotif':
+      return constraint.transformOp
+        ? `leitmotif(${constraint.motifId}, ${constraint.transformOp})`
+        : `leitmotif(${constraint.motifId})`;
+    case 'drone': {
+      const tonesList = (constraint.droneTones as readonly string[]).join(', ');
+      return `drone([${tonesList}], ${constraint.droneStyle})`;
+    }
+    case 'pattern_role':
+      return `pattern_role(${constraint.role})`;
+    case 'swing':
+      return `swing(${constraint.amount})`;
+    case 'heterophony':
+      return `heterophony(${constraint.voiceCount}, ${constraint.variationDepth}, ${constraint.timingSpread})`;
+    case 'max_interval':
+      return `max_interval(${constraint.semitones})`;
+    case 'arranger_style':
+      return `arranger_style(${constraint.style})`;
+    case 'scene_arc':
+      return `scene_arc(${constraint.arcType})`;
     default:
       // Should never reach here - all built-in types handled above, custom types handled before switch
       console.warn(`Unhandled constraint type in term conversion: ${(constraint as any).type}`);

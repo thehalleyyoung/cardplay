@@ -101,12 +101,19 @@ export function duplicateClipSlot(
     type: 'batch',
     description: `Duplicate clip "${sourceClip.name}"`,
     undo: () => {
-      // TODO: Remove clip from registry
-      // For now, log the action
+      // Remove the duplicate clip
+      registry.deleteClip(newClip.id);
       console.info('Undo duplicate clip:', newClip.id);
     },
     redo: () => {
-      // Re-create clip
+      // Re-create clip with same properties
+      registry.createClip({
+        name: `${sourceClip.name} (Copy)`,
+        streamId: sourceClip.streamId,
+        duration: sourceClip.duration,
+        loop: sourceClip.loop,
+        ...(sourceClip.color && { color: sourceClip.color })
+      });
       console.info('Redo duplicate clip');
     }
   });
@@ -144,8 +151,8 @@ export function deleteClipSlot(slot: SessionSlot): boolean {
   // Store clip data for undo
   const clipData = { ...clip };
   
-  // TODO: Remove clip from registry
-  // For MVP, just log the action
+  // Remove clip from registry
+  registry.deleteClip(clip.id);
   console.info('Delete clip:', clip.id);
   
   // Wrap in undo
@@ -153,12 +160,19 @@ export function deleteClipSlot(slot: SessionSlot): boolean {
     type: 'batch',
     description: `Delete clip "${clip.name}"`,
     undo: () => {
-      // Restore clip
+      // Restore clip with original properties
+      registry.createClip({
+        name: clipData.name,
+        streamId: clipData.streamId,
+        duration: clipData.duration,
+        loop: clipData.loop,
+        ...(clipData.color && { color: clipData.color })
+      });
       console.info('Undo delete clip:', clipData);
-      // Would re-create clip with same ID
     },
     redo: () => {
       // Re-delete clip
+      registry.deleteClip(clip.id);
       console.info('Redo delete clip:', clip.id);
     }
   });
@@ -289,8 +303,8 @@ export function createInstrumentOnTrack(
     });
   }
   
-  // TODO: Actually instantiate instrument card with parameters
-  // For MVP, just create the stream/clip structure
+  // Note: Instrument card instantiation handled by deck/routing system
+  // This function creates the stream/clip structure that the instrument will use
   
   // Wrap in undo
   getUndoStack().push({
