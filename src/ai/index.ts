@@ -13,6 +13,7 @@ export * from './engine';
 export * from './knowledge';
 
 // Query helper exports (avoid name collisions with harmony module)
+// Note: Using separate export blocks to avoid ambiguous re-export warnings
 export * from './queries/board-queries';
 export * from './queries/composition-queries';
 export {

@@ -39,6 +39,8 @@ export function computeVisibleDeckTypes(board: Board): readonly DeckType[] {
     'routing-deck',
     'automation-deck',
     'samples-deck',
+    'sample-manager-deck',
+    'modulation-matrix-deck',
   ];
   
   visible.push(...manualDecks);

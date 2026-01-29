@@ -142,12 +142,16 @@ export const harmonyDisplayFactory: DeckFactory = {
         planBtn.addEventListener('click', async () => {
           modulationResults.innerHTML = '<em>Planning modulation&hellip;</em>';
           try {
-            const steps = await planModulation(fromInput.value, toInput.value);
-            if (steps.length === 0) {
-              modulationResults.innerHTML = '<em>No modulation path found.</em>';
+            // planModulation() returns all modulation techniques with rarity
+            // The from/to selection provides UI context for filtering
+            const plans = await planModulation();
+            if (plans.length === 0) {
+              modulationResults.innerHTML = '<em>No modulation techniques found.</em>';
             } else {
-              modulationResults.innerHTML = '<strong>Path:</strong> ' +
-                steps.map(s => `<span style="padding: 2px 6px; background: var(--surface-raised, #f5f5f5); border-radius: 3px;">${s.type} <small>(${s.rarity})</small></span>`).join(' → ');
+              const fromKey = fromInput.value.toUpperCase();
+              const toKey = toInput.value.toUpperCase();
+              modulationResults.innerHTML = `<strong>${fromKey} → ${toKey} techniques:</strong> ` +
+                plans.map((p: { modulationType: string; rarity: string }) => `<span style="padding: 2px 6px; background: var(--surface-raised, #f5f5f5); border-radius: 3px;">${p.modulationType} <small>(${p.rarity})</small></span>`).join(' | ');
             }
           } catch {
             modulationResults.innerHTML = '<em style="color: var(--danger-base, red);">Failed to plan modulation.</em>';

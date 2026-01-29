@@ -292,6 +292,74 @@ export interface MIDIControllerMapping {
   readonly targets: string[];
 }
 
+/** M212: MIDI learn state transition. */
+export interface MIDILearnTransition {
+  readonly fromState: string;
+  readonly event: string;
+  readonly toState: string;
+}
+
+/** M212: MIDI CC type mapping. */
+export interface MIDICCType {
+  readonly ccNumber: number;
+  readonly typicalUse: string;
+}
+
+// =============================================================================
+// Sample Organization & Preset Types (M100, M215–M219)
+// =============================================================================
+
+/** Sample organization scheme. */
+export interface SampleOrganizationScheme {
+  readonly scheme: string;
+  readonly categories: string[];
+}
+
+/** Sample category entry. */
+export interface SampleCategory {
+  readonly category: string;
+  readonly subcategories: string[];
+}
+
+/** Preset metadata field definition. */
+export interface PresetMetadataField {
+  readonly field: string;
+  readonly importance: Importance;
+}
+
+/** Preset tag entry. */
+export interface PresetTag {
+  readonly id: string;
+  readonly name: string;
+  readonly category: string;
+}
+
+/** Preset with tags and metadata. */
+export interface TaggedPreset {
+  readonly id: string;
+  readonly name: string;
+  readonly category: string;
+  readonly tags: readonly string[];
+  readonly author: string;
+  readonly genre?: string;
+  readonly mood?: string;
+  readonly character?: string;
+  readonly favorite: boolean;
+  readonly rating: number;
+}
+
+/** Preset search criteria. */
+export interface PresetSearchCriteria {
+  readonly query?: string;
+  readonly category?: string;
+  readonly tags?: readonly string[];
+  readonly genre?: string;
+  readonly mood?: string;
+  readonly character?: string;
+  readonly favoritesOnly?: boolean;
+  readonly minRating?: number;
+}
+
 // =============================================================================
 // Producer Types (M250–M292)
 // =============================================================================
@@ -1706,6 +1774,57 @@ export async function getAllMIDIControllerMappings(
 }
 
 /**
+ * M212: Get all MIDI learn state transitions.
+ *
+ * Returns the state machine for MIDI learn mode (idle → awaiting_controller
+ * → awaiting_parameter → mapping_confirmed → idle).
+ */
+export async function getMIDILearnTransitions(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<MIDILearnTransition[]> {
+  await ensurePersona('sound-designer', adapter);
+  const results = await adapter.queryAll(
+    'midi_learn_mode(FromState, Event, ToState)'
+  );
+  return results.map((r) => ({
+    fromState: String(r.FromState),
+    event: String(r.Event),
+    toState: String(r.ToState),
+  }));
+}
+
+/**
+ * M212: Get the next state in MIDI learn mode given current state and event.
+ */
+export async function getMIDILearnNextState(
+  currentState: string,
+  event: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string | null> {
+  await ensurePersona('sound-designer', adapter);
+  const result = await adapter.querySingle(
+    `midi_learn_mode(${currentState}, ${event}, NextState)`
+  );
+  return result ? String(result.NextState) : null;
+}
+
+/**
+ * M212: Get all known MIDI CC types.
+ */
+export async function getMIDICCTypes(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<MIDICCType[]> {
+  await ensurePersona('sound-designer', adapter);
+  const results = await adapter.queryAll(
+    'midi_learn_cc_type(CCNum, TypicalUse)'
+  );
+  return results.map((r) => ({
+    ccNumber: Number(r.CCNum),
+    typicalUse: String(r.TypicalUse),
+  }));
+}
+
+/**
  * M186–M188: Get sound designer board presets.
  */
 export async function getSoundDesignerBoardPresets(
@@ -1744,6 +1863,54 @@ export async function getSoundDesignerBoardDecks(
       ...(size != null && { sizePercent: size }),
     };
   });
+}
+
+/**
+ * M100: Get sample organization schemes from the sound-designer KB.
+ * Returns available schemes (by_category, by_mood, by_genre, by_character).
+ */
+export async function getSampleOrganizationSchemes(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<SampleOrganizationScheme[]> {
+  await ensurePersona('sound-designer', adapter);
+  const results = await adapter.queryAll(
+    'preset_organization_scheme(Scheme, Categories)'
+  );
+  return results.map((r) => ({
+    scheme: String(r.Scheme),
+    categories: Array.isArray(r.Categories) ? r.Categories.map(String) : [String(r.Categories)],
+  }));
+}
+
+/**
+ * M100: Get sample categories for a given organization scheme.
+ */
+export async function getSampleCategories(
+  scheme: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<string[]> {
+  await ensurePersona('sound-designer', adapter);
+  const result = await adapter.querySingle(
+    `preset_organization_scheme(${scheme}, Categories)`
+  );
+  if (!result) return [];
+  return Array.isArray(result.Categories) ? result.Categories.map(String) : [String(result.Categories)];
+}
+
+/**
+ * M215: Get preset metadata standard (required/recommended/optional fields).
+ */
+export async function getPresetMetadataStandard(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<PresetMetadataField[]> {
+  await ensurePersona('sound-designer', adapter);
+  const results = await adapter.queryAll(
+    'preset_metadata_standard(Field, Importance)'
+  );
+  return results.map((r) => ({
+    field: String(r.Field),
+    importance: String(r.Importance) as Importance,
+  }));
 }
 
 /**

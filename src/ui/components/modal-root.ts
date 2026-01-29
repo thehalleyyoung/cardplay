@@ -199,7 +199,7 @@ export function getModalRoot(): ModalRoot {
 
 let stylesInjected = false;
 
-function injectModalRootStyles(): void {
+export function injectModalRootStyles(): void {
   if (stylesInjected) return;
   stylesInjected = true;
 

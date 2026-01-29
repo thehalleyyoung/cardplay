@@ -16,6 +16,8 @@
  * - Rock theory (power chords, riffs, subgenres, tunings)
  * - Pop theory (progressions, hooks, production, forms)
  * - EDM theory (beats, drops, synthesis, subgenres)
+ * - Cross-cultural fusion theory
+ * - East Asian music (Chinese, Japanese, Korean)
  *
  * @module @cardplay/ai/knowledge/music-theory-loader
  */
@@ -39,6 +41,8 @@ import musicTheoryLatinPl from './music-theory-latin.pl?raw';
 import musicTheoryRockPl from './music-theory-rock.pl?raw';
 import musicTheoryPopPl from './music-theory-pop.pl?raw';
 import musicTheoryEdmPl from './music-theory-edm.pl?raw';
+import musicTheoryFusionPl from './music-theory-fusion.pl?raw';
+import musicTheoryEastAsianPl from './music-theory-east-asian.pl?raw';
 import musicSpecPl from './music-spec.pl?raw';
 
 /**
@@ -72,6 +76,8 @@ export async function loadMusicTheoryKB(
   await adapter.loadProgram(musicTheoryRockPl, 'music-theory-kb/rock');
   await adapter.loadProgram(musicTheoryPopPl, 'music-theory-kb/pop');
   await adapter.loadProgram(musicTheoryEdmPl, 'music-theory-kb/edm');
+  await adapter.loadProgram(musicTheoryFusionPl, 'music-theory-kb/fusion');
+  await adapter.loadProgram(musicTheoryEastAsianPl, 'music-theory-kb/east-asian');
   await adapter.loadProgram(musicSpecPl, 'music-theory-kb/spec');
   musicTheoryLoaded = true;
 }
@@ -111,6 +117,8 @@ export function getMusicTheorySource(): string {
     musicTheoryRockPl,
     musicTheoryPopPl,
     musicTheoryEdmPl,
+    musicTheoryFusionPl,
+    musicTheoryEastAsianPl,
     musicSpecPl,
   ].join('\n\n');
 }

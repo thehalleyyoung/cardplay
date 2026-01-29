@@ -14,8 +14,10 @@ import { trackerPhrasesBoard } from './stub-tracker-phrases';
 import { trackerHarmonyBoard } from './tracker-harmony-board';
 import { notationBoardManual } from './notation-board-manual';
 import { basicSessionBoard } from './basic-session-board';
+import { basicSamplerBoard } from './basic-sampler-board';
 import { livePerformanceTrackerBoard } from './live-performance-tracker-board';
 import { modularRoutingBoard } from './modular-routing-board';
+import { producerBoard } from './producer-board';
 
 /**
  * Register all builtin boards.
@@ -33,6 +35,7 @@ export function registerBuiltinBoards(): void {
   registry.register(pianoRollProducerBoard);
   registry.register(notationBoardManual);
   registry.register(basicSessionBoard);
+  registry.register(basicSamplerBoard);
 
   // M147: Live Performance Board
   registry.register(livePerformanceTrackerBoard);
@@ -53,7 +56,9 @@ export function registerBuiltinBoards(): void {
   // registry.register(aiCompositionBoard);
   // registry.register(generativeAmbientBoard);
 
+  // M257: Producer Board
+  registry.register(producerBoard);
+
   // Phase I: Hybrid Boards (not yet implemented)
   // registry.register(composerBoard);
-  // registry.register(producerBoard);
 }

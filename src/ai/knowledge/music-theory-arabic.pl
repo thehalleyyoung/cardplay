@@ -294,3 +294,19 @@ arabic_western_fusion(maqam_hijaz, harmonic_minor, augmented_second_shared).
 arabic_western_fusion(iqa_maqsum, four_four_time, align_dum_with_downbeat).
 arabic_western_fusion(taqsim, jazz_solo, free_improvisation_over_maqam).
 arabic_western_fusion(heterophony, counterpoint, parallel_variation_not_independence).
+
+%% ============================================================================
+%% ADDITIONAL ARABIC/MIDDLE EASTERN PREDICATES (C1767, C1783)
+%% ============================================================================
+
+%% heterophony_model(+MainMelody, -Variation, -Relationship)
+%% Heterophony as practiced in Arabic ensemble music. (C1767 — also in east-asian)
+%% NOTE: This predicate is shared with east-asian KB; both define instances.
+
+%% saltanah_state(+MusicFeatures, -PerformerState, -AudienceResponse)
+%% Saltanah — the ecstatic state in Arabic music performance. (C1783)
+saltanah_state(perfect_maqam_execution, deep_concentration, attentive_silence).
+saltanah_state(inspired_taqsim, flow_state, verbal_encouragement).
+saltanah_state(peak_tarab_moment, ecstatic_release, audience_exclamations).
+saltanah_state(unexpected_modulation, creative_inspiration, surprise_and_delight).
+saltanah_state(return_to_qarar, resolution_satisfaction, collective_sigh).

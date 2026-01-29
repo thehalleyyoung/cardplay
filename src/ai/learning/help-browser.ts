@@ -400,9 +400,9 @@ export function registerHelpTopic(topic: HelpTopic): void {
 }
 
 /**
- * Get a help topic by ID.
+ * Get a help topic by ID from the help browser store.
  */
-export function getHelpTopic(topicId: string): HelpTopic | null {
+export function getHelpTopicById(topicId: string): HelpTopic | null {
   return helpStore.get(topicId);
 }
 

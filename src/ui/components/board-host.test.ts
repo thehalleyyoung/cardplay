@@ -1,5 +1,6 @@
 /**
  * Board Host Component Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -133,8 +134,8 @@ describe('BoardHost', () => {
     store.setCurrentBoard('assisted-board');
     await new Promise(resolve => setTimeout(resolve, 0));
     
-    const controlLevel = host.querySelector('.board-host__control-level');
-    expect(controlLevel?.textContent).toBe('assisted');
+    const badge = host.querySelector('.control-spectrum-badge__label');
+    expect(badge?.textContent).toBe('Assisted');
     
     host.destroy();
     document.body.removeChild(host);

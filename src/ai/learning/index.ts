@@ -14,3 +14,4 @@ export * from './session-notes';
 export * from './tutorial-progress';
 export * from './undo-branching';
 export * from './help-browser';
+export * from './preset-tagging';

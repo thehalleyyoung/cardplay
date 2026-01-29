@@ -57,6 +57,10 @@ import {
   // M210: MIDI controller mapping
   mapMIDIController,
   getAllMIDIControllerMappings,
+  // M212: MIDI learn mode
+  getMIDILearnTransitions,
+  getMIDILearnNextState,
+  getMIDICCTypes,
   // Producer
   suggestArrangementStructure,
   getGenreTemplate,
@@ -938,6 +942,46 @@ describe('Persona-Specific Query Functions', () => {
         expect(m.controller).toBeTruthy();
         expect(m.targets.length).toBeGreaterThan(0);
       }
+    });
+  });
+
+  // ===========================================================================
+  // M212: MIDI Learn Mode
+  // ===========================================================================
+
+  describe('Sound Designer: MIDI Learn Mode (M212)', () => {
+    it('M212: returns all MIDI learn state transitions', async () => {
+      const transitions = await getMIDILearnTransitions();
+      expect(transitions.length).toBeGreaterThanOrEqual(7);
+      const fromIdle = transitions.filter(t => t.fromState === 'idle');
+      expect(fromIdle.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('M212: transitions from idle to awaiting_controller on enter_learn', async () => {
+      const next = await getMIDILearnNextState('idle', 'enter_learn');
+      expect(next).toBe('awaiting_controller');
+    });
+
+    it('M212: transitions from awaiting_controller to awaiting_parameter on cc_received', async () => {
+      const next = await getMIDILearnNextState('awaiting_controller', 'cc_received');
+      expect(next).toBe('awaiting_parameter');
+    });
+
+    it('M212: cancel from any state returns to idle', async () => {
+      const n1 = await getMIDILearnNextState('awaiting_controller', 'cancel');
+      expect(n1).toBe('idle');
+      const n2 = await getMIDILearnNextState('awaiting_parameter', 'cancel');
+      expect(n2).toBe('idle');
+      const n3 = await getMIDILearnNextState('mapping_confirmed', 'cancel');
+      expect(n3).toBe('idle');
+    });
+
+    it('M212: returns known MIDI CC types', async () => {
+      const ccTypes = await getMIDICCTypes();
+      expect(ccTypes.length).toBeGreaterThanOrEqual(8);
+      const modWheel = ccTypes.find(c => c.ccNumber === 1);
+      expect(modWheel).toBeDefined();
+      expect(modWheel!.typicalUse).toBe('mod_wheel');
     });
   });
 

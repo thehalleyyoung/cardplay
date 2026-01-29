@@ -764,3 +764,173 @@ move_distance(move(_, _, D), D).
 pc_distance(A, B, Dist) :-
   D is abs(A - B),
   Dist is min(D, 12 - D).
+
+%% ============================================================================
+%% ADDITIONAL SPECTRAL PREDICATES (C1458-C1493)
+%% ============================================================================
+
+%% mfcc_coefficients(+Spectrum, +NumCoeffs, -MFCCs)
+%% Mel-frequency cepstral coefficients for timbre analysis. (C1458)
+mfcc_coefficients(bright_spectrum, 13, [high_c0, low_c1, moderate_c2, low_c3, low_c4,
+  low_c5, low_c6, low_c7, low_c8, low_c9, low_c10, low_c11, low_c12]).
+mfcc_coefficients(dark_spectrum, 13, [low_c0, high_c1, low_c2, moderate_c3, low_c4,
+  low_c5, low_c6, low_c7, low_c8, low_c9, low_c10, low_c11, low_c12]).
+mfcc_coefficients(vocal_spectrum, 13, [moderate_c0, moderate_c1, high_c2, moderate_c3, high_c4,
+  low_c5, low_c6, low_c7, low_c8, low_c9, low_c10, low_c11, low_c12]).
+
+%% additive_synthesis_target(+TargetSpectrum, -Instruments, -Assignment)
+%% Assign instruments to approximate a target spectrum. (C1460)
+additive_synthesis_target(harmonic_rich, [strings, brass, woodwinds],
+  [strings(fundamentals_and_low_partials), brass(mid_partials), woodwinds(high_partials)]).
+additive_synthesis_target(inharmonic, [percussion, piano, prepared_piano],
+  [percussion(noise_component), piano(quasi_harmonic), prepared_piano(inharmonic_partials)]).
+additive_synthesis_target(bell_like, [vibraphone, celesta, harp],
+  [vibraphone(fundamental), celesta(upper_partials), harp(attack_transient)]).
+
+%% murail_spectral_process(+SourceSpec, -Transform, -ResultSpec)
+%% Tristan Murail's spectral compositional processes. (C1464)
+murail_spectral_process(harmonic_series, compression, narrowed_interval_spectrum).
+murail_spectral_process(harmonic_series, expansion, widened_interval_spectrum).
+murail_spectral_process(harmonic_series, frequency_shift, inharmonic_spectrum).
+murail_spectral_process(bell_spectrum, ring_modulation, sum_and_difference_tones).
+murail_spectral_process(vocal_formant, spectral_interpolation, morphed_formant).
+murail_spectral_process(any_spectrum, filtering, partial_spectrum).
+
+%% pitch_class_to_spectral(+PitchClasses, +Fundamental, -Spectrum)
+%% Convert pitch-class set back to spectral representation. (C1466)
+pitch_class_to_spectral([0, 4, 7], c2, [c2_fundamental, e4_5th_partial, g4_6th_partial]).
+pitch_class_to_spectral([0, 3, 7], c2, [c2_fundamental, eb4_approx_partial, g4_6th_partial]).
+pitch_class_to_spectral([0, 2, 4, 5, 7, 9, 11], c1, full_harmonic_approximation).
+
+%% section_blend_matrix(+InstrumentList, -BlendMatrix)
+%% Blend quality matrix for an instrument combination. (C1483)
+section_blend_matrix([flute, oboe], [blend(flute, oboe, moderate)]).
+section_blend_matrix([flute, clarinet], [blend(flute, clarinet, good)]).
+section_blend_matrix([violin, viola], [blend(violin, viola, excellent)]).
+section_blend_matrix([trumpet, trombone], [blend(trumpet, trombone, good)]).
+section_blend_matrix([oboe, clarinet], [blend(oboe, clarinet, moderate)]).
+section_blend_matrix([violin, cello], [blend(violin, cello, excellent)]).
+section_blend_matrix([flute, violin], [blend(flute, violin, good)]).
+section_blend_matrix([horn, cello], [blend(horn, cello, excellent)]).
+
+%% adler_doubling_rule(+Melody, +Dynamics, +Texture, -Doubling)
+%% Samuel Adler's doubling guidelines for orchestration. (C1493)
+adler_doubling_rule(high_melody, piano, thin, single_instrument).
+adler_doubling_rule(high_melody, forte, thick, octave_doubling_with_brightness).
+adler_doubling_rule(low_melody, any_dynamic, any, avoid_close_doubling_below_c3).
+adler_doubling_rule(middle_melody, mezzo_forte, moderate, unison_doubling_different_timbre).
+adler_doubling_rule(bass_line, forte, tutti, double_at_octave_below).
+adler_doubling_rule(inner_voice, piano, chamber, no_doubling_needed).
+adler_doubling_rule(any_melody, fortissimo, climactic, full_section_doubling).
+
+%% ============================================================================
+%% ORCHESTRAL BALANCE & SEPARATION (C1498-C1503)
+%% ============================================================================
+
+%% masking_risk(+Instrument1, +Instrument2, +Register, -Risk)
+%% Additional masking risk predicates. (C1498)
+masking_risk(trumpet, oboe, same_register, high).
+masking_risk(trombone, cello, same_register, moderate).
+masking_risk(flute, violin, high_register, moderate).
+masking_risk(clarinet, viola, middle_register, high).
+masking_risk(horn, bassoon, low_middle_register, moderate).
+masking_risk(piccolo, anything, high_register, low).  %% Piccolo cuts through
+
+%% optimal_spacing(+RegisterRange, -Instruments, -Spacing)
+%% Additional optimal spacing rules. (C1499)
+optimal_spacing(wide, full_orchestra, open_voicing_wider_at_bottom).
+optimal_spacing(narrow, chamber, close_voicing_any_register).
+optimal_spacing(graduated, full_orchestra, wider_intervals_in_bass_closer_in_treble).
+
+%% foreground_background_separation(+Score, -Foreground, -Background)
+%% Separating foreground/background elements. (C1500)
+foreground_background_separation(melody_and_accompaniment, melody_instrument, sustained_harmony).
+foreground_background_separation(counterpoint, primary_line, secondary_lines).
+foreground_background_separation(textural, emerging_melody, background_texture).
+foreground_background_separation(rhythmic, accented_pattern, unaccented_pattern).
+
+%% kennan_grantham_rule(+Situation, -Rule, -Recommendation)
+%% Kennan-Grantham orchestration rules. (C1503)
+kennan_grantham_rule(doubling_at_octave, safe_always, doubles_well_at_any_dynamic).
+kennan_grantham_rule(doubling_at_unison, blend_critical, same_family_preferred).
+kennan_grantham_rule(low_register_spacing, open_intervals, avoid_seconds_below_c3).
+kennan_grantham_rule(crossing_voices, avoid_in_homophony, acceptable_in_counterpoint).
+kennan_grantham_rule(extreme_register, use_sparingly, special_effect_only).
+kennan_grantham_rule(tutti_balance, brass_dominates, reduce_brass_for_balance).
+
+%% ============================================================================
+%% SET-THEORETIC TRANSFORMATIONAL NETWORKS (C1522)
+%% ============================================================================
+
+%% transformational_network(+SetSequence, -Operations, -Network)
+%% Transformational analysis of set-class sequences. (C1522)
+transformational_network([set_a, set_b], [transposition(n)], t_network).
+transformational_network([set_a, set_b], [inversion(n)], i_network).
+transformational_network([major, minor, major], [p, l, p], plr_network).
+transformational_network([c_major, a_minor, f_major], [r, l], rl_chain).
+transformational_network([c_major, ab_major, e_major], [lp, lp], hexatonic_cycle).
+
+%% ============================================================================
+%% COMPUTATIONAL ORCHESTRATION (C1531-C1540)
+%% ============================================================================
+
+%% ircam_orchidea_model(+TargetSound, -Instruments, -Solution)
+%% IRCAM Orchidea-style orchestration model. (C1531)
+ircam_orchidea_model(bright_harmonic, [flute, oboe, violin_harmonic], additive_spectral_match).
+ircam_orchidea_model(dark_sustained, [bass_clarinet, cello, contrabassoon], low_spectral_blend).
+ircam_orchidea_model(percussive_attack, [pizz_violin, marimba, harp], transient_match).
+ircam_orchidea_model(evolving_texture, [flute_multiphonic, cello_sul_pont, vibraphone_bow], spectral_morphing).
+
+%% orchestration_search_space(+Constraints, +NumInstr, -SearchSpace)
+%% Define search space for orchestration. (C1532)
+orchestration_search_space(standard_orchestra, 4, medium_search).
+orchestration_search_space(standard_orchestra, 8, large_search).
+orchestration_search_space(extended_orchestra, 4, large_search).
+orchestration_search_space(chamber, 3, small_search).
+
+%% constraint_satisfaction_orchestration(+Constraints, +Pool, -Assignment)
+%% Constraint satisfaction for orchestration. (C1533)
+constraint_satisfaction_orchestration([bright, sustained, blend_well], woodwinds, [flute, clarinet, oboe]).
+constraint_satisfaction_orchestration([dark, powerful, low], brass, [trombone, tuba, bass_trombone]).
+constraint_satisfaction_orchestration([warm, legato, middle], strings, [viola, cello, violin_2]).
+
+%% genetic_orchestration(+Target, +Population, +Generations, -Best)
+%% Genetic algorithm approach to orchestration. (C1534)
+genetic_orchestration(target_spectrum, random_assignments, 100, best_fitness_assignment).
+genetic_orchestration(target_timbre, seeded_population, 50, converged_assignment).
+
+%% neural_timbre_embedding(+Sound, +Model, -Embedding)
+%% Neural network timbre embedding. (C1535)
+neural_timbre_embedding(violin_sustain, timbral_cnn, vector_128d).
+neural_timbre_embedding(flute_attack, timbral_cnn, vector_128d).
+neural_timbre_embedding(trumpet_mf, timbral_cnn, vector_128d).
+
+%% timbre_space_distance(+Embedding1, +Embedding2, -Distance)
+%% Distance in timbre embedding space. (C1536)
+timbre_space_distance(violin_emb, viola_emb, 0.15).
+timbre_space_distance(violin_emb, trumpet_emb, 0.72).
+timbre_space_distance(flute_emb, clarinet_emb, 0.35).
+timbre_space_distance(oboe_emb, english_horn_emb, 0.18).
+
+%% orchestration_fitness(+Assignment, +Target, -FitnessScore)
+%% Fitness function for orchestration search. (C1537)
+orchestration_fitness(good_blend, target_spectrum, 0.92).
+orchestration_fitness(poor_blend, target_spectrum, 0.34).
+orchestration_fitness(approximate, target_spectrum, 0.71).
+
+%% multi_objective_orchestration(+Targets, +Weights, +Pool, -Pareto)
+%% Multi-objective orchestration optimization. (C1538)
+multi_objective_orchestration([spectral_match, playability], [0.7, 0.3], standard_pool, pareto_front_solutions).
+multi_objective_orchestration([blend, contrast, range], [0.4, 0.3, 0.3], full_pool, pareto_front_solutions).
+
+%% style_transfer_orchestration(+Source, +TargetStyle, +Pool, -Result)
+%% Style transfer for orchestration. (C1539)
+style_transfer_orchestration(piano_score, ravel_style, standard_orchestra, colorful_doublings_and_solos).
+style_transfer_orchestration(piano_score, beethoven_style, classical_orchestra, functional_section_writing).
+style_transfer_orchestration(piano_score, debussy_style, impressionist_orchestra, divided_strings_and_winds).
+
+%% reduction_to_orchestration(+PianoScore, +Style, -FullScore)
+%% Piano reduction to full orchestration. (C1540)
+reduction_to_orchestration(two_hand_piano, romantic, full_romantic_orchestra).
+reduction_to_orchestration(two_hand_piano, classical, classical_period_orchestra).
+reduction_to_orchestration(two_hand_piano, film, modern_film_orchestra).

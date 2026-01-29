@@ -4246,3 +4246,667 @@ export async function getSidechainCompression(
     90
   );
 }
+
+// ============================================================================
+// CROSS-CULTURAL FUSION QUERIES (C2051-C2100)
+// ============================================================================
+
+/** Fusion analysis result. */
+export interface FusionAnalysis {
+  sources: string[];
+  balance: string;
+  elements: string[];
+}
+
+/**
+ * Check scale compatibility between two cultures.
+ * C2052: scale_compatibility/5
+ */
+export async function getScaleCompatibility(
+  scale1: string,
+  culture1: string,
+  scale2: string,
+  culture2: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ compatibility: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `scale_compatibility(${scale1}, ${culture1}, ${scale2}, ${culture2}, Compatibility).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Scale compatibility not found'], 50);
+  }
+
+  return explainable(
+    { compatibility: String(result['Compatibility']) },
+    [`${scale1} (${culture1}) + ${scale2} (${culture2}): ${result['Compatibility']}`],
+    90
+  );
+}
+
+/**
+ * Get rhythm fusion rule.
+ * C2053: rhythm_fusion_rule/4
+ */
+export async function getRhythmFusionRule(
+  rhythm1: string,
+  rhythm2: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ fusionType: string; result: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `rhythm_fusion_rule(${rhythm1}, ${rhythm2}, FusionType, Result).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Rhythm fusion rule not found'], 50);
+  }
+
+  return explainable(
+    { fusionType: String(result['FusionType']), result: String(result['Result']) },
+    [`${rhythm1} + ${rhythm2}: ${result['FusionType']} → ${result['Result']}`],
+    90
+  );
+}
+
+/**
+ * Get cultural element weight/authenticity.
+ * C2054: cultural_element_weight/3
+ */
+export async function getCulturalElementWeight(
+  element: string,
+  culture: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ authenticity: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `cultural_element_weight(${element}, ${culture}, Authenticity).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Cultural element weight not found'], 50);
+  }
+
+  return explainable(
+    { authenticity: String(result['Authenticity']) },
+    [`${element} in ${culture}: ${result['Authenticity']} importance`],
+    90
+  );
+}
+
+/**
+ * Get fusion genre definition.
+ * C2056: fusion_genre/4
+ */
+export async function getFusionGenre(
+  genreName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ culture1: string; culture2: string; characteristics: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `fusion_genre(${genreName}, Culture1, Culture2, Characteristics).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Fusion genre not found'], 50);
+  }
+
+  const characteristics = Array.isArray(result['Characteristics'])
+    ? (result['Characteristics'] as unknown[]).map(String) : [];
+
+  return explainable(
+    {
+      culture1: String(result['Culture1']),
+      culture2: String(result['Culture2']),
+      characteristics,
+    },
+    [`Fusion ${genreName}: ${result['Culture1']} + ${result['Culture2']}`],
+    90
+  );
+}
+
+/**
+ * Suggest fusion approach between two cultures.
+ * C2071: Uses fusion_genre/4 and rhythm_fusion_rule/4
+ */
+export async function suggestFusionApproach(
+  culture1: string,
+  culture2: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ genre: string; characteristics: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `fusion_genre(Genre, ${culture1}, ${culture2}, Characteristics).`
+  );
+
+  if (!result) {
+    // Try reverse order
+    const reversed = await adapter.querySingle(
+      `fusion_genre(Genre, ${culture2}, ${culture1}, Characteristics).`
+    );
+    if (!reversed) {
+      return explainable(null, ['No known fusion genre for these cultures'], 50);
+    }
+    const chars = Array.isArray(reversed['Characteristics'])
+      ? (reversed['Characteristics'] as unknown[]).map(String) : [];
+    return explainable(
+      { genre: String(reversed['Genre']), characteristics: chars },
+      [`Suggested fusion: ${reversed['Genre']}`],
+      80
+    );
+  }
+
+  const characteristics = Array.isArray(result['Characteristics'])
+    ? (result['Characteristics'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { genre: String(result['Genre']), characteristics },
+    [`Suggested fusion: ${result['Genre']}`],
+    80
+  );
+}
+
+/**
+ * Analyze cultural elements — get timbre, melodic, and harmonic markers.
+ * C2070: Uses timbre_cultural_marker/3, melodic_cultural_marker/3, harmonic_cultural_marker/3
+ */
+export async function analyzeCulturalElements(
+  culture: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ timbres: string[]; melodies: string[]; harmonies: string[] }>> {
+  await ensureLoaded(adapter);
+
+  const timbres: string[] = [];
+  const melodies: string[] = [];
+  const harmonies: string[] = [];
+
+  const timbreResults = await adapter.queryAll(
+    `timbre_cultural_marker(Timbre, ${culture}, _).`
+  );
+  for (const r of timbreResults) {
+    timbres.push(String(r['Timbre']));
+  }
+
+  const melodicResults = await adapter.queryAll(
+    `melodic_cultural_marker(Feature, ${culture}, _).`
+  );
+  for (const r of melodicResults) {
+    melodies.push(String(r['Feature']));
+  }
+
+  const harmonicResults = await adapter.queryAll(
+    `harmonic_cultural_marker(Feature, ${culture}, _).`
+  );
+  for (const r of harmonicResults) {
+    harmonies.push(String(r['Feature']));
+  }
+
+  return explainable(
+    { timbres, melodies, harmonies },
+    [`Cultural markers for ${culture}: ${timbres.length + melodies.length + harmonies.length} elements`],
+    85
+  );
+}
+
+/**
+ * Translate a musical concept between cultures.
+ * C2085: Uses all_cultures_scale_mapping/2, cross_cultural_cadence/3
+ */
+export async function translateMusicalConcept(
+  concept: string,
+  fromCulture: string,
+  toCulture: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ translation: string } | null>> {
+  await ensureLoaded(adapter);
+
+  // Try scale mapping
+  const scaleResult = await adapter.querySingle(
+    `all_cultures_scale_mapping(${concept}, Mappings).`
+  );
+
+  if (scaleResult) {
+    return explainable(
+      { translation: String(scaleResult['Mappings']) },
+      [`${concept}: mapped from ${fromCulture} to ${toCulture}`],
+      80
+    );
+  }
+
+  // Try form mapping
+  const formResult = await adapter.querySingle(
+    `form_cross_cultural(${concept}, WesternVersion, Others).`
+  );
+
+  if (formResult) {
+    return explainable(
+      { translation: String(formResult['Others']) },
+      [`Form concept ${concept}: ${fromCulture} → ${toCulture} equivalents found`],
+      80
+    );
+  }
+
+  return explainable(null, [`No cross-cultural mapping found for ${concept} (${fromCulture} → ${toCulture})`], 40);
+}
+
+/**
+ * Get microtonality fusion compromise.
+ * C2061: microtonality_in_fusion/3
+ */
+export async function getMicronalityFusion(
+  source: string,
+  approximation: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ compromise: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `microtonality_in_fusion(${source}, ${approximation}, Compromise).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Microtonality compromise not found'], 50);
+  }
+
+  return explainable(
+    { compromise: String(result['Compromise']) },
+    [`${source} via ${approximation}: ${result['Compromise']}`],
+    85
+  );
+}
+
+/**
+ * Get instrumentation fusion blend info.
+ * C2063: instrumentation_fusion/3
+ */
+export async function getInstrumentationFusion(
+  traditionalInstr: string,
+  westernInstr: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ blend: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `instrumentation_fusion(${traditionalInstr}, ${westernInstr}, Blend).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Instrumentation fusion not found'], 50);
+  }
+
+  return explainable(
+    { blend: String(result['Blend']) },
+    [`${traditionalInstr} + ${westernInstr}: ${result['Blend']}`],
+    90
+  );
+}
+
+/**
+ * Get cross-cultural emotion realization.
+ * C2081: emotion_cross_cultural/3
+ */
+export async function getEmotionCrossCultural(
+  emotion: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ westernRealization: string; otherRealizations: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `emotion_cross_cultural(${emotion}, WesternRealization, OtherRealizations).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Cross-cultural emotion mapping not found'], 50);
+  }
+
+  const others = Array.isArray(result['OtherRealizations'])
+    ? (result['OtherRealizations'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { westernRealization: String(result['WesternRealization']), otherRealizations: others },
+    [`Emotion ${emotion}: ${others.length + 1} cultural realizations`],
+    85
+  );
+}
+
+// ============================================================================
+// LCC & JAZZ VOICING QUERIES (C1132-C1305)
+// ============================================================================
+
+/**
+ * Get LCC chord-scale recommendation.
+ * C1137: lcc_chord_scale/3
+ */
+export async function getLccChordScale(
+  chordType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ scale: string; gravityFit: string }[]>> {
+  await ensureLoaded(adapter);
+
+  const results = await adapter.queryAll(
+    `lcc_chord_scale(${chordType}, ScaleChoice, GravityFit).`
+  );
+
+  const scales = results.map((r) => ({
+    scale: String(r['ScaleChoice']),
+    gravityFit: String(r['GravityFit']),
+  }));
+
+  return explainable(
+    scales,
+    [`LCC scales for ${chordType}: ${scales.map((s) => s.scale).join(', ')}`],
+    90
+  );
+}
+
+/**
+ * Get LCC avoid notes for a chord-scale combination.
+ * C1139: lcc_avoid_note/3
+ */
+export async function getLccAvoidNotes(
+  chord: string,
+  scale: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<string[]>> {
+  await ensureLoaded(adapter);
+
+  const results = await adapter.queryAll(
+    `lcc_avoid_note(${chord}, ${scale}, AvoidNote).`
+  );
+
+  const avoidNotes = results.map((r) => String(r['AvoidNote']));
+
+  return explainable(
+    avoidNotes,
+    [`Avoid notes for ${chord}/${scale}: ${avoidNotes.join(', ')}`],
+    90
+  );
+}
+
+/**
+ * Get upper structure triads over a chord.
+ * C1143: upper_structure_triad/4
+ */
+export async function getUpperStructureTriads(
+  baseChord: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ root: string; quality: string; tensions: string[] }[]>> {
+  await ensureLoaded(adapter);
+
+  const results = await adapter.queryAll(
+    `upper_structure_triad(${baseChord}, TriadRoot, TriadQuality, Tensions).`
+  );
+
+  const triads = results.map((r) => ({
+    root: String(r['TriadRoot']),
+    quality: String(r['TriadQuality']),
+    tensions: Array.isArray(r['Tensions'])
+      ? (r['Tensions'] as unknown[]).map(String)
+      : [],
+  }));
+
+  return explainable(
+    triads,
+    [`Upper structures for ${baseChord}: ${triads.length} options`],
+    90
+  );
+}
+
+/**
+ * Get LCC ii-V-I scale choices for a key.
+ * C1155: lcc_ii_v_i/4
+ */
+export async function getLccIIVI(
+  key: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ ii: string; v: string; i: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `lcc_ii_v_i(${key}, II, V, I).`
+  );
+
+  if (!result) {
+    return explainable(null, ['LCC ii-V-I not found for this key'], 50);
+  }
+
+  return explainable(
+    { ii: String(result['II']), v: String(result['V']), i: String(result['I']) },
+    [`LCC ii-V-I in ${key}: ${result['II']} → ${result['V']} → ${result['I']}`],
+    95
+  );
+}
+
+/**
+ * Get Coltrane changes for a progression.
+ * C1327: coltrane_changes/4
+ */
+export async function getColtraneChanges(
+  originalProgression: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ coltraneVersion: string[]; cycleType: string; reasons: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `coltrane_changes(${originalProgression}, ColtraneVersion, CycleType, Reasons).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Coltrane changes not available for this progression'], 50);
+  }
+
+  const coltraneVersion = Array.isArray(result['ColtraneVersion'])
+    ? (result['ColtraneVersion'] as unknown[]).map(String) : [];
+  const reasons = Array.isArray(result['Reasons'])
+    ? (result['Reasons'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { coltraneVersion, cycleType: String(result['CycleType']), reasons },
+    [`Coltrane changes: ${result['CycleType']}`],
+    90
+  );
+}
+
+/**
+ * Get LCC tritone substitution analysis.
+ * C1153: lcc_tritone_sub/3
+ */
+export async function getLccTritoneSub(
+  dominant: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ sub: string; gravityPath: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `lcc_tritone_sub(${dominant}, Sub, GravityPath).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Tritone sub not found'], 50);
+  }
+
+  const gravityPath = Array.isArray(result['GravityPath'])
+    ? (result['GravityPath'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { sub: String(result['Sub']), gravityPath },
+    [`Tritone sub: ${dominant} → ${result['Sub']}`],
+    90
+  );
+}
+
+/**
+ * Get Evans voicing for a chord.
+ * C1219: evans_voicing/4
+ */
+export async function getEvansVoicing(
+  chord: string,
+  voicingType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ notes: string[]; reasons: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `evans_voicing(${chord}, ${voicingType}, Notes, Reasons).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Evans voicing not found'], 50);
+  }
+
+  const notes = Array.isArray(result['Notes'])
+    ? (result['Notes'] as unknown[]).map(String) : [];
+  const reasons = Array.isArray(result['Reasons'])
+    ? (result['Reasons'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { notes, reasons },
+    [`Evans ${voicingType} for ${chord}: ${notes.join(', ')}`],
+    90
+  );
+}
+
+/**
+ * Get walking bass line for a progression.
+ * C1291: walking_bass/4
+ */
+export async function getWalkingBass(
+  progression: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ line: string; style: string; reasons: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `walking_bass(${progression}, WalkingLine, Style, Reasons).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Walking bass pattern not found'], 50);
+  }
+
+  const reasons = Array.isArray(result['Reasons'])
+    ? (result['Reasons'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { line: String(result['WalkingLine']), style: String(result['Style']), reasons },
+    [`Walking bass: ${result['WalkingLine']} (${result['Style']})`],
+    90
+  );
+}
+
+/**
+ * Get jazz drum pattern.
+ * C1293: jazz_drum_pattern/4
+ */
+export async function getJazzDrumPattern(
+  style: string,
+  tempo: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ pattern: string; variations: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `jazz_drum_pattern(${style}, ${tempo}, Pattern, Variations).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Jazz drum pattern not found'], 50);
+  }
+
+  const variations = Array.isArray(result['Variations'])
+    ? (result['Variations'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { pattern: String(result['Pattern']), variations },
+    [`Jazz drums ${style}/${tempo}: ${result['Pattern']}`],
+    90
+  );
+}
+
+/**
+ * Get jazz combo instrumentation.
+ * C1283: jazz_combo/2
+ */
+export async function getJazzCombo(
+  size: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ instruments: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `jazz_combo(${size}, Instruments).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Jazz combo size not found'], 50);
+  }
+
+  const instruments = Array.isArray(result['Instruments'])
+    ? (result['Instruments'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { instruments },
+    [`Jazz ${size}: ${instruments.join(', ')}`],
+    90
+  );
+}
+
+/**
+ * Get shruti offset for a raga/swara combination.
+ * C627: shruti_offset/3
+ */
+export async function getShrutiOffset(
+  raga: string,
+  swara: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ cents: number } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `shruti_offset(${raga}, ${swara}, Cents).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Shruti offset not found'], 50);
+  }
+
+  return explainable(
+    { cents: Number(result['Cents']) },
+    [`Shruti offset for ${raga}/${swara}: ${result['Cents']} cents`],
+    90
+  );
+}
+
+/**
+ * Convert gamaka ornament to MIDI bend events.
+ * C637: gamaka_to_midi/3
+ */
+export async function getGamakaToMidi(
+  gamakaType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ bendEvents: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `gamaka_to_midi(${gamakaType}, _, BendEvents).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Gamaka MIDI conversion not found'], 50);
+  }
+
+  const bendEvents = Array.isArray(result['BendEvents'])
+    ? (result['BendEvents'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { bendEvents },
+    [`Gamaka ${gamakaType}: ${bendEvents.length} MIDI events`],
+    85
+  );
+}

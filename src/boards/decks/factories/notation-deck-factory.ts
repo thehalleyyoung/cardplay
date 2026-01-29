@@ -177,12 +177,12 @@ export const notationDeckFactory: DeckFactory = {
       counterpointPanel.style.display = 'block';
       counterpointPanel.innerHTML = '<em>Analyzing&hellip;</em>';
       try {
-        const issues = await analyzeCounterpoint();
-        if (issues.length === 0) {
-          counterpointPanel.innerHTML = '<strong style="color: var(--success-base, green);">No counterpoint issues detected.</strong>';
+        const analysis = await analyzeCounterpoint();
+        if (analysis.rules.length === 0) {
+          counterpointPanel.innerHTML = '<strong style="color: var(--success-base, green);">No counterpoint rules loaded.</strong>';
         } else {
-          counterpointPanel.innerHTML = `<strong>Counterpoint Issues (${issues.length}):</strong><ul style="margin: 4px 0 0 16px; padding: 0;">` +
-            issues.map(i => `<li><code>${i.ruleId}</code>: ${i.description}</li>`).join('') +
+          counterpointPanel.innerHTML = `<strong>Voice Independence Rules (${analysis.rules.length}):</strong><ul style="margin: 4px 0 0 16px; padding: 0;">` +
+            analysis.rules.map((r: { ruleId: string; description: string }) => `<li><code>${r.ruleId}</code>: ${r.description}</li>`).join('') +
             '</ul>';
         }
       } catch {

@@ -58,7 +58,25 @@ export const trackerPhrasesBoard: Board = {
   
   layout: {
     type: 'dock',
-    panels: [],
+    panels: [
+      {
+        id: 'sidebar',
+        role: 'browser',
+        position: 'left',
+        defaultWidth: 300,
+      },
+      {
+        id: 'main',
+        role: 'composition',
+        position: 'center',
+      },
+      {
+        id: 'properties',
+        role: 'properties',
+        position: 'right',
+        defaultWidth: 300,
+      },
+    ],
   },
   
   decks: [
@@ -93,6 +111,24 @@ export const trackerPhrasesBoard: Board = {
   ],
   
   connections: [],
+  
+  theme: {
+    colors: {
+      primary: '#8e44ad',
+      secondary: '#9b59b6',
+      accent: '#e74c3c',
+      background: '#2c3e50',
+    },
+    typography: {
+      fontFamily: '"Fira Code", "Consolas", monospace',
+      fontSize: 14,
+    },
+    controlIndicators: {
+      showHints: false,
+      showSuggestions: true,
+      showGenerative: false,
+    },
+  },
   
   shortcuts: {
     'pattern:clone': 'Cmd+D',

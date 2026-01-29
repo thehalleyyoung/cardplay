@@ -722,17 +722,17 @@ Notes:
 - [x] C624 Add conversion: tala aksharas → ticks given tempo + subdivision.
 - [x] C625 Add tests: akshara→ticks round-trip for common tempos.
 - [ ] C626 Add “shruti” (microtonal) placeholder representation (future; store cents offsets).
-- [x] C627 Add predicate `shruti_offset/3` (Raga, Swara, Cents).
+- [ ] C627 Add predicate `shruti_offset/3` (Raga, Swara, Cents).
 - [ ] C628 Add “mridangam syllables” mapping (tha, dhi, thom…) as metadata.
-- [x] C629 Add predicate `mridangam_phrase/2`.
+- [ ] C629 Add predicate `mridangam_phrase/2`.
 - [ ] C630 Add “kanakku” arithmetic helpers (cycle math) for korvais.
 - [x] C631 Add predicate `cycle_fit/3` (PatternDur, CycleDur, Fits).
 - [ ] C632 Add “korvai search” generator (fill cycle with phrase candidates).
-- [x] C633 Add predicate `generate_korvai/4`.
+- [ ] C633 Add predicate `generate_korvai/4`.
 - [ ] C634 Add performance guard: korvai search must be bounded (depth/timeout).
 - [ ] C635 Add “gamaka renderer” placeholder for MIDI (pitch bend curves) as card output.
 - [ ] C636 Add “gamakas to MIDI” mapping rules (bend ranges, durations, curves).
-- [x] C637 Add predicate `gamaka_to_midi/3` (Gamaka, Notes, BendEvents).
+- [ ] C637 Add predicate `gamaka_to_midi/3` (Gamaka, Notes, BendEvents).
 - [ ] C638 Add integration: phrase adapter preserves gamaka contours when adapting.
 - [ ] C639 Add integration: melody generator can emit gamaka ornaments under constraints.
 - [ ] C640 Add “carnatic board” template (tracker+tala grid+drone+mridangam+phrase gen).
@@ -1286,30 +1286,30 @@ to a tonic. This phase implements Russell's concepts for jazz harmony analysis a
 ### Lydian Chromatic Chord-Scale Relationships (C1131–C1160)
 
 - [ ] C1131 Add Lydian Chromatic chord types: Maj7#11, min7, 7sus, 7alt, etc.
-- [x] C1132 Add predicate `lcc_chord_type/2` (ChordSymbol, Structure).
+- [ ] C1132 Add predicate `lcc_chord_type/2` (ChordSymbol, Structure).
 - [ ] C1133 Add "chord-scale" pairings for major family (Lydian, Ionian, Mixolydian).
 - [ ] C1134 Add "chord-scale" pairings for minor family (Dorian, Aeolian, Phrygian).
 - [ ] C1135 Add "chord-scale" pairings for dominant family (Mixolydian, Lydian b7, Altered).
 - [ ] C1136 Add "chord-scale" pairings for diminished family (Locrian, Locrian #2).
-- [x] C1137 Add predicate `lcc_chord_scale/3` (ChordType, ScaleChoice, GravityFit).
+- [ ] C1137 Add predicate `lcc_chord_scale/3` (ChordType, ScaleChoice, GravityFit).
 - [ ] C1138 Add "avoid notes" concept based on tonal gravity conflicts.
-- [x] C1139 Add predicate `lcc_avoid_note/3` (Chord, Scale, AvoidNote).
+- [ ] C1139 Add predicate `lcc_avoid_note/3` (Chord, Scale, AvoidNote).
 - [ ] C1140 Add "color tones" based on tonal gravity enhancement.
-- [x] C1141 Add predicate `lcc_color_tone/3` (Chord, Scale, ColorTone).
+- [ ] C1141 Add predicate `lcc_color_tone/3` (Chord, Scale, ColorTone).
 - [ ] C1142 Add "upper structure triads" from Lydian Chromatic perspective.
-- [x] C1143 Add predicate `upper_structure_triad/4` (BaseChord, TriadRoot, TriadQuality, Tensions).
+- [ ] C1143 Add predicate `upper_structure_triad/4` (BaseChord, TriadRoot, TriadQuality, Tensions).
 - [ ] C1144 Add "polychord" voicings based on LCC principles.
-- [x] C1145 Add predicate `lcc_polychord/4` (BaseChord, UpperChord, Voicing, GravityScore).
+- [ ] C1145 Add predicate `lcc_polychord/4` (BaseChord, UpperChord, Voicing, GravityScore).
 - [ ] C1146 Add "slash chord" interpretation via parent scale analysis.
-- [x] C1147 Add predicate `slash_chord_parent/3` (SlashChord, ParentScale, Analysis).
+- [ ] C1147 Add predicate `slash_chord_parent/3` (SlashChord, ParentScale, Analysis).
 - [ ] C1148 Add "modal interchange" via Lydian Chromatic lens.
-- [x] C1149 Add predicate `lcc_modal_interchange/4` (Key, BorrowedChord, SourceScale, GravityShift).
+- [ ] C1149 Add predicate `lcc_modal_interchange/4` (Key, BorrowedChord, SourceScale, GravityShift).
 - [ ] C1150 Add "Coltrane changes" analysis using LCC concepts.
-- [x] C1151 Add predicate `coltrane_substitution/3` (OriginalChord, Substitution, LCCReason).
+- [ ] C1151 Add predicate `coltrane_substitution/3` (OriginalChord, Substitution, LCCReason).
 - [ ] C1152 Add "tritone substitution" via LCC horizontal gravity.
-- [x] C1153 Add predicate `lcc_tritone_sub/3` (Dominant, Sub, GravityPath).
+- [ ] C1153 Add predicate `lcc_tritone_sub/3` (Dominant, Sub, GravityPath).
 - [ ] C1154 Add "ii-V-I" analysis via LCC parent scales.
-- [x] C1155 Add predicate `lcc_ii_v_i/4` (Key, ii, V, I_scales).
+- [ ] C1155 Add predicate `lcc_ii_v_i/4` (Key, ii, V, I_scales).
 - [ ] C1156 Add tests: dominant chord returns Lydian b7 as high-gravity option.
 - [ ] C1157 Add tests: minor chord returns Dorian as primary option.
 - [ ] C1158 Add tests: upper structure triads yield correct tension combinations.
@@ -1340,11 +1340,11 @@ to a tonic. This phase implements Russell's concepts for jazz harmony analysis a
 - [x] C1180 Add TS query wrapper `recommendLCCScale(chord)` returning ranked scales.
 - [x] C1181 Add TS query wrapper `buildLCCVoicing(chord, opts)` returning polychord.
 - [ ] C1182 Add "LCC reharmonization" tool: suggest gravity-based substitutions.
-- [x] C1183 Add predicate `lcc_reharmonize/4` (OriginalProgression, NewProgression, Strategy, Reasons).
+- [ ] C1183 Add predicate `lcc_reharmonize/4` (OriginalProgression, NewProgression, Strategy, Reasons).
 - [x] C1184 Add "tonal gravity analysis" of existing melody (identify implied parent scales).
 - [x] C1185 Add predicate `analyze_melody_gravity/3` (Notes, ImpliedScales, GravityProfile).
 - [ ] C1186 Add "LCC voice leading" constraints (movement by tonal gravity).
-- [x] C1187 Add predicate `lcc_voice_leading_score/3` (VoiceMotion, GravityScore, Reasons).
+- [ ] C1187 Add predicate `lcc_voice_leading_score/3` (VoiceMotion, GravityScore, Reasons).
 - [ ] C1188 Add tests: LCC voicing generator produces valid jazz voicings.
 - [ ] C1189 Add tests: LCC scale recommendation matches chord type.
 - [ ] C1190 Add tests: LCC reharmonization preserves melodic compatibility.
@@ -1384,17 +1384,17 @@ including voicing techniques, section writing, counterpoint, and reharmonization
 - [x] C1214 Add "So What voicing" (specific quartal structure).
 - [x] C1215 Add predicate `so_what_voicing/3` (Root, Quality, Notes).
 - [ ] C1216 Add "Kenny Barron voicing" (minor 9th structures).
-- [x] C1217 Add predicate `barron_voicing/3` (Chord, Notes, Tensions).
+- [ ] C1217 Add predicate `barron_voicing/3` (Chord, Notes, Tensions).
 - [ ] C1218 Add "Bill Evans voicing" (open rootless with pedal).
-- [x] C1219 Add predicate `evans_voicing/4` (Chord, VoicingType, Notes, Reasons).
+- [ ] C1219 Add predicate `evans_voicing/4` (Chord, VoicingType, Notes, Reasons).
 - [ ] C1220 Add "Herbie Hancock voicing" (cluster + quartal hybrid).
-- [x] C1221 Add predicate `hancock_voicing/4` (Chord, Context, Notes, Reasons).
+- [ ] C1221 Add predicate `hancock_voicing/4` (Chord, Context, Notes, Reasons).
 - [ ] C1222 Add "stride piano" voicing templates.
-- [x] C1223 Add predicate `stride_voicing/4` (Chord, BassNote, ChordNotes, Rhythm).
+- [ ] C1223 Add predicate `stride_voicing/4` (Chord, BassNote, ChordNotes, Rhythm).
 - [ ] C1224 Add "two-handed voicing" balance rules (piano/keys).
-- [x] C1225 Add predicate `two_hand_voicing/5` (Chord, LeftHand, RightHand, Balance, Reasons).
+- [ ] C1225 Add predicate `two_hand_voicing/5` (Chord, LeftHand, RightHand, Balance, Reasons).
 - [ ] C1226 Add "guitar voicing" constraints (4-6 note max, fret span limits).
-- [x] C1227 Add predicate `guitar_voicing/4` (Chord, Voicing, Frets, Fingering).
+- [ ] C1227 Add predicate `guitar_voicing/4` (Chord, Voicing, Frets, Fingering).
 - [x] C1228 Add "voice leading" optimization between chord voicings.
 - [x] C1229 Add predicate `voice_leading_score/4` (Voicing1, Voicing2, Score, Moves).
 - [x] C1230 Add "common tone" preservation rules.
@@ -1402,7 +1402,7 @@ including voicing techniques, section writing, counterpoint, and reharmonization
 - [x] C1232 Add "smooth voice leading" constraints (minimal motion).
 - [x] C1233 Add predicate `smooth_voice_leading/4` (Progression, Voicings, TotalMotion, Reasons).
 - [ ] C1234 Add "contrary motion" detection for voice independence.
-- [x] C1235 Add predicate `contrary_motion/4` (Voice1, Voice2, Direction1, Direction2).
+- [ ] C1235 Add predicate `contrary_motion/4` (Voice1, Voice2, Direction1, Direction2).
 - [ ] C1236 Add tests: shell voicings contain 3rd and 7th.
 - [ ] C1237 Add tests: drop 2 voicing correctly redistributes close position.
 - [ ] C1238 Add tests: voice leading optimizer minimizes total semitone motion.
@@ -1413,37 +1413,37 @@ including voicing techniques, section writing, counterpoint, and reharmonization
 
 - [ ] C1241 Add docs: "Big band section writing fundamentals".
 - [ ] C1242 Add section taxonomy: saxes (AATTB), trumpets (4), trombones (4), rhythm.
-- [x] C1243 Add predicate `big_band_section/2` (SectionName, Instruments).
+- [ ] C1243 Add predicate `big_band_section/2` (SectionName, Instruments).
 - [ ] C1244 Add "unison/octave" writing for power and clarity.
-- [x] C1245 Add predicate `unison_octave_line/3` (Melody, Section, SectionVoices).
+- [ ] C1245 Add predicate `unison_octave_line/3` (Melody, Section, SectionVoices).
 - [ ] C1246 Add "soli" writing (harmonized melody in one section).
-- [x] C1247 Add predicate `soli_voicing/4` (Melody, HarmonyChords, Section, Voices).
+- [ ] C1247 Add predicate `soli_voicing/4` (Melody, HarmonyChords, Section, Voices).
 - [ ] C1248 Add "4-way close" sax soli technique.
-- [x] C1249 Add predicate `four_way_close/3` (MelodyNote, Chord, FourNotes).
+- [ ] C1249 Add predicate `four_way_close/3` (MelodyNote, Chord, FourNotes).
 - [ ] C1250 Add "5-way close" with doubled lead (standard sax soli).
-- [x] C1251 Add predicate `five_way_close/3` (MelodyNote, Chord, FiveNotes).
+- [ ] C1251 Add predicate `five_way_close/3` (MelodyNote, Chord, FiveNotes).
 - [ ] C1252 Add "drop 2" sax soli voicing.
-- [x] C1253 Add predicate `sax_soli_drop2/3` (MelodyNote, Chord, FiveNotes).
+- [ ] C1253 Add predicate `sax_soli_drop2/3` (MelodyNote, Chord, FiveNotes).
 - [ ] C1254 Add "drop 2+4" brass voicing.
-- [x] C1255 Add predicate `brass_drop_2_4/3` (MelodyNote, Chord, BrassVoices).
+- [ ] C1255 Add predicate `brass_drop_2_4/3` (MelodyNote, Chord, BrassVoices).
 - [ ] C1256 Add "spread voicing" for full big band (across sections).
-- [x] C1257 Add predicate `big_band_spread/4` (Chord, Sections, FullVoicing, Reasons).
+- [ ] C1257 Add predicate `big_band_spread/4` (Chord, Sections, FullVoicing, Reasons).
 - [ ] C1258 Add "block voicing" (locked hands across sections).
-- [x] C1259 Add predicate `block_voicing/4` (Melody, Chords, Section, BlockedLine).
+- [ ] C1259 Add predicate `block_voicing/4` (Melody, Chords, Section, BlockedLine).
 - [ ] C1260 Add "background figures" (riffs, pads, punches behind soloist).
-- [x] C1261 Add predicate `background_figure/4` (Type, Rhythm, Voicing, Role).
+- [ ] C1261 Add predicate `background_figure/4` (Type, Rhythm, Voicing, Role).
 - [ ] C1262 Add "shout chorus" arranging (climactic ensemble passages).
-- [x] C1263 Add predicate `shout_chorus/4` (Melody, Chords, FullEnsemble, Dynamics).
+- [ ] C1263 Add predicate `shout_chorus/4` (Melody, Chords, FullEnsemble, Dynamics).
 - [ ] C1264 Add "tutti" vs "soli" section balance.
-- [x] C1265 Add predicate `section_balance/4` (Passage, ActiveSections, RestingSections, Reasons).
+- [ ] C1265 Add predicate `section_balance/4` (Passage, ActiveSections, RestingSections, Reasons).
 - [ ] C1266 Add "call and response" between sections.
-- [x] C1267 Add predicate `call_response_sections/4` (CallSection, ResponseSection, CallMaterial, ResponseMaterial).
+- [ ] C1267 Add predicate `call_response_sections/4` (CallSection, ResponseSection, CallMaterial, ResponseMaterial).
 - [ ] C1268 Add "contrapuntal" backgrounds (independent lines).
-- [x] C1269 Add predicate `contrapuntal_bg/4` (MainMelody, CounterMelody, Voicings, Reasons).
+- [ ] C1269 Add predicate `contrapuntal_bg/4` (MainMelody, CounterMelody, Voicings, Reasons).
 - [ ] C1270 Add "register" management across sections (avoid muddiness).
-- [x] C1271 Add predicate `register_allocation/4` (Chord, Sections, Registers, Spacing).
+- [ ] C1271 Add predicate `register_allocation/4` (Chord, Sections, Registers, Spacing).
 - [ ] C1272 Add "dynamics" layering for section builds.
-- [x] C1273 Add predicate `dynamic_layer/4` (Section, DynamicLevel, EntryPoint, Reasons).
+- [ ] C1273 Add predicate `dynamic_layer/4` (Section, DynamicLevel, EntryPoint, Reasons).
 - [ ] C1274 Add tests: 4-way close produces correct interval structure.
 - [ ] C1275 Add tests: drop 2 sax soli maintains melody on top.
 - [ ] C1276 Add tests: section balance avoids tutti overload.
@@ -1456,29 +1456,29 @@ including voicing techniques, section writing, counterpoint, and reharmonization
 
 - [ ] C1281 Add docs: "Small group jazz arranging" (trio, quartet, quintet, sextet).
 - [ ] C1282 Add combo taxonomy: duo, trio, quartet, quintet, sextet, septet, nonet.
-- [x] C1283 Add predicate `jazz_combo/2` (Size, TypicalInstruments).
+- [ ] C1283 Add predicate `jazz_combo/2` (Size, TypicalInstruments).
 - [ ] C1284 Add "head arrangement" templates (minimal notation, maximum freedom).
-- [x] C1285 Add predicate `head_arrangement/4` (Tune, Form, Melody, HarmonyGuide).
+- [ ] C1285 Add predicate `head_arrangement/4` (Tune, Form, Melody, HarmonyGuide).
 - [ ] C1286 Add "rhythm section" role distribution (piano/bass/drums interplay).
-- [x] C1287 Add predicate `rhythm_section_role/4` (Instrument, Role, Context, Constraints).
+- [ ] C1287 Add predicate `rhythm_section_role/4` (Instrument, Role, Context, Constraints).
 - [ ] C1288 Add "piano comping" patterns by style (swing, bossa, ballad).
-- [x] C1289 Add predicate `comping_pattern/4` (Style, Chord, Pattern, RhythmFeel).
+- [ ] C1289 Add predicate `comping_pattern/4` (Style, Chord, Pattern, RhythmFeel).
 - [ ] C1290 Add "bass walking" line generation from chord chart.
-- [x] C1291 Add predicate `walking_bass/4` (ChordProgression, WalkingLine, Style, Reasons).
+- [ ] C1291 Add predicate `walking_bass/4` (ChordProgression, WalkingLine, Style, Reasons).
 - [ ] C1292 Add "drum patterns" by style and tempo.
-- [x] C1293 Add predicate `jazz_drum_pattern/4` (Style, Tempo, Pattern, Variations).
+- [ ] C1293 Add predicate `jazz_drum_pattern/4` (Style, Tempo, Pattern, Variations).
 - [ ] C1294 Add "horn section" writing for small group (2-3 horns).
-- [x] C1295 Add predicate `small_horn_section/4` (Melody, Chord, HornVoices, Texture).
+- [ ] C1295 Add predicate `small_horn_section/4` (Melody, Chord, HornVoices, Texture).
 - [ ] C1296 Add "harmonized unison" for horn pairs/trios.
-- [x] C1297 Add predicate `harmonized_unison/4` (Melody, Interval, Voice1, Voice2).
+- [ ] C1297 Add predicate `harmonized_unison/4` (Melody, Interval, Voice1, Voice2).
 - [ ] C1298 Add "interlude" and "vamp" construction.
-- [x] C1299 Add predicate `interlude_vamp/4` (Chords, Duration, Texture, Purpose).
+- [ ] C1299 Add predicate `interlude_vamp/4` (Chords, Duration, Texture, Purpose).
 - [ ] C1300 Add "solo section" structure (chorus length, form markers).
-- [x] C1301 Add predicate `solo_section/4` (Form, Choruses, Trades, EndingCue).
+- [ ] C1301 Add predicate `solo_section/4` (Form, Choruses, Trades, EndingCue).
 - [ ] C1302 Add "trading fours/eights" structure.
-- [x] C1303 Add predicate `trading_structure/4` (TradeLength, Instruments, Order, Transitions).
+- [ ] C1303 Add predicate `trading_structure/4` (TradeLength, Instruments, Order, Transitions).
 - [ ] C1304 Add "outro/tag" construction for endings.
-- [x] C1305 Add predicate `jazz_ending/4` (Type, Chords, Melody, Arrangement).
+- [ ] C1305 Add predicate `jazz_ending/4` (Type, Chords, Melody, Arrangement).
 - [ ] C1306 Add tests: walking bass line hits chord tones on strong beats.
 - [ ] C1307 Add tests: horn harmonization stays within instrument ranges.
 - [ ] C1308 Add docs: "Combo arranging checklist" (form, roles, dynamics).
@@ -1501,17 +1501,17 @@ including voicing techniques, section writing, counterpoint, and reharmonization
 - [x] C1322 Add "backdoor dominant" (bVII7 to I).
 - [x] C1323 Add predicate `backdoor_dominant/3` (TargetChord, Backdoor, Reasons).
 - [ ] C1324 Add "Tadd Dameron turnaround" and variants.
-- [x] C1325 Add predicate `dameron_turnaround/3` (Key, Chords, Reasons).
+- [ ] C1325 Add predicate `dameron_turnaround/3` (Key, Chords, Reasons).
 - [ ] C1326 Add "Coltrane changes" (major third cycle substitutions).
-- [x] C1327 Add predicate `coltrane_changes/4` (OriginalProgression, ColtraneVersion, CycleType, Reasons).
+- [ ] C1327 Add predicate `coltrane_changes/4` (OriginalProgression, ColtraneVersion, CycleType, Reasons).
 - [ ] C1328 Add "constant structure" reharmonization (parallel chord movement).
-- [x] C1329 Add predicate `constant_structure/4` (Melody, ChordQuality, Progression, Reasons).
+- [ ] C1329 Add predicate `constant_structure/4` (Melody, ChordQuality, Progression, Reasons).
 - [ ] C1330 Add "planing" reharmonization (parallel diatonic/chromatic).
-- [x] C1331 Add predicate `jazz_planing/4` (Melody, PlaningType, Progression, Reasons).
+- [ ] C1331 Add predicate `jazz_planing/4` (Melody, PlaningType, Progression, Reasons).
 - [ ] C1332 Add "pedal point" reharmonization (bass pedal with moving upper structure).
-- [x] C1333 Add predicate `pedal_reharm/4` (OriginalProgression, PedalNote, NewProgression, Reasons).
+- [ ] C1333 Add predicate `pedal_reharm/4` (OriginalProgression, PedalNote, NewProgression, Reasons).
 - [ ] C1334 Add "modal reharmonization" (replace functional with modal stasis).
-- [x] C1335 Add predicate `modal_reharm/4` (OriginalProgression, Mode, ModalVersion, Reasons).
+- [ ] C1335 Add predicate `modal_reharm/4` (OriginalProgression, Mode, ModalVersion, Reasons).
 - [ ] C1336 Add "chord substitution strength" scoring.
 - [x] C1337 Add predicate `sub_strength/4` (Original, Substitution, Strength, Compatibility).
 - [x] C1338 Add "melody compatibility" checking for reharmonization.
@@ -1653,15 +1653,15 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1455 Add predicate `spectral_centroid/2` (Spectrum, Centroid).
 - [x] C1456 Add predicate `spectral_flux/3` (Spectrum1, Spectrum2, Flux).
 - [x] C1457 Add predicate `spectral_rolloff/3` (Spectrum, Threshold, Frequency).
-- [x] C1458 Add predicate `mfcc_coefficients/3` (Spectrum, NumCoeffs, MFCCs).
+- [ ] C1458 Add predicate `mfcc_coefficients/3` (Spectrum, NumCoeffs, MFCCs).
 - [x] C1459 Add predicate `instrument_spectrum_model/3` (Instrument, Pitch, Spectrum).
-- [x] C1460 Add predicate `additive_synthesis_target/3` (TargetSpectrum, Instruments, Assignment).
+- [ ] C1460 Add predicate `additive_synthesis_target/3` (TargetSpectrum, Instruments, Assignment).
 - [x] C1461 Add predicate `spectral_similarity/3` (Spectrum1, Spectrum2, Similarity).
 - [x] C1462 Add predicate `spectral_morphing/4` (Spec1, Spec2, T, InterpolatedSpec).
 - [x] C1463 Add predicate `grisey_spectral_harmony/3` (Fundamental, SpectralChord, Voicing).
-- [x] C1464 Add predicate `murail_spectral_process/3` (SourceSpec, Transform, ResultSpec).
+- [ ] C1464 Add predicate `murail_spectral_process/3` (SourceSpec, Transform, ResultSpec).
 - [x] C1465 Add predicate `spectral_to_pitch_class/3` (Spectrum, Tolerance, PitchClasses).
-- [x] C1466 Add predicate `pitch_class_to_spectral/3` (PitchClasses, Fundamental, Spectrum).
+- [ ] C1466 Add predicate `pitch_class_to_spectral/3` (PitchClasses, Fundamental, Spectrum).
 - [x] C1467 Add constraint: `spectral_brightness/1` (dark/neutral/bright).
 - [x] C1468 Add constraint: `spectral_density/1` (sparse/moderate/dense).
 - [x] C1469 Add constraint: `spectral_evolution/1` (static/slow/dynamic).
@@ -1680,7 +1680,7 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1480 Add predicate `instrument_dynamic_range/3` (Instrument, SoftestDb, LoudestDb).
 - [x] C1481 Add predicate `instrument_attack_profile/3` (Instrument, AttackMs, AttackShape).
 - [x] C1482 Add predicate `instrument_blend_factor/3` (Instr1, Instr2, BlendQuality).
-- [x] C1483 Add predicate `section_blend_matrix/2` (InstrumentList, BlendMatrix).
+- [ ] C1483 Add predicate `section_blend_matrix/2` (InstrumentList, BlendMatrix).
 - [x] C1484 Add predicate `hocket_pattern/3` (Melody, NumVoices, HocketResult).
 - [x] C1485 Add predicate `compound_melody_analysis/3` (Melody, Voices, VoiceAssignment).
 - [x] C1486 Add constraint: `timbre_continuity/1` (fragmented/moderate/smooth).
@@ -1692,7 +1692,7 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 ### Orchestral Balance & Doubling Theory (C1491–C1510)
 - [x] C1491 Add predicate `rimsky_korsakov_rule/3` (Voicing, Rule, Applies).
 - [x] C1492 Add predicate `piston_orchestration_principle/3` (Context, Principle, Application).
-- [x] C1493 Add predicate `adler_doubling_rule/4` (Melody, Dynamics, Texture, Doubling).
+- [ ] C1493 Add predicate `adler_doubling_rule/4` (Melody, Dynamics, Texture, Doubling).
 - [x] C1494 Add predicate `orchestral_weight/3` (Instrumentation, Dynamics, WeightScore).
 - [x] C1495 Add predicate `balance_check/3` (Voicing, Dynamics, BalanceIssues).
 - [x] C1496 Add predicate `doubling_effectiveness/4` (Primary, Secondary, Interval, Score).
@@ -1783,11 +1783,11 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1571 Add TS wrapper `analyzeLeitmotifUsage(score)`.
 - [ ] C1572 Add tests: click track calculation hits all sync points.
 - [ ] C1573 Add docs: "Film scoring fundamentals in CardPlay".
-- [x] C1574 Add predicate `berklee_film_scoring_rule/3` (Situation, Rule, Application).
-- [x] C1575 Add predicate `usc_scoring_approach/3` (Genre, Approach, Techniques).
-- [x] C1576 Add predicate `nyu_steinhardt_method/3` (Scene, Analysis, Recommendation).
-- [x] C1577 Add predicate `ucla_scoring_technique/3` (Context, Technique, Implementation).
-- [x] C1578 Add predicate `film_school_convention/3` (School, Convention, Details).
+- [ ] C1574 Add predicate `berklee_film_scoring_rule/3` (Situation, Rule, Application).
+- [ ] C1575 Add predicate `usc_scoring_approach/3` (Genre, Approach, Techniques).
+- [ ] C1576 Add predicate `nyu_steinhardt_method/3` (Scene, Analysis, Recommendation).
+- [ ] C1577 Add predicate `ucla_scoring_technique/3` (Context, Technique, Implementation).
+- [ ] C1578 Add predicate `film_school_convention/3` (School, Convention, Details).
 - [x] C1579 Add constraint: `scoring_philosophy/1` (classical_hollywood/minimalist/avant_garde/hybrid).
 - [x] C1580 Add constraint: `director_preference/1` (wall_to_wall/sparse/source_heavy).
 
@@ -1804,13 +1804,13 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1590 Add predicate `register_to_weight/2` (Register, PerceivedWeight).
 - [x] C1591 Add predicate `harmonic_tension_to_suspense/2` (TensionScore, SuspenseLevel).
 - [x] C1592 Add predicate `timbre_brightness_to_mood/2` (Brightness, MoodAssociation).
-- [x] C1593 Add predicate `rhythm_regularity_to_stability/2` (Regularity, StabilityLevel).
+- [ ] C1593 Add predicate `rhythm_regularity_to_stability/2` (Regularity, StabilityLevel).
 - [x] C1594 Add predicate `composite_emotion_model/3` (MusicalFeatures, Model, EmotionVector).
 - [x] C1595 Add predicate `emotion_to_music_params/3` (TargetEmotion, Constraints, MusicSpec).
 - [x] C1596 Add predicate `emotional_arc/3` (SceneTimeline, EmotionCurve, MusicPlan).
-- [x] C1597 Add predicate `emotional_contrast/4` (Emotion1, Emotion2, TransitionType, Music).
+- [ ] C1597 Add predicate `emotional_contrast/4` (Emotion1, Emotion2, TransitionType, Music).
 - [x] C1598 Add predicate `catharsis_model/3` (TensionBuild, Release, CatharsisPoint).
-- [x] C1599 Add predicate `suspense_anticipation_model/4` (Event, Delay, Uncertainty, Music).
+- [ ] C1599 Add predicate `suspense_anticipation_model/4` (Event, Delay, Uncertainty, Music).
 - [x] C1600 Add constraint: `target_valence/1` (negative/neutral/positive).
 - [x] C1601 Add constraint: `target_arousal/1` (calm/moderate/excited).
 - [x] C1602 Add constraint: `emotional_trajectory/1` (static/building/releasing/arc).
@@ -1821,9 +1821,9 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [ ] C1607 Add docs: "Emotion-music mapping in CardPlay".
 - [x] C1608 Add predicate `meyer_expectation_emotion/3` (Expectation, Outcome, Emotion).
 - [x] C1609 Add predicate `huron_sweet_anticipation/3` (Prediction, Resolution, Response).
-- [x] C1610 Add predicate `koelsch_music_emotion/3` (Feature, Process, Emotion).
-- [x] C1611 Add predicate `zentner_geneva_model/3` (MusicType, Induced, Perceived).
-- [x] C1612 Add predicate `sloboda_tears_chills/3` (MusicalDevice, PhysicalResponse, Mechanism).
+- [ ] C1610 Add predicate `koelsch_music_emotion/3` (Feature, Process, Emotion).
+- [ ] C1611 Add predicate `zentner_geneva_model/3` (MusicType, Induced, Perceived).
+- [ ] C1612 Add predicate `sloboda_tears_chills/3` (MusicalDevice, PhysicalResponse, Mechanism).
 - [x] C1613 Add predicate `chill_inducing_pattern/2` (Pattern, ChillProbability).
 - [x] C1614 Add predicate `tear_inducing_pattern/2` (Pattern, TearProbability).
 - [x] C1615 Add predicate `awe_inducing_pattern/2` (Pattern, AweProbability).
@@ -1835,35 +1835,35 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 
 ### Genre-Specific Film Scoring (C1621–C1660)
 - [x] C1621 Add predicate `horror_scoring_technique/3` (Technique, Implementation, Effect).
-- [x] C1622 Add predicate `horror_cluster/3` (ClusterType, Instruments, Voicing).
+- [ ] C1622 Add predicate `horror_cluster/3` (ClusterType, Instruments, Voicing).
 - [x] C1623 Add predicate `horror_stinger/3` (StingerType, Duration, Instrumentation).
-- [x] C1624 Add predicate `horror_drone/3` (DroneType, Harmonics, Movement).
-- [x] C1625 Add predicate `tension_without_release/3` (TensionLevel, Duration, Technique).
+- [ ] C1624 Add predicate `horror_drone/3` (DroneType, Harmonics, Movement).
+- [ ] C1625 Add predicate `tension_without_release/3` (TensionLevel, Duration, Technique).
 - [x] C1626 Add predicate `action_scoring_technique/3` (Technique, Implementation, Effect).
-- [x] C1627 Add predicate `action_ostinato/3` (OstinatoType, Rhythm, Instrumentation).
-- [x] C1628 Add predicate `action_brass_stab/3` (StabType, Voicing, Rhythm).
+- [ ] C1627 Add predicate `action_ostinato/3` (OstinatoType, Rhythm, Instrumentation).
+- [ ] C1628 Add predicate `action_brass_stab/3` (StabType, Voicing, Rhythm).
 - [x] C1629 Add predicate `chase_music_pattern/3` (IntensityLevel, Tempo, Pattern).
-- [x] C1630 Add predicate `fight_music_sync/3` (FightPhase, MusicPhase, Sync).
+- [ ] C1630 Add predicate `fight_music_sync/3` (FightPhase, MusicPhase, Sync).
 - [x] C1631 Add predicate `romance_scoring_technique/3` (Technique, Implementation, Effect).
-- [x] C1632 Add predicate `love_theme_structure/3` (Structure, Development, Climax).
-- [x] C1633 Add predicate `romantic_string_writing/3` (Texture, Voicing, Movement).
-- [x] C1634 Add predicate `bittersweet_harmony/3` (BaseHarmony, AddedTensions, Effect).
+- [ ] C1632 Add predicate `love_theme_structure/3` (Structure, Development, Climax).
+- [ ] C1633 Add predicate `romantic_string_writing/3` (Texture, Voicing, Movement).
+- [ ] C1634 Add predicate `bittersweet_harmony/3` (BaseHarmony, AddedTensions, Effect).
 - [x] C1635 Add predicate `comedy_scoring_technique/3` (Technique, Implementation, Effect).
-- [x] C1636 Add predicate `comedic_timing/3` (VisualBeat, MusicBeat, Offset).
-- [x] C1637 Add predicate `cartoon_music_device/3` (Device, Trigger, Sound).
-- [x] C1638 Add predicate `ironic_underscore/3` (SceneTone, MusicTone, IronicEffect).
-- [x] C1639 Add predicate `drama_scoring_technique/3` (Technique, Implementation, Effect).
-- [x] C1640 Add predicate `dramatic_pause/3` (Context, Duration, ReentryType).
-- [x] C1641 Add predicate `emotional_swell/3` (BuildType, PeakPoint, Resolution).
-- [x] C1642 Add predicate `subtle_underscore/3` (SceneContent, MusicIntensity, Technique).
+- [ ] C1636 Add predicate `comedic_timing/3` (VisualBeat, MusicBeat, Offset).
+- [ ] C1637 Add predicate `cartoon_music_device/3` (Device, Trigger, Sound).
+- [ ] C1638 Add predicate `ironic_underscore/3` (SceneTone, MusicTone, IronicEffect).
+- [ ] C1639 Add predicate `drama_scoring_technique/3` (Technique, Implementation, Effect).
+- [ ] C1640 Add predicate `dramatic_pause/3` (Context, Duration, ReentryType).
+- [ ] C1641 Add predicate `emotional_swell/3` (BuildType, PeakPoint, Resolution).
+- [ ] C1642 Add predicate `subtle_underscore/3` (SceneContent, MusicIntensity, Technique).
 - [x] C1643 Add predicate `scifi_scoring_technique/3` (Technique, Implementation, Effect).
-- [x] C1644 Add predicate `electronic_orchestral_hybrid/3` (Balance, Textures, Integration).
-- [x] C1645 Add predicate `alien_sound_design/3` (Concept, Synthesis, Musical).
-- [x] C1646 Add predicate `space_ambience/3` (Type, Elements, Emotional).
+- [ ] C1644 Add predicate `electronic_orchestral_hybrid/3` (Balance, Textures, Integration).
+- [ ] C1645 Add predicate `alien_sound_design/3` (Concept, Synthesis, Musical).
+- [ ] C1646 Add predicate `space_ambience/3` (Type, Elements, Emotional).
 - [x] C1647 Add predicate `fantasy_scoring_technique/3` (Technique, Implementation, Effect).
-- [x] C1648 Add predicate `epic_theme_structure/3` (ThemeType, Orchestration, Development).
-- [x] C1649 Add predicate `magical_element/3` (MagicType, Sound, Instrumentation).
-- [x] C1650 Add predicate `world_building_music/3` (Culture, MusicalElements, Authenticity).
+- [ ] C1648 Add predicate `epic_theme_structure/3` (ThemeType, Orchestration, Development).
+- [ ] C1649 Add predicate `magical_element/3` (MagicType, Sound, Instrumentation).
+- [ ] C1650 Add predicate `world_building_music/3` (Culture, MusicalElements, Authenticity).
 - [x] C1651 Add constraint: `film_genre/1` (horror/action/romance/comedy/drama/scifi/fantasy).
 - [x] C1652 Add constraint: `scoring_era/1` (golden_age/new_hollywood/modern/contemporary).
 - [x] C1653 Add TS type: `FilmGenreProfile` with techniques, instruments, harmony.
@@ -1878,30 +1878,30 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 ### Famous Composer Techniques (C1661–C1700)
 - [x] C1661 Add predicate `williams_technique/3` (Technique, Context, Implementation).
 - [x] C1662 Add predicate `williams_fanfare/3` (Type, Voicing, Rhythm).
-- [x] C1663 Add predicate `williams_action_ostinato/3` (Pattern, Development, Orchestration).
-- [x] C1664 Add predicate `williams_romantic_melody/3` (Contour, Harmony, Orchestration).
+- [ ] C1663 Add predicate `williams_action_ostinato/3` (Pattern, Development, Orchestration).
+- [ ] C1664 Add predicate `williams_romantic_melody/3` (Contour, Harmony, Orchestration).
 - [x] C1665 Add predicate `zimmer_technique/3` (Technique, Context, Implementation).
-- [x] C1666 Add predicate `zimmer_ostinato_layer/3` (Layer, Rhythm, Texture).
-- [x] C1667 Add predicate `zimmer_bass_design/3` (Type, Synthesis, Processing).
-- [x] C1668 Add predicate `zimmer_hybrid_orchestration/3` (Acoustic, Electronic, Balance).
-- [x] C1669 Add predicate `horner_technique/3` (Technique, Context, Implementation).
-- [x] C1670 Add predicate `horner_danger_motif/3` (Intervals, Rhythm, Instrumentation).
-- [x] C1671 Add predicate `horner_ethnic_integration/3` (Culture, Elements, OrchestralBlend).
+- [ ] C1666 Add predicate `zimmer_ostinato_layer/3` (Layer, Rhythm, Texture).
+- [ ] C1667 Add predicate `zimmer_bass_design/3` (Type, Synthesis, Processing).
+- [ ] C1668 Add predicate `zimmer_hybrid_orchestration/3` (Acoustic, Electronic, Balance).
+- [ ] C1669 Add predicate `horner_technique/3` (Technique, Context, Implementation).
+- [ ] C1670 Add predicate `horner_danger_motif/3` (Intervals, Rhythm, Instrumentation).
+- [ ] C1671 Add predicate `horner_ethnic_integration/3` (Culture, Elements, OrchestralBlend).
 - [x] C1672 Add predicate `morricone_technique/3` (Technique, Context, Implementation).
-- [x] C1673 Add predicate `morricone_sparse_texture/3` (Elements, Space, Tension).
-- [x] C1674 Add predicate `morricone_vocal_use/3` (VocalType, Role, Treatment).
-- [x] C1675 Add predicate `morricone_electric_guitar/3` (Style, Processing, Context).
-- [x] C1676 Add predicate `goldsmith_technique/3` (Technique, Context, Implementation).
-- [x] C1677 Add predicate `goldsmith_modernism/3` (Technique, Integration, Effect).
+- [ ] C1673 Add predicate `morricone_sparse_texture/3` (Elements, Space, Tension).
+- [ ] C1674 Add predicate `morricone_vocal_use/3` (VocalType, Role, Treatment).
+- [ ] C1675 Add predicate `morricone_electric_guitar/3` (Style, Processing, Context).
+- [ ] C1676 Add predicate `goldsmith_technique/3` (Technique, Context, Implementation).
+- [ ] C1677 Add predicate `goldsmith_modernism/3` (Technique, Integration, Effect).
 - [x] C1678 Add predicate `elfman_technique/3` (Technique, Context, Implementation).
-- [x] C1679 Add predicate `elfman_quirky_orchestration/3` (Element, Treatment, Effect).
-- [x] C1680 Add predicate `elfman_choir_use/3` (ChoirType, Role, Gothic).
-- [x] C1681 Add predicate `howard_technique/3` (Technique, Context, Implementation).
-- [x] C1682 Add predicate `howard_orchestral_color/3` (Palette, Texture, Emotion).
-- [x] C1683 Add predicate `desplat_technique/3` (Technique, Context, Implementation).
-- [x] C1684 Add predicate `desplat_chamber_intimacy/3` (Ensemble, Texture, Emotion).
-- [x] C1685 Add predicate `newman_technique/3` (Technique, Context, Implementation).
-- [x] C1686 Add predicate `newman_americana/3` (Element, Treatment, Nostalgia).
+- [ ] C1679 Add predicate `elfman_quirky_orchestration/3` (Element, Treatment, Effect).
+- [ ] C1680 Add predicate `elfman_choir_use/3` (ChoirType, Role, Gothic).
+- [ ] C1681 Add predicate `howard_technique/3` (Technique, Context, Implementation).
+- [ ] C1682 Add predicate `howard_orchestral_color/3` (Palette, Texture, Emotion).
+- [ ] C1683 Add predicate `desplat_technique/3` (Technique, Context, Implementation).
+- [ ] C1684 Add predicate `desplat_chamber_intimacy/3` (Ensemble, Texture, Emotion).
+- [ ] C1685 Add predicate `newman_technique/3` (Technique, Context, Implementation).
+- [ ] C1686 Add predicate `newman_americana/3` (Element, Treatment, Nostalgia).
 - [x] C1687 Add predicate `composer_style_match/3` (Cue, Composer, Similarity).
 - [x] C1688 Add predicate `style_blend/4` (Composer1, Composer2, Ratio, BlendedStyle).
 - [x] C1689 Add constraint: `reference_composer/1` (williams/zimmer/horner/morricone/etc).
@@ -2136,203 +2136,203 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 ## Phase C17 — Rock, Pop & Contemporary Popular Music Theory (C1901–C2050)
 
 ### Rock Music Theory (C1901–C1950)
-- [x] C1901 Add KB: `music-theory-rock.pl` for rock music concepts.
-- [x] C1902 Add predicate `power_chord/3` (Root, Voicing, Inversion).
-- [x] C1903 Add predicate `rock_progression/3` (ProgressionName, Numerals, Style).
-- [x] C1904 Add predicate `blues_rock_scale/3` (Key, ScaleType, Notes).
-- [x] C1905 Add predicate `pentatonic_rock_usage/3` (Context, Scale, Licks).
-- [x] C1906 Add predicate `rock_riff_pattern/3` (RiffType, Rhythm, Contour).
-- [x] C1907 Add predicate `guitar_technique_rock/3` (Technique, Notation, Sound).
-- [x] C1908 Add predicate `palm_mute_pattern/3` (Pattern, Tempo, Intensity).
-- [x] C1909 Add predicate `rock_drum_pattern/3` (StyleName, Pattern, Feel).
-- [x] C1910 Add predicate `rock_fill/3` (FillType, Duration, Complexity).
-- [x] C1911 Add predicate `bass_rock_pattern/3` (StyleName, Pattern, Relationship).
-- [x] C1912 Add predicate `rock_song_form/3` (FormType, Sections, Variations).
-- [x] C1913 Add predicate `verse_chorus_form/4` (Verse, Chorus, Bridge, Arrangement).
-- [x] C1914 Add predicate `rock_dynamics/3` (Section, Level, Texture).
-- [x] C1915 Add predicate `rock_modulation/3` (FromKey, ToKey, Technique).
-- [x] C1916 Add predicate `truck_driver_modulation/2` (Interval, Effect).
-- [x] C1917 Add predicate `rock_subgenre/3` (Subgenre, Characteristics, Examples).
-- [x] C1918 Add predicate `classic_rock_style/3` (Era, Features, Artists).
-- [x] C1919 Add predicate `hard_rock_style/3` (Feature, Implementation, Artists).
-- [x] C1920 Add predicate `punk_rock_style/3` (Feature, Constraint, Artists).
-- [x] C1921 Add predicate `alternative_rock_style/3` (Feature, Harmonic, Artists).
-- [x] C1922 Add predicate `indie_rock_style/3` (Feature, Texture, Artists).
-- [x] C1923 Add predicate `metal_subgenre/3` (Subgenre, Features, Techniques).
-- [x] C1924 Add predicate `metal_riff_technique/3` (Technique, Execution, Effect).
-- [x] C1925 Add predicate `drop_tuning/3` (TuningName, Notes, Style).
-- [x] C1926 Add predicate `djent_technique/3` (Element, Rhythm, Processing).
-- [x] C1927 Add predicate `progressive_rock/3` (Element, Complexity, Examples).
-- [x] C1928 Add predicate `odd_meter_rock/3` (Meter, Feel, Usage).
-- [x] C1929 Add constraint: `rock_subgenre/1` (classic/hard/punk/alt/indie/metal/prog).
-- [x] C1930 Add constraint: `rock_era/1` (50s/60s/70s/80s/90s/2000s/2010s/2020s).
-- [x] C1931 Add constraint: `distortion_level/1` (clean/crunch/overdrive/distortion/fuzz).
-- [x] C1932 Add TS type: `RockArrangement` with riffs, form, dynamics.
-- [x] C1933 Add TS wrapper `generateRockProgression(style, energy)`.
-- [x] C1934 Add TS wrapper `analyzeRockForm(song)`.
-- [x] C1935 Add tests: power chord voicings correct.
-- [x] C1936 Add docs: "Rock music theory in CardPlay".
-- [x] C1937 Add example project: "Classic rock arrangement".
-- [x] C1938 Add example project: "Metal riff composition".
-- [x] C1939 Add predicate `guitar_tone_chain/3` (Style, Pedals, AmpSettings).
-- [x] C1940 Add predicate `rock_production_technique/3` (Technique, Application, Era).
-- [x] C1941 Add predicate `wall_of_sound/3` (Technique, Layers, Phil Spector).
-- [x] C1942 Add predicate `rock_hook/3` (HookType, Element, Placement).
-- [x] C1943 Add predicate `anthem_chorus/3` (Structure, Voicing, Energy).
-- [x] C1944 Add predicate `breakdown_section/3` (Type, Texture, Resolution).
-- [x] C1945 Add tests: rock forms parse correctly.
-- [x] C1946 Add docs: "Rock arrangement in CardPlay".
-- [x] C1947 Add example project: "Rock anthem with key change".
-- [x] C1948 Add cross-validation: rock works with GTTM analysis.
-- [x] C1949 Add cross-validation: rock works with emotion models.
-- [x] C1950 Add summary: "Rock music theory complete".
+- [ ] C1901 Add KB: `music-theory-rock.pl` for rock music concepts.
+- [ ] C1902 Add predicate `power_chord/3` (Root, Voicing, Inversion).
+- [ ] C1903 Add predicate `rock_progression/3` (ProgressionName, Numerals, Style).
+- [ ] C1904 Add predicate `blues_rock_scale/3` (Key, ScaleType, Notes).
+- [ ] C1905 Add predicate `pentatonic_rock_usage/3` (Context, Scale, Licks).
+- [ ] C1906 Add predicate `rock_riff_pattern/3` (RiffType, Rhythm, Contour).
+- [ ] C1907 Add predicate `guitar_technique_rock/3` (Technique, Notation, Sound).
+- [ ] C1908 Add predicate `palm_mute_pattern/3` (Pattern, Tempo, Intensity).
+- [ ] C1909 Add predicate `rock_drum_pattern/3` (StyleName, Pattern, Feel).
+- [ ] C1910 Add predicate `rock_fill/3` (FillType, Duration, Complexity).
+- [ ] C1911 Add predicate `bass_rock_pattern/3` (StyleName, Pattern, Relationship).
+- [ ] C1912 Add predicate `rock_song_form/3` (FormType, Sections, Variations).
+- [ ] C1913 Add predicate `verse_chorus_form/4` (Verse, Chorus, Bridge, Arrangement).
+- [ ] C1914 Add predicate `rock_dynamics/3` (Section, Level, Texture).
+- [ ] C1915 Add predicate `rock_modulation/3` (FromKey, ToKey, Technique).
+- [ ] C1916 Add predicate `truck_driver_modulation/2` (Interval, Effect).
+- [ ] C1917 Add predicate `rock_subgenre/3` (Subgenre, Characteristics, Examples).
+- [ ] C1918 Add predicate `classic_rock_style/3` (Era, Features, Artists).
+- [ ] C1919 Add predicate `hard_rock_style/3` (Feature, Implementation, Artists).
+- [ ] C1920 Add predicate `punk_rock_style/3` (Feature, Constraint, Artists).
+- [ ] C1921 Add predicate `alternative_rock_style/3` (Feature, Harmonic, Artists).
+- [ ] C1922 Add predicate `indie_rock_style/3` (Feature, Texture, Artists).
+- [ ] C1923 Add predicate `metal_subgenre/3` (Subgenre, Features, Techniques).
+- [ ] C1924 Add predicate `metal_riff_technique/3` (Technique, Execution, Effect).
+- [ ] C1925 Add predicate `drop_tuning/3` (TuningName, Notes, Style).
+- [ ] C1926 Add predicate `djent_technique/3` (Element, Rhythm, Processing).
+- [ ] C1927 Add predicate `progressive_rock/3` (Element, Complexity, Examples).
+- [ ] C1928 Add predicate `odd_meter_rock/3` (Meter, Feel, Usage).
+- [ ] C1929 Add constraint: `rock_subgenre/1` (classic/hard/punk/alt/indie/metal/prog).
+- [ ] C1930 Add constraint: `rock_era/1` (50s/60s/70s/80s/90s/2000s/2010s/2020s).
+- [ ] C1931 Add constraint: `distortion_level/1` (clean/crunch/overdrive/distortion/fuzz).
+- [ ] C1932 Add TS type: `RockArrangement` with riffs, form, dynamics.
+- [ ] C1933 Add TS wrapper `generateRockProgression(style, energy)`.
+- [ ] C1934 Add TS wrapper `analyzeRockForm(song)`.
+- [ ] C1935 Add tests: power chord voicings correct.
+- [ ] C1936 Add docs: "Rock music theory in CardPlay".
+- [ ] C1937 Add example project: "Classic rock arrangement".
+- [ ] C1938 Add example project: "Metal riff composition".
+- [ ] C1939 Add predicate `guitar_tone_chain/3` (Style, Pedals, AmpSettings).
+- [ ] C1940 Add predicate `rock_production_technique/3` (Technique, Application, Era).
+- [ ] C1941 Add predicate `wall_of_sound/3` (Technique, Layers, Phil Spector).
+- [ ] C1942 Add predicate `rock_hook/3` (HookType, Element, Placement).
+- [ ] C1943 Add predicate `anthem_chorus/3` (Structure, Voicing, Energy).
+- [ ] C1944 Add predicate `breakdown_section/3` (Type, Texture, Resolution).
+- [ ] C1945 Add tests: rock forms parse correctly.
+- [ ] C1946 Add docs: "Rock arrangement in CardPlay".
+- [ ] C1947 Add example project: "Rock anthem with key change".
+- [ ] C1948 Add cross-validation: rock works with GTTM analysis.
+- [ ] C1949 Add cross-validation: rock works with emotion models.
+- [ ] C1950 Add summary: "Rock music theory complete".
 
 ### Pop Music Theory (C1951–C2000)
-- [x] C1951 Add KB: `music-theory-pop.pl` for pop music concepts.
-- [x] C1952 Add predicate `pop_chord_progression/3` (Name, Numerals, Era).
-- [x] C1953 Add predicate `four_chord_song/2` (Progression, Examples).
-- [x] C1954 Add predicate `pop_melody_contour/3` (ContourType, Characteristics, Effect).
-- [x] C1955 Add predicate `hook_placement/3` (HookType, Location, Repetition).
-- [x] C1956 Add predicate `earworm_characteristics/2` (Feature, Importance).
-- [x] C1957 Add predicate `pop_song_form/3` (FormType, Sections, Modern).
-- [x] C1958 Add predicate `prechorus_function/3` (Harmonic, Melodic, Energy).
-- [x] C1959 Add predicate `post_chorus/3` (Function, Texture, Hook).
-- [x] C1960 Add predicate `drop_section/3` (BuildUp, Drop, Release).
-- [x] C1961 Add predicate `pop_production_element/3` (Element, Era, Usage).
-- [x] C1962 Add predicate `vocal_production/3` (Technique, Era, Effect).
-- [x] C1963 Add predicate `autotune_usage/3` (Style, Intensity, Aesthetic).
-- [x] C1964 Add predicate `vocal_stacking/3` (Type, Arrangement, Blend).
-- [x] C1965 Add predicate `topliner_technique/3` (Technique, Application, Result).
-- [x] C1966 Add predicate `millennial_whoop/2` (Pattern, Examples).
-- [x] C1967 Add predicate `pop_beat_pattern/3` (Era, Pattern, Producer).
-- [x] C1968 Add predicate `trap_influenced_pop/3` (Element, Application, Examples).
-- [x] C1969 Add predicate `synth_pop_element/3` (Element, Sound, Era).
-- [x] C1970 Add predicate `electropop_texture/3` (Texture, Layers, Processing).
-- [x] C1971 Add predicate `kpop_structure/3` (Element, Characteristics, Influence).
-- [x] C1972 Add predicate `jpop_structure/3` (Element, Characteristics, Influence).
-- [x] C1973 Add predicate `latin_pop_fusion/3` (LatinElement, PopElement, Result).
-- [x] C1974 Add predicate `pop_key_convention/3` (Era, KeyPreferences, Reasons).
-- [x] C1975 Add predicate `pop_tempo_range/3` (Era, TempoRange, Feel).
-- [x] C1976 Add predicate `streaming_era_conventions/3` (Platform, Constraint, Adaptation).
-- [x] C1977 Add constraint: `pop_era/1` (motown/disco/80s/90s/2000s/streaming).
-- [x] C1978 Add constraint: `pop_style/1` (mainstream/indie_pop/electropop/synth/dance).
-- [x] C1979 Add constraint: `hook_density/1` (sparse/moderate/saturated).
-- [x] C1980 Add TS type: `PopArrangement` with hooks, form, production.
-- [x] C1981 Add TS wrapper `generatePopProgression(style, energy)`.
-- [x] C1982 Add TS wrapper `analyzePopHooks(song)`.
-- [x] C1983 Add tests: pop progressions generate valid harmony.
-- [x] C1984 Add docs: "Pop music theory in CardPlay".
-- [x] C1985 Add example project: "Modern pop song structure".
-- [x] C1986 Add example project: "80s synth-pop arrangement".
-- [x] C1987 Add predicate `hit_song_formula/3` (Element, Weight, Research).
-- [x] C1988 Add predicate `billboard_analysis/3` (Era, Trend, Characteristics).
-- [x] C1989 Add predicate `spotify_top50_features/3` (Feature, Average, Variance).
-- [x] C1990 Add predicate `tiktok_viral_characteristics/2` (Feature, Importance).
-- [x] C1991 Add predicate `pop_collaboration_style/3` (Type, Artists, Result).
-- [x] C1992 Add predicate `feature_verse/3` (Style, Contrast, Integration).
-- [x] C1993 Add tests: hook analysis identifies main hooks.
-- [x] C1994 Add docs: "Commercial pop writing in CardPlay".
-- [x] C1995 Add example project: "Streaming-optimized pop song".
-- [x] C1996 Add cross-validation: pop works with emotion models.
-- [x] C1997 Add cross-validation: pop works with film scoring.
-- [x] C1998 Add benchmark: pop analysis under 50ms.
-- [x] C1999 Add final integration tests for pop theory.
-- [x] C2000 Add summary: "Pop music theory complete".
+- [ ] C1951 Add KB: `music-theory-pop.pl` for pop music concepts.
+- [ ] C1952 Add predicate `pop_chord_progression/3` (Name, Numerals, Era).
+- [ ] C1953 Add predicate `four_chord_song/2` (Progression, Examples).
+- [ ] C1954 Add predicate `pop_melody_contour/3` (ContourType, Characteristics, Effect).
+- [ ] C1955 Add predicate `hook_placement/3` (HookType, Location, Repetition).
+- [ ] C1956 Add predicate `earworm_characteristics/2` (Feature, Importance).
+- [ ] C1957 Add predicate `pop_song_form/3` (FormType, Sections, Modern).
+- [ ] C1958 Add predicate `prechorus_function/3` (Harmonic, Melodic, Energy).
+- [ ] C1959 Add predicate `post_chorus/3` (Function, Texture, Hook).
+- [ ] C1960 Add predicate `drop_section/3` (BuildUp, Drop, Release).
+- [ ] C1961 Add predicate `pop_production_element/3` (Element, Era, Usage).
+- [ ] C1962 Add predicate `vocal_production/3` (Technique, Era, Effect).
+- [ ] C1963 Add predicate `autotune_usage/3` (Style, Intensity, Aesthetic).
+- [ ] C1964 Add predicate `vocal_stacking/3` (Type, Arrangement, Blend).
+- [ ] C1965 Add predicate `topliner_technique/3` (Technique, Application, Result).
+- [ ] C1966 Add predicate `millennial_whoop/2` (Pattern, Examples).
+- [ ] C1967 Add predicate `pop_beat_pattern/3` (Era, Pattern, Producer).
+- [ ] C1968 Add predicate `trap_influenced_pop/3` (Element, Application, Examples).
+- [ ] C1969 Add predicate `synth_pop_element/3` (Element, Sound, Era).
+- [ ] C1970 Add predicate `electropop_texture/3` (Texture, Layers, Processing).
+- [ ] C1971 Add predicate `kpop_structure/3` (Element, Characteristics, Influence).
+- [ ] C1972 Add predicate `jpop_structure/3` (Element, Characteristics, Influence).
+- [ ] C1973 Add predicate `latin_pop_fusion/3` (LatinElement, PopElement, Result).
+- [ ] C1974 Add predicate `pop_key_convention/3` (Era, KeyPreferences, Reasons).
+- [ ] C1975 Add predicate `pop_tempo_range/3` (Era, TempoRange, Feel).
+- [ ] C1976 Add predicate `streaming_era_conventions/3` (Platform, Constraint, Adaptation).
+- [ ] C1977 Add constraint: `pop_era/1` (motown/disco/80s/90s/2000s/streaming).
+- [ ] C1978 Add constraint: `pop_style/1` (mainstream/indie_pop/electropop/synth/dance).
+- [ ] C1979 Add constraint: `hook_density/1` (sparse/moderate/saturated).
+- [ ] C1980 Add TS type: `PopArrangement` with hooks, form, production.
+- [ ] C1981 Add TS wrapper `generatePopProgression(style, energy)`.
+- [ ] C1982 Add TS wrapper `analyzePopHooks(song)`.
+- [ ] C1983 Add tests: pop progressions generate valid harmony.
+- [ ] C1984 Add docs: "Pop music theory in CardPlay".
+- [ ] C1985 Add example project: "Modern pop song structure".
+- [ ] C1986 Add example project: "80s synth-pop arrangement".
+- [ ] C1987 Add predicate `hit_song_formula/3` (Element, Weight, Research).
+- [ ] C1988 Add predicate `billboard_analysis/3` (Era, Trend, Characteristics).
+- [ ] C1989 Add predicate `spotify_top50_features/3` (Feature, Average, Variance).
+- [ ] C1990 Add predicate `tiktok_viral_characteristics/2` (Feature, Importance).
+- [ ] C1991 Add predicate `pop_collaboration_style/3` (Type, Artists, Result).
+- [ ] C1992 Add predicate `feature_verse/3` (Style, Contrast, Integration).
+- [ ] C1993 Add tests: hook analysis identifies main hooks.
+- [ ] C1994 Add docs: "Commercial pop writing in CardPlay".
+- [ ] C1995 Add example project: "Streaming-optimized pop song".
+- [ ] C1996 Add cross-validation: pop works with emotion models.
+- [ ] C1997 Add cross-validation: pop works with film scoring.
+- [ ] C1998 Add benchmark: pop analysis under 50ms.
+- [ ] C1999 Add final integration tests for pop theory.
+- [ ] C2000 Add summary: "Pop music theory complete".
 
 ### Electronic Dance Music Theory (C2001–C2050)
-- [x] C2001 Add KB: `music-theory-edm.pl` for electronic dance music.
-- [x] C2002 Add predicate `four_on_floor/3` (Tempo, Subgenre, Variations).
-- [x] C2003 Add predicate `breakbeat_pattern/3` (PatternName, Pattern, Genre).
-- [x] C2004 Add predicate `edm_arrangement/4` (Intro, Build, Drop, Breakdown).
-- [x] C2005 Add predicate `drop_types/3` (DropType, Characteristics, Genre).
-- [x] C2006 Add predicate `buildup_techniques/3` (Technique, Duration, Intensity).
-- [x] C2007 Add predicate `riser_design/3` (RiserType, Parameters, Effect).
-- [x] C2008 Add predicate `sidechain_compression/3` (Source, Target, Settings).
-- [x] C2009 Add predicate `synth_bass_type/3` (BassType, Synthesis, Genre).
-- [x] C2010 Add predicate `wobble_bass/3` (Rate, Shape, Modulation).
-- [x] C2011 Add predicate `supersaw_stack/3` (Voices, Detune, Width).
-- [x] C2012 Add predicate `edm_chord_voicing/3` (ChordType, Voicing, Texture).
-- [x] C2013 Add predicate `pluck_synth/3` (Attack, Decay, Filtering).
-- [x] C2014 Add predicate `pad_texture/3` (PadType, Movement, Warmth).
-- [x] C2015 Add predicate `edm_subgenre/3` (GenreName, BPM, Characteristics).
-- [x] C2016 Add predicate `house_style/3` (Substyle, Features, Artists).
-- [x] C2017 Add predicate `techno_style/3` (Substyle, Features, Artists).
-- [x] C2018 Add predicate `trance_style/3` (Substyle, Features, Artists).
-- [x] C2019 Add predicate `dubstep_style/3` (Substyle, Features, Artists).
-- [x] C2020 Add predicate `drum_and_bass/3` (Substyle, Features, Artists).
-- [x] C2021 Add predicate `future_bass/3` (Element, Implementation, Artists).
-- [x] C2022 Add predicate `lo_fi_aesthetic/3` (Element, Processing, Mood).
-- [x] C2023 Add predicate `ambient_edm/3` (Element, Texture, Space).
-- [x] C2024 Add predicate `festival_anthems/3` (Structure, Energy, Singalong).
-- [x] C2025 Add predicate `underground_vs_commercial/3` (Aspect, Underground, Commercial).
-- [x] C2026 Add constraint: `edm_genre/1` (house/techno/trance/dubstep/dnb/future).
-- [x] C2027 Add constraint: `bpm_range/1` (specific ranges per genre).
-- [x] C2028 Add constraint: `energy_curve/1` (steady/building/dropping/dynamic).
-- [x] C2029 Add TS type: `EDMArrangement` with drops, builds, energy.
-- [x] C2030 Add TS wrapper `generateEDMBuild(duration, intensity)`.
-- [x] C2031 Add TS wrapper `analyzeEDMEnergy(track)`.
-- [x] C2032 Add tests: EDM builds have proper energy curves.
-- [x] C2033 Add docs: "EDM production theory in CardPlay".
-- [x] C2034 Add example project: "House track arrangement".
-- [x] C2035 Add example project: "Dubstep drop design".
-- [x] C2036 Add predicate `edm_automation/3` (Parameter, Curve, Musical).
-- [x] C2037 Add predicate `filter_sweep/3` (FilterType, Direction, Duration).
-- [x] C2038 Add predicate `impact_sound/3` (ImpactType, Processing, Placement).
-- [x] C2039 Add predicate `white_noise_riser/3` (Duration, Filtering, Modulation).
-- [x] C2040 Add predicate `vocal_chop/3` (Source, Processing, Rhythm).
-- [x] C2041 Add predicate `edm_sample_pack_element/3` (Element, Usage, Layering).
-- [x] C2042 Add tests: sidechain patterns create proper pumping.
-- [x] C2043 Add docs: "EDM sound design in CardPlay".
-- [x] C2044 Add example project: "Future bass arrangement".
-- [x] C2045 Add cross-validation: EDM works with emotion models.
-- [x] C2046 Add cross-validation: EDM works with spectral analysis.
-- [x] C2047 Add benchmark: EDM analysis under 100ms.
-- [x] C2048 Add final integration tests for EDM theory.
-- [x] C2049 Add summary: "EDM theory complete".
-- [x] C2050 Add final summary: "Rock/Pop/EDM contemporary music complete".
+- [ ] C2001 Add KB: `music-theory-edm.pl` for electronic dance music.
+- [ ] C2002 Add predicate `four_on_floor/3` (Tempo, Subgenre, Variations).
+- [ ] C2003 Add predicate `breakbeat_pattern/3` (PatternName, Pattern, Genre).
+- [ ] C2004 Add predicate `edm_arrangement/4` (Intro, Build, Drop, Breakdown).
+- [ ] C2005 Add predicate `drop_types/3` (DropType, Characteristics, Genre).
+- [ ] C2006 Add predicate `buildup_techniques/3` (Technique, Duration, Intensity).
+- [ ] C2007 Add predicate `riser_design/3` (RiserType, Parameters, Effect).
+- [ ] C2008 Add predicate `sidechain_compression/3` (Source, Target, Settings).
+- [ ] C2009 Add predicate `synth_bass_type/3` (BassType, Synthesis, Genre).
+- [ ] C2010 Add predicate `wobble_bass/3` (Rate, Shape, Modulation).
+- [ ] C2011 Add predicate `supersaw_stack/3` (Voices, Detune, Width).
+- [ ] C2012 Add predicate `edm_chord_voicing/3` (ChordType, Voicing, Texture).
+- [ ] C2013 Add predicate `pluck_synth/3` (Attack, Decay, Filtering).
+- [ ] C2014 Add predicate `pad_texture/3` (PadType, Movement, Warmth).
+- [ ] C2015 Add predicate `edm_subgenre/3` (GenreName, BPM, Characteristics).
+- [ ] C2016 Add predicate `house_style/3` (Substyle, Features, Artists).
+- [ ] C2017 Add predicate `techno_style/3` (Substyle, Features, Artists).
+- [ ] C2018 Add predicate `trance_style/3` (Substyle, Features, Artists).
+- [ ] C2019 Add predicate `dubstep_style/3` (Substyle, Features, Artists).
+- [ ] C2020 Add predicate `drum_and_bass/3` (Substyle, Features, Artists).
+- [ ] C2021 Add predicate `future_bass/3` (Element, Implementation, Artists).
+- [ ] C2022 Add predicate `lo_fi_aesthetic/3` (Element, Processing, Mood).
+- [ ] C2023 Add predicate `ambient_edm/3` (Element, Texture, Space).
+- [ ] C2024 Add predicate `festival_anthems/3` (Structure, Energy, Singalong).
+- [ ] C2025 Add predicate `underground_vs_commercial/3` (Aspect, Underground, Commercial).
+- [ ] C2026 Add constraint: `edm_genre/1` (house/techno/trance/dubstep/dnb/future).
+- [ ] C2027 Add constraint: `bpm_range/1` (specific ranges per genre).
+- [ ] C2028 Add constraint: `energy_curve/1` (steady/building/dropping/dynamic).
+- [ ] C2029 Add TS type: `EDMArrangement` with drops, builds, energy.
+- [ ] C2030 Add TS wrapper `generateEDMBuild(duration, intensity)`.
+- [ ] C2031 Add TS wrapper `analyzeEDMEnergy(track)`.
+- [ ] C2032 Add tests: EDM builds have proper energy curves.
+- [ ] C2033 Add docs: "EDM production theory in CardPlay".
+- [ ] C2034 Add example project: "House track arrangement".
+- [ ] C2035 Add example project: "Dubstep drop design".
+- [ ] C2036 Add predicate `edm_automation/3` (Parameter, Curve, Musical).
+- [ ] C2037 Add predicate `filter_sweep/3` (FilterType, Direction, Duration).
+- [ ] C2038 Add predicate `impact_sound/3` (ImpactType, Processing, Placement).
+- [ ] C2039 Add predicate `white_noise_riser/3` (Duration, Filtering, Modulation).
+- [ ] C2040 Add predicate `vocal_chop/3` (Source, Processing, Rhythm).
+- [ ] C2041 Add predicate `edm_sample_pack_element/3` (Element, Usage, Layering).
+- [ ] C2042 Add tests: sidechain patterns create proper pumping.
+- [ ] C2043 Add docs: "EDM sound design in CardPlay".
+- [ ] C2044 Add example project: "Future bass arrangement".
+- [ ] C2045 Add cross-validation: EDM works with emotion models.
+- [ ] C2046 Add cross-validation: EDM works with spectral analysis.
+- [ ] C2047 Add benchmark: EDM analysis under 100ms.
+- [ ] C2048 Add final integration tests for EDM theory.
+- [ ] C2049 Add summary: "EDM theory complete".
+- [ ] C2050 Add final summary: "Rock/Pop/EDM contemporary music complete".
 
 ---
 
 ## Phase C18 — Cross-Cultural & Fusion Theory (C2051–C2100)
 
 ### Fusion Frameworks (C2051–C2075)
-- [x] C2051 Add KB: `music-theory-fusion.pl` for cross-cultural fusion.
-- [x] C2052 Add predicate `scale_compatibility/4` (Scale1, Culture1, Scale2, Culture2, Compatibility).
-- [x] C2053 Add predicate `rhythm_fusion_rule/4` (Rhythm1, Rhythm2, FusionType, Result).
-- [x] C2054 Add predicate `cultural_element_weight/3` (Element, Culture, Authenticity).
-- [x] C2055 Add predicate `appropriation_vs_appreciation/3` (Usage, Context, Assessment).
-- [x] C2056 Add predicate `fusion_genre/4` (GenreName, Culture1, Culture2, Characteristics).
-- [x] C2057 Add predicate `world_beat/3` (Element, WesternTreatment, Result).
-- [x] C2058 Add predicate `ethno_jazz/3` (TraditionElement, JazzElement, Integration).
-- [x] C2059 Add predicate `global_pop/3` (LocalElement, PopElement, Commercial).
-- [x] C2060 Add predicate `ambient_world/3` (TraditionalSource, ElectronicTreatment, Mood).
-- [x] C2061 Add predicate `microtonality_in_fusion/3` (Source, Approximation, Compromise).
-- [x] C2062 Add predicate `rhythm_translation/3` (Original, Target, Adaptation).
-- [x] C2063 Add predicate `instrumentation_fusion/3` (TraditionalInstr, WesternInstr, Blend).
-- [x] C2064 Add predicate `timbre_cultural_marker/3` (Timbre, Culture, Strength).
-- [x] C2065 Add predicate `melodic_cultural_marker/3` (MelodicFeature, Culture, Strength).
-- [x] C2066 Add predicate `harmonic_cultural_marker/3` (HarmonicFeature, Culture, Strength).
-- [x] C2067 Add constraint: `fusion_balance/1` (traditional_heavy/balanced/western_heavy).
-- [x] C2068 Add constraint: `authenticity_priority/1` (high/medium/low).
-- [x] C2069 Add TS type: `FusionSpec` with sources, balance, elements.
-- [x] C2070 Add TS wrapper `analyzeCulturalElements(music)`.
-- [x] C2071 Add TS wrapper `suggestFusionApproach(culture1, culture2)`.
+- [ ] C2051 Add KB: `music-theory-fusion.pl` for cross-cultural fusion.
+- [ ] C2052 Add predicate `scale_compatibility/4` (Scale1, Culture1, Scale2, Culture2, Compatibility).
+- [ ] C2053 Add predicate `rhythm_fusion_rule/4` (Rhythm1, Rhythm2, FusionType, Result).
+- [ ] C2054 Add predicate `cultural_element_weight/3` (Element, Culture, Authenticity).
+- [ ] C2055 Add predicate `appropriation_vs_appreciation/3` (Usage, Context, Assessment).
+- [ ] C2056 Add predicate `fusion_genre/4` (GenreName, Culture1, Culture2, Characteristics).
+- [ ] C2057 Add predicate `world_beat/3` (Element, WesternTreatment, Result).
+- [ ] C2058 Add predicate `ethno_jazz/3` (TraditionElement, JazzElement, Integration).
+- [ ] C2059 Add predicate `global_pop/3` (LocalElement, PopElement, Commercial).
+- [ ] C2060 Add predicate `ambient_world/3` (TraditionalSource, ElectronicTreatment, Mood).
+- [ ] C2061 Add predicate `microtonality_in_fusion/3` (Source, Approximation, Compromise).
+- [ ] C2062 Add predicate `rhythm_translation/3` (Original, Target, Adaptation).
+- [ ] C2063 Add predicate `instrumentation_fusion/3` (TraditionalInstr, WesternInstr, Blend).
+- [ ] C2064 Add predicate `timbre_cultural_marker/3` (Timbre, Culture, Strength).
+- [ ] C2065 Add predicate `melodic_cultural_marker/3` (MelodicFeature, Culture, Strength).
+- [ ] C2066 Add predicate `harmonic_cultural_marker/3` (HarmonicFeature, Culture, Strength).
+- [ ] C2067 Add constraint: `fusion_balance/1` (traditional_heavy/balanced/western_heavy).
+- [ ] C2068 Add constraint: `authenticity_priority/1` (high/medium/low).
+- [ ] C2069 Add TS type: `FusionSpec` with sources, balance, elements.
+- [ ] C2070 Add TS wrapper `analyzeCulturalElements(music)`.
+- [ ] C2071 Add TS wrapper `suggestFusionApproach(culture1, culture2)`.
 - [ ] C2072 Add tests: fusion rules produce coherent results.
 - [ ] C2073 Add docs: "Cross-cultural fusion in CardPlay".
 - [ ] C2074 Add example project: "Indo-Jazz fusion".
 - [ ] C2075 Add example project: "Afro-Celtic fusion".
 
 ### Integration & Synthesis (C2076–C2100)
-- [x] C2076 Add predicate `all_cultures_scale_mapping/2` (UnifiedPitch, CultureMappings).
-- [x] C2077 Add predicate `universal_rhythm_grid/2` (Subdivision, CultureMappings).
-- [x] C2078 Add predicate `cross_cultural_cadence/3` (Function, Realizations, Cultures).
-- [x] C2079 Add predicate `global_ornament_library/3` (OrnamentType, Cultures, Variations).
-- [x] C2080 Add predicate `texture_palette_global/3` (Texture, Cultures, Examples).
-- [x] C2081 Add predicate `emotion_cross_cultural/3` (Emotion, WesternRealization, OtherRealizations).
-- [x] C2082 Add predicate `form_cross_cultural/3` (FormPrinciple, WesternVersion, Others).
-- [x] C2083 Add predicate `compositional_tool_universal/3` (Tool, WesternName, Equivalents).
-- [x] C2084 Add constraint: `global_perspective/1` (western_centric/multicentric/specific).
-- [x] C2085 Add TS wrapper `translateMusicalConcept(concept, fromCulture, toCulture)`.
+- [ ] C2076 Add predicate `all_cultures_scale_mapping/2` (UnifiedPitch, CultureMappings).
+- [ ] C2077 Add predicate `universal_rhythm_grid/2` (Subdivision, CultureMappings).
+- [ ] C2078 Add predicate `cross_cultural_cadence/3` (Function, Realizations, Cultures).
+- [ ] C2079 Add predicate `global_ornament_library/3` (OrnamentType, Cultures, Variations).
+- [ ] C2080 Add predicate `texture_palette_global/3` (Texture, Cultures, Examples).
+- [ ] C2081 Add predicate `emotion_cross_cultural/3` (Emotion, WesternRealization, OtherRealizations).
+- [ ] C2082 Add predicate `form_cross_cultural/3` (FormPrinciple, WesternVersion, Others).
+- [ ] C2083 Add predicate `compositional_tool_universal/3` (Tool, WesternName, Equivalents).
+- [ ] C2084 Add constraint: `global_perspective/1` (western_centric/multicentric/specific).
+- [ ] C2085 Add TS wrapper `translateMusicalConcept(concept, fromCulture, toCulture)`.
 - [ ] C2086 Add tests: scale mappings are bidirectional.
 - [ ] C2087 Add docs: "Universal music concepts in CardPlay".
 - [ ] C2088 Add cross-validation: all cultures work with MusicSpec.

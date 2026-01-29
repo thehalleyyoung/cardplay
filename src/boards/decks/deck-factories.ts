@@ -131,6 +131,8 @@ export function registerStubFactories(): void {
     'automation-deck',
     'properties-deck',
     'ai-advisor-deck',
+    'sample-manager-deck',
+    'modulation-matrix-deck',
   ];
 
   for (const deckType of deckTypes) {

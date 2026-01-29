@@ -1,9 +1,9 @@
 /**
- * @fileoverview Timeline/Arrangement Deck Factory (E031-E033)
- * 
+ * @fileoverview Timeline/Arrangement Deck Factory (E031-E033, M099)
+ *
  * Creates timeline arrangement decks for linear clip-based editing.
- * Binds to ClipRegistry and shows clips on a timeline.
- * 
+ * M099: Adds pattern sequence view for tracker boards.
+ *
  * @module @cardplay/boards/decks/factories/arrangement-deck-factory
  */
 
@@ -58,6 +58,39 @@ export const arrangementDeckFactory: DeckFactory = {
       </div>
     `;
     
+    // M099: Pattern sequence view for tracker boards
+    const patternSequencer = document.createElement('div');
+    patternSequencer.className = 'pattern-sequencer';
+    patternSequencer.style.cssText = `
+      margin-top: 12px;
+      padding: 8px;
+      background: var(--surface-sunken, #fafafa);
+      border: 1px solid var(--border-base, #ccc);
+      border-radius: 4px;
+    `;
+    patternSequencer.innerHTML = `
+      <div style="font-size: 0.8125rem; font-weight: 600; margin-bottom: 6px;">Pattern Sequence</div>
+      <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+        ${Array.from({ length: 8 }, (_, i) => `
+          <div style="
+            width: 48px; height: 36px;
+            background: var(--surface-raised, #f5f5f5);
+            border: 1px solid var(--border-base, #ccc);
+            border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 500;
+            cursor: pointer;
+          " title="Pattern ${i}">${String(i).padStart(2, '0')}</div>
+        `).join('')}
+      </div>
+      <div style="margin-top: 6px; display: flex; gap: 6px;">
+        <button style="padding: 3px 8px; font-size: 0.75rem; background: var(--surface-raised, #f5f5f5); border: 1px solid var(--border-base, #ccc); border-radius: 3px; cursor: pointer;">+ Add</button>
+        <button style="padding: 3px 8px; font-size: 0.75rem; background: var(--surface-raised, #f5f5f5); border: 1px solid var(--border-base, #ccc); border-radius: 3px; cursor: pointer;">Clone</button>
+        <button style="padding: 3px 8px; font-size: 0.75rem; background: var(--surface-raised, #f5f5f5); border: 1px solid var(--border-base, #ccc); border-radius: 3px; cursor: pointer;">Remove</button>
+      </div>
+    `;
+    placeholder.appendChild(patternSequencer);
+
     content.appendChild(placeholder);
     container.appendChild(header);
     container.appendChild(content);

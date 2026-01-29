@@ -322,3 +322,108 @@ raga_chord_compatibility(bhairavi, diminished, moderate).
 raga_chord_compatibility(khamaj, dominant7, high).
 raga_chord_compatibility(bilawal, major, high).
 raga_chord_compatibility(_, power_chord, moderate).  %% Power chords work with anything
+
+%% ============================================================================
+%% DETAILED INDIAN MUSIC PREDICATES (C627-C637)
+%% ============================================================================
+
+%% shruti_offset(+Raga, +Swara, -Cents)
+%% Microtonal (shruti) offsets for specific swaras in ragas. (C627)
+shruti_offset(yaman, ma, +22).        %% Tivra Ma is 22 cents sharp of ET F#
+shruti_offset(bhairavi, re, -22).      %% Komal Re is 22 cents flat of ET Db
+shruti_offset(bhairavi, ga, -22).      %% Komal Ga slightly flat
+shruti_offset(bhairavi, dha, -22).     %% Komal Dha slightly flat
+shruti_offset(bhairavi, ni, -22).      %% Komal Ni slightly flat
+shruti_offset(todi, re, -30).          %% Ati-komal Re even flatter
+shruti_offset(todi, ga, -20).          %% Komal Ga
+shruti_offset(todi, dha, -25).         %% Komal Dha
+shruti_offset(marwa, re, -30).         %% Komal Re very flat
+shruti_offset(darbari, ga, -40).       %% Distinctive flat Ga of Darbari
+shruti_offset(darbari, dha, -40).      %% Distinctive flat Dha of Darbari
+shruti_offset(bilawal, _, 0).          %% Bilawal = natural major, no offsets
+shruti_offset(khamaj, ni, -22).        %% Komal Ni
+shruti_offset(purvi, re, -30).         %% Komal Re
+shruti_offset(purvi, dha, -25).        %% Komal Dha
+
+%% mridangam_phrase(+Context, -Phrase)
+%% Mridangam (South Indian drum) syllable phrases. (C629)
+mridangam_phrase(basic_theka, [tha, dhi, thom, nam, tha, dhi, thom, nam]).
+mridangam_phrase(adi_tala_pattern, [tha, ka, dhi, mi, tha, ka, ja, nu]).
+mridangam_phrase(chapu_7, [tha, dhi, thom, tha, ka, dhi, mi]).
+mridangam_phrase(korvai_phrase, [tha, dhin, gi, na, thom, tha, dhin, gi, na, thom]).
+mridangam_phrase(mora_phrase, [tha, ka, tha, ki, ta, tha, ka, tha, ki, ta]).
+mridangam_phrase(fill, [tha, ri, ki, ta, tha, ka]).
+mridangam_phrase(end_phrase, [tha, dhin, gi, na, thom]).
+
+%% generate_korvai(+Tala, +NumCycles, +Pattern, -Korvai)
+%% Generate a korvai (structured ending pattern). (C633)
+generate_korvai(adi, 3, basic, korvai(
+  phrase_3x([tha, dhin, gi, na, thom]),
+  gap(1_beat),
+  phrase_3x([tha, dhin, gi, na, thom]),
+  gap(half_beat),
+  phrase_3x([tha, dhin, gi, na, thom]),
+  ends_on(sam)
+)).
+generate_korvai(adi, 3, intermediate, korvai(
+  phrase_3x([tha, ka, dhi, mi, tha, ka, ja, nu]),
+  gap(2_beats),
+  phrase_3x([tha, ka, dhi, mi, tha, ka, ja, nu]),
+  gap(1_beat),
+  phrase_3x([tha, ka, dhi, mi, tha, ka, ja, nu]),
+  ends_on(sam)
+)).
+generate_korvai(rupak, 3, basic, korvai(
+  phrase_3x([tha, dhi, thom]),
+  gap(1_beat),
+  phrase_3x([tha, dhi, thom]),
+  gap(half_beat),
+  phrase_3x([tha, dhi, thom]),
+  ends_on(sam)
+)).
+
+%% gamaka_to_midi(+Gamaka, +Notes, -BendEvents)
+%% Convert gamaka ornaments to MIDI pitch bend events. (C637)
+gamaka_to_midi(kampita, [NoteA], [bend_up(NoteA, 50, 100ms), bend_down(NoteA, 0, 100ms), repeat(3)]).
+gamaka_to_midi(andolan, [NoteA], [slow_bend_up(NoteA, 30, 500ms), slow_bend_down(NoteA, 0, 500ms)]).
+gamaka_to_midi(meend, [NoteA, NoteB], [glide(NoteA, NoteB, 300ms)]).
+gamaka_to_midi(gamaka_slide, [NoteA, NoteB], [fast_glide(NoteA, NoteB, 100ms)]).
+gamaka_to_midi(kan_swar, [NoteA, NoteB], [grace_note(NoteA, 30ms), sustain(NoteB)]).
+gamaka_to_midi(jaru, [NoteA, NoteB], [slide_up(NoteA, NoteB, 200ms)]).
+gamaka_to_midi(murki, [NoteA, NoteB, NoteC], [rapid_alternation(NoteA, NoteB, NoteC, 50ms_each)]).
+
+%% ============================================================================
+%% ADDITIONAL CARNATIC DETAIL PREDICATES (C1717-C1743)
+%% ============================================================================
+
+%% nadai_gati(+Name, -Subdivision, -Description)
+%% Nadai/Gati — rhythmic subdivision types. (C1717)
+nadai_gati(tisra, 3, triplet_subdivision).
+nadai_gati(chatusra, 4, quadruplet_subdivision).
+nadai_gati(khanda, 5, quintuplet_subdivision).
+nadai_gati(misra, 7, septuplet_subdivision).
+nadai_gati(sankirna, 9, nonuplet_subdivision).
+
+%% mora_structure(+MoraType, -Pattern, -Resolution)
+%% Mora (rhythmic cadential phrase) structures. (C1719)
+mora_structure(sama_mora, three_identical_phrases, lands_on_sam).
+mora_structure(vishama_mora, three_different_phrases, lands_on_sam).
+mora_structure(simple_mora, short_repeated_unit, quick_resolution).
+mora_structure(complex_mora, elaborate_with_gaps, extended_resolution).
+
+%% kalpana_swara_rule(+Raga, +TalaPosition, -SwaraChoice)
+%% Rules for kalpana swaram (improvised solfege). (C1725)
+kalpana_swara_rule(shankarabharanam, sam, sa_or_pa).
+kalpana_swara_rule(shankarabharanam, anga_start, any_raga_swara).
+kalpana_swara_rule(kalyani, sam, sa_or_ga).
+kalpana_swara_rule(kalyani, anga_start, emphasize_ma_sharp).
+kalpana_swara_rule(todi, sam, sa_or_pa).
+kalpana_swara_rule(todi, anga_start, ga_komal_emphasis).
+kalpana_swara_rule(any_raga, eduppu, must_land_on_strong_beat).
+
+%% bani_style(+BaniName, -Characteristics, -Techniques)
+%% Bani (school/style) in Carnatic percussion. (C1743)
+bani_style(thanjavur, mathematical_precision, [complex_korvais, tihai_structures, nadai_changes]).
+bani_style(pudukkottai, melodic_drum, [tonal_variety, singing_quality, phrase_shaping]).
+bani_style(mannargudi, powerful_projection, [strong_strokes, clarity, volume_control]).
+bani_style(palani, balanced_blend, [mathematical_and_melodic, smooth_transitions]).

@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   registerHelpTopic,
-  getHelpTopic,
+  getHelpTopicById,
   getContextualHelp,
   searchHelp,
   getHelpCategories,
@@ -34,13 +34,13 @@ describe('HelpBrowser', () => {
     });
 
     it('retrieves a builtin topic by ID', () => {
-      const topic = getHelpTopic('help_getting_started');
+      const topic = getHelpTopicById('help_getting_started');
       expect(topic).not.toBeNull();
       expect(topic!.title).toBe('Getting Started with CardPlay');
     });
 
     it('returns null for unknown topic ID', () => {
-      expect(getHelpTopic('nonexistent')).toBeNull();
+      expect(getHelpTopicById('nonexistent')).toBeNull();
     });
 
     it('covers essential categories', () => {
@@ -211,7 +211,7 @@ describe('HelpBrowser', () => {
         tags: ['custom'],
       });
       expect(getHelpTopicCount()).toBe(before + 1);
-      expect(getHelpTopic('custom_topic')).not.toBeNull();
+      expect(getHelpTopicById('custom_topic')).not.toBeNull();
     });
   });
 });

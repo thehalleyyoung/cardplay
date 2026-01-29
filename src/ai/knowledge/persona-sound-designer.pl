@@ -247,6 +247,28 @@ performance_control_mapping(breath_controller, lead, [amplitude, filter_cutoff, 
 performance_control_mapping(sustain_pedal, keys, [sustain_on_off]).
 
 %% ---------------------------------------------------------------------------
+%% M212: midi_learn_mode/3 – MIDI learn state machine rules
+%%   midi_learn_mode(State, Event, NextState)
+%% ---------------------------------------------------------------------------
+midi_learn_mode(idle, enter_learn, awaiting_controller).
+midi_learn_mode(awaiting_controller, cc_received, awaiting_parameter).
+midi_learn_mode(awaiting_parameter, param_selected, mapping_confirmed).
+midi_learn_mode(mapping_confirmed, confirm, idle).
+midi_learn_mode(mapping_confirmed, cancel, idle).
+midi_learn_mode(awaiting_controller, cancel, idle).
+midi_learn_mode(awaiting_parameter, cancel, idle).
+
+%% midi_learn_cc_type/2 – Common MIDI CC numbers and their typical use
+midi_learn_cc_type(1, mod_wheel).
+midi_learn_cc_type(2, breath_controller).
+midi_learn_cc_type(7, volume).
+midi_learn_cc_type(10, pan).
+midi_learn_cc_type(11, expression).
+midi_learn_cc_type(64, sustain_pedal).
+midi_learn_cc_type(71, resonance).
+midi_learn_cc_type(74, brightness).
+
+%% ---------------------------------------------------------------------------
 %% M215-M216: Preset organization and metadata
 %% ---------------------------------------------------------------------------
 preset_organization_scheme(by_category, [bass, lead, pad, keys, pluck, drum, texture, fx, vocal]).

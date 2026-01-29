@@ -23,6 +23,9 @@ export { generatorFactory } from './generator-factory';
 export { arrangerFactory } from './arranger-factory';
 export { routingFactory } from './routing-factory';
 export { automationFactory } from './automation-factory';
+export { sampleManagerFactory } from './sample-manager-factory';
+export { effectsRackFactory } from './effects-rack-factory';
+export { modulationMatrixFactory } from './modulation-matrix-factory';
 
 import { getDeckFactoryRegistry } from '../factory-registry';
 import { patternEditorFactory } from './pattern-editor-factory';
@@ -42,6 +45,9 @@ import { generatorFactory } from './generator-factory';
 import { arrangerFactory } from './arranger-factory';
 import { routingFactory } from './routing-factory';
 import { automationFactory } from './automation-factory';
+import { sampleManagerFactory } from './sample-manager-factory';
+import { effectsRackFactory } from './effects-rack-factory';
+import { modulationMatrixFactory } from './modulation-matrix-factory';
 
 /**
  * Registers all builtin deck factories.
@@ -66,4 +72,7 @@ export function registerBuiltinDeckFactories(): void {
   registry.registerFactory('arranger-deck', arrangerFactory);
   registry.registerFactory('routing-deck', routingFactory);
   registry.registerFactory('automation-deck', automationFactory);
+  registry.registerFactory('sample-manager-deck', sampleManagerFactory);
+  registry.registerFactory('effects-deck', effectsRackFactory);
+  registry.registerFactory('modulation-matrix-deck', modulationMatrixFactory);
 }

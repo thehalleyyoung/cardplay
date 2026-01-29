@@ -36,6 +36,7 @@ const KNOWN_DECK_TYPES: ReadonlySet<DeckType> = new Set([
   'session-deck',
   'arrangement-deck',
   'instruments-deck',
+  'dsp-chain',
   'effects-deck',
   'samples-deck',
   'phrases-deck',
@@ -44,7 +45,12 @@ const KNOWN_DECK_TYPES: ReadonlySet<DeckType> = new Set([
   'mixer-deck',
   'routing-deck',
   'automation-deck',
-  'ai-advisor-deck',  // L299: AI Advisor
+  'properties-deck',
+  'transport-deck',
+  'arranger-deck',
+  'ai-advisor-deck',
+  'sample-manager-deck',
+  'modulation-matrix-deck',
 ]);
 
 // ============================================================================

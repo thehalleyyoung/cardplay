@@ -153,6 +153,17 @@ function getDeckTypeConstraints(deckType: DeckType): DeckTypeConstraints {
         reason: 'Sample browser is read-only; drag samples from here, not into it',
       }),
     },
+    'sample-manager-deck': {
+      // Sample manager is read-only (management, not card drops)
+      customValidator: () => ({
+        allowed: false,
+        reason: 'Sample manager does not accept card drops; use it to organize samples',
+      }),
+    },
+    'modulation-matrix-deck': {
+      // Modulation matrix only accepts modulation sources
+      allowedCategories: ['modulation'],
+    },
   };
   
   return constraints[deckType] ?? {};

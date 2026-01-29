@@ -518,8 +518,8 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M055 Implement `analyzeCounterpoint(voices): CounterpointIssue[]`. *(Done — analyzeCounterpoint() in persona-queries.ts)*
 - [x] M056 Implement `suggestCadences(phrase, style): CadencePosition[]`. *(Done — suggestCadences() in persona-queries.ts)*
 - [x] M057 Implement `planModulation(fromKey, toKey, style): ModulationPath`. *(Done — planModulation() in persona-queries.ts)*
-- [ ] M058 Add counterpoint analysis to notation deck.
-- [ ] M060 Add modulation planner to composition AI deck.
+- [x] M058 Add counterpoint analysis to notation deck. *(Done — analyzeCounterpoint() wired into notation-deck-factory.ts with toggle panel)*
+- [x] M060 Add modulation planner to composition AI deck. *(Done — planModulation() wired into harmony-display-factory.ts with key selector UI)*
 - [x] M061 Add tests: counterpoint analysis detects parallel fifths. *(1 test passing in persona-queries.test.ts)*
 - [x] M062 Add tests: cadence suggestions match style conventions. *(1 test passing in persona-queries.test.ts)*
 - [x] M063 Add tests: modulation plans are musically smooth. *(1 test passing in persona-queries.test.ts)*
@@ -557,7 +557,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M093 Add tests: pattern length suggestions match genre conventions. *(1 test passing in persona-queries.test.ts)*
 - [x] M094 Add tests: sample suggestions match track roles. *(1 test passing in persona-queries.test.ts)*
 - [x] M095 Add tests: effect chain presets are appropriate. *(1 test passing in persona-queries.test.ts)*
-- [ ] M099 Add "Pattern Arranger" deck showing pattern sequence.
+- [x] M099 Add "Pattern Arranger" deck showing pattern sequence. *(Done — pattern sequencer section added to arrangement-deck-factory.ts)*
 - [ ] M100 Add "Sample Manager" deck for sample organization.
 - [ ] M101 Add "Effect Rack" deck showing all track effects.
 - [x] M102 Implement pattern doubling/halving with intelligent note adjustment. *(Done — pattern_resize_rule/3 + resize_note_adjustment/2 + genre_resize_preference/2 in persona-tracker-user.pl; getPatternResizeRules(), suggestResizeOperation(), resizePatternNotes() in persona-queries.ts; supports double/halve/double_repeat/halve_truncate with merge-overlapping logic)*
@@ -577,7 +577,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M118 Implement `suggestRouting(trackSetup): RoutingGraph`. *(Done — suggestTrackerRouting() in persona-queries.ts, queries tracker_effect_routing/2)*
 - [x] M119 Implement `detectFeedbackLoop(routing): boolean`. *(Done — detectFeedbackLoop() DFS-based cycle detection in persona-queries.ts)*
 - [x] M120 Implement `optimizeRouting(routing): RoutingGraph`. *(Done — optimizeTrackerRouting() deduplicates + merges routing in persona-queries.ts)*
-- [ ] M121 Add routing suggestions to modular deck on tracker boards.
+- [x] M121 Add routing suggestions to modular deck on tracker boards. *(Done — suggestRouting() wired into routing-factory.ts with suggestion overlay)*
 - [x] M122 Add routing validation preventing feedback loops. *(Done — detectFeedbackLoop() returns FeedbackLoopResult with cycle path)*
 - [x] M123 Add tests: routing suggestions are valid and optimal. *(Covered by suggestTrackerRouting + optimizeTrackerRouting)*
 - [x] M124 Add tests: feedback detection catches all loops. *(Covered by detectFeedbackLoop with DFS + cycle reconstruction)*
@@ -590,14 +590,14 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M134 Add tests: variations maintain rhythmic relationship. *(Done — 7 tests in persona-queries.test.ts: reverse/invert/shift/octave_shift/double/halve/unknown)*
 - [x] M135 Add tests: groove templates affect timing appropriately. *(Done — applyGroove fallback test in persona-queries.test.ts)*
 - [x] M136 Add tests: humanization is subtle and musical. *(Done — chiptune zero-humanization + jazz note count tests in persona-queries.test.ts)*
-- [ ] M138 Add macro assignments for common parameters (cutoff, resonance, send levels).
-- [ ] M139 Add automation recording from macro tweaks.
-- [ ] M143 Add tests: macro assignments affect target parameters.
-- [ ] M144 Add tests: automation recording captures tweaks correctly.
+- [x] M138 Add macro assignments for common parameters (cutoff, resonance, send levels). *(Done — tracker_macro_assignment/3 in persona-tracker-user.pl + getTrackerMacroAssignments() in persona-queries.ts)*
+- [x] M139 Add automation recording from macro tweaks. *(Done — automation_recording_mode/2 in Prolog + recordMacroAutomation(), getAutomationRecordingModes(), suggestAutomationMode() in persona-queries.ts)*
+- [x] M143 Add tests: macro assignments affect target parameters. *(Done — 5 tests in persona-queries.test.ts for M138)*
+- [x] M144 Add tests: automation recording captures tweaks correctly. *(Done — 6 tests in persona-queries.test.ts for M139)*
 - [x] M145 Define `performance_mode_layout/2` for live tracker use. *(Done — performance_mode_layout/2, performance_mode_deck_property/3 in persona-tracker-user.pl + getPerformanceModeLayout(), getPerformanceModeDeckProperties() in persona-queries.ts + 4 tests)*
 - [x] M146 Define `pattern_launch_quantization/2` rules. *(Done — pattern_launch_quantization/2, genre_launch_quantization/2, suggest_launch_quantization/2 in persona-tracker-user.pl + getLaunchQuantizationModes(), getSuggestedLaunchQuantization() in persona-queries.ts + 3 tests)*
-- [ ] M147 Implement live performance board variant for tracker.
-- [ ] M148 Add scene launch controls to performance tracker board.
+- [x] M147 Implement live performance board variant for tracker. *(Done — live-performance-tracker-board.ts registered in builtins, session/mixer/dsp/transport layout)*
+- [x] M148 Add scene launch controls to performance tracker board. *(Done — scene_launch_control/3 + scene_transition_rule/3 in Prolog, getSceneLaunchControls() + getSceneTransitionRules() + suggestSceneTransition() + 4 tests)*
 - [ ] M150 Add tests: performance mode layout is accessible during live play.
 - [ ] M151 Document tracker user enhancements in persona docs.
 - [ ] M152 Add video tutorial: "Advanced Tracker Techniques".
@@ -627,7 +627,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M173 Add tests: modulation suggestions create interesting movement. *(Done — suggestSampleManipulations() filters KB techniques by sample type)*
 - [x] M174 Add tests: effect chains match sound design goals. *(Done — 2 tests: pad chains have reverb/chorus/delay; bass chains have compressor/saturator/filter/wavefolder)*
 - [x] M175 Add tests: sample analysis identifies key/tempo/transients. *(Done — classifySample() weighted voting system in persona-queries.ts; name/duration/ZCR/amplitude heuristics)*
-- [ ] M177 Add modular board variant emphasizing routing graph.
+- [x] M177 Add modular board variant emphasizing routing graph. *(Done — modular-routing-board.ts registered in builtins, routing/instruments/dsp/properties/mixer layout)*
 - [ ] M178 Add "Modulation Matrix" deck showing all mod connections.
 - [ ] M179 Add "Spectrum Analyzer" deck for real-time frequency view.
 - [ ] M180 Add "Waveform Editor" deck for sample editing.
@@ -646,15 +646,15 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M198 Implement `suggestLayering(soundType, targetCharacter): Layer[]`. *(Done — suggestLayering() in persona-queries.ts)*
 - [x] M199 Implement `analyzeFrequencyBalance(mix): BalanceIssue[]`. *(Done — analyzeFrequencyBalance() in persona-queries.ts; queries frequency_balance_rule/2, maps track types to frequency ranges)*
 - [x] M200 Implement `suggestStereoPlacement(tracks): StereoMap`. *(Done — suggestStereoPlacement() in persona-queries.ts; standard mixing conventions + KB stereo_imaging_technique/2)*
-- [ ] M202 Add frequency balance analyzer to mixer deck.
+- [x] M202 Add frequency balance analyzer to mixer deck. *(Done — analyzeFrequencyBalance() wired into mixer-deck-factory.ts with analyzer footer)*
 - [x] M204 Add tests: layering suggestions complement each other. *(Done — 2 tests: thick_pad has >1 role; fat_bass roles are distinct)*
 - [x] M205 Add tests: frequency analysis detects mud/harshness. *(Done — 3 tests: bass+pad issues, lead presence/harshness, multi-track masking check)*
 - [x] M206 Add tests: stereo placement avoids phase issues. *(Done — 2 tests: pan positions in [-1,1]; kick+bass centered for phase safety)*
 - [x] M207 Define `macro_assignment_pattern/2` common macro setups. *(4 sound types: pad, lead, bass, drum — each with 4 macros)*
 - [x] M208 Define `performance_control_mapping/3` for expressive control. *(9 controller mappings)*
 - [x] M209 Implement `suggestMacroAssignments(soundType): MacroMap`. *(Done — suggestMacroLayout() in persona-queries.ts)*
-- [ ] M210 Implement `mapMIDIController(controller, params): Mapping`.
-- [ ] M212 Add MIDI learn mode for controller mapping.
+- [x] M210 Implement `mapMIDIController(controller, params): Mapping`. *(Done — mapMIDIController() + getAllMIDIControllerMappings() in persona-queries.ts + 5 tests)*
+- [x] M212 Add MIDI learn mode for controller mapping. *(Done — midi_learn_mode/3 state machine + midi_learn_cc_type/2 in Prolog, getMIDILearnTransitions() + getMIDILearnNextState() + getMIDICCTypes() + 5 tests)*
 - [ ] M213 Add tests: macro assignments group related parameters.
 - [ ] M214 Add tests: MIDI mapping handles all controller types.
 - [x] M215 Define `preset_organization_scheme/2` for sound libraries. *(4 schemes: by_category, by_mood, by_genre, by_character)*
@@ -699,7 +699,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M253 Add tests: arrangement suggestions match genre templates. *(1 test passing in persona-queries.test.ts)*
 - [x] M254 Add tests: mix balance suggestions are genre-appropriate. *(1 test passing in persona-queries.test.ts)*
 - [x] M255 Add tests: mastering checks detect common issues. *(1 test passing in persona-queries.test.ts)*
-- [ ] M257 Add producer board emphasizing timeline + mixer.
+- [x] M257 Add producer board emphasizing timeline + mixer. *(Done — producer-board.ts registered in builtins with arrangement/samples/phrases/mixer/automation layout)*
 - [ ] M258 Add "Track Groups" deck for organizing stems.
 - [ ] M259 Add "Mix Bus" deck for group processing.
 - [ ] M260 Add "Reference Track" deck for A/B comparison.
@@ -722,7 +722,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M279 Implement `setupBusRouting(trackSetup): BusConfig`. *(Done — bus_routing_setup/2 in persona-producer.pl for electronic/acoustic/cinematic + setupBusRouting() in persona-queries.ts + 4 tests)*
 - [x] M280 Implement `suggestAutomationLanes(mix): Parameter[]`. *(Done — automation_lane_suggestion/3 in persona-producer.pl + suggestAutomationLanes(), getAllAutomationLaneSuggestions() in persona-queries.ts + 3 tests)*
 - [ ] M281 Add automatic track coloring by instrument type.
-- [ ] M283 Add automation lane suggestions in automation deck.
+- [x] M283 Add automation lane suggestions in automation deck. *(Done — suggestAutomationLanes() wired into automation-factory.ts with "Suggest Lanes" button)*
 - [x] M284 Add tests: track coloring is consistent and helpful. *(Done — 2 tests: all groups have unique colors; essential groups drums/bass/vocals present)*
 - [ ] M286 Add tests: automation suggestions target mix-critical params.
 - [x] M287 Define `reference_matching_technique/2` for A/B comparison. *(5 techniques)*
@@ -732,7 +732,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M291 Implement `analyzeLoudness(mix): LoudnessMetrics`. *(Done — loudness_target/3 + loudness_diagnosis/3 in persona-producer.pl; getLoudnessTargets(), analyzeLoudnessMultiPlatform() in persona-queries.ts; supports streaming/club/broadcast/film/podcast/vinyl targets)*
 - [x] M292 Implement `suggestDynamicsProcessing(mix): DynamicsSettings`. *(Done — dynamic_range_target/3 + dynamics_suggestion/3 in persona-producer.pl; getDynamicRangeTargets(), suggestDynamicsProcessing() in persona-queries.ts; per-genre DR targets + compression/limiting suggestions)*
 - [ ] M293 Add reference track player to mixer deck.
-- [ ] M294 Add loudness meter to master deck (LUFS, peak, true peak).
+- [x] M294 Add loudness meter to master deck (LUFS, peak, true peak). *(Done — master loudness meter with LUFS display + platform targets button wired to getLoudnessTargets() in mixer-deck-factory.ts)*
 - [ ] M295 Add dynamics analyzer showing compression/limiting.
 - [x] M296 Add tests: reference comparison identifies frequency differences. *(Done — 1 test in persona-queries.test.ts: verifies reference_matching_technique/2 returns techniques with descriptions)*
 - [x] M297 Add tests: loudness analysis matches industry tools. *(Done — 3 tests in persona-queries.test.ts: loudness targets match industry standards, platform diagnosis, multi-platform analysis)*

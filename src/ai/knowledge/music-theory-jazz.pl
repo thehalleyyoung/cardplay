@@ -881,3 +881,453 @@ jazz_style_match(Phrase, modal, Score) :-
   length(Runs, NR),
   Score is NR * 3.  %% Modal favors scale runs
 jazz_style_match(_, free, 5).  %% Free jazz: everything scores equally
+
+%% ============================================================================
+%% LYDIAN CHROMATIC CONCEPT — CHORD-SCALE THEORY (C1132-C1155)
+%% ============================================================================
+
+%% lcc_chord_type(+ChordSymbol, -Structure)
+%% Chord types in LCC classification. (C1132)
+lcc_chord_type(maj7, [root, major_third, fifth, major_seventh]).
+lcc_chord_type(dom7, [root, major_third, fifth, minor_seventh]).
+lcc_chord_type(min7, [root, minor_third, fifth, minor_seventh]).
+lcc_chord_type(min7b5, [root, minor_third, diminished_fifth, minor_seventh]).
+lcc_chord_type(dim7, [root, minor_third, diminished_fifth, diminished_seventh]).
+lcc_chord_type(aug7, [root, major_third, augmented_fifth, minor_seventh]).
+lcc_chord_type(min_maj7, [root, minor_third, fifth, major_seventh]).
+lcc_chord_type(sus4, [root, fourth, fifth, minor_seventh]).
+lcc_chord_type(maj7sharp11, [root, major_third, fifth, major_seventh, augmented_fourth]).
+
+%% lcc_chord_scale(+ChordType, -ScaleChoice, -GravityFit)
+%% Scale choices for chord types per LCC tonal gravity. (C1137)
+lcc_chord_scale(maj7, lydian, primary).
+lcc_chord_scale(maj7, ionian, secondary).
+lcc_chord_scale(maj7, lydian_augmented, auxiliary).
+lcc_chord_scale(dom7, lydian_dominant, primary).
+lcc_chord_scale(dom7, mixolydian, secondary).
+lcc_chord_scale(dom7, whole_tone, auxiliary).
+lcc_chord_scale(dom7, altered, auxiliary).
+lcc_chord_scale(dom7, diminished_whole_tone, auxiliary).
+lcc_chord_scale(min7, dorian, primary).
+lcc_chord_scale(min7, aeolian, secondary).
+lcc_chord_scale(min7, phrygian, auxiliary).
+lcc_chord_scale(min7b5, locrian_natural2, primary).
+lcc_chord_scale(min7b5, locrian, secondary).
+lcc_chord_scale(dim7, diminished_whole_half, primary).
+lcc_chord_scale(aug7, whole_tone, primary).
+lcc_chord_scale(min_maj7, melodic_minor, primary).
+lcc_chord_scale(sus4, mixolydian_sus, primary).
+
+%% lcc_avoid_note(+Chord, +Scale, -AvoidNote)
+%% Notes to avoid (create unresolved tension against chord tones). (C1139)
+lcc_avoid_note(maj7, ionian, fourth).
+lcc_avoid_note(min7, dorian, sixth).
+lcc_avoid_note(dom7, mixolydian, fourth).
+lcc_avoid_note(min7, aeolian, sixth).
+lcc_avoid_note(min7, phrygian, minor_second).
+
+%% lcc_color_tone(+Chord, +Scale, -ColorTone)
+%% Color tones that add richness without clashing. (C1141)
+lcc_color_tone(maj7, lydian, sharp_four).
+lcc_color_tone(maj7, lydian, ninth).
+lcc_color_tone(dom7, lydian_dominant, sharp_eleven).
+lcc_color_tone(dom7, altered, flat_nine).
+lcc_color_tone(dom7, altered, sharp_nine).
+lcc_color_tone(dom7, altered, flat_thirteen).
+lcc_color_tone(min7, dorian, ninth).
+lcc_color_tone(min7, dorian, sixth).
+lcc_color_tone(min7b5, locrian_natural2, ninth).
+
+%% upper_structure_triad(+BaseChord, -TriadRoot, -TriadQuality, -Tensions)
+%% Upper structure triads over dominant chords. (C1143)
+upper_structure_triad(dom7, flat_2, major, [flat9, sharp11, 7]).
+upper_structure_triad(dom7, 2, major, [9, sharp11, 13]).
+upper_structure_triad(dom7, flat_3, major, [sharp9, 5, flat7]).
+upper_structure_triad(dom7, 3, major, [3, sharp5, root]).
+upper_structure_triad(dom7, sharp_4, major, [sharp11, 13, root]).
+upper_structure_triad(dom7, flat_6, major, [flat13, root, 3]).
+upper_structure_triad(dom7, 6, major, [13, sharp9, 5]).
+upper_structure_triad(dom7, flat_2, minor, [flat9, 3, flat13]).
+upper_structure_triad(dom7, 2, minor, [9, sharp11, 13]).
+
+%% lcc_polychord(+BaseChord, -UpperChord, -Voicing, -GravityScore)
+%% Polychord combinations with tonal gravity scores. (C1145)
+lcc_polychord(c_dom7, d_major, [d,fsharp,a,c,e,g,bb], 8).
+lcc_polychord(c_dom7, gb_major, [gb,bb,db,c,e,g,bb], 6).
+lcc_polychord(c_dom7, ab_major, [ab,c,eb,c,e,g,bb], 7).
+lcc_polychord(c_maj7, fsharp_major, [fsharp,asharp,csharp,c,e,g,b], 9).
+
+%% slash_chord_parent(+SlashChord, -ParentScale, -Analysis)
+%% Analyze slash chords via LCC parent scale. (C1147)
+slash_chord_parent(c_over_g, g_lydian, fifth_inversion).
+slash_chord_parent(d_over_c, c_lydian, second_degree_triad).
+slash_chord_parent(eb_over_bb, bb_lydian, fourth_degree_triad).
+slash_chord_parent(ab_over_g, g_altered, tritone_sub_voicing).
+slash_chord_parent(f_over_g, g_mixolydian, sus_dominant).
+
+%% lcc_modal_interchange(+Key, -BorrowedChord, -SourceScale, -GravityShift)
+%% Modal interchange analyzed through LCC gravity. (C1149)
+lcc_modal_interchange(c_major, ab_major, c_phrygian, flat_six_borrow).
+lcc_modal_interchange(c_major, bb_major, c_mixolydian, flat_seven_borrow).
+lcc_modal_interchange(c_major, db_major, c_locrian, flat_two_borrow).
+lcc_modal_interchange(c_major, eb_major, c_dorian, flat_three_borrow).
+lcc_modal_interchange(c_major, fm7, c_aeolian, minor_four_borrow).
+
+%% coltrane_substitution(+OriginalChord, -Substitution, -LCCReason)
+%% Coltrane changes analyzed via LCC. (C1151)
+coltrane_substitution(c_maj7, [c_maj7, e_maj7, ab_maj7], major_third_cycle).
+coltrane_substitution(g_dom7, [g_dom7, b_dom7, eb_dom7], tritone_third_cycle).
+coltrane_substitution(ii_v_i_c, [dm7_g7, fsharp_m7_b7, bbm7_eb7, dm7_g7_cmaj7], full_coltrane_matrix).
+
+%% lcc_tritone_sub(+Dominant, -Sub, -GravityPath)
+%% Tritone substitution with LCC gravity analysis. (C1153)
+lcc_tritone_sub(g7, db7, [shared_tritone(b,f), resolves_to(c), gravity(descending_half_step)]).
+lcc_tritone_sub(c7, gb7, [shared_tritone(e,bb), resolves_to(f), gravity(descending_half_step)]).
+lcc_tritone_sub(d7, ab7, [shared_tritone(fsharp,c), resolves_to(g), gravity(descending_half_step)]).
+lcc_tritone_sub(a7, eb7, [shared_tritone(csharp,g), resolves_to(d), gravity(descending_half_step)]).
+lcc_tritone_sub(e7, bb7, [shared_tritone(gsharp,d), resolves_to(a), gravity(descending_half_step)]).
+
+%% lcc_ii_v_i(+Key, -ii, -V, -I_scales)
+%% ii-V-I scale choices per LCC. (C1155)
+lcc_ii_v_i(c, d_dorian, g_lydian_dominant, c_lydian).
+lcc_ii_v_i(f, g_dorian, c_lydian_dominant, f_lydian).
+lcc_ii_v_i(bb, c_dorian, f_lydian_dominant, bb_lydian).
+lcc_ii_v_i(eb, f_dorian, bb_lydian_dominant, eb_lydian).
+lcc_ii_v_i(ab, bb_dorian, eb_lydian_dominant, ab_lydian).
+lcc_ii_v_i(db, eb_dorian, ab_lydian_dominant, db_lydian).
+lcc_ii_v_i(gb, ab_dorian, db_lydian_dominant, gb_lydian).
+lcc_ii_v_i(b, csharp_dorian, fsharp_lydian_dominant, b_lydian).
+lcc_ii_v_i(e, fsharp_dorian, b_lydian_dominant, e_lydian).
+lcc_ii_v_i(a, b_dorian, e_lydian_dominant, a_lydian).
+lcc_ii_v_i(d, e_dorian, a_lydian_dominant, d_lydian).
+lcc_ii_v_i(g, a_dorian, d_lydian_dominant, g_lydian).
+
+%% lcc_reharmonize(+OriginalProgression, -NewProgression, -Strategy, -Reasons)
+%% Reharmonize a progression using LCC principles. (C1183)
+lcc_reharmonize([c_maj7, a_min7, d_min7, g7],
+  [c_lydian_maj7, fsharp_min7b5, b7alt, e_maj7, a_min7, d_min7, g_lyd_dom, c_maj7],
+  coltrane_expansion,
+  [because(added_coltrane_cycle), because(all_scales_from_lcc)]).
+lcc_reharmonize([c_maj7, f_maj7],
+  [c_lydian_maj7, fsharp_dim7, f_lydian_maj7],
+  chromatic_approach,
+  [because(diminished_passing), because(maintains_gravity)]).
+lcc_reharmonize([d_min7, g7, c_maj7],
+  [d_dorian, ab7_lydian_dom, g_lyd_dom, db_lyd_dom, c_lydian],
+  tritone_chain,
+  [because(alternating_dominants), because(chromatic_bass)]).
+
+%% lcc_voice_leading_score(+VoiceMotion, -GravityScore, -Reasons)
+%% Score voice leading quality via LCC tonal gravity. (C1187)
+lcc_voice_leading_score(half_step_down, 10, [because(strongest_gravity), because(resolution)]).
+lcc_voice_leading_score(half_step_up, 8, [because(strong_leading_tone)]).
+lcc_voice_leading_score(common_tone, 9, [because(stability), because(connection)]).
+lcc_voice_leading_score(whole_step_down, 7, [because(moderate_gravity)]).
+lcc_voice_leading_score(whole_step_up, 6, [because(moderate_ascent)]).
+lcc_voice_leading_score(minor_third, 5, [because(smooth_but_distant)]).
+lcc_voice_leading_score(major_third, 4, [because(noticeable_leap)]).
+lcc_voice_leading_score(tritone, 3, [because(maximum_tension), because(needs_resolution)]).
+lcc_voice_leading_score(perfect_fourth, 5, [because(consonant_leap)]).
+lcc_voice_leading_score(perfect_fifth, 4, [because(strong_interval_moderate_leading)]).
+
+%% ============================================================================
+%% JAZZ VOICING PREDICATES (C1217-C1230)
+%% ============================================================================
+
+%% barron_voicing(+Chord, -Notes, -Tensions)
+%% Kenny Barron-style voicings. (C1217)
+barron_voicing(maj7, [root, ninth, third, sharp11, seventh], [9, sharp11]).
+barron_voicing(min7, [root, fifth, seventh, ninth, eleventh], [9, 11]).
+barron_voicing(dom7, [root, seventh, ninth, third, thirteenth], [9, 13]).
+barron_voicing(dom7alt, [root, flat7, sharp9, third, flat13], [sharp9, flat13]).
+
+%% evans_voicing(+Chord, +VoicingType, -Notes, -Reasons)
+%% Bill Evans-style voicings. (C1219)
+evans_voicing(maj7, rootless_a, [third, fifth, seventh, ninth], [because(no_root_implied_by_bass)]).
+evans_voicing(maj7, rootless_b, [seventh, ninth, third, fifth], [because(smooth_voice_leading)]).
+evans_voicing(min7, rootless_a, [third, fifth, seventh, ninth], [because(dorian_color)]).
+evans_voicing(min7, rootless_b, [seventh, ninth, third, fifth], [because(open_voicing)]).
+evans_voicing(dom7, rootless_a, [third, thirteenth, seventh, ninth], [because(guide_tones_first)]).
+evans_voicing(dom7, rootless_b, [seventh, ninth, third, thirteenth], [because(close_spacing)]).
+
+%% hancock_voicing(+Chord, +Context, -Notes, -Reasons)
+%% Herbie Hancock-style voicings. (C1221)
+hancock_voicing(min7, quartal, [root, fourth, seventh, third_above], [because(quartal_stack), because(open_sound)]).
+hancock_voicing(dom7, quartal, [seventh, third, thirteenth, ninth], [because(sus_quality), because(ambiguous)]).
+hancock_voicing(min11, spread, [root, fifth, ninth, eleventh, seventh], [because(wide_spacing), because(orchestral)]).
+hancock_voicing(dom7sus, cluster, [seventh, root, ninth, fourth], [because(tight_cluster), because(modern_sound)]).
+
+%% stride_voicing(+Chord, -BassNote, -ChordNotes, -Rhythm)
+%% Stride piano voicings. (C1223)
+stride_voicing(maj7, root, [third, fifth, seventh], oom_pah).
+stride_voicing(maj7, fifth, [root, third, seventh], alternating_bass).
+stride_voicing(min7, root, [third, fifth, seventh], oom_pah).
+stride_voicing(dom7, root, [third, seventh], shell_stride).
+stride_voicing(dim7, root, [minor_third, diminished_fifth, diminished_seventh], full_stride).
+
+%% two_hand_voicing(+Chord, -LeftHand, -RightHand, -Balance, -Reasons)
+%% Two-hand voicing distributions. (C1225)
+two_hand_voicing(maj7, [root, fifth], [ninth, third, seventh], balanced,
+  [because(root_anchor_left), because(color_tones_right)]).
+two_hand_voicing(min7, [root, seventh], [ninth, third, fifth, eleventh], top_heavy,
+  [because(foundation_left), because(extensions_right)]).
+two_hand_voicing(dom7, [third, seventh], [ninth, sharp11, thirteenth], spread,
+  [because(guide_tones_left), because(upper_extensions_right)]).
+
+%% guitar_voicing(+Chord, -Voicing, -Frets, -Fingering)
+%% Jazz guitar voicings (drop-2, drop-3, etc.). (C1227)
+guitar_voicing(maj7, drop2, [x,3,5,4,5,x], barre_form).
+guitar_voicing(min7, drop2, [x,3,5,3,4,x], barre_form).
+guitar_voicing(dom7, drop2, [x,3,5,3,5,x], barre_form).
+guitar_voicing(maj7, drop3, [3,x,4,4,5,x], spread_form).
+guitar_voicing(min7, drop3, [3,x,3,3,4,x], spread_form).
+guitar_voicing(dom7, shell, [x,3,x,3,5,x], freddie_green).
+
+%% ============================================================================
+%% VOICE LEADING & ARRANGING (C1235-C1275)
+%% ============================================================================
+
+%% contrary_motion(+Voice1, +Voice2, -Direction1, -Direction2)
+%% Contrary motion patterns for jazz arranging. (C1235)
+contrary_motion(soprano, bass, ascending, descending).
+contrary_motion(alto, tenor, descending, ascending).
+contrary_motion(lead, pad, ascending, static).
+contrary_motion(melody, counter_melody, ascending, descending).
+
+%% big_band_section(+SectionName, -Instruments)
+%% Big band section definitions. (C1243)
+big_band_section(saxes, [alto1, alto2, tenor1, tenor2, baritone]).
+big_band_section(trombones, [trombone1, trombone2, trombone3, bass_trombone]).
+big_band_section(trumpets, [trumpet1, trumpet2, trumpet3, trumpet4]).
+big_band_section(rhythm, [piano, bass, drums, guitar]).
+
+%% unison_octave_line(+Melody, +Section, -SectionVoices)
+%% Unison/octave writing for a section. (C1245)
+unison_octave_line(Melody, saxes, [alto1_melody, alto2_melody, tenor1_8vb, tenor2_8vb, bari_15vb]) :- Melody \= [].
+unison_octave_line(Melody, trumpets, [tp1_melody, tp2_melody, tp3_8vb, tp4_8vb]) :- Melody \= [].
+unison_octave_line(Melody, trombones, [tb1_melody, tb2_melody, tb3_8vb, bass_tb_15vb]) :- Melody \= [].
+
+%% soli_voicing(+Melody, +HarmonyChords, +Section, -Voices)
+%% Soli section voicing. (C1247)
+soli_voicing(Melody, Chords, saxes, five_part_close) :- Melody \= [], Chords \= [].
+soli_voicing(Melody, Chords, trumpets, four_part_close) :- Melody \= [], Chords \= [].
+soli_voicing(Melody, Chords, trombones, four_part_close) :- Melody \= [], Chords \= [].
+
+%% four_way_close(+MelodyNote, +Chord, -FourNotes)
+%% Four-way close voicing (melody on top). (C1249)
+four_way_close(MelodyNote, maj7, [MelodyNote, third_below, fifth_below, seventh_below]).
+four_way_close(MelodyNote, min7, [MelodyNote, third_below, fifth_below, seventh_below]).
+four_way_close(MelodyNote, dom7, [MelodyNote, third_below, fifth_below, seventh_below]).
+
+%% five_way_close(+MelodyNote, +Chord, -FiveNotes)
+%% Five-way close voicing (lead doubled an octave below). (C1251)
+five_way_close(MelodyNote, Chord, [MelodyNote, Third, Fifth, Seventh, MelodyOctaveBelow]) :-
+  four_way_close(MelodyNote, Chord, [MelodyNote, Third, Fifth, Seventh]),
+  MelodyOctaveBelow = melody_8vb.
+
+%% sax_soli_drop2(+MelodyNote, +Chord, -FiveNotes)
+%% Sax soli drop-2 voicing. (C1253)
+sax_soli_drop2(MelodyNote, maj7, [MelodyNote, third_below, dropped_fifth, seventh_below, root_below]).
+sax_soli_drop2(MelodyNote, min7, [MelodyNote, third_below, dropped_fifth, seventh_below, root_below]).
+sax_soli_drop2(MelodyNote, dom7, [MelodyNote, third_below, dropped_fifth, seventh_below, root_below]).
+
+%% brass_drop_2_4(+MelodyNote, +Chord, -BrassVoices)
+%% Brass drop 2-4 voicing. (C1255)
+brass_drop_2_4(MelodyNote, maj7, [MelodyNote, dropped_2nd_voice, third_below, dropped_4th_voice]).
+brass_drop_2_4(MelodyNote, dom7, [MelodyNote, dropped_2nd_voice, third_below, dropped_4th_voice]).
+
+%% big_band_spread(+Chord, -Sections, -FullVoicing, -Reasons)
+%% Full big band spread voicing. (C1257)
+big_band_spread(maj7, all_sections, spread_voicing,
+  [because(trumpets_on_top), because(saxes_middle), because(trombones_bottom), because(rhythm_foundation)]).
+big_band_spread(dom7, all_sections, tension_voicing,
+  [because(upper_structures_in_trumpets), because(guide_tones_in_saxes), because(bass_notes_in_trombones)]).
+
+%% block_voicing(+Melody, +Chords, +Section, -BlockedLine)
+%% Block (locked hands / Shearing style) voicing. (C1259)
+block_voicing(Melody, Chords, piano, shearing_style) :- Melody \= [], Chords \= [].
+block_voicing(Melody, Chords, saxes, sax_block) :- Melody \= [], Chords \= [].
+block_voicing(Melody, Chords, brass, brass_block) :- Melody \= [], Chords \= [].
+
+%% background_figure(+Type, -Rhythm, -Voicing, -Role)
+%% Background figures in jazz arranging. (C1261)
+background_figure(pad, whole_notes, sustained_chord, harmonic_support).
+background_figure(rhythmic_hits, syncopated_stabs, close_voicing, punctuation).
+background_figure(counter_melody, independent_rhythm, single_line, counterpoint).
+background_figure(riff, repeated_pattern, unison_or_harmonized, groove).
+background_figure(fill, between_phrases, scale_run, connective).
+
+%% shout_chorus(+Melody, +Chords, -FullEnsemble, -Dynamics)
+%% Shout chorus arranging. (C1263)
+shout_chorus(Melody, Chords, tutti_fortissimo, fff) :- Melody \= [], Chords \= [].
+
+%% section_balance(+Passage, -ActiveSections, -RestingSections, -Reasons)
+%% Managing section activity for balance. (C1265)
+section_balance(verse, [saxes], [brass], [because(soft_texture), because(save_brass_for_climax)]).
+section_balance(chorus, [all_sections], [], [because(full_energy), because(maximum_impact)]).
+section_balance(bridge, [brass], [saxes], [because(contrast), because(timbral_variety)]).
+section_balance(solo_bg, [rhythm], [horns], [because(space_for_soloist)]).
+
+%% call_response_sections(+CallSection, +ResponseSection, -CallMaterial, -ResponseMaterial)
+%% Section call and response. (C1267)
+call_response_sections(trumpets, saxes, melodic_phrase, harmonized_answer).
+call_response_sections(saxes, trombones, riff, counter_riff).
+call_response_sections(soloist, ensemble, improvised_phrase, arranged_response).
+call_response_sections(rhythm, horns, groove_pattern, stab_response).
+
+%% contrapuntal_bg(+MainMelody, +CounterMelody, -Voicings, -Reasons)
+%% Contrapuntal background writing. (C1269)
+contrapuntal_bg(main_melody, counter_line, independent_voices,
+  [because(rhythmic_independence), because(contrary_motion_preferred)]).
+
+%% register_allocation(+Chord, -Sections, -Registers, -Spacing)
+%% Register allocation for big band. (C1271)
+register_allocation(tutti_chord, [trumpets, saxes, trombones, rhythm],
+  [high, middle, low_middle, low], wide_spread).
+
+%% dynamic_layer(+Section, -DynamicLevel, -EntryPoint, -Reasons)
+%% Dynamic layer entries for gradual build. (C1273)
+dynamic_layer(rhythm, pp, bar_1, [because(foundation_first)]).
+dynamic_layer(bass_trombone, p, bar_5, [because(bass_support)]).
+dynamic_layer(trombones, mp, bar_9, [because(harmonic_fill)]).
+dynamic_layer(saxes, mf, bar_13, [because(melodic_entry)]).
+dynamic_layer(trumpets, f, bar_17, [because(climactic_entry)]).
+
+%% ============================================================================
+%% JAZZ COMBO & SMALL GROUP (C1283-C1305)
+%% ============================================================================
+
+%% jazz_combo(+Size, -TypicalInstruments)
+%% Standard jazz combo configurations. (C1283)
+jazz_combo(trio, [piano, bass, drums]).
+jazz_combo(trio_guitar, [guitar, bass, drums]).
+jazz_combo(quartet, [saxophone, piano, bass, drums]).
+jazz_combo(quartet_trumpet, [trumpet, piano, bass, drums]).
+jazz_combo(quintet, [trumpet, saxophone, piano, bass, drums]).
+jazz_combo(sextet, [trumpet, trombone, saxophone, piano, bass, drums]).
+jazz_combo(septet, [trumpet, trombone, alto_sax, tenor_sax, piano, bass, drums]).
+
+%% head_arrangement(+Tune, -Form, -Melody, -HarmonyGuide)
+%% Head arrangement conventions. (C1285)
+head_arrangement(standard, aaba, melody_in_lead, chart_changes).
+head_arrangement(blues, twelve_bar, melody_unison, blues_changes).
+head_arrangement(modal, open_form, theme_statement, modal_centers).
+head_arrangement(latin, montuno_form, melody_over_groove, latin_changes).
+
+%% rhythm_section_role(+Instrument, -Role, -Context, -Constraints)
+%% Rhythm section roles in jazz. (C1287)
+rhythm_section_role(piano, comping, swing, [no_bass_notes_when_bassist_present, voice_lead_smoothly]).
+rhythm_section_role(piano, soloing, any, [right_hand_lead, left_hand_sparse]).
+rhythm_section_role(guitar, comping, swing, [freddie_green_or_chordal, stay_in_register]).
+rhythm_section_role(bass, walking, swing, [quarter_notes, outline_harmony, connect_chromatically]).
+rhythm_section_role(bass, latin, latin, [tumbao_pattern, lock_with_clave]).
+rhythm_section_role(drums, timekeeping, swing, [ride_cymbal_pattern, hi_hat_on_2_4]).
+rhythm_section_role(drums, comping, any, [snare_bass_conversation, support_soloist]).
+
+%% comping_pattern(+Style, +Chord, -Pattern, -RhythmFeel)
+%% Comping rhythm patterns. (C1289)
+comping_pattern(swing, any_chord, charleston, dotted_quarter_eighth).
+comping_pattern(swing, any_chord, four_on_floor, quarter_notes).
+comping_pattern(bop, any_chord, syncopated, off_beats_and_anticipations).
+comping_pattern(modal, any_chord, sparse, whole_notes_and_space).
+comping_pattern(latin, any_chord, montuno, syncopated_eighth_notes).
+comping_pattern(ballad, any_chord, arpeggiated, gentle_broken_chords).
+
+%% walking_bass(+ChordProgression, -WalkingLine, -Style, -Reasons)
+%% Walking bass line generation. (C1291)
+walking_bass([ii, v, i], chromatic_approach, swing,
+  [because(approach_from_half_step), because(strong_beats_chord_tones)]).
+walking_bass([i, vi, ii, v], scale_wise, medium_swing,
+  [because(smooth_step_motion), because(passing_tones_on_weak_beats)]).
+
+%% jazz_drum_pattern(+Style, +Tempo, -Pattern, -Variations)
+%% Jazz drum patterns. (C1293)
+jazz_drum_pattern(swing, medium, ride_spang_a_lang, [cross_stick_4, bass_drum_feathered]).
+jazz_drum_pattern(swing, uptempo, ride_straight, [hi_hat_pedal_2_4, crisp_time]).
+jazz_drum_pattern(bossa, medium, brush_pattern, [cross_stick_rimshot, subtle_bass_drum]).
+jazz_drum_pattern(waltz, medium, three_four_ride, [hi_hat_on_3, brush_circles]).
+jazz_drum_pattern(funk, medium, backbeat_syncopated, [ghost_notes, open_hi_hat]).
+jazz_drum_pattern(ballad, slow, brush_sweep, [gentle_dynamics, space]).
+
+%% small_horn_section(+Melody, +Chord, -HornVoices, -Texture)
+%% Small group horn writing. (C1295)
+small_horn_section(Melody, maj7, [melody_trumpet, harmony_sax], two_part) :- Melody \= [].
+small_horn_section(Melody, min7, [melody_sax, harmony_trumpet], inverted) :- Melody \= [].
+
+%% harmonized_unison(+Melody, +Interval, -Voice1, -Voice2)
+%% Two-voice harmonization at a fixed interval. (C1297)
+harmonized_unison(melody, third, upper_voice, lower_voice_third_below).
+harmonized_unison(melody, sixth, upper_voice, lower_voice_sixth_below).
+harmonized_unison(melody, tenth, upper_voice, lower_voice_tenth_below).
+harmonized_unison(melody, fourth, lower_voice, upper_voice_fourth_above).
+
+%% interlude_vamp(+Chords, -Duration, -Texture, -Purpose)
+%% Interlude/vamp sections. (C1299)
+interlude_vamp([i], open, sparse_rhythm, transition).
+interlude_vamp([i, iv], 8_bars, groove_build, energy_change).
+interlude_vamp([vi, iv, i, v], 16_bars, full_band, section_connector).
+
+%% solo_section(+Form, -Choruses, -Trades, -EndingCue)
+%% Solo section structure. (C1301)
+solo_section(aaba, open_choruses, possible_after_solos, drum_fill_cue).
+solo_section(blues, open_choruses, common_fours, head_nod_cue).
+solo_section(modal, open_duration, rare, hand_signal).
+solo_section(latin, open_choruses, possible, rhythmic_cue).
+
+%% trading_structure(+TradeLength, -Instruments, -Order, -Transitions)
+%% Trading fours/eights structure. (C1303)
+trading_structure(fours, all_soloists, round_robin, drum_responds_each).
+trading_structure(eights, two_soloists, alternating, drums_join_later).
+trading_structure(twos, soloist_and_drums, call_response, rapid_exchange).
+
+%% jazz_ending(+Type, -Chords, -Melody, -Arrangement)
+%% Jazz ending types. (C1305)
+jazz_ending(tag, repeat_last_4_bars, ritardando, all_voices_unison_end).
+jazz_ending(coda, new_chord_sequence, composed_melody, written_out).
+jazz_ending(vamp_fade, one_chord_loop, improvised, gradual_dropout).
+jazz_ending(cold_ending, last_chord_staccato, cut_off, conductor_cue).
+jazz_ending(deceptive, unexpected_chord, surprise_resolution, dramatic_pause).
+
+%% ============================================================================
+%% JAZZ REHARMONIZATION TECHNIQUES (C1325-C1335)
+%% ============================================================================
+
+%% dameron_turnaround(+Key, -Chords, -Reasons)
+%% Tadd Dameron turnaround (Lady Bird). (C1325)
+dameron_turnaround(c, [c_maj7, eb7, ab_maj7, db7], [because(descending_major_thirds), because(tritone_resolutions)]).
+dameron_turnaround(f, [f_maj7, ab7, db_maj7, gb7], [because(descending_major_thirds), because(tritone_resolutions)]).
+dameron_turnaround(bb, [bb_maj7, db7, gb_maj7, b7], [because(descending_major_thirds), because(tritone_resolutions)]).
+
+%% coltrane_changes(+OriginalProgression, -ColtraneVersion, -CycleType, -Reasons)
+%% Coltrane changes over standard progressions. (C1327)
+coltrane_changes([ii, v, i], [ii, v, ii_of_vi, vi, ii_of_bii, bii, i],
+  major_third_cycle, [because(giant_steps_substitution), because(three_tonal_centers)]).
+coltrane_changes([i, vi, ii, v], [i, biii7, bvi_maj7, vii7, bii_maj7, iii7, vi, ii, v],
+  full_cycle, [because(countdown_pattern), because(rapid_key_centers)]).
+
+%% constant_structure(+Melody, -ChordQuality, -Progression, -Reasons)
+%% Constant structure (parallel chord movement). (C1329)
+constant_structure(ascending_chromatic, maj7, parallel_major_sevenths,
+  [because(same_quality_moves_chromatically), because(modern_sound)]).
+constant_structure(descending_whole_tone, dom7, parallel_dominants,
+  [because(whole_tone_bass_motion), because(impressionistic)]).
+
+%% jazz_planing(+Melody, -PlaningType, -Progression, -Reasons)
+%% Planing (parallel harmony) techniques. (C1331)
+jazz_planing(any_melody, diatonic, chords_follow_scale, [because(stay_in_key), because(smooth)]).
+jazz_planing(any_melody, chromatic, exact_parallel, [because(all_same_quality), because(modern)]).
+jazz_planing(any_melody, dominant, parallel_dom7, [because(each_chord_is_dominant), because(blues_flavor)]).
+
+%% pedal_reharm(+OriginalProgression, -PedalNote, -NewProgression, -Reasons)
+%% Pedal point reharmonization. (C1333)
+pedal_reharm([ii, v, i], tonic_pedal, [ii_over_1, v_over_1, i],
+  [because(bass_stays_on_tonic), because(creates_tension_release)]).
+pedal_reharm([i, iv, v, i], dominant_pedal, [i_over_5, iv_over_5, v, i],
+  [because(bass_on_dominant), because(maximizes_resolution)]).
+
+%% modal_reharm(+OriginalProgression, -Mode, -ModalVersion, -Reasons)
+%% Modal reharmonization. (C1335)
+modal_reharm([i, iv, v, i], dorian, [i_min7, iv7, bvii_maj7, i_min7],
+  [because(dorian_harmony), because(minor_tonic), because(major_subdominant)]).
+modal_reharm([i, vi, ii, v], lydian, [i_maj7sharp11, vi_min7, ii_min7, v7sharp11],
+  [because(lydian_tonic), because(raised_fourth_color)]).

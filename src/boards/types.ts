@@ -178,7 +178,9 @@ export type DeckType =
   | 'properties-deck'       // Properties inspector
   | 'transport-deck'        // Transport controls (E060)
   | 'arranger-deck'         // Arranger sections (E057)
-  | 'ai-advisor-deck';      // AI Advisor panel (L299)
+  | 'ai-advisor-deck'       // AI Advisor panel (L299)
+  | 'sample-manager-deck'   // Sample manager / organizer (M100)
+  | 'modulation-matrix-deck'; // Modulation matrix (M178)
 
 /**
  * Deck card layout style.

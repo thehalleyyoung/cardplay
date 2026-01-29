@@ -1,13 +1,15 @@
 /**
- * @fileoverview Automation Deck Factory
+ * @fileoverview Automation Deck Factory (M283)
  *
  * Implements automation-deck for editing parameter automation lanes.
+ * M283: Wires suggestAutomationLanes() to suggest relevant lanes.
  *
  * @module @cardplay/boards/decks/factories/automation-factory
  */
 
 import type { BoardDeck } from '../../types';
 import type { DeckFactory, DeckFactoryContext, DeckInstance } from '../factory-types';
+import { suggestAutomationLanes } from '../../../ai/queries/persona-queries';
 
 /**
  * Automation deck factory.
@@ -97,8 +99,53 @@ export const automationFactory: DeckFactory = {
       lanesList.appendChild(emptyState);
     }
 
+    // M283: Automation lane suggestions section
+    const suggestionsSection = document.createElement('div');
+    suggestionsSection.className = 'automation-suggestions';
+    suggestionsSection.style.cssText = `
+      padding: 8px 12px;
+      background: var(--surface-sunken, #fafafa);
+      border: 1px dashed var(--border-base, #ccc);
+      border-radius: var(--radius-sm, 4px);
+      font-size: 0.8125rem;
+    `;
+
+    const suggestBtn = document.createElement('button');
+    suggestBtn.textContent = 'Suggest Lanes';
+    suggestBtn.style.cssText = `
+      padding: 4px 10px; font-size: 0.8125rem;
+      background: var(--color-primary, #0066cc); color: white;
+      border: none; border-radius: 4px; cursor: pointer;
+      margin-bottom: 6px;
+    `;
+    suggestionsSection.appendChild(suggestBtn);
+
+    const suggestOutput = document.createElement('div');
+    suggestOutput.style.cssText = 'color: var(--text-secondary, #666);';
+    suggestOutput.textContent = 'Get AI suggestions for automation lanes based on track type.';
+    suggestionsSection.appendChild(suggestOutput);
+
+    suggestBtn.addEventListener('click', async () => {
+      suggestOutput.textContent = 'Analyzing\u2026';
+      try {
+        // Default to synth track suggestions
+        const lanes = await suggestAutomationLanes('synth');
+        if (lanes.length === 0) {
+          suggestOutput.textContent = 'No suggestions available.';
+        } else {
+          suggestOutput.innerHTML = '<strong>Suggested lanes:</strong> ' +
+            lanes.map((l) =>
+              `<span style="padding: 2px 6px; background: var(--surface-raised, #f5f5f5); border-radius: 3px;">${l.parameter} <small>(p${l.priority})</small></span>`
+            ).join(' ');
+        }
+      } catch {
+        suggestOutput.innerHTML = '<em style="color: var(--danger-base, red);">Suggestion failed.</em>';
+      }
+    });
+
     container.appendChild(header);
     container.appendChild(lanesList);
+    container.appendChild(suggestionsSection);
 
     // TODO: Wire up to parameter-resolver.ts
     // TODO: Implement lane editor UI with envelope curves

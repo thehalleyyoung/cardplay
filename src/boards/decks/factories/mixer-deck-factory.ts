@@ -9,7 +9,7 @@
 
 import type { BoardDeck } from '../../types';
 import type { DeckFactory, DeckFactoryContext, DeckInstance } from '../factory-types';
-import { analyzeFrequencyBalance } from '../../../ai/queries/persona-queries';
+import { analyzeFrequencyBalance, getLoudnessTargets } from '../../../ai/queries/persona-queries';
 
 /**
  * Factory for creating mixer deck instances.
@@ -69,6 +69,63 @@ export const mixerDeckFactory: DeckFactory = {
       content.appendChild(strip);
     }
     
+    // M294: Master loudness meter section
+    const loudnessMeter = document.createElement('div');
+    loudnessMeter.className = 'mixer-loudness-meter';
+    loudnessMeter.style.cssText = `
+      min-width: 100px;
+      background: var(--surface-raised, #f5f5f5);
+      border: 1px solid var(--border-base, #ccc);
+      border-radius: 4px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    `;
+    loudnessMeter.innerHTML = `
+      <div style="font-size: 0.75rem; font-weight: 600; text-align: center;">Master</div>
+      <div style="flex: 1; background: var(--surface-sunken, #fafafa); border: 1px solid var(--border-base, #ccc); border-radius: 2px; position: relative; min-height: 80px;">
+        <div style="position: absolute; bottom: 0; left: 0; width: 45%; height: 70%; background: linear-gradient(to top, #51cf66, #94d82d, #ffd43b); border-radius: 2px;"></div>
+        <div style="position: absolute; bottom: 0; right: 0; width: 45%; height: 68%; background: linear-gradient(to top, #51cf66, #94d82d, #ffd43b); border-radius: 2px;"></div>
+      </div>
+      <div style="font-size: 0.625rem; text-align: center; color: var(--text-secondary, #666);">-14.2 LUFS</div>
+    `;
+
+    const loudnessTargetBtn = document.createElement('button');
+    loudnessTargetBtn.textContent = 'Targets';
+    loudnessTargetBtn.style.cssText = `
+      padding: 3px 6px; font-size: 0.625rem;
+      background: var(--surface-base, #fff);
+      border: 1px solid var(--border-base, #ccc);
+      border-radius: 3px; cursor: pointer;
+      width: 100%;
+    `;
+    loudnessMeter.appendChild(loudnessTargetBtn);
+
+    const loudnessInfo = document.createElement('div');
+    loudnessInfo.style.cssText = 'font-size: 0.625rem; color: var(--text-secondary, #666); display: none;';
+    loudnessMeter.appendChild(loudnessInfo);
+
+    loudnessTargetBtn.addEventListener('click', async () => {
+      const isVisible = loudnessInfo.style.display !== 'none';
+      if (isVisible) {
+        loudnessInfo.style.display = 'none';
+        return;
+      }
+      loudnessInfo.style.display = 'block';
+      loudnessInfo.textContent = 'Loading\u2026';
+      try {
+        const targets = await getLoudnessTargets();
+        loudnessInfo.innerHTML = targets
+          .map((t: { platform: string; targetLUFS: number }) => `${t.platform}: ${t.targetLUFS} LUFS`)
+          .join('<br>');
+      } catch {
+        loudnessInfo.textContent = 'Failed to load targets.';
+      }
+    });
+
+    content.appendChild(loudnessMeter);
+
     // M202: Frequency balance analyzer footer
     const analyzerFooter = document.createElement('div');
     analyzerFooter.className = 'mixer-frequency-analyzer';

@@ -23,45 +23,45 @@ export type { UserType };
  */
 const RECOMMENDATIONS: Record<UserType, readonly string[]> = {
   'notation-composer': [
-    'notation-board',
+    'notation-manual',
     'notation-harmony-board',
     'composer-board',
   ],
   
   'tracker-user': [
-    'basic-tracker-board',
+    'basic-tracker',
     'tracker-phrases-board',
     'tracker-harmony-board',
   ],
   
   'producer': [
-    'session-board',
+    'basic-session',
     'producer-board',
-    'session-phrases-board',
+    'piano-roll-producer',
   ],
   
   'live-performer': [
-    'session-board',
-    'live-performance-board',
-    'session-phrases-board',
+    'basic-session',
+    'live-performance-tracker',
+    'tracker-phrases-board',
   ],
   
   'sound-designer': [
-    'sampler-board',
-    'basic-sampler-board',
-    'session-board',
+    'basic-sampler',
+    'modular-routing',
+    'basic-session',
   ],
   
   'ai-explorer': [
-    'arranger-board',
-    'ai-composition-board',
-    'generative-ambient-board',
+    'tracker-harmony-board',
+    'tracker-phrases-board',
+    'producer-board',
   ],
   
   'beginner': [
-    'basic-tracker-board',
-    'notation-board',
-    'session-board',
+    'basic-tracker',
+    'notation-manual',
+    'basic-session',
   ],
 };
 

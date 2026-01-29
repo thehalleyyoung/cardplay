@@ -239,3 +239,52 @@ cumbia_pattern(allegre, [1,0,1,1,0,1,1,0], lead_drum).
 cumbia_pattern(llamador, [0,0,0,0,1,0,0,0], steady_pulse).
 cumbia_pattern(guacharaca, [1,1,1,1,1,1,1,1], scraper_continuous).
 cumbia_pattern(bass_electric, [1,0,0,0,1,0,0,0], modern_cumbia).
+
+%% ============================================================================
+%% ADDITIONAL LATIN PREDICATES (C1868-C1879)
+%% ============================================================================
+
+%% salsa_arrangement(+Intro, -Body, -Mambo, -Coda)
+%% Salsa arrangement structure. (C1868)
+salsa_arrangement(intro(horn_hits_4_bars), body(verse_chorus_coro, clave_based), mambo(horn_riffs_4_bar, high_energy), coda(breakdown_to_final_hit)).
+salsa_arrangement(intro(piano_montuno_8_bars), body(son_montuno, pregon_coro), mambo(unison_figures, building), coda(rhythmic_break_tag)).
+
+%% brazilian_rhythm(+StyleName, -Pattern, -Instruments)
+%% Brazilian rhythm patterns. (C1869)
+brazilian_rhythm(samba_de_roda, circular_dance_rhythm, [atabaque, pandeiro, agogo, viola]).
+brazilian_rhythm(partido_alto, syncopated_samba, [pandeiro, surdo, tamborim, cavaquinho]).
+brazilian_rhythm(samba_reggae, afro_bahian, [surdo_trio, repinique, timbales]).
+brazilian_rhythm(forro, accordion_driven, [zabumba, triangle, sanfona]).
+brazilian_rhythm(choro, instrumental_samba, [bandolim, cavaquinho, violao, pandeiro]).
+
+%% Additional samba_pattern entries. (C1870)
+samba_pattern(repinique, [1,0,1,0,1,1,0,1,0,1,1,0,1,0,1,0], conductor_drum).
+samba_pattern(caixa, [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], snare_buzz_roll).
+samba_pattern(chocalho, [1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0], shaker_eighth_notes).
+
+%% Additional bandoneon_technique entries. (C1876)
+bandoneon_technique(fuelle, bellows_accent, dynamic_swell).
+bandoneon_technique(staccato, button_release, sharp_detach).
+bandoneon_technique(ligado, smooth_bellows, legato_phrase).
+bandoneon_technique(arrastre, dragging_attack, tango_characteristic).
+
+%% Additional cumbia_pattern entries. (C1877)
+cumbia_pattern(accordion, melodic_riff, vallenato_style).
+cumbia_pattern(guiro, scraping_pattern, mexican_cumbia).
+cumbia_pattern(timbales, [1,0,0,1,1,0,0,1], cumbia_villera).
+
+%% reggaeton_pattern(+Element, -Pattern, -Variation)
+%% Reggaeton production patterns. (C1878)
+reggaeton_pattern(dembow_beat, [kick,hat,snare,hat,kick,hat,snare,hat], classic).
+reggaeton_pattern(synth_bass, [1,0,0,1,0,0,1,0], bounce_bass).
+reggaeton_pattern(hi_hat, [1,1,1,1,1,1,1,1], continuous_sixteenths).
+reggaeton_pattern(vocal_flow, syllabic_rap, spanish_flow).
+reggaeton_pattern(perreo, [kick,0,snare,0,kick,kick,snare,0], dance_variant).
+
+%% dembow_rhythm(+PatternType, -Pattern, -Usage)
+%% Dembow rhythm variations. (C1879)
+dembow_rhythm(classic, [kick,hat,snare,hat,kick,hat,snare,hat], reggaeton_standard).
+dembow_rhythm(half_time, [kick,0,0,0,snare,0,0,0], slow_reggaeton).
+dembow_rhythm(double_time, [kick,snare,kick,snare,kick,snare,kick,snare], fast_dembow).
+dembow_rhythm(dancehall_origin, [kick,hat,snare,hat,0,hat,snare,hat], jamaican_roots).
+dembow_rhythm(moombahton, [kick,0,snare,0,kick,0,snare,0], dutch_fusion).

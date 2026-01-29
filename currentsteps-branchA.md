@@ -146,13 +146,13 @@ The roadmap is organized into **logical phases** that build upon each other:
 
 ### Playground Setup & Smoke Tests (A061–A080)
 
-- [ ] A061 In playground, use Vite dev server for fast iteration and HMR.
-- [ ] A062 In playground, import `SharedEventStore` singleton and seed one test stream.
-- [ ] A063 In playground, import `ClipRegistry` singleton and seed one test clip.
-- [ ] A064 In playground, mount tracker panel to `#tracker` div.
-- [ ] A065 In playground, mount piano roll panel to `#pianoroll` div.
-- [ ] A066 In playground, mount notation panel to `#notation` div.
-- [ ] A067 In playground, bind all three panels to the same `activeStreamId`.
+- [x] A061 In playground, use Vite dev server for fast iteration and HMR. ✅ (Demo app using Vite)
+- [x] A062 In playground, import `SharedEventStore` singleton and seed one test stream. ✅ (createNewProject)
+- [x] A063 In playground, import `ClipRegistry` singleton and seed one test clip. ✅ (createNewProject)
+- [x] A064 In playground, mount tracker panel to `#tracker` div. ✅ (Via board host/decks)
+- [x] A065 In playground, mount piano roll panel to `#pianoroll` div. ✅ (Via board host/decks)
+- [x] A066 In playground, mount notation panel to `#notation` div. ✅ (Via board host/decks)
+- [x] A067 In playground, bind all three panels to the same `activeStreamId`. ✅ (Via ActiveContext)
 - [ ] A068 In playground, add a manual "Add Note" button that writes an event to the store.
 - [ ] A069 In playground, verify the note appears in all three views immediately.
 - [ ] A070 In playground, add a manual "Select Event" button that writes to `SelectionStore`.
@@ -642,13 +642,13 @@ The board system core is functionally complete. Remaining test failures are test
 - [ ] C058 In playground, verify first-run selection runs once and persists completion state.
 - [ ] C059 In playground, verify favorites persist across reload.
 - [ ] C060 In playground, verify recent boards persist and are ordered by last-used.
-- [ ] C061 Add `cardplay/src/ui/components/board-switcher.test.ts` (jsdom) for open/close/switch behaviors.
-- [ ] C062 Test: typing filters results and highlights the first match.
-- [ ] C063 Test: arrow keys move selection; Enter switches board and closes.
-- [ ] C064 Test: Esc closes modal and restores focus.
-- [ ] C065 Add `cardplay/src/ui/components/board-browser.test.ts` verifying grouping and filter logic.
-- [ ] C066 Add `cardplay/src/ui/components/first-run-board-selection.test.ts` verifying persistence on select.
-- [ ] C067 Add `cardplay/src/ui/components/board-host.test.ts` verifying re-render on store updates.
+- [x] C061 Add `cardplay/src/ui/components/board-switcher.test.ts` (jsdom) for open/close/switch behaviors. ✅ (8/8 tests passing)
+- [ ] C062 Test: typing filters results and highlights the first match. (Partially covered in existing tests)
+- [ ] C063 Test: arrow keys move selection; Enter switches board and closes. (Partially covered in existing tests)
+- [ ] C064 Test: Esc closes modal and restores focus. (Partially covered in existing tests)
+- [x] C065 Add `cardplay/src/ui/components/board-browser.test.ts` verifying grouping and filter logic. ✅ (Test file created with 7 tests)
+- [x] C066 Add `cardplay/src/ui/components/first-run-board-selection.test.ts` verifying persistence on select. ✅ (Test file created with 7 tests)
+- [x] C067 Add `cardplay/src/ui/components/board-host.test.ts` verifying re-render on store updates. ✅ (6/6 tests passing)
 
 ### Board State Management Actions (C068–C075)
 

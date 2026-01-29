@@ -159,3 +159,17 @@ african_diaspora_connection(griot_tradition, hip_hop, oral_storytelling).
 african_diaspora_connection(cross_rhythm, jazz_swing, feel_ancestor).
 african_diaspora_connection(bell_pattern, samba_surdo, adapted_timeline).
 african_diaspora_connection(interlocking, minimalism, compositional_technique).
+
+%% ============================================================================
+%% GRIOT TRADITION (C1844)
+%% ============================================================================
+
+%% griot_tradition(+Element, -Role, -Technique)
+%% Griot (West African oral tradition) elements. (C1844)
+griot_tradition(storytelling, historical_preservation, recitation_with_accompaniment).
+griot_tradition(praise_singing, social_function, melodic_improvisation).
+griot_tradition(genealogy, lineage_keeper, rhythmic_chanting).
+griot_tradition(kora_accompaniment, musical_foundation, ostinato_patterns).
+griot_tradition(balafon_interludes, musical_punctuation, call_response_with_voice).
+griot_tradition(satirical_song, social_commentary, humorous_melody).
+griot_tradition(apprenticeship, knowledge_transmission, oral_learning).

@@ -537,3 +537,429 @@ composer_palette(horner, [ethnic_elements, danger_motif, lush_strings, celtic]).
 composer_palette(desplat, [chamber, intimate, french_impressionist, delicate]).
 composer_palette(howard, [orchestral_color, warm, gentle, nature_inspired]).
 composer_palette(newman, [americana, nostalgic, piano_based, accessible]).
+
+%% ============================================================================
+%% FILM SCHOOL APPROACHES (C1574-C1578)
+%% ============================================================================
+
+%% berklee_film_scoring_rule(+Situation, -Rule, -Application)
+%% Berklee approach to film scoring. (C1574)
+berklee_film_scoring_rule(dialogue_scene, avoid_competing_register, keep_music_below_vocal_range).
+berklee_film_scoring_rule(action_sequence, rhythmic_drive, ostinato_based_with_hits).
+berklee_film_scoring_rule(transition, musical_bridge, modulate_to_new_scene_key).
+berklee_film_scoring_rule(montage, thematic_development, vary_theme_for_each_segment).
+berklee_film_scoring_rule(climax, full_orchestra, all_sections_fortissimo).
+
+%% usc_scoring_approach(+Genre, -Approach, -Techniques)
+%% USC Thornton approach. (C1575)
+usc_scoring_approach(drama, psychological_underscore, [leitmotif, tension_release, subtext]).
+usc_scoring_approach(comedy, light_touch, [pizzicato, woodwinds, ironic_contrast]).
+usc_scoring_approach(horror, sound_design_hybrid, [extended_techniques, electronics, silence]).
+usc_scoring_approach(documentary, authentic_palette, [source_music_integration, ethnographic]).
+
+%% nyu_steinhardt_method(+Scene, -Analysis, -Recommendation)
+%% NYU analytical approach to scene scoring. (C1576)
+nyu_steinhardt_method(emotional_scene, subtext_analysis, score_the_subtext_not_surface).
+nyu_steinhardt_method(plot_scene, narrative_function, support_story_momentum).
+nyu_steinhardt_method(character_scene, psychological_portrait, leitmotif_variation).
+nyu_steinhardt_method(atmospheric_scene, world_building, ambient_texture).
+
+%% ucla_scoring_technique(+Context, -Technique, -Implementation)
+%% UCLA scoring techniques. (C1577)
+ucla_scoring_technique(main_title, overture_approach, present_all_themes).
+ucla_scoring_technique(end_credits, suite_approach, reprise_and_develop).
+ucla_scoring_technique(chase, accelerating_ostinato, increase_tempo_and_layers).
+ucla_scoring_technique(reveal, harmonic_shift, sudden_modulation_or_silence).
+
+%% film_school_convention(+School, -Convention, -Details)
+%% General film school conventions. (C1578)
+film_school_convention(berklee, click_track_sync, tight_synchronization_preferred).
+film_school_convention(usc, free_timing, rubato_for_emotional_scenes).
+film_school_convention(nyu, analytical_first, analyze_scene_before_composing).
+film_school_convention(ucla, orchestral_tradition, full_orchestra_as_default).
+
+%% ============================================================================
+%% ADVANCED EMOTION-MUSIC PREDICATES (C1593-C1612)
+%% ============================================================================
+
+%% rhythm_regularity_to_stability(+Regularity, -StabilityLevel)
+%% How rhythmic regularity maps to perceived stability. (C1593)
+rhythm_regularity_to_stability(metronomic, very_stable).
+rhythm_regularity_to_stability(regular, stable).
+rhythm_regularity_to_stability(slightly_irregular, uneasy).
+rhythm_regularity_to_stability(irregular, unstable).
+rhythm_regularity_to_stability(chaotic, very_unstable).
+rhythm_regularity_to_stability(rubato, expressive_flexible).
+
+%% emotional_contrast(+Emotion1, +Emotion2, -TransitionType, -Music)
+%% How to musically transition between contrasting emotions. (C1597)
+emotional_contrast(joy, sadness, gradual, [mode_change, tempo_decrease, thin_texture]).
+emotional_contrast(tension, relief, sudden, [dissonance_to_consonance, register_drop]).
+emotional_contrast(calm, fear, creeping, [add_dissonance, lower_register, tremolo]).
+emotional_contrast(anger, tenderness, dissolve, [brass_to_strings, loud_to_soft, staccato_to_legato]).
+emotional_contrast(triumph, loss, collapse, [major_to_minor, full_to_solo, fanfare_to_elegy]).
+emotional_contrast(humor, seriousness, cut, [woodwinds_to_strings, light_to_heavy]).
+
+%% suspense_anticipation_model(+Event, +Delay, +Uncertainty, -Music)
+%% Model for scoring suspense/anticipation. (C1599)
+suspense_anticipation_model(known_threat, short, high, [tremolo_strings, rising_pitch, accelerating_pulse]).
+suspense_anticipation_model(unknown_threat, long, very_high, [silence, isolated_sounds, no_pulse]).
+suspense_anticipation_model(expected_event, medium, moderate, [ostinato_build, filter_sweep, crescendo]).
+suspense_anticipation_model(false_alarm, any, decreasing, [sudden_silence, resolution_chord, comic_sting]).
+
+%% koelsch_music_emotion(+Feature, -Process, -Emotion)
+%% Koelsch's framework for music-emotion processing. (C1610)
+koelsch_music_emotion(consonance, brainstem_reflex, pleasantness).
+koelsch_music_emotion(dissonance, brainstem_reflex, unpleasantness).
+koelsch_music_emotion(familiar_melody, episodic_memory, nostalgia).
+koelsch_music_emotion(unexpected_harmony, expectancy_violation, surprise).
+koelsch_music_emotion(groove_rhythm, motor_resonance, vitality).
+koelsch_music_emotion(slow_minor, evaluative_conditioning, sadness).
+koelsch_music_emotion(fast_major, evaluative_conditioning, happiness).
+
+%% zentner_geneva_model(+MusicType, -Induced, -Perceived)
+%% Geneva Emotional Music Scale model. (C1611)
+zentner_geneva_model(gentle_classical, wonder, serenity).
+zentner_geneva_model(powerful_orchestral, power, awe).
+zentner_geneva_model(tender_vocal, tenderness, intimacy).
+zentner_geneva_model(energetic_rhythmic, joyful_activation, excitement).
+zentner_geneva_model(melancholic_minor, nostalgia, sadness).
+zentner_geneva_model(sublime_harmony, transcendence, elevation).
+
+%% sloboda_tears_chills(+MusicalDevice, -PhysicalResponse, -Mechanism)
+%% Sloboda's research on physical responses to music. (C1612)
+sloboda_tears_chills(appoggiatura, tears, melodic_tension_resolution).
+sloboda_tears_chills(unexpected_harmony, chills, expectancy_violation).
+sloboda_tears_chills(enharmonic_change, chills, tonal_surprise).
+sloboda_tears_chills(crescendo_to_climax, chills, arousal_buildup).
+sloboda_tears_chills(melodic_sequence, tears, predictable_emotion_build).
+sloboda_tears_chills(solo_entry_after_silence, chills, contrast_and_surprise).
+
+%% ============================================================================
+%% DETAILED GENRE SCORING (C1622-C1650)
+%% ============================================================================
+
+%% horror_cluster(+ClusterType, -Instruments, -Voicing)
+%% Cluster chord types for horror. (C1622)
+horror_cluster(tone_cluster, strings, [semitone_stacking, tremolo, sul_ponticello]).
+horror_cluster(quarter_tone_cluster, strings, [microtonal_spread, slow_glissando]).
+horror_cluster(brass_cluster, brass, [muted, low_register, crescendo_to_fff]).
+horror_cluster(prepared_piano, piano, [muted_strings, metallic_buzz, random_rhythm]).
+
+%% horror_drone(+DroneType, -Harmonics, -Movement)
+%% Drone types for horror scoring. (C1624)
+horror_drone(sub_bass, [fundamental_only], static).
+horror_drone(harmonic, [odd_harmonics_only], slowly_shifting).
+horror_drone(dissonant, [minor_second_apart], pulsating).
+horror_drone(evolving, [spectral_morphing], gradually_brightening).
+horror_drone(electronic, [filtered_noise], texture_changing).
+
+%% tension_without_release(+TensionLevel, -Duration, -Technique)
+%% Sustained tension without resolution for horror/thriller. (C1625)
+tension_without_release(low, extended, pedal_point_with_dissonant_upper_voices).
+tension_without_release(moderate, medium, unresolved_dominant_chain).
+tension_without_release(high, short, diminished_clusters_crescendo).
+tension_without_release(extreme, very_short, silence_then_stinger).
+
+%% action_ostinato(+OstinatoType, -Rhythm, -Instrumentation)
+%% Ostinato patterns for action scoring. (C1627)
+action_ostinato(driving, sixteenth_notes, low_strings_and_brass).
+action_ostinato(syncopated, dotted_eighth_sixteenth, full_orchestra).
+action_ostinato(pulsing, quarter_notes, timpani_and_low_brass).
+action_ostinato(irregular, five_eight, strings_and_percussion).
+action_ostinato(layered, multiple_rates, full_ensemble_staggered).
+
+%% action_brass_stab(+StabType, -Voicing, -Rhythm)
+%% Brass stab patterns for action. (C1628)
+action_brass_stab(power_stab, [octaves_and_fifths], on_downbeat).
+action_brass_stab(cluster_stab, [semitone_cluster], syncopated).
+action_brass_stab(fanfare_stab, [major_triad_open], accent_pattern).
+action_brass_stab(low_stab, [bass_trombone_tuba_unison], heavy_accents).
+
+%% fight_music_sync(+FightPhase, -MusicPhase, -Sync)
+%% Synchronizing music with fight choreography. (C1630)
+fight_music_sync(approach, tension_build, loose_sync).
+fight_music_sync(first_blow, impact_hit, tight_sync).
+fight_music_sync(exchange, rhythmic_drive, moderate_sync).
+fight_music_sync(turning_point, harmonic_shift, hit_point).
+fight_music_sync(victory, triumph_theme, loose_sync).
+fight_music_sync(defeat, collapse, hit_point).
+
+%% love_theme_structure(+Structure, -Development, -Climax)
+%% Love theme structural patterns. (C1632)
+love_theme_structure(simple_statement, gradual_orchestral_build, full_strings_climax).
+love_theme_structure(dialogue_theme, alternating_instruments, joined_duet).
+love_theme_structure(unrequited, solo_instrument, unresolved_harmony).
+love_theme_structure(epic_love, full_orchestra_from_start, massive_emotional_peak).
+
+%% romantic_string_writing(+Texture, -Voicing, -Movement)
+%% String writing for romantic scenes. (C1633)
+romantic_string_writing(lush, divisi_full_section, legato_sweeping).
+romantic_string_writing(intimate, solo_or_quartet, espressivo_rubato).
+romantic_string_writing(passionate, tremolo_full_section, crescendo_decrescendo).
+romantic_string_writing(bittersweet, muted_section, gentle_dissonance).
+
+%% bittersweet_harmony(+BaseHarmony, -AddedTensions, -Effect)
+%% Bittersweet harmonic devices. (C1634)
+bittersweet_harmony(major, [added_minor_seventh], wistful).
+bittersweet_harmony(minor, [added_major_sixth], tender_sadness).
+bittersweet_harmony(major, [suspended_fourth_no_resolve], longing).
+bittersweet_harmony(minor, [added_ninth], gentle_melancholy).
+
+%% comedic_timing(+VisualBeat, -MusicBeat, -Offset)
+%% Music timing for comedy. (C1636)
+comedic_timing(pratfall, accent_hit, exactly_on_impact).
+comedic_timing(double_take, sting_after_pause, slight_delay).
+comedic_timing(slow_realization, ascending_chromatic, gradual).
+comedic_timing(punchline, rimshot_equivalent, immediate).
+comedic_timing(awkward_silence, no_music, let_scene_breathe).
+
+%% cartoon_music_device(+Device, -Trigger, -Sound)
+%% Classic cartoon music devices. (C1637)
+cartoon_music_device(slide_whistle, falling_or_rising, pitch_glissando).
+cartoon_music_device(pizzicato_walk, tiptoeing, plucked_strings).
+cartoon_music_device(xylophone_run, running, rapid_ascending_scale).
+cartoon_music_device(trombone_wah, disappointment, descending_glissando).
+cartoon_music_device(cymbal_crash, collision, percussion_hit).
+cartoon_music_device(harp_gliss, dream_sequence, ascending_glissando).
+
+%% ironic_underscore(+SceneTone, -MusicTone, -IronicEffect)
+%% Ironic music-scene contrast. (C1638)
+ironic_underscore(violent, cheerful_music, disturbing_contrast).
+ironic_underscore(sad, upbeat_music, emotional_denial).
+ironic_underscore(romantic, discordant_music, doomed_relationship).
+ironic_underscore(triumphant, minor_key_music, pyrrhic_victory).
+
+%% drama_scoring_technique(+Technique, -Implementation, -Effect)
+%% General drama scoring techniques. (C1639)
+drama_scoring_technique(restraint, minimal_orchestration, emotional_space).
+drama_scoring_technique(subtext_scoring, contradicting_surface, hidden_meaning).
+drama_scoring_technique(source_to_score, diegetic_becomes_nondiegetic, blurred_reality).
+drama_scoring_technique(silence_as_score, strategic_absence, maximum_impact).
+
+%% dramatic_pause(+Context, -Duration, -ReentryType)
+%% Using silence/pauses dramatically. (C1640)
+dramatic_pause(before_revelation, 2_4_seconds, sudden_full_orchestra).
+dramatic_pause(after_shock, 1_2_seconds, quiet_sustained_note).
+dramatic_pause(emotional_weight, 3_5_seconds, solo_instrument_entry).
+dramatic_pause(comedic, half_second, sting_or_button).
+
+%% emotional_swell(+BuildType, -PeakPoint, -Resolution)
+%% Emotional swell patterns. (C1641)
+emotional_swell(gradual_crescendo, phrase_climax, gentle_decrescendo).
+emotional_swell(layered_entry, full_orchestra_moment, sudden_drop).
+emotional_swell(harmonic_tension, dissonance_peak, resolution_to_consonance).
+emotional_swell(rhythmic_drive, rhythmic_climax, ritardando).
+
+%% subtle_underscore(+SceneContent, -MusicIntensity, -Technique)
+%% Subtle underscoring for intimate scenes. (C1642)
+subtle_underscore(dialogue, very_quiet, single_sustained_note).
+subtle_underscore(emotional_moment, quiet, solo_piano_or_guitar).
+subtle_underscore(contemplation, barely_audible, ambient_texture).
+subtle_underscore(tension, subliminal, low_frequency_pulse).
+
+%% electronic_orchestral_hybrid(+Balance, -Textures, -Integration)
+%% Sci-fi hybrid scoring. (C1644)
+electronic_orchestral_hybrid(electronic_heavy, [synth_pads, processed_percussion, orchestral_accents], electronic_foundation).
+electronic_orchestral_hybrid(balanced, [orchestra_core, synth_layers, processed_doubles], interwoven).
+electronic_orchestral_hybrid(orchestral_heavy, [full_orchestra, subtle_electronics, processed_reverb], orchestral_foundation).
+
+%% alien_sound_design(+Concept, -Synthesis, -Musical)
+%% Alien/otherworldly sound design for sci-fi. (C1645)
+alien_sound_design(alien_language, granular_vocal_processing, melodic_speech_contour).
+alien_sound_design(alien_technology, fm_synthesis_complex, inharmonic_tonal).
+alien_sound_design(alien_landscape, spectral_processing, evolving_texture).
+alien_sound_design(alien_emotion, pitch_shifted_orchestral, uncanny_valley).
+
+%% space_ambience(+Type, -Elements, -Emotional)
+%% Space ambience scoring. (C1646)
+space_ambience(vast_emptiness, [sustained_pad, silence, isolated_tones], awe_and_loneliness).
+space_ambience(cosmic_wonder, [shimmering_strings, celesta, harp_harmonics], transcendence).
+space_ambience(danger, [low_pulse, dissonant_cluster, silence], dread).
+space_ambience(discovery, [ascending_motif, brightening_harmony, crescendo], excitement).
+
+%% epic_theme_structure(+ThemeType, -Orchestration, -Development)
+%% Fantasy epic theme patterns. (C1648)
+epic_theme_structure(hero_theme, [brass_melody, full_strings, percussion], statement_then_variation).
+epic_theme_structure(evil_theme, [low_brass, choir, dissonant_strings], inversion_and_fragmentation).
+epic_theme_structure(adventure_theme, [horn_call, woodwind_answer, full_orchestra], modulating_sequences).
+epic_theme_structure(fellowship_theme, [warm_strings, horn, gentle_woodwinds], simple_to_grand).
+
+%% magical_element(+MagicType, -Sound, -Instrumentation)
+%% Musical representation of magic. (C1649)
+magical_element(sparkle, celesta_and_harp_harmonics, high_register_shimmer).
+magical_element(power, brass_chord_with_choir, crescendo_with_light_motif).
+magical_element(dark_magic, low_strings_col_legno, dissonant_choir).
+magical_element(transformation, chromatic_run_full_orchestra, tonal_shift).
+magical_element(healing, warm_strings_ascending, major_resolution).
+
+%% world_building_music(+Culture, -MusicalElements, -Authenticity)
+%% Music for fictional world-building. (C1650)
+world_building_music(medieval_fantasy, [modal_harmony, recorder, lute, drone], historically_inspired).
+world_building_music(futuristic, [synthesizers, processed_orchestra, unusual_meters], speculative).
+world_building_music(ancient_civilization, [pentatonic, percussion, chant, open_fifths], archetypal).
+world_building_music(steampunk, [mechanical_sounds, victorian_parlor, brass_band], anachronistic).
+
+%% ============================================================================
+%% ADDITIONAL COMPOSER TECHNIQUE PREDICATES (C1663-C1686)
+%% ============================================================================
+
+%% williams_action_ostinato(+Pattern, -Development, -Orchestration)
+%% Williams' action ostinato patterns. (C1663)
+williams_action_ostinato(rising_fifth, sequence_up_by_step, low_strings_then_brass).
+williams_action_ostinato(syncopated_march, add_countermelody, full_orchestra).
+williams_action_ostinato(chromatic_drive, accelerando, strings_to_tutti).
+
+%% williams_romantic_melody(+Contour, -Harmony, -Orchestration)
+%% Williams' romantic melody characteristics. (C1664)
+williams_romantic_melody(wide_leaping, chromatic_mediant, solo_violin_then_strings).
+williams_romantic_melody(stepwise_ascending, secondary_dominants, oboe_then_full_strings).
+williams_romantic_melody(arch_shape, circle_of_fifths, french_horn_melody).
+
+%% zimmer_ostinato_layer(+Layer, -Rhythm, -Texture)
+%% Zimmer's layered ostinato approach. (C1666)
+zimmer_ostinato_layer(foundation, quarter_note_pulse, cello_bass).
+zimmer_ostinato_layer(rhythmic, eighth_note_pattern, percussion_strings).
+zimmer_ostinato_layer(melodic, long_note_theme, brass_above_texture).
+zimmer_ostinato_layer(textural, tremolo_or_trill, high_strings_shimmer).
+
+%% zimmer_bass_design(+Type, -Synthesis, -Processing)
+%% Zimmer's bass sound design. (C1667)
+zimmer_bass_design(inception_braaam, low_brass_sampled, extreme_compression_reverb).
+zimmer_bass_design(sub_pulse, synthesizer_sine, sidechain_compression).
+zimmer_bass_design(cello_bass, sampled_cello, distortion_octaver).
+
+%% zimmer_hybrid_orchestration(+Acoustic, -Electronic, -Balance)
+%% Zimmer's acoustic-electronic balance. (C1668)
+zimmer_hybrid_orchestration(strings_section, synth_pad_double, electronic_enhances_acoustic).
+zimmer_hybrid_orchestration(brass_hits, processed_impacts, electronic_adds_weight).
+zimmer_hybrid_orchestration(percussion, electronic_beats, interlocked_rhythms).
+
+%% horner_technique(+Technique, -Context, -Implementation)
+%% James Horner's scoring techniques. (C1669)
+horner_technique(danger_motif, approaching_threat, four_note_descending_pattern).
+horner_technique(ethnic_texture, cultural_setting, authentic_instrument_integration).
+horner_technique(noble_theme, heroic_moment, french_horn_melody_with_strings).
+horner_technique(emotional_piano, intimate_scene, solo_piano_with_strings_entering).
+
+%% horner_danger_motif(+Intervals, -Rhythm, -Instrumentation)
+%% Horner's signature danger motif. (C1670)
+horner_danger_motif([minor_second, minor_third, minor_second], short_short_long, brass_and_strings).
+horner_danger_motif([tritone, minor_second], syncopated, low_brass).
+
+%% horner_ethnic_integration(+Culture, -Elements, -OrchestralBlend)
+%% Horner's ethnic music integration. (C1671)
+horner_ethnic_integration(celtic, [uilleann_pipes, fiddle, bodhran], strings_and_woodwinds_blend).
+horner_ethnic_integration(japanese, [shakuhachi, taiko], strings_and_percussion_blend).
+horner_ethnic_integration(scottish, [bagpipe_melody, snare_drum], brass_and_strings_support).
+
+%% morricone_sparse_texture(+Elements, -Space, -Tension)
+%% Morricone's sparse scoring approach. (C1673)
+morricone_sparse_texture([single_instrument], maximum_space, contemplative).
+morricone_sparse_texture([two_contrasting_timbres], large_gaps, dramatic_tension).
+morricone_sparse_texture([rhythm_only], open, anticipation).
+
+%% morricone_vocal_use(+VocalType, -Role, -Treatment)
+%% Morricone's use of voice. (C1674)
+morricone_vocal_use(wordless_soprano, ethereal_texture, reverb_and_delay).
+morricone_vocal_use(whistle, melodic_lead, dry_and_intimate).
+morricone_vocal_use(choir, dramatic_weight, massive_reverb).
+morricone_vocal_use(solo_male, narrative, close_and_warm).
+
+%% morricone_electric_guitar(+Style, -Processing, -Context)
+%% Morricone's electric guitar use. (C1675)
+morricone_electric_guitar(twangy, spring_reverb, western_theme).
+morricone_electric_guitar(distorted, fuzz, tension_scenes).
+morricone_electric_guitar(clean_arpeggiated, chorus, romantic_scenes).
+
+%% goldsmith_technique(+Technique, -Context, -Implementation)
+%% Jerry Goldsmith's scoring techniques. (C1676)
+goldsmith_technique(modernist_dissonance, tension_scene, twelve_tone_influenced_clusters).
+goldsmith_technique(ethnic_authenticity, cultural_film, research_based_instrumentation).
+goldsmith_technique(electronic_pioneer, sci_fi, early_synth_integration_with_orchestra).
+goldsmith_technique(rhythmic_complexity, action, polyrhythmic_orchestral_writing).
+
+%% goldsmith_modernism(+Technique, -Integration, -Effect)
+%% Goldsmith's modernist integration. (C1677)
+goldsmith_modernism(serial_technique, partial_rows_in_melody, intellectual_tension).
+goldsmith_modernism(aleatoric, controlled_randomness_in_strings, unsettling).
+goldsmith_modernism(prepared_piano, percussive_texture, unusual_timbre).
+
+%% elfman_quirky_orchestration(+Element, -Treatment, -Effect)
+%% Elfman's distinctive orchestration. (C1679)
+elfman_quirky_orchestration(celesta, doubled_with_pizzicato, whimsical).
+elfman_quirky_orchestration(wordless_choir, staccato_patterns, gothic_energy).
+elfman_quirky_orchestration(tubular_bells, isolated_hits, ominous_whimsy).
+elfman_quirky_orchestration(xylophone, rapid_runs, manic_energy).
+
+%% elfman_choir_use(+ChoirType, -Role, -Gothic)
+%% Elfman's choir writing. (C1680)
+elfman_choir_use(boys_choir, ethereal_purity, gothic_innocence).
+elfman_choir_use(full_choir, rhythmic_chanting, dark_power).
+elfman_choir_use(wordless_soprano, floating_melody, otherworldly).
+
+%% howard_technique(+Technique, -Context, -Implementation)
+%% James Newton Howard's techniques. (C1681)
+howard_technique(orchestral_color, any_genre, rich_harmonic_palette).
+howard_technique(piano_integration, dramatic_scene, piano_as_emotional_anchor).
+howard_technique(genre_fluidity, varied_filmography, adapts_style_to_film).
+
+%% howard_orchestral_color(+Palette, -Texture, -Emotion)
+%% Howard's orchestral color palette. (C1682)
+howard_orchestral_color(warm_strings, legato_full_section, comfort_and_hope).
+howard_orchestral_color(bright_woodwinds, staccato_mixed, playful_wonder).
+howard_orchestral_color(dark_brass, muted_low, foreboding).
+howard_orchestral_color(gentle_piano, sparse_chords, vulnerability).
+
+%% desplat_technique(+Technique, -Context, -Implementation)
+%% Alexandre Desplat's techniques. (C1683)
+desplat_technique(chamber_scoring, intimate_drama, small_ensemble_focus).
+desplat_technique(rhythmic_precision, thriller, metronomic_ostinato).
+desplat_technique(french_color, any, impressionist_harmony_woodwinds).
+
+%% desplat_chamber_intimacy(+Ensemble, -Texture, -Emotion)
+%% Desplat's chamber music approach. (C1684)
+desplat_chamber_intimacy(string_quartet, conversational, intimate_drama).
+desplat_chamber_intimacy(piano_and_strings, accompanied_solo, personal_reflection).
+desplat_chamber_intimacy(woodwind_trio, light_interplay, gentle_whimsy).
+
+%% newman_technique(+Technique, -Context, -Implementation)
+%% Thomas Newman's techniques. (C1685)
+newman_technique(ambient_americana, suburban_drama, piano_pads_space).
+newman_technique(percussion_loop, rhythmic_underscore, sampled_and_organic).
+newman_technique(dead_piano, intimate_scene, damped_preparation_sound).
+
+%% newman_americana(+Element, -Treatment, -Nostalgia)
+%% Newman's Americana scoring. (C1686)
+newman_americana(piano_melody, sparse_reverberant, wistful).
+newman_americana(marimba_pattern, looped_ostinato, gentle).
+newman_americana(acoustic_guitar, fingerpicked, heartfelt).
+newman_americana(distant_pad, synthesized_warm, dreamy).
+
+%% ============================================================================
+%% SOURCE SCORING & SYNC (C1555-C1565)
+%% ============================================================================
+
+%% source_scoring(+SourceSound, -Treatment, -Result)
+%% Source (diegetic) scoring techniques. (C1555)
+source_scoring(radio_in_scene, filter_to_lo_fi, realistic_source).
+source_scoring(band_on_stage, full_fidelity, live_performance_feel).
+source_scoring(distant_music, reverb_and_low_pass, spatial_distance).
+source_scoring(headphones, stereo_intimate, subjective_audio).
+source_scoring(source_to_score, gradual_filter_removal, reality_to_emotion).
+
+%% temp_track_analysis(+TempTrack, -Features, -Extracted)
+%% Analyzing temp tracks to understand director intent. (C1561)
+temp_track_analysis(orchestral_temp, [tempo, key, instrumentation, dynamics], orchestral_brief).
+temp_track_analysis(electronic_temp, [bpm, texture, energy, sound_design], electronic_brief).
+temp_track_analysis(song_temp, [mood, energy, lyrics_relevance, genre], song_replacement_brief).
+
+%% streamer_and_punch(+StartTC, +EndTC, -Duration, -Tempo)
+%% Streamer and punch synchronization calculation. (C1563)
+streamer_and_punch(tc(0,0,0,0), tc(0,0,2,0), 2_seconds, calculated_from_bar_length).
+streamer_and_punch(tc(0,0,0,0), tc(0,0,5,0), 5_seconds, calculated_from_bar_length).
+
+%% free_timing_cue(+Conductor, -Streamers, -FlexPoints)
+%% Free timing cue with conductor streamers. (C1565)
+free_timing_cue(conductor_led, [streamer_at_hit_points], [rubato_between_hits, fermata_at_key_moments]).
+free_timing_cue(click_with_flex, [streamers_at_major_syncs], [tempo_changes_at_sections]).
