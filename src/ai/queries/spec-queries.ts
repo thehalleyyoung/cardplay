@@ -4910,3 +4910,204 @@ export async function getGamakaToMidi(
     85
   );
 }
+
+// ============================================================================
+// EAST ASIAN MUSIC QUERIES (C1792-C1826)
+// ============================================================================
+
+/**
+ * Get Chinese pentatonic mode.
+ * C1792: chinese_mode/3
+ */
+export async function getChineseMode(
+  modeName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ gong: string; pitchSet: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `chinese_mode(${modeName}, Gong, PitchSet).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Chinese mode not found'], 50);
+  }
+
+  const pitchSet = Array.isArray(result['PitchSet'])
+    ? (result['PitchSet'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { gong: String(result['Gong']), pitchSet },
+    [`Chinese mode ${modeName}: gong on ${result['Gong']}`],
+    90
+  );
+}
+
+/**
+ * Get Japanese scale.
+ * C1801: japanese_scale/3
+ */
+export async function getJapaneseScale(
+  scaleName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ intervals: number[]; context: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `japanese_scale(${scaleName}, Intervals, Context).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Japanese scale not found'], 50);
+  }
+
+  const intervals = Array.isArray(result['Intervals'])
+    ? (result['Intervals'] as unknown[]).map(Number) : [];
+
+  return explainable(
+    { intervals, context: String(result['Context']) },
+    [`Japanese scale ${scaleName}: ${intervals.join(', ')} (${result['Context']})`],
+    90
+  );
+}
+
+/**
+ * Get Korean jangdan pattern.
+ * C1808: jangdan_pattern/3
+ */
+export async function getJangdanPattern(
+  jangdanName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ pattern: string[]; instrument: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `jangdan_pattern(${jangdanName}, Pattern, Instrument).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Jangdan pattern not found'], 50);
+  }
+
+  const pattern = Array.isArray(result['Pattern'])
+    ? (result['Pattern'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { pattern, instrument: String(result['Instrument']) },
+    [`Jangdan ${jangdanName}: ${pattern.length} beats`],
+    90
+  );
+}
+
+/**
+ * Get East Asian form structure.
+ * C1813: east_asian_form/3
+ */
+export async function getEastAsianForm(
+  formName: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ sections: string[]; development: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `east_asian_form(${formName}, Sections, Development).`
+  );
+
+  if (!result) {
+    return explainable(null, ['East Asian form not found'], 50);
+  }
+
+  const sections = Array.isArray(result['Sections'])
+    ? (result['Sections'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { sections, development: String(result['Development']) },
+    [`Form ${formName}: ${sections.length} sections (${result['Development']})`],
+    90
+  );
+}
+
+/**
+ * Get reggaeton/dembow pattern.
+ * C1878: reggaeton_pattern/3
+ */
+export async function getReggaetonPattern(
+  element: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ pattern: string[]; variation: string } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `reggaeton_pattern(${element}, Pattern, Variation).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Reggaeton pattern not found'], 50);
+  }
+
+  const pattern = Array.isArray(result['Pattern'])
+    ? (result['Pattern'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { pattern, variation: String(result['Variation']) },
+    [`Reggaeton ${element}: ${result['Variation']}`],
+    90
+  );
+}
+
+/**
+ * Get horror scoring cluster technique.
+ * C1622: horror_cluster/3
+ */
+export async function getHorrorCluster(
+  clusterType: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ instruments: string; voicing: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `horror_cluster(${clusterType}, Instruments, Voicing).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Horror cluster not found'], 50);
+  }
+
+  const voicing = Array.isArray(result['Voicing'])
+    ? (result['Voicing'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { instruments: String(result['Instruments']), voicing },
+    [`Horror cluster ${clusterType}: ${result['Instruments']}`],
+    90
+  );
+}
+
+/**
+ * Get emotional contrast transition.
+ * C1597: emotional_contrast/4
+ */
+export async function getEmotionalContrast(
+  emotion1: string,
+  emotion2: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<Explainable<{ transitionType: string; music: string[] } | null>> {
+  await ensureLoaded(adapter);
+
+  const result = await adapter.querySingle(
+    `emotional_contrast(${emotion1}, ${emotion2}, TransitionType, Music).`
+  );
+
+  if (!result) {
+    return explainable(null, ['Emotional contrast not found'], 50);
+  }
+
+  const music = Array.isArray(result['Music'])
+    ? (result['Music'] as unknown[]).map(String) : [];
+
+  return explainable(
+    { transitionType: String(result['TransitionType']), music },
+    [`${emotion1} → ${emotion2}: ${result['TransitionType']} transition`],
+    90
+  );
+}

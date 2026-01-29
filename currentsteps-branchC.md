@@ -1697,12 +1697,12 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1495 Add predicate `balance_check/3` (Voicing, Dynamics, BalanceIssues).
 - [x] C1496 Add predicate `doubling_effectiveness/4` (Primary, Secondary, Interval, Score).
 - [x] C1497 Add predicate `octave_doubling_rule/3` (Voice, OctaveChoice, Effectiveness).
-- [ ] C1498 Add predicate `unison_doubling_blend/3` (Instr1, Instr2, BlendQuality).
-- [ ] C1499 Add predicate `tutti_balance/3` (FullScore, Section, BalanceAnalysis).
-- [ ] C1500 Add predicate `foreground_background_separation/3` (Score, Foreground, Background).
+- [x] C1498 Add predicate `unison_doubling_blend/3` (Instr1, Instr2, BlendQuality).
+- [x] C1499 Add predicate `tutti_balance/3` (FullScore, Section, BalanceAnalysis).
+- [x] C1500 Add predicate `foreground_background_separation/3` (Score, Foreground, Background).
 - [x] C1501 Add predicate `masking_risk/4` (Voice1, Voice2, Register, Risk).
 - [x] C1502 Add predicate `optimal_spacing/3` (Chord, Instruments, SpacingResult).
-- [ ] C1503 Add predicate `kennan_grantham_rule/3` (Situation, Rule, Recommendation).
+- [x] C1503 Add predicate `kennan_grantham_rule/3` (Situation, Rule, Recommendation).
 - [x] C1504 Add constraint: `orchestral_density/1` (chamber/small/medium/large/massive).
 - [x] C1505 Add constraint: `doubling_style/1` (unison/octave/color/reinforcement).
 - [x] C1506 Add TS type: `OrchestralBalance` with weight, spread, density.
@@ -1723,7 +1723,7 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1519 Add predicate `z_relation/2` (PCSet1, PCSet2).
 - [x] C1520 Add predicate `subset_relation/3` (PCSet, SuperSet, IsSubset).
 - [x] C1521 Add predicate `common_tones_under_transposition/4` (PCSet, N, CommonTones, Count).
-- [ ] C1522 Add predicate `transformational_network/3` (SetSequence, Operations, Network).
+- [x] C1522 Add predicate `transformational_network/3` (SetSequence, Operations, Network).
 - [x] C1523 Add predicate `neo_riemannian_plr/3` (Triad, Operation, ResultTriad).
 - [x] C1524 Add predicate `tonnetz_distance/3` (Chord1, Chord2, Distance).
 - [x] C1525 Add predicate `parsimonious_voice_leading/3` (Chord1, Chord2, VoiceLeading).
@@ -1734,16 +1734,16 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [ ] C1530 Add tests: set analysis matches published Forte tables.
 
 ### Algorithmic Orchestration & AI Models (C1531–C1550)
-- [ ] C1531 Add predicate `ircam_orchidea_model/3` (TargetSound, Instruments, Solution).
-- [ ] C1532 Add predicate `orchestration_search_space/3` (Constraints, NumInstr, SearchSpace).
-- [ ] C1533 Add predicate `constraint_satisfaction_orchestration/3` (Constraints, Pool, Assignment).
-- [ ] C1534 Add predicate `genetic_orchestration/4` (Target, Population, Generations, Best).
-- [ ] C1535 Add predicate `neural_timbre_embedding/3` (Sound, Model, Embedding).
-- [ ] C1536 Add predicate `timbre_space_distance/3` (Embedding1, Embedding2, Distance).
-- [ ] C1537 Add predicate `orchestration_fitness/3` (Assignment, Target, FitnessScore).
-- [ ] C1538 Add predicate `multi_objective_orchestration/4` (Targets, Weights, Pool, Pareto).
-- [ ] C1539 Add predicate `style_transfer_orchestration/4` (Source, TargetStyle, Pool, Result).
-- [ ] C1540 Add predicate `reduction_to_orchestration/3` (PianoScore, Style, FullScore).
+- [x] C1531 Add predicate `ircam_orchidea_model/3` (TargetSound, Instruments, Solution).
+- [x] C1532 Add predicate `orchestration_search_space/3` (Constraints, NumInstr, SearchSpace).
+- [x] C1533 Add predicate `constraint_satisfaction_orchestration/3` (Constraints, Pool, Assignment).
+- [x] C1534 Add predicate `genetic_orchestration/4` (Target, Population, Generations, Best).
+- [x] C1535 Add predicate `neural_timbre_embedding/3` (Sound, Model, Embedding).
+- [x] C1536 Add predicate `timbre_space_distance/3` (Embedding1, Embedding2, Distance).
+- [x] C1537 Add predicate `orchestration_fitness/3` (Assignment, Target, FitnessScore).
+- [x] C1538 Add predicate `multi_objective_orchestration/4` (Targets, Weights, Pool, Pareto).
+- [x] C1539 Add predicate `style_transfer_orchestration/4` (Source, TargetStyle, Pool, Result).
+- [x] C1540 Add predicate `reduction_to_orchestration/3` (PianoScore, Style, FullScore).
 - [ ] C1541 Add constraint: `orchestration_algorithm/1` (greedy/beam/genetic/constraint).
 - [ ] C1542 Add constraint: `timbre_matching_tolerance/1` (strict/moderate/loose).
 - [ ] C1543 Add TS type: `OrchestrationSolution` with assignment, fitness, explanation.
@@ -1764,17 +1764,17 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1552 Add predicate `diegetic_vs_nondiegetic/2` (MusicCue, Type).
 - [x] C1553 Add predicate `mickey_mousing/3` (Action, MusicSync, IsMickeying).
 - [x] C1554 Add predicate `underscoring_technique/3` (Scene, Technique, Application).
-- [ ] C1555 Add predicate `source_scoring/3` (SourceSound, Treatment, Result).
+- [x] C1555 Add predicate `source_scoring/3` (SourceSound, Treatment, Result).
 - [x] C1556 Add predicate `anempathetic_music/3` (SceneEmotion, MusicEmotion, Contrast).
 - [x] C1557 Add predicate `empathetic_music/3` (SceneEmotion, MusicEmotion, Alignment).
 - [x] C1558 Add predicate `leitmotif_definition/3` (MotifId, Character, MusicalMaterial).
 - [x] C1559 Add predicate `leitmotif_transformation/4` (MotifId, Scene, Transform, Result).
 - [x] C1560 Add predicate `leitmotif_combination/4` (Motif1, Motif2, Technique, Combined).
-- [ ] C1561 Add predicate `temp_track_analysis/3` (TempTrack, Features, Extracted).
+- [x] C1561 Add predicate `temp_track_analysis/3` (TempTrack, Features, Extracted).
 - [x] C1562 Add predicate `hit_point/3` (Timecode, EventType, MusicAction).
-- [ ] C1563 Add predicate `streamer_and_punch/4` (StartTC, EndTC, Duration, Tempo).
+- [x] C1563 Add predicate `streamer_and_punch/4` (StartTC, EndTC, Duration, Tempo).
 - [x] C1564 Add predicate `click_track_calculation/4` (HitPoints, TempoRange, Rubato, ClickTrack).
-- [ ] C1565 Add predicate `free_timing_cue/3` (Conductor, Streamers, FlexPoints).
+- [x] C1565 Add predicate `free_timing_cue/3` (Conductor, Streamers, FlexPoints).
 - [x] C1566 Add constraint: `sync_precision/1` (loose/moderate/tight/frame_accurate).
 - [x] C1567 Add constraint: `score_function/1` (underscore/source/transition/stinger).
 - [x] C1568 Add constraint: `narrative_role/1` (tension/release/foreshadow/recall/comment).
@@ -1938,15 +1938,15 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1714 Add predicate `tala_definition/4` (TalaName, Angas, Aksharas, Jaatis).
 - [x] C1715 Add predicate `tala_clap_pattern/2` (TalaName, ClapWavePattern).
 - [x] C1716 Add predicate `laya_type/3` (LayaName, TempoMultiplier, Description).
-- [ ] C1717 Add predicate `nadai/gati/3` (Name, Subdivision, Description).
+- [x] C1717 Add predicate `nadai/gati/3` (Name, Subdivision, Description).
 - [x] C1718 Add predicate `korvai_structure/3` (Pattern, Repetitions, Landing).
-- [ ] C1719 Add predicate `mora_structure/3` (MoraType, Pattern, Resolution).
+- [x] C1719 Add predicate `mora_structure/3` (MoraType, Pattern, Resolution).
 - [x] C1720 Add predicate `tihai_calculation/4` (Pattern, Gap, Cycles, ValidTihai).
 - [x] C1721 Add predicate `alapana_structure/3` (Phase, Characteristics, Duration).
 - [x] C1722 Add predicate `tanam_pattern/3` (RagaName, TanamType, Pattern).
 - [x] C1723 Add predicate `pallavi_structure/3` (Theme, Development, Return).
 - [x] C1724 Add predicate `niraval_technique/3` (Line, Variation, Constraint).
-- [ ] C1725 Add predicate `kalpana_swara_rule/3` (Raga, TalaPosition, SwaraChoice).
+- [x] C1725 Add predicate `kalpana_swara_rule/3` (Raga, TalaPosition, SwaraChoice).
 - [x] C1726 Add predicate `sangati_development/3` (Theme, VariationNum, Variation).
 - [x] C1727 Add constraint: `raga/1` (raga name atom).
 - [x] C1728 Add constraint: `tala/1` (tala name atom).
@@ -1964,7 +1964,7 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [ ] C1740 Add example project: "Hindustani raga alapana".
 - [x] C1741 Add predicate `north_south_difference/3` (Concept, Hindustani, Carnatic).
 - [x] C1742 Add predicate `gharana_style/3` (GharanaName, Characteristics, Techniques).
-- [ ] C1743 Add predicate `bani_style/3` (BaniName, Characteristics, Techniques).
+- [x] C1743 Add predicate `bani_style/3` (BaniName, Characteristics, Techniques).
 - [x] C1744 Add predicate `fusion_raga_mapping/3` (RagaName, WesternMode, Notes).
 - [x] C1745 Add predicate `raga_chord_compatibility/3` (RagaName, ChordType, Compatibility).
 - [ ] C1746 Add tests: fusion mappings preserve raga character.
@@ -1990,7 +1990,7 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1764 Add predicate `radif_pattern/3` (DastgahName, GushehName, Pattern).
 - [x] C1765 Add predicate `tahrir_ornament/3` (Type, Execution, Context).
 - [x] C1766 Add predicate `microtonal_inflection/3` (Context, Note, Inflection).
-- [ ] C1767 Add predicate `heterophony_model/3` (MainMelody, Variation, Relationship).
+- [x] C1767 Add predicate `heterophony_model/3` (MainMelody, Variation, Relationship).
 - [x] C1768 Add predicate `arabic_form/3` (FormName, Sections, Characteristics).
 - [x] C1769 Add predicate `wasla_suite/3` (Maqam, Pieces, Order).
 - [x] C1770 Add constraint: `maqam/1` (maqam name atom).
@@ -2006,7 +2006,7 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1780 Add predicate `qanun_technique/3` (Technique, Notation, Execution).
 - [x] C1781 Add predicate `nay_technique/3` (Technique, Notation, Execution).
 - [x] C1782 Add predicate `tarab_aesthetic/3` (Element, Role, Effect).
-- [ ] C1783 Add predicate `saltanah_state/3` (MusicFeatures, PerformerState, AudienceResponse).
+- [x] C1783 Add predicate `saltanah_state/3` (MusicFeatures, PerformerState, AudienceResponse).
 - [x] C1784 Add predicate `maqam_emotion/2` (MaqamName, AssociatedEmotions).
 - [x] C1785 Add predicate `arabic_western_fusion/3` (ArabicElement, WesternElement, Integration).
 - [ ] C1786 Add tests: quarter-tone calculations correct.
@@ -2017,28 +2017,28 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 
 ### East Asian Music Theory (C1791–C1830)
 - [x] C1791 Add KB: `music-theory-east-asian.pl` for Chinese/Japanese/Korean.
-- [ ] C1792 Add predicate `chinese_mode/3` (ModeName, Gong, PitchSet).
-- [ ] C1793 Add predicate `chinese_scale_system/3` (SystemName, Derivation, Scales).
-- [ ] C1794 Add predicate `yanyue_scale/2` (ScaleName, Intervals).
-- [ ] C1795 Add predicate `qupai_pattern/3` (QupaiName, Structure, Variations).
-- [ ] C1796 Add predicate `banshi_meter/3` (BanshiName, BeatsPerBar, Tempo).
-- [ ] C1797 Add predicate `chinese_ornament/3` (OrnamentName, Execution, Context).
-- [ ] C1798 Add predicate `guqin_technique/3` (TechniqueName, Notation, Sound).
-- [ ] C1799 Add predicate `pipa_technique/3` (TechniqueName, Notation, Sound).
-- [ ] C1800 Add predicate `erhu_technique/3` (TechniqueName, Notation, Sound).
-- [ ] C1801 Add predicate `japanese_scale/3` (ScaleName, Intervals, Context).
-- [ ] C1802 Add predicate `gagaku_mode/3` (ModeName, Derivation, Usage).
-- [ ] C1803 Add predicate `min_yo_scale/2` (RegionName, Scale).
-- [ ] C1804 Add predicate `shamisen_technique/3` (TechniqueName, Notation, Sound).
-- [ ] C1805 Add predicate `shakuhachi_technique/3` (TechniqueName, Notation, Sound).
-- [ ] C1806 Add predicate `koto_technique/3` (TechniqueName, Notation, Sound).
-- [ ] C1807 Add predicate `korean_mode/3` (ModeName, Context, PitchSet).
-- [ ] C1808 Add predicate `jangdan_pattern/3` (JangdanName, Pattern, Instrument).
-- [ ] C1809 Add predicate `sigimsae_ornament/3` (Type, Execution, Expression).
-- [ ] C1810 Add predicate `gayageum_technique/3` (TechniqueName, Notation, Sound).
-- [ ] C1811 Add predicate `heterophony_rule/3` (MainPart, DerivativePart, Relationship).
-- [ ] C1812 Add predicate `breath_phrase_model/3` (Instrument, BreathLength, PhraseBoundary).
-- [ ] C1813 Add predicate `east_asian_form/3` (FormName, Sections, Development).
+- [x] C1792 Add predicate `chinese_mode/3` (ModeName, Gong, PitchSet).
+- [x] C1793 Add predicate `chinese_scale_system/3` (SystemName, Derivation, Scales).
+- [x] C1794 Add predicate `yanyue_scale/2` (ScaleName, Intervals).
+- [x] C1795 Add predicate `qupai_pattern/3` (QupaiName, Structure, Variations).
+- [x] C1796 Add predicate `banshi_meter/3` (BanshiName, BeatsPerBar, Tempo).
+- [x] C1797 Add predicate `chinese_ornament/3` (OrnamentName, Execution, Context).
+- [x] C1798 Add predicate `guqin_technique/3` (TechniqueName, Notation, Sound).
+- [x] C1799 Add predicate `pipa_technique/3` (TechniqueName, Notation, Sound).
+- [x] C1800 Add predicate `erhu_technique/3` (TechniqueName, Notation, Sound).
+- [x] C1801 Add predicate `japanese_scale/3` (ScaleName, Intervals, Context).
+- [x] C1802 Add predicate `gagaku_mode/3` (ModeName, Derivation, Usage).
+- [x] C1803 Add predicate `min_yo_scale/2` (RegionName, Scale).
+- [x] C1804 Add predicate `shamisen_technique/3` (TechniqueName, Notation, Sound).
+- [x] C1805 Add predicate `shakuhachi_technique/3` (TechniqueName, Notation, Sound).
+- [x] C1806 Add predicate `koto_technique/3` (TechniqueName, Notation, Sound).
+- [x] C1807 Add predicate `korean_mode/3` (ModeName, Context, PitchSet).
+- [x] C1808 Add predicate `jangdan_pattern/3` (JangdanName, Pattern, Instrument).
+- [x] C1809 Add predicate `sigimsae_ornament/3` (Type, Execution, Expression).
+- [x] C1810 Add predicate `gayageum_technique/3` (TechniqueName, Notation, Sound).
+- [x] C1811 Add predicate `heterophony_rule/3` (MainPart, DerivativePart, Relationship).
+- [x] C1812 Add predicate `breath_phrase_model/3` (Instrument, BreathLength, PhraseBoundary).
+- [x] C1813 Add predicate `east_asian_form/3` (FormName, Sections, Development).
 - [ ] C1814 Add constraint: `east_asian_tradition/1` (chinese/japanese/korean).
 - [ ] C1815 Add constraint: `chinese_regional/1` (cantonese/beijing/jiangnan/sichuan).
 - [ ] C1816 Add constraint: `japanese_genre/1` (gagaku/hogaku/minyo).
@@ -2050,8 +2050,8 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [ ] C1822 Add example project: "Chinese silk-bamboo ensemble".
 - [ ] C1823 Add example project: "Japanese koto piece".
 - [ ] C1824 Add example project: "Korean sanjo excerpt".
-- [ ] C1825 Add predicate `pentatonic_variation_technique/3` (Base, Technique, Result).
-- [ ] C1826 Add predicate `east_west_fusion_rule/3` (EasternElement, WesternHarmony, Integration).
+- [x] C1825 Add predicate `pentatonic_variation_technique/3` (Base, Technique, Result).
+- [x] C1826 Add predicate `east_west_fusion_rule/3` (EasternElement, WesternHarmony, Integration).
 - [ ] C1827 Add tests: heterophony generation follows tradition rules.
 - [ ] C1828 Add docs: "East-West fusion in CardPlay".
 - [ ] C1829 Add cross-validation: East Asian scales work with Western harmony.
@@ -2071,7 +2071,7 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1841 Add predicate `interlocking_pattern/3` (Part1, Part2, Combined).
 - [x] C1842 Add predicate `inherent_pattern/3` (SourcePatterns, PerceivedMelody, Explanation).
 - [x] C1843 Add predicate `participatory_discrepancy/3` (Timing, Effect, Cultural).
-- [ ] C1844 Add predicate `griot_tradition/3` (Element, Role, Technique).
+- [x] C1844 Add predicate `griot_tradition/3` (Element, Role, Technique).
 - [x] C1845 Add predicate `highlife_pattern/3` (PatternType, Rhythm, Harmony).
 - [x] C1846 Add predicate `afrobeat_structure/3` (Section, Function, Characteristics).
 - [x] C1847 Add predicate `soukous_pattern/3` (GuitarPart, Role, Pattern).
@@ -2097,18 +2097,18 @@ melodic vocabulary generation based on jazz pedagogy and bebop tradition.
 - [x] C1865 Add predicate `montuno_pattern/3` (Chord, Pattern, Variation).
 - [x] C1866 Add predicate `mambo_section/3` (SectionType, Arrangement, Energy).
 - [x] C1867 Add predicate `son_structure/3` (Section, Function, Characteristics).
-- [ ] C1868 Add predicate `salsa_arrangement/4` (Intro, Body, Mambo, Coda).
-- [ ] C1869 Add predicate `brazilian_rhythm/3` (StyleName, Pattern, Instruments).
-- [ ] C1870 Add predicate `samba_pattern/3` (Instrument, Pattern, Variation).
+- [x] C1868 Add predicate `salsa_arrangement/4` (Intro, Body, Mambo, Coda).
+- [x] C1869 Add predicate `brazilian_rhythm/3` (StyleName, Pattern, Instruments).
+- [x] C1870 Add predicate `samba_pattern/3` (Instrument, Pattern, Variation).
 - [x] C1871 Add predicate `bossa_nova_pattern/3` (Instrument, Pattern, Voicing).
 - [x] C1872 Add predicate `baiao_pattern/3` (Instrument, Pattern, Characteristics).
 - [x] C1873 Add predicate `brazilian_harmony/3` (Context, Progression, Voicing).
 - [x] C1874 Add predicate `tango_rhythm/3` (PatternName, Pattern, Accent).
 - [x] C1875 Add predicate `tango_arrangement/3` (Section, Orchestration, Style).
-- [ ] C1876 Add predicate `bandoneon_technique/3` (Technique, Notation, Effect).
-- [ ] C1877 Add predicate `cumbia_pattern/3` (Instrument, Pattern, Region).
-- [ ] C1878 Add predicate `reggaeton_pattern/3` (Element, Pattern, Variation).
-- [ ] C1879 Add predicate `dembow_rhythm/3` (PatternType, Pattern, Usage).
+- [x] C1876 Add predicate `bandoneon_technique/3` (Technique, Notation, Effect).
+- [x] C1877 Add predicate `cumbia_pattern/3` (Instrument, Pattern, Region).
+- [x] C1878 Add predicate `reggaeton_pattern/3` (Element, Pattern, Variation).
+- [x] C1879 Add predicate `dembow_rhythm/3` (PatternType, Pattern, Usage).
 - [ ] C1880 Add constraint: `latin_style/1` (salsa/son/mambo/cha_cha/bossa/samba/tango).
 - [x] C1881 Add constraint: `clave_type/1` (son/rumba/bossa/none).
 - [x] C1882 Add constraint: `brazilian_style/1` (samba/bossa/baiao/forro/mpb).

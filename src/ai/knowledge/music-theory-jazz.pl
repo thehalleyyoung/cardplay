@@ -882,6 +882,38 @@ jazz_style_match(Phrase, modal, Score) :-
   Score is NR * 3.  %% Modal favors scale runs
 jazz_style_match(_, free, 5).  %% Free jazz: everything scores equally
 
+%% next_practice_step(+CurrentLevel, -NextExercise, -Reasons)
+%% Suggest next practice step based on current level. (C1409)
+next_practice_step(beginner, enclosures_major_triads, [because(foundational_technique), because(builds_ear)]).
+next_practice_step(beginner, digital_patterns_1235, [because(simple_patterns), because(builds_vocabulary)]).
+next_practice_step(intermediate, guide_tone_lines, [because(voice_leading_awareness), because(connects_changes)]).
+next_practice_step(intermediate, triad_pairs, [because(modern_vocabulary), because(expands_palette)]).
+next_practice_step(advanced, outside_playing, [because(tension_mastery), because(resolution_control)]).
+next_practice_step(advanced, coltrane_changes, [because(advanced_harmony), because(rapid_key_centers)]).
+
+%% jazz_analysis_report(+Phrase, +Chords, -Report)
+%% Generate a jazz analysis report for a phrase. (C1420)
+jazz_analysis_report(Phrase, Chords, report(Patterns, Style, Tension)) :-
+  analyze_jazz_phrase(Phrase, Patterns, _),
+  jazz_style_match(Phrase, Style, _),
+  tension_curve(Phrase, Chords, Tension).
+jazz_analysis_report(_, _, report(unknown, unknown, unknown)).
+
+%% extract_vocabulary(+Transcription, -PatternLibrary, -Stats)
+%% Extract vocabulary patterns from a transcription. (C1438)
+extract_vocabulary(Transcription, patterns(Enc, Arp, Runs), stats(NE, NA, NR)) :-
+  analyze_jazz_phrase(Transcription, patterns(Enc, Arp, Runs), _),
+  length(Enc, NE), length(Arp, NA), length(Runs, NR).
+extract_vocabulary(_, patterns([], [], []), stats(0, 0, 0)).
+
+%% user_vocabulary(+UserId, +PatternType, -Patterns)
+%% Store/retrieve user-specific vocabulary patterns. (C1440)
+%% NOTE: Dynamic predicate — actual storage requires assert/retract at runtime.
+%% These are template facts showing the schema:
+user_vocabulary(default_user, enclosures, [chromatic_above, chromatic_below, double]).
+user_vocabulary(default_user, arpeggios, [shell, rootless, spread]).
+user_vocabulary(default_user, licks, [bebop_run, blues_phrase, pentatonic_sequence]).
+
 %% ============================================================================
 %% LYDIAN CHROMATIC CONCEPT — CHORD-SCALE THEORY (C1132-C1155)
 %% ============================================================================

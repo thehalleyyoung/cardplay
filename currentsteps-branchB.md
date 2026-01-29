@@ -558,8 +558,8 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M094 Add tests: sample suggestions match track roles. *(1 test passing in persona-queries.test.ts)*
 - [x] M095 Add tests: effect chain presets are appropriate. *(1 test passing in persona-queries.test.ts)*
 - [x] M099 Add "Pattern Arranger" deck showing pattern sequence. *(Done — pattern sequencer section added to arrangement-deck-factory.ts)*
-- [ ] M100 Add "Sample Manager" deck for sample organization.
-- [ ] M101 Add "Effect Rack" deck showing all track effects.
+- [x] M100 Add "Sample Manager" deck for sample organization. *(Done — sample-manager-deck factory in sample-manager-factory.ts; DeckType 'sample-manager-deck' added; registered in factory index; gating/validation updated; AI-powered auto-organize via getSampleOrganizationSchemes())*
+- [x] M101 Add "Effect Rack" deck showing all track effects. *(Done — effects-rack-factory.ts implements 'effects-deck' factory; per-track chain listing with enable/disable, CPU load, AI-suggested chains via suggestSoundEffectChain())*
 - [x] M102 Implement pattern doubling/halving with intelligent note adjustment. *(Done — pattern_resize_rule/3 + resize_note_adjustment/2 + genre_resize_preference/2 in persona-tracker-user.pl; getPatternResizeRules(), suggestResizeOperation(), resizePatternNotes() in persona-queries.ts; supports double/halve/double_repeat/halve_truncate with merge-overlapping logic)*
 - [x] M103 Implement pattern quantization with swing presets. *(Done — quantization_preset/3 + swing_preset/3 + genre_quantization_default/3 + suggest_quantization/3 in persona-tracker-user.pl; getQuantizationPresets(), getSwingPresets(), suggestQuantization(), quantizeWithSwing() in persona-queries.ts)*
 - [ ] M104 Implement sample auto-slicing from kick/snare detection.
@@ -628,7 +628,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M174 Add tests: effect chains match sound design goals. *(Done — 2 tests: pad chains have reverb/chorus/delay; bass chains have compressor/saturator/filter/wavefolder)*
 - [x] M175 Add tests: sample analysis identifies key/tempo/transients. *(Done — classifySample() weighted voting system in persona-queries.ts; name/duration/ZCR/amplitude heuristics)*
 - [x] M177 Add modular board variant emphasizing routing graph. *(Done — modular-routing-board.ts registered in builtins, routing/instruments/dsp/properties/mixer layout)*
-- [ ] M178 Add "Modulation Matrix" deck showing all mod connections.
+- [x] M178 Add "Modulation Matrix" deck showing all mod connections. *(Done — modulation-matrix-factory.ts implements 'modulation-matrix-deck'; list/matrix views, source→dest routing with depth, colour-coded by source type, AI-suggested routings via suggestModulationRouting())*
 - [ ] M179 Add "Spectrum Analyzer" deck for real-time frequency view.
 - [ ] M180 Add "Waveform Editor" deck for sample editing.
 - [ ] M181 Implement drag-to-modulate from sources to targets.
@@ -659,11 +659,11 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [ ] M214 Add tests: MIDI mapping handles all controller types.
 - [x] M215 Define `preset_organization_scheme/2` for sound libraries. *(4 schemes: by_category, by_mood, by_genre, by_character)*
 - [x] M216 Define `preset_metadata_standard/2` for tagging. *(10 metadata fields with required/recommended/optional)*
-- [ ] M217 Implement preset tagging system (genre, mood, type, character).
-- [ ] M218 Implement preset search by tags and characteristics.
-- [ ] M219 Implement preset favorites and collections.
-- [ ] M220 Add tests: preset search finds relevant sounds quickly.
-- [ ] M221 Add tests: tagging system is consistent and useful.
+- [x] M217 Implement preset tagging system (genre, mood, type, character). *(Done — PresetTaggingStore in preset-tagging.ts; addPreset, updateTags, addTag, removeTag, batchTag, updateMetadata; exported via ai/learning barrel)*
+- [x] M218 Implement preset search by tags and characteristics. *(Done — searchPresets(PresetSearchCriteria) in preset-tagging.ts; filters by query, category, tags, genre, mood, character, favorites, minRating, collection; sort by name/rating/date; limit)*
+- [x] M219 Implement preset favorites and collections. *(Done — toggleFavorite, setRating, createCollection, assignToCollection, removeFromCollection, deleteCollection, getFavorites, listCollections; export/import support; 29 tests passing)*
+- [x] M220 Add tests: preset search finds relevant sounds quickly. *(Done — 12 search tests in preset-tagging.test.ts including combined criteria, 100-preset stress test)*
+- [x] M221 Add tests: tagging system is consistent and useful. *(Done — 8 tagging tests in preset-tagging.test.ts: add/update/remove/batch/metadata/usage/delete)*
 - [ ] M223 Add preset rating/review system (local only).
 - [ ] M224 Add preset comparison mode (A/B testing).
 - [x] M226 Define `randomization_constraint/3` rules. *(12 parameter groups with min/max fractions)*
