@@ -176,7 +176,7 @@ export function applyGain(samples: Float32Array, gainDb: number): Float32Array {
   const output = new Float32Array(samples.length);
   
   for (let i = 0; i < samples.length; i++) {
-    output[i] = samples[i] * gain;
+    output[i] = (samples[i] ?? 0) * gain;
   }
   
   return output;

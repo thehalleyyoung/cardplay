@@ -125,3 +125,41 @@ All AI tests should pass:
 ```bash
 npm test -- src/ai/
 ```
+
+## Extending the advisor with custom rules
+
+The advisor is intentionally split into three layers:
+
+1. **Question routing** (pick a category)
+2. **Query building** (convert question + context into Prolog queries)
+3. **Answer formatting** (convert solutions into text + optional `HostAction[]`)
+
+### Add a new question category
+
+1. Add a category string to the advisor (and update routing priority if needed).
+2. Add a handler that:
+   - Extracts the minimal required context (key/chords/genre/board/etc.)
+   - Constructs one or more Prolog queries using stable predicates
+   - Returns `Answer` with `confidence`, `followUps`, and (optionally) `actions`
+
+### Add new Prolog-backed knowledge
+
+1. Add rules/facts to an existing KB under `src/ai/knowledge/` (or create a new KB + loader).
+2. Ensure the KB is loaded in the relevant feature path (preload vs lazy-load).
+3. Add tests for:
+   - Correctness (query returns expected values)
+   - “No answer” behavior (advisor should return a safe fallback)
+
+### Add new NL → query patterns
+
+The NL translator is deliberately minimal; prefer *explicit patterns* over “AI guessing”.
+
+- Add a new pattern that maps a clear user phrasing to a query template.
+- Keep the template stable and versionable (avoid embedding UI-only identifiers).
+- Add a test that the pattern triggers and the resulting query can be answered.
+
+### Add new `HostAction` suggestions
+
+1. Add a Prolog predicate that emits `host_action(...)` terms (or equivalent).
+2. Ensure the TypeScript side decodes to `HostAction` objects and capability-checks them.
+3. Add a safety test: actions that could be destructive must require confirmation.

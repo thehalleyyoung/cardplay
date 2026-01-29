@@ -17,6 +17,63 @@
 %% - chord_tones/3, scale_notes/3
 
 %% ============================================================================
+%% C211: ENGINE CAPABILITY CHECKS
+%% ============================================================================
+
+%% supports_math/0
+%% Succeeds if the Prolog engine supports floating-point arithmetic.
+%% Used to gate features that require sin/cos/exp/log.
+supports_math :-
+  catch((_ is sin(0.5)), _, fail).
+
+%% supports_atan2/0
+%% Succeeds if the Prolog engine supports atan2.
+supports_atan2 :-
+  catch((_ is atan2(1, 1)), _, fail).
+
+%% supports_exp/0
+%% Succeeds if the Prolog engine supports exp.
+supports_exp :-
+  catch((_ is exp(1)), _, fail).
+
+%% C209: Fallback behavior when arithmetic functions missing
+%% math_fallback(+Op, +Args, -Result)
+%% Provides fallback values when math operations fail.
+math_fallback(sin, [_], 0).
+math_fallback(cos, [_], 1).
+math_fallback(atan2, [_, _], 0).
+math_fallback(exp, [_], 1).
+math_fallback(log, [_], 0).
+
+%% safe_sin(+X, -Y)
+%% Computes sin(X) with fallback to 0 if not supported.
+safe_sin(X, Y) :-
+  ( catch(Y is sin(X), _, fail) -> true
+  ; Y = 0
+  ).
+
+%% safe_cos(+X, -Y)
+%% Computes cos(X) with fallback to 1 if not supported.
+safe_cos(X, Y) :-
+  ( catch(Y is cos(X), _, fail) -> true
+  ; Y = 1
+  ).
+
+%% safe_atan2(+Y, +X, -Result)
+%% Computes atan2(Y, X) with fallback to 0 if not supported.
+safe_atan2(Y, X, Result) :-
+  ( catch(Result is atan2(Y, X), _, fail) -> true
+  ; Result = 0
+  ).
+
+%% safe_sqrt(+X, -Y)
+%% Computes sqrt(X) with fallback to X if not supported.
+safe_sqrt(X, Y) :-
+  ( catch(Y is sqrt(X), _, fail) -> true
+  ; Y = X
+  ).
+
+%% ============================================================================
 %% PITCH-CLASS PROFILE (PCP) UTILITIES
 %% ============================================================================
 

@@ -965,6 +965,174 @@ export const LEITMOTIF_MATCHER_CARD: TheoryCardDef = {
 };
 
 // ============================================================================
+// C412 — LEITMOTIF LIBRARY INTEGRATION WITH FILM SCORING
+// ============================================================================
+
+/**
+ * Cue suggestion based on leitmotif and film mood
+ */
+export interface LeitmotifCueSuggestion {
+  readonly motifId: string;
+  readonly label: string;
+  readonly transformation: 'none' | 'augmentation' | 'diminution' | 'inversion' | 'retrograde' | 'reharmonize';
+  readonly mood: FilmMood;
+  readonly reason: string;
+  readonly priority: number;
+}
+
+/**
+ * Mood to leitmotif transformation mapping
+ */
+export const MOOD_TRANSFORM_SUGGESTIONS: ReadonlyMap<FilmMood, readonly ('none' | 'augmentation' | 'diminution' | 'inversion' | 'retrograde' | 'reharmonize')[]> = new Map([
+  ['heroic', ['none', 'augmentation']],
+  ['ominous', ['inversion', 'diminution', 'retrograde']],
+  ['tender', ['none', 'augmentation']],
+  ['wonder', ['augmentation', 'none']],
+  ['mystery', ['inversion', 'retrograde']],
+  ['sorrow', ['diminution', 'augmentation']],
+  ['comedy', ['diminution', 'inversion']],
+  ['action', ['diminution', 'none']],
+]);
+
+/**
+ * Get leitmotif cue suggestions for a given film scoring context.
+ * 
+ * This is the C412 integration: leitmotif library integration with film scoring card.
+ */
+export function getLeitmotifCueSuggestions(
+  filmMood: FilmMood,
+  filmDevice: FilmDevice,
+  availableMotifs: readonly { id: string; label: string; character?: string }[]
+): LeitmotifCueSuggestion[] {
+  const suggestions: LeitmotifCueSuggestion[] = [];
+  const transforms = MOOD_TRANSFORM_SUGGESTIONS.get(filmMood) ?? ['none'];
+  
+  for (const motif of availableMotifs) {
+    // Suggest based on mood compatibility
+    for (let i = 0; i < transforms.length && i < 2; i++) {
+      const transform = transforms[i]!;
+      
+      let reason = `${motif.label || motif.id} works well with ${filmMood} mood`;
+      let priority = 0.7 - i * 0.1;
+      
+      // Boost priority for device-specific suggestions
+      if (filmDevice === 'ostinato' && transform === 'diminution') {
+        reason += ' (diminution creates effective ostinato)';
+        priority += 0.2;
+      } else if (filmDevice === 'pedal_point' && transform === 'augmentation') {
+        reason += ' (augmentation over pedal creates grandeur)';
+        priority += 0.15;
+      } else if (filmDevice === 'chromatic_mediant' && transform === 'reharmonize') {
+        reason += ' (reharmonize for mediant shift)';
+        priority += 0.15;
+      }
+      
+      suggestions.push({
+        motifId: motif.id,
+        label: motif.label || motif.id,
+        transformation: transform,
+        mood: filmMood,
+        reason,
+        priority: Math.min(1, priority),
+      });
+    }
+  }
+  
+  return suggestions.sort((a, b) => b.priority - a.priority);
+}
+
+/**
+ * Film Scoring with Leitmotif Integration Card
+ * Combines film mood/device selection with leitmotif suggestions
+ */
+export const FILM_LEITMOTIF_INTEGRATION_CARD: TheoryCardDef = {
+  cardId: 'theory:film_leitmotif_integration',
+  displayName: 'Film + Leitmotif',
+  description: 'Film scoring card with integrated leitmotif suggestions and transformations',
+  category: 'style',
+  cultures: ['western', 'hybrid'],
+  params: [
+    ...FILM_SCORING_CARD.params,
+    {
+      id: 'activeMotif',
+      label: 'Active leitmotif',
+      type: 'enum',
+      enumValues: ['none', 'motif_a', 'motif_b', 'motif_c', 'motif_d'],
+      defaultValue: 'none',
+      constraintType: 'leitmotif',
+      hard: false,
+      weight: 0.6,
+      description: 'Select a leitmotif to integrate with the cue',
+    },
+    {
+      id: 'motifTransform',
+      label: 'Motif transform',
+      type: 'enum',
+      enumValues: ['auto', 'none', 'augmentation', 'diminution', 'inversion', 'retrograde', 'reharmonize'],
+      defaultValue: 'auto',
+      constraintType: 'leitmotif',
+      hard: false,
+      weight: 0.4,
+      description: 'Transformation for the motif (auto = based on mood)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    // Get film constraints
+    const filmConstraints = FILM_SCORING_CARD.extractConstraints(state);
+    
+    // Add leitmotif constraint if active
+    const activeMotif = getParam<string>(state, 'activeMotif');
+    if (activeMotif && activeMotif !== 'none') {
+      const mood = getParam<FilmMood>(state, 'mood') ?? 'heroic';
+      const transformParam = getParam<string>(state, 'motifTransform');
+      
+      // Auto-select transform based on mood
+      let transform: 'none' | 'augmentation' | 'diminution' | 'inversion' | 'retrograde' | 'reharmonize' = 'none';
+      if (transformParam === 'auto') {
+        const transforms = MOOD_TRANSFORM_SUGGESTIONS.get(mood);
+        transform = transforms?.[0] ?? 'none';
+      } else if (transformParam && transformParam !== 'none') {
+        transform = transformParam as 'augmentation' | 'diminution' | 'inversion' | 'retrograde' | 'reharmonize';
+      }
+      
+      if (transform !== 'none') {
+        filmConstraints.push({
+          type: 'leitmotif',
+          hard: false,
+          weight: 0.6,
+          motifId: activeMotif,
+          transformOp: transform,
+        });
+      } else {
+        filmConstraints.push({
+          type: 'leitmotif',
+          hard: false,
+          weight: 0.6,
+          motifId: activeMotif,
+        });
+      }
+    }
+    
+    return filmConstraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(
+        withoutConstraintType(
+          withoutConstraintType(
+            withoutConstraintType(spec, 'film_mood'),
+            'film_device'
+          ),
+          'phrase_density'
+        ),
+        'leitmotif'
+      ),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
 // C511 — DRONE CARD
 // ============================================================================
 
@@ -1647,6 +1815,391 @@ export const CULTURE_ANALYSIS_CARD: TheoryCardDef = {
 };
 
 // ============================================================================
+// C302 — SCHEMA BROWSER CARD
+// ============================================================================
+
+export const SCHEMA_BROWSER_CARD: TheoryCardDef = {
+  cardId: 'schema:browser',
+  displayName: 'Schema Browser',
+  description: 'Browse, preview, and select galant schemata with skeleton rendering',
+  category: 'generation',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'category',
+      label: 'Category',
+      type: 'enum',
+      enumValues: ['all', 'opening', 'continuation', 'cadential', 'sequential'],
+      defaultValue: 'all',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.3,
+      description: 'Filter schemata by their typical phrase position',
+    },
+    {
+      id: 'selectedSchema',
+      label: 'Selected',
+      type: 'enum',
+      enumValues: [
+        'none', 'prinner', 'fonte', 'monte', 'romanesca', 'meyer',
+        'quiescenza', 'do_re_mi', 'cadential_64', 'lament_bass',
+      ],
+      defaultValue: 'none',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.7,
+      description: 'Currently selected schema for preview',
+    },
+    {
+      id: 'previewKey',
+      label: 'Preview key',
+      type: 'enum',
+      enumValues: ['c', 'd', 'e', 'f', 'g', 'a', 'b'],
+      defaultValue: 'c',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.5,
+      description: 'Key to render the schema skeleton in',
+    },
+    {
+      id: 'showBass',
+      label: 'Show bass line',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.3,
+      description: 'Display the bass line skeleton',
+    },
+    {
+      id: 'showUpper',
+      label: 'Show upper voice',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.3,
+      description: 'Display the upper voice skeleton',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const schema = getParam<GalantSchemaName>(state, 'selectedSchema');
+    if (schema && schema !== 'none') {
+      return [{ type: 'schema', hard: false, weight: 0.7, schema }];
+    }
+    return [];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    const constraints = this.extractConstraints(state);
+    if (constraints.length === 0) return spec;
+    return withConstraints(withoutConstraintType(spec, 'schema'), ...constraints);
+  },
+};
+
+// ============================================================================
+// C303 — SCHEMA TO CHORDS CARD
+// ============================================================================
+
+export const SCHEMA_TO_CHORDS_CARD: TheoryCardDef = {
+  cardId: 'schema:to_chords',
+  displayName: 'Schema to Chords',
+  description: 'Generate chord progression from a galant schema in the current key',
+  category: 'generation',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'schema',
+      label: 'Schema',
+      type: 'enum',
+      enumValues: [
+        'prinner', 'fonte', 'monte', 'romanesca', 'meyer',
+        'quiescenza', 'do_re_mi', 'cadential_64', 'lament_bass',
+      ],
+      defaultValue: 'prinner',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.8,
+      description: 'Schema to realize as chords',
+    },
+    {
+      id: 'voicingStyle',
+      label: 'Voicing style',
+      type: 'enum',
+      enumValues: ['close', 'open', 'keyboard', 'guitar'],
+      defaultValue: 'close',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'How to voice the resulting chords',
+    },
+    {
+      id: 'addExtensions',
+      label: 'Add extensions',
+      type: 'boolean',
+      defaultValue: false,
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'Add 7ths and extensions where appropriate',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const schema = getParam<GalantSchemaName>(state, 'schema');
+    return [{ type: 'schema', hard: false, weight: 0.8, schema: schema ?? 'prinner' }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withoutConstraintType(spec, 'schema'), ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C304 — SCHEMA TO BASS CARD
+// ============================================================================
+
+export const SCHEMA_TO_BASS_CARD: TheoryCardDef = {
+  cardId: 'schema:to_bass',
+  displayName: 'Schema to Bass',
+  description: 'Generate bassline events from a galant schema',
+  category: 'generation',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'schema',
+      label: 'Schema',
+      type: 'enum',
+      enumValues: [
+        'prinner', 'fonte', 'monte', 'romanesca', 'meyer',
+        'quiescenza', 'do_re_mi', 'lament_bass',
+      ],
+      defaultValue: 'prinner',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.8,
+      description: 'Schema to realize as bass line',
+    },
+    {
+      id: 'octave',
+      label: 'Octave',
+      type: 'range',
+      range: { min: 1, max: 4, step: 1 },
+      defaultValue: 2,
+      constraintType: 'style',
+      hard: false,
+      weight: 0.4,
+      description: 'Bass register (octave)',
+    },
+    {
+      id: 'rhythm',
+      label: 'Rhythm style',
+      type: 'enum',
+      enumValues: ['whole', 'half', 'walking', 'alberti'],
+      defaultValue: 'half',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Rhythmic treatment of bass notes',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const schema = getParam<GalantSchemaName>(state, 'schema');
+    return [{ type: 'schema', hard: false, weight: 0.8, schema: schema ?? 'prinner' }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withoutConstraintType(spec, 'schema'), ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C305 — SCHEMA TO MELODY CARD
+// ============================================================================
+
+export const SCHEMA_TO_MELODY_CARD: TheoryCardDef = {
+  cardId: 'schema:to_melody',
+  displayName: 'Schema to Melody',
+  description: 'Generate upper-voice melody from a galant schema',
+  category: 'generation',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'schema',
+      label: 'Schema',
+      type: 'enum',
+      enumValues: [
+        'prinner', 'fonte', 'monte', 'romanesca', 'meyer',
+        'do_re_mi',
+      ],
+      defaultValue: 'prinner',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.8,
+      description: 'Schema to realize as melody',
+    },
+    {
+      id: 'elaboration',
+      label: 'Elaboration level',
+      type: 'range',
+      range: { min: 0, max: 3, step: 1 },
+      defaultValue: 1,
+      constraintType: 'phrase_density',
+      hard: false,
+      weight: 0.5,
+      description: '0=skeletal, 1=passing tones, 2=diminutions, 3=ornamented',
+    },
+    {
+      id: 'range',
+      label: 'Range',
+      type: 'enum',
+      enumValues: ['narrow', 'medium', 'wide'],
+      defaultValue: 'medium',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.4,
+      description: 'Melodic range constraint',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const schema = getParam<GalantSchemaName>(state, 'schema');
+    const elaboration = getParam<number>(state, 'elaboration') ?? 1;
+    const density = elaboration === 0 ? 'sparse' : elaboration === 1 ? 'medium' : 'dense';
+    return [
+      { type: 'schema', hard: false, weight: 0.8, schema: schema ?? 'prinner' },
+      { type: 'phrase_density', hard: false, weight: 0.5, density },
+    ];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(withoutConstraintType(spec, 'schema'), 'phrase_density'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C306 — SCHEMA VARIATION CARD
+// ============================================================================
+
+export type SchemaVariationOp = 'transpose' | 'invert' | 'sequence' | 'expand' | 'compress' | 'diminish' | 'augment';
+
+export const SCHEMA_VARIATION_CARD: TheoryCardDef = {
+  cardId: 'schema:variation',
+  displayName: 'Schema Variation',
+  description: 'Apply variation operators to an existing schema',
+  category: 'generation',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'sourceSchema',
+      label: 'Source schema',
+      type: 'enum',
+      enumValues: [
+        'prinner', 'fonte', 'monte', 'romanesca', 'meyer',
+      ],
+      defaultValue: 'prinner',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.7,
+      description: 'Base schema to apply variations to',
+    },
+    {
+      id: 'operation',
+      label: 'Variation op',
+      type: 'enum',
+      enumValues: ['transpose', 'invert', 'sequence', 'expand', 'compress', 'diminish', 'augment'],
+      defaultValue: 'sequence',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.6,
+      description: 'Type of variation to apply',
+    },
+    {
+      id: 'amount',
+      label: 'Amount',
+      type: 'range',
+      range: { min: 1, max: 4, step: 1 },
+      defaultValue: 1,
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.4,
+      description: 'Degree of variation (steps, repetitions, etc.)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const schema = getParam<GalantSchemaName>(state, 'sourceSchema');
+    return [{ type: 'schema', hard: false, weight: 0.7, schema: schema ?? 'prinner' }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withoutConstraintType(spec, 'schema'), ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C307 — SCHEMA CONSTRAINT CARD
+// ============================================================================
+
+export const SCHEMA_CONSTRAINT_CARD: TheoryCardDef = {
+  cardId: 'schema:constraint',
+  displayName: 'Schema Constraint',
+  description: 'Bind phrase generator to specific schema patterns',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'schemaList',
+      label: 'Allowed schemata',
+      type: 'enum',
+      enumValues: [
+        'any', 'openings_only', 'continuations_only', 'cadentials_only',
+        'prinner', 'fonte', 'monte', 'romanesca',
+      ],
+      defaultValue: 'any',
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.8,
+      description: 'Which schemata the generator may use',
+    },
+    {
+      id: 'hardConstraint',
+      label: 'Hard constraint',
+      type: 'boolean',
+      defaultValue: false,
+      constraintType: 'schema',
+      hard: true,
+      weight: 1.0,
+      description: 'If true, generator must use specified schema(ta)',
+    },
+    {
+      id: 'chainLength',
+      label: 'Chain length',
+      type: 'range',
+      range: { min: 1, max: 4, step: 1 },
+      defaultValue: 2,
+      constraintType: 'schema',
+      hard: false,
+      weight: 0.5,
+      description: 'Number of schemata to chain in sequence',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const schema = getParam<string>(state, 'schemaList');
+    const hard = getParam<boolean>(state, 'hardConstraint') ?? false;
+    if (schema === 'any') return [];
+    // Map category selections to first schema of that category
+    const schemaMap: Record<string, GalantSchemaName> = {
+      'openings_only': 'romanesca',
+      'continuations_only': 'prinner',
+      'cadentials_only': 'cadential_64',
+    };
+    const actualSchema = schemaMap[schema] ?? (schema as GalantSchemaName);
+    return [{ type: 'schema', hard, weight: hard ? 1.0 : 0.8, schema: actualSchema }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    const constraints = this.extractConstraints(state);
+    if (constraints.length === 0) return spec;
+    return withConstraints(withoutConstraintType(spec, 'schema'), ...constraints);
+  },
+};
+
+// ============================================================================
 // CARD REGISTRY
 // ============================================================================
 
@@ -1664,10 +2217,11 @@ export const THEORY_CARDS: readonly TheoryCardDef[] = [
   CARNATIC_RAGA_TALA_CARD,
   CELTIC_TUNE_CARD,
   CHINESE_MODE_CARD,
-  // Film/trailer cards (C228-C229, C411)
+  // Film/trailer cards (C228-C229, C411, C412)
   TRAILER_BUILD_CARD,
   LEITMOTIF_LIBRARY_CARD,
   LEITMOTIF_MATCHER_CARD,
+  FILM_LEITMOTIF_INTEGRATION_CARD,
   // Carnatic cards (C511-C513)
   DRONE_CARD,
   MRIDANGAM_PATTERN_CARD,
@@ -1684,6 +2238,13 @@ export const THEORY_CARDS: readonly TheoryCardDef[] = [
   GROUPING_ANALYSIS_CARD,
   SCHEMA_ANALYSIS_CARD,
   CULTURE_ANALYSIS_CARD,
+  // Schema generator cards (C302-C307)
+  SCHEMA_BROWSER_CARD,
+  SCHEMA_TO_CHORDS_CARD,
+  SCHEMA_TO_BASS_CARD,
+  SCHEMA_TO_MELODY_CARD,
+  SCHEMA_VARIATION_CARD,
+  SCHEMA_CONSTRAINT_CARD,
 ];
 
 /**

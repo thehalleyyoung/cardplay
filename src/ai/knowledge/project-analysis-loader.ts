@@ -13,8 +13,9 @@ import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 
 import projectAnalysisKB from './project-analysis.pl?raw';
 
-let kbLoaded = false;
-let loadPromise: Promise<void> | null = null;
+// Track KB load per adapter instance (important for tests / multi-adapter usage).
+let loadedAdapters: WeakSet<PrologAdapter> = new WeakSet();
+let loadPromises: WeakMap<PrologAdapter, Promise<void>> = new WeakMap();
 
 /**
  * Load the project analysis knowledge base.
@@ -22,31 +23,40 @@ let loadPromise: Promise<void> | null = null;
 export async function loadProjectAnalysisKB(
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<void> {
-  if (kbLoaded) return;
-  if (loadPromise) return loadPromise;
+  if (loadedAdapters.has(adapter)) {
+    return;
+  }
 
-  loadPromise = adapter
+  const existing = loadPromises.get(adapter);
+  if (existing) {
+    return existing;
+  }
+
+  const promise = adapter
     .loadProgram(projectAnalysisKB, 'project-analysis')
     .then(() => {
-      kbLoaded = true;
+      loadedAdapters.add(adapter);
+      loadPromises.delete(adapter);
     });
-
-  await loadPromise;
+  loadPromises.set(adapter, promise);
+  await promise;
 }
 
 /**
  * Check if the project analysis KB is loaded.
  */
-export function isProjectAnalysisLoaded(): boolean {
-  return kbLoaded;
+export function isProjectAnalysisLoaded(
+  adapter: PrologAdapter = getPrologAdapter()
+): boolean {
+  return loadedAdapters.has(adapter);
 }
 
 /**
  * Reset the loader state (for testing).
  */
 export function resetProjectAnalysisLoader(): void {
-  kbLoaded = false;
-  loadPromise = null;
+  loadedAdapters = new WeakSet();
+  loadPromises = new WeakMap();
 }
 
 /**

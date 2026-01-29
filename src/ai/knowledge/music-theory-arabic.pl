@@ -125,7 +125,7 @@ taqsim_structure(_, conclusion, [return_to_tonic, qaraar, settling]).
 arabic_form(muwashshah, [dawr, khana, silsila], [andalusian_origin, complex_rhythm, vocal]).
 arabic_form(qasida, [solo_vocal, oud_response, chorus], [poetry, emotional, classical]).
 arabic_form(dawr, [madhhab, ghusn, tarannum], [egyptian, vocal_improv, maqam_exploration]).
-arabic_form(sama_i, [khana1, taslim, khana2, taslim, khana3, taslim, khana4, taslim], [10_8_meter, instrumental]).
+arabic_form(sama_i, [khana1, taslim, khana2, taslim, khana3, taslim, khana4, taslim], [meter(10,8), instrumental]).
 arabic_form(bashraf, [khana1, taslim, khana2, taslim, khana3, taslim, khana4, taslim], [variable_meter, instrumental]).
 arabic_form(longa, [sections_a_b_c_d, saz], [fast_6_8, ottoman, dance]).
 

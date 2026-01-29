@@ -120,6 +120,18 @@ export interface UndoStack {
    * Unsubscribes from undo stack changes.
    */
   unsubscribe(subscriptionId: SubscriptionId): boolean;
+  
+  /**
+   * Gets the current state of the undo stack.
+   * @returns Object with past, present, future actions and can undo/redo flags
+   */
+  getState(): {
+    past: readonly UndoAction[];
+    present: UndoAction | null;
+    future: readonly UndoAction[];
+    canUndo: boolean;
+    canRedo: boolean;
+  };
 }
 
 // ============================================================================
@@ -336,6 +348,16 @@ export function createUndoStack(): UndoStack {
     
     unsubscribe(subscriptionId: SubscriptionId): boolean {
       return subscriptions.delete(subscriptionId);
+    },
+    
+    getState() {
+      return {
+        past: [...undoStack] as readonly UndoAction[],
+        present: undoStack.length > 0 ? (undoStack[undoStack.length - 1] ?? null) : null,
+        future: [...redoStack] as readonly UndoAction[],
+        canUndo: undoStack.length > 0,
+        canRedo: redoStack.length > 0,
+      };
     },
   };
   

@@ -27,6 +27,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:ai:bench": "vitest run src/ai/engine/prolog-adapter.bench.test.ts src/ai/engine/performance-regression.test.ts src/ai/engine/kb-memory-profiler.test.ts src/ai/engine/lifecycle-perf.test.ts src/ai/queries/workflow-planning.bench.test.ts src/ai/queries/project-analysis.bench.test.ts",
     "lint": "eslint src --ext ts",
     "clean": "rm -rf dist",
     "check": "npm run typecheck && npm run test && npm run build"

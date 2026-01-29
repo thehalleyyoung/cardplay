@@ -18,6 +18,7 @@ import type {
   // FilmMood,
   // FilmDevice,
 } from './music-spec';
+import { prologConstraintTermToMusicConstraint } from './spec-prolog-bridge';
 
 // ============================================================================
 // HOST ACTION TYPES
@@ -164,6 +165,179 @@ export interface ShowWarningAction {
 // ============================================================================
 // PARSING FROM PROLOG TERMS
 // ============================================================================
+
+interface PrologCompoundTerm {
+  readonly functor: string;
+  readonly args: readonly unknown[];
+}
+
+function isPrologCompoundTerm(value: unknown): value is PrologCompoundTerm {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as { functor?: unknown; args?: unknown };
+  return typeof v.functor === 'string' && Array.isArray(v.args);
+}
+
+/**
+ * Convert a Prolog reasons list into user-facing strings.
+ *
+ * Prolog conventions often use `because(Reason)` terms inside lists.
+ */
+export function prologReasonsToStrings(reasons: unknown): string[] {
+  if (!Array.isArray(reasons)) return [];
+
+  const out: string[] = [];
+  for (const r of reasons) {
+    if (typeof r === 'string') {
+      out.push(r);
+      continue;
+    }
+    if (isPrologCompoundTerm(r) && r.functor === 'because' && typeof r.args[0] === 'string') {
+      out.push(r.args[0]);
+      continue;
+    }
+    out.push(String(r));
+  }
+  return out;
+}
+
+function normalizeConstraintType(type: string): MusicConstraint['type'] | null {
+  if (type === 'accent_model') return 'accent';
+  // Treat unknown namespaces as custom constraints, but avoid inventing types for arbitrary strings.
+  if (type.startsWith('custom:') || type.includes(':')) return type as MusicConstraint['type'];
+
+  const known: ReadonlySet<string> = KNOWN_CONSTRAINT_TYPES;
+
+  return known.has(type) ? (type as MusicConstraint['type']) : null;
+}
+
+const KNOWN_CONSTRAINT_TYPES: ReadonlySet<string> = new Set([
+    'key',
+    'tempo',
+    'meter',
+    'tonality_model',
+    'style',
+    'culture',
+    'schema',
+    'raga',
+    'tala',
+    'celtic_tune',
+    'chinese_mode',
+    'film_mood',
+    'film_device',
+    'phrase_density',
+    'contour',
+    'grouping',
+    'accent',
+    'gamaka_density',
+    'ornament_budget',
+    'harmonic_rhythm',
+    'cadence',
+    'trailer_build',
+    'leitmotif',
+    'drone',
+    'pattern_role',
+    'swing',
+    'heterophony',
+    'max_interval',
+    'arranger_style',
+    'scene_arc',
+]);
+
+/**
+ * Parse a Prolog compound action term into a typed HostAction.
+ *
+ * This expects the `PrologAdapter.termToJS` compound shape:
+ * `{ functor: string; args: unknown[] }`.
+ */
+export function parseHostActionFromPrologTerm(
+  term: unknown,
+  confidence: number,
+  reasons: readonly string[]
+): HostAction | null {
+  if (!isPrologCompoundTerm(term)) return null;
+
+  const args = term.args;
+  switch (term.functor) {
+    case 'set_key': {
+      const root = typeof args[0] === 'string' ? (args[0] as RootName) : ('c' as RootName);
+      const mode = typeof args[1] === 'string' ? (args[1] as ModeName) : ('major' as ModeName);
+      return { action: 'set_key', root, mode, confidence, reasons };
+    }
+    case 'set_tempo': {
+      const bpm = typeof args[0] === 'number' ? args[0] : Number(args[0] ?? 120);
+      return { action: 'set_tempo', bpm, confidence, reasons };
+    }
+    case 'set_meter': {
+      const numerator = typeof args[0] === 'number' ? args[0] : Number(args[0] ?? 4);
+      const denominator = typeof args[1] === 'number' ? args[1] : Number(args[1] ?? 4);
+      return { action: 'set_meter', numerator, denominator, confidence, reasons };
+    }
+    case 'set_culture': {
+      const culture = typeof args[0] === 'string' ? (args[0] as CultureTag) : ('western' as CultureTag);
+      return { action: 'set_culture', culture, confidence, reasons };
+    }
+    case 'set_style': {
+      const style = typeof args[0] === 'string' ? (args[0] as StyleTag) : ('cinematic' as StyleTag);
+      return { action: 'set_style', style, confidence, reasons };
+    }
+    case 'set_param': {
+      const cardId = typeof args[0] === 'string' ? args[0] : String(args[0] ?? '');
+      const paramId = typeof args[1] === 'string' ? args[1] : String(args[1] ?? '');
+      return { action: 'set_param', cardId, paramId, value: args[2], confidence, reasons };
+    }
+    case 'apply_pack': {
+      const packId = typeof args[0] === 'string' ? args[0] : String(args[0] ?? '');
+      return { action: 'apply_pack', packId, confidence, reasons };
+    }
+    case 'add_constraint': {
+      const constraint = prologConstraintTermToMusicConstraint(args[0], { hard: false, weight: 0.7 });
+      if (!constraint) return null;
+      return { action: 'add_constraint', constraint, confidence, reasons };
+    }
+    case 'remove_constraint': {
+      const arg0 = args[0];
+      if (typeof arg0 === 'string') {
+        const constraintType = normalizeConstraintType(arg0);
+        if (!constraintType) return null;
+        return { action: 'remove_constraint', constraintType, confidence, reasons };
+      }
+      if (isPrologCompoundTerm(arg0)) {
+        const constraintType = normalizeConstraintType(arg0.functor);
+        if (!constraintType) return null;
+        return { action: 'remove_constraint', constraintType, confidence, reasons };
+      }
+      return null;
+    }
+    case 'add_card': {
+      const cardType = typeof args[0] === 'string' ? args[0] : String(args[0] ?? '');
+      const defaultParams = (typeof args[1] === 'object' && args[1] !== null)
+        ? (args[1] as Record<string, unknown>)
+        : undefined;
+      return defaultParams
+        ? { action: 'add_card', cardType, defaultParams, confidence, reasons }
+        : { action: 'add_card', cardType, confidence, reasons };
+    }
+    case 'remove_card': {
+      const cardId = typeof args[0] === 'string' ? args[0] : String(args[0] ?? '');
+      return { action: 'remove_card', cardId, confidence, reasons };
+    }
+    case 'switch_board': {
+      const boardType = typeof args[0] === 'string' ? args[0] : String(args[0] ?? '');
+      return { action: 'switch_board', boardType, confidence, reasons };
+    }
+    case 'add_deck': {
+      const deckTemplate = typeof args[0] === 'string' ? args[0] : String(args[0] ?? '');
+      return { action: 'add_deck', deckTemplate, confidence, reasons };
+    }
+    case 'show_warning': {
+      const message = typeof args[0] === 'string' ? args[0] : String(args[0] ?? '');
+      const severity = (typeof args[1] === 'string' ? args[1] : 'info') as 'error' | 'warning' | 'info';
+      return { action: 'show_warning', message, severity, confidence, reasons };
+    }
+    default:
+      return null;
+  }
+}
 
 /**
  * Parse a raw Prolog action term into a typed HostAction.

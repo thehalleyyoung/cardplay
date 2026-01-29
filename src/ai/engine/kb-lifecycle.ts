@@ -10,11 +10,11 @@
  * @module @cardplay/ai/engine/kb-lifecycle
  */
 
-import { getPrologAdapter, type PrologAdapter } from './prolog-adapter';
-import { loadMusicTheoryKB, isMusicTheoryLoaded } from '../knowledge/music-theory-loader';
-import { loadBoardLayoutKB, isBoardLayoutLoaded } from '../knowledge/board-layout-loader';
-import { loadCompositionPatternsKB, isCompositionPatternsLoaded } from '../knowledge/composition-patterns-loader';
-import { loadPhraseAdaptationKB, isPhraseAdaptationLoaded } from '../knowledge/phrase-adaptation-loader';
+import { getPrologAdapter, resetPrologAdapter, type PrologAdapter } from './prolog-adapter';
+import { loadMusicTheoryKB, isMusicTheoryLoaded, resetMusicTheoryLoader } from '../knowledge/music-theory-loader';
+import { loadBoardLayoutKB, isBoardLayoutLoaded, resetBoardLayoutLoader } from '../knowledge/board-layout-loader';
+import { loadCompositionPatternsKB, isCompositionPatternsLoaded, resetCompositionPatternsLoader } from '../knowledge/composition-patterns-loader';
+import { loadPhraseAdaptationKB, isPhraseAdaptationLoaded, resetPhraseAdaptationLoader } from '../knowledge/phrase-adaptation-loader';
 import { loadUserPrefsKB, isUserPrefsLoaded, resetUserPrefsLoader } from '../knowledge/user-prefs-loader';
 import { loadAdaptationKB, isAdaptationLoaded, resetAdaptationLoader } from '../knowledge/adaptation-loader';
 
@@ -60,7 +60,7 @@ export interface KBLoadOptions {
 const CRITICAL_KBS: Array<{
   name: string;
   load: (adapter: PrologAdapter) => Promise<void>;
-  isLoaded: () => boolean;
+  isLoaded: (adapter: PrologAdapter) => boolean;
 }> = [
   { name: 'music-theory', load: loadMusicTheoryKB, isLoaded: isMusicTheoryLoaded },
   { name: 'board-layout', load: loadBoardLayoutKB, isLoaded: isBoardLayoutLoaded },
@@ -73,7 +73,7 @@ const CRITICAL_KBS: Array<{
 const STANDARD_KBS: Array<{
   name: string;
   load: (adapter: PrologAdapter) => Promise<void>;
-  isLoaded: () => boolean;
+  isLoaded: (adapter: PrologAdapter) => boolean;
 }> = [
   { name: 'composition-patterns', load: loadCompositionPatternsKB, isLoaded: isCompositionPatternsLoaded },
   { name: 'phrase-adaptation', load: loadPhraseAdaptationKB, isLoaded: isPhraseAdaptationLoaded },
@@ -86,7 +86,7 @@ const STANDARD_KBS: Array<{
 const OPTIONAL_KBS: Array<{
   name: string;
   load: (adapter: PrologAdapter) => Promise<void>;
-  isLoaded: () => boolean;
+  isLoaded: (adapter: PrologAdapter) => boolean;
 }> = [
   { name: 'user-prefs', load: loadUserPrefsKB, isLoaded: isUserPrefsLoaded },
   { name: 'adaptation', load: loadAdaptationKB, isLoaded: isAdaptationLoaded },
@@ -111,7 +111,7 @@ export async function preloadCriticalKBs(
   const total = CRITICAL_KBS.length;
 
   for (const kb of CRITICAL_KBS) {
-    if (!kb.isLoaded()) {
+    if (!kb.isLoaded(adapter)) {
       await kb.load(adapter);
     }
     loaded++;
@@ -140,7 +140,7 @@ export async function loadAllKBs(
   const total = kbsToLoad.length;
 
   for (const kb of kbsToLoad) {
-    if (!kb.isLoaded()) {
+    if (!kb.isLoaded(adapter)) {
       await kb.load(adapter);
     }
     loaded++;
@@ -164,7 +164,7 @@ export async function lazyLoadKB(
     return false;
   }
 
-  if (!kb.isLoaded()) {
+  if (!kb.isLoaded(adapter)) {
     await kb.load(adapter);
   }
 
@@ -174,13 +174,15 @@ export async function lazyLoadKB(
 /**
  * Get the current KB loading status.
  */
-export function getKBStatus(): KBStatus {
-  const musicTheory = isMusicTheoryLoaded();
-  const boardLayout = isBoardLayoutLoaded();
-  const compositionPatterns = isCompositionPatternsLoaded();
-  const phraseAdaptation = isPhraseAdaptationLoaded();
-  const userPrefs = isUserPrefsLoaded();
-  const adaptation = isAdaptationLoaded();
+export function getKBStatus(
+  adapter: PrologAdapter = getPrologAdapter()
+): KBStatus {
+  const musicTheory = isMusicTheoryLoaded(adapter);
+  const boardLayout = isBoardLayoutLoaded(adapter);
+  const compositionPatterns = isCompositionPatternsLoaded(adapter);
+  const phraseAdaptation = isPhraseAdaptationLoaded(adapter);
+  const userPrefs = isUserPrefsLoaded(adapter);
+  const adaptation = isAdaptationLoaded(adapter);
 
   return {
     musicTheory,
@@ -249,15 +251,21 @@ export interface KBVersionInfo {
  */
 const KB_PREDICATES: Record<string, string[]> = {
   'user-prefs': [
-    'user_prefers_board',
-    'user_workflow',
-    'user_genre_preference',
-    'user_skill_level',
+    'user_prefers_board(_, _)',
+    'user_workflow(_, _)',
+    'user_genre_preference(_, _)',
+    'user_skill_level(_, _)',
+    'user_generator_style(_, _, _)',
+    'user_board_transition(_, _, _)',
+    'user_constraint_template(_, _, _)',
+    'learned_workflow_pattern(_, _, _)',
+    'learned_parameter_preference(_, _, _, _)',
+    'learned_routing_pattern(_, _, _, _)',
   ],
   'adaptation': [
-    'adapt_suggestion',
-    'beginner_simplification',
-    'expert_enhancement',
+    'adapt_suggestion(_, _, _)',
+    'beginner_simplification(_, _)',
+    'expert_enhancement(_, _)',
   ],
 };
 
@@ -285,7 +293,7 @@ export async function unloadKB(
   }
 
   // Check if the KB is currently loaded
-  if (!kb.isLoaded()) {
+  if (!kb.isLoaded(adapter)) {
     return false;
   }
 
@@ -316,8 +324,50 @@ export function getUnloadableKBs(): string[] {
 /**
  * L378: Check if a specific KB is currently loaded.
  */
-export function isKBLoaded(name: string): boolean {
+export function isKBLoaded(
+  name: string,
+  adapter: PrologAdapter = getPrologAdapter()
+): boolean {
   const allKBs = [...CRITICAL_KBS, ...STANDARD_KBS, ...OPTIONAL_KBS];
   const kb = allKBs.find(k => k.name === name);
-  return kb?.isLoaded() ?? false;
+  return kb?.isLoaded(adapter) ?? false;
+}
+
+// ============================================================================
+// DEV HOT-RELOAD (L125)
+// ============================================================================
+
+/**
+ * L125: Enable hot reload for KB modules during development (Vite HMR).
+ *
+ * This resets the Prolog adapter singleton and all KB loader flags whenever
+ * any KB loader module is updated. The next query/load will re-consult KBs.
+ */
+export function enableKBHotReload(): boolean {
+  const hot = (import.meta as any).hot as { accept?: (deps: string[] | string, cb: () => void) => void } | undefined;
+  if (!hot?.accept) return false;
+
+  const resetAll = (): void => {
+    resetPrologAdapter();
+    resetMusicTheoryLoader();
+    resetBoardLayoutLoader();
+    resetCompositionPatternsLoader();
+    resetPhraseAdaptationLoader();
+    resetUserPrefsLoader();
+    resetAdaptationLoader();
+  };
+
+  hot.accept(
+    [
+      '../knowledge/music-theory-loader',
+      '../knowledge/board-layout-loader',
+      '../knowledge/composition-patterns-loader',
+      '../knowledge/phrase-adaptation-loader',
+      '../knowledge/user-prefs-loader',
+      '../knowledge/adaptation-loader',
+    ],
+    resetAll
+  );
+
+  return true;
 }

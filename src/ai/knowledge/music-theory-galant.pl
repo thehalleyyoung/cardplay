@@ -835,29 +835,22 @@ check_galant_vl([_], _, Acc, Acc).
 check_galant_vl([S1, S2|Ss], [B1, B2|Bs], Acc, Issues) :-
   SMotion is S2 - S1,
   BMotion is B2 - B1,
-  %% Check parallel unisons
-  ( S1 =:= B1, S2 =:= B2 ->
-      append(Acc, ['Parallel unisons'], Acc2)
-  ;
-  %% Check parallel fifths/octaves
   Interval1 is abs(S1 - B1) mod 12,
   Interval2 is abs(S2 - B2) mod 12,
-  ( Interval1 =:= 7, Interval2 =:= 7, SMotion =\= 0 ->
+  ( S1 =:= B1, S2 =:= B2 ->
+      append(Acc, ['Parallel unisons'], Acc2)
+  ; Interval1 =:= 7, Interval2 =:= 7, SMotion =\= 0 ->
       append(Acc, ['Parallel fifths'], Acc2)
   ; Interval1 =:= 0, Interval2 =:= 0, SMotion =\= 0 ->
       append(Acc, ['Parallel octaves'], Acc2)
-  ;
-  %% Check voice crossing
-  ( S2 < B2 ->
+  ; S2 < B2 ->
       append(Acc, ['Voice crossing'], Acc2)
-  ;
-  %% Check large leaps (> octave)
-  ( abs(SMotion) > 12 ->
+  ; abs(SMotion) > 12 ->
       append(Acc, ['Soprano leap > octave'], Acc2)
   ; abs(BMotion) > 12 ->
       append(Acc, ['Bass leap > octave'], Acc2)
   ; Acc2 = Acc
-  ))))),
+  ),
   check_galant_vl([S2|Ss], [B2|Bs], Acc2, Issues).
 
 %% ============================================================================

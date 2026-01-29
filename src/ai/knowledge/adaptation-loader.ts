@@ -14,9 +14,9 @@ import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 // The adaptation KB as a string (loaded at build time via ?raw)
 import adaptationKB from './adaptation.pl?raw';
 
-// Track if KB is loaded
-let kbLoaded = false;
-let loadPromise: Promise<void> | null = null;
+// Track KB load per adapter instance (important for tests / multi-adapter usage).
+let loadedAdapters: WeakSet<PrologAdapter> = new WeakSet();
+let loadPromises: WeakMap<PrologAdapter, Promise<void>> = new WeakMap();
 
 /**
  * Load the adaptation knowledge base.
@@ -27,32 +27,38 @@ let loadPromise: Promise<void> | null = null;
 export async function loadAdaptationKB(
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<void> {
-  if (kbLoaded) {
+  if (loadedAdapters.has(adapter)) {
     return;
   }
 
-  if (loadPromise) {
-    return loadPromise;
+  const existing = loadPromises.get(adapter);
+  if (existing) {
+    return existing;
   }
 
-  loadPromise = adapter.loadProgram(adaptationKB).then(() => {});
-  await loadPromise;
-  kbLoaded = true;
+  const promise = adapter
+    .loadProgram(adaptationKB)
+    .then(() => {
+      loadedAdapters.add(adapter);
+      loadPromises.delete(adapter);
+    });
+  loadPromises.set(adapter, promise);
+  await promise;
 }
 
 /**
  * Check if the adaptation KB is loaded.
  */
-export function isAdaptationLoaded(): boolean {
-  return kbLoaded;
+export function isAdaptationLoaded(adapter: PrologAdapter = getPrologAdapter()): boolean {
+  return loadedAdapters.has(adapter);
 }
 
 /**
  * Reset the loader state (for testing).
  */
 export function resetAdaptationLoader(): void {
-  kbLoaded = false;
-  loadPromise = null;
+  loadedAdapters = new WeakSet();
+  loadPromises = new WeakMap();
 }
 
 /**

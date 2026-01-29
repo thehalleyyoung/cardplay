@@ -4653,3 +4653,565 @@ export class PhraseCollectionManager<P> {
     return Array.from(this.favorites);
   }
 }
+
+// ============================================================================
+// SCHEMA SKELETON INTEGRATION (C308)
+// ============================================================================
+
+/**
+ * Schema skeleton voice assignment for phrase generation
+ */
+export type SchemaSkeletal = 'soprano' | 'bass' | 'any';
+
+/**
+ * Schema skeleton constraint for phrase generation
+ */
+export interface SchemaSkeletonConstraint {
+  readonly schemaName: string;
+  readonly skeletal: SchemaSkeletal;
+  readonly pitchTargets: readonly number[]; // Scale degrees or MIDI notes
+  readonly rhythmicBeats: readonly number[]; // Metric positions (beats)
+  readonly variationLevel: 'strict' | 'moderate' | 'free';
+}
+
+/**
+ * Apply schema skeleton constraint to phrase generation.
+ * 
+ * Ensures generated phrase hits the skeleton tones at the right metric positions.
+ * This integrates galant schema constraints with the phrase generator.
+ */
+export function applySchemaSkeletonToPhrase(
+  phrase: DecoupledPhrase,
+  constraint: SchemaSkeletonConstraint
+): DecoupledPhrase {
+  // If no shape, create one from skeleton targets
+  if (!phrase.shape && constraint.pitchTargets.length > 0) {
+    const points: ContourPoint[] = constraint.rhythmicBeats.map((beat, idx) => ({
+      position: beat / Math.max(...constraint.rhythmicBeats, 1),
+      value: (constraint.pitchTargets[idx] ?? 0) / 127, // Normalize to 0-1
+    }));
+    
+    const newShape: ShapeContour = {
+      id: `schema-${constraint.schemaName}`,
+      name: `${constraint.schemaName} skeleton`,
+      points,
+      interpolation: constraint.variationLevel === 'strict' ? 'step' : 'smooth'
+    };
+    
+    return { ...phrase, shape: newShape };
+  }
+  
+  // If shape exists, modify to pass through skeleton points
+  if (phrase.shape) {
+    const existingPoints = [...phrase.shape.points];
+    const skeletonPoints: ContourPoint[] = constraint.rhythmicBeats.map((beat, idx) => ({
+      position: beat / Math.max(...constraint.rhythmicBeats, 1),
+      value: (constraint.pitchTargets[idx] ?? 0) / 127,
+    }));
+    
+    // Merge skeleton points with existing contour based on variation level
+    let mergedPoints: ContourPoint[];
+    if (constraint.variationLevel === 'strict') {
+      mergedPoints = skeletonPoints;
+    } else if (constraint.variationLevel === 'moderate') {
+      // Use skeleton as anchors, keep some original points between
+      mergedPoints = mergeContourWithAnchors(existingPoints, skeletonPoints);
+    } else {
+      // Free: use skeleton as soft targets, original contour mostly preserved
+      mergedPoints = softMergeContours(existingPoints, skeletonPoints, 0.3);
+    }
+    
+    const modifiedShape: ShapeContour = {
+      ...phrase.shape,
+      id: `${phrase.shape.id}-schema-${constraint.schemaName}`,
+      points: mergedPoints
+    };
+    
+    return { ...phrase, shape: modifiedShape };
+  }
+  
+  return phrase;
+}
+
+/**
+ * Merge a contour with anchor points from schema skeleton
+ */
+function mergeContourWithAnchors(
+  original: readonly ContourPoint[],
+  anchors: readonly ContourPoint[]
+): ContourPoint[] {
+  const result: ContourPoint[] = [...anchors];
+  
+  // Add original points that don't conflict with anchors
+  for (const pt of original) {
+    const conflicting = anchors.some(a => Math.abs(a.position - pt.position) < 0.05);
+    if (!conflicting) {
+      result.push(pt);
+    }
+  }
+  
+  return result.sort((a, b) => a.position - b.position);
+}
+
+/**
+ * Soft merge contours with blending factor
+ */
+function softMergeContours(
+  original: readonly ContourPoint[],
+  skeleton: readonly ContourPoint[],
+  blendWeight: number
+): ContourPoint[] {
+  const result: ContourPoint[] = original.map(pt => {
+    // Find closest skeleton point
+    const closest = skeleton.reduce((prev, curr) =>
+      Math.abs(curr.position - pt.position) < Math.abs(prev.position - pt.position)
+        ? curr : prev
+    , skeleton[0]!);
+    
+    // Blend toward skeleton value
+    const blendedValue = pt.value * (1 - blendWeight) + closest.value * blendWeight;
+    
+    return { ...pt, value: blendedValue };
+  });
+  
+  return result;
+}
+
+/**
+ * Generate phrase constrained by schema skeleton.
+ * 
+ * This is the main integration point for C308: phrase generator uses schema skeleton as constraint.
+ */
+export function generatePhraseWithSchemaConstraint(
+  context: PhraseArrangerContext,
+  lineType: LineType,
+  schemaConstraint: SchemaSkeletonConstraint,
+  config: Partial<MelodyGeneratorConfig | BassGeneratorConfig> = {}
+): DecoupledPhrase {
+  // Generate base phrase
+  const basePhrase = generatePhraseFromArranger(context, lineType, config);
+  
+  // Apply schema skeleton constraint
+  return applySchemaSkeletonToPhrase(basePhrase, schemaConstraint);
+}
+
+/**
+ * Convert schema voice skeleton to phrase constraint
+ */
+export function schemaVoiceToConstraint(
+  schemaName: string,
+  voice: 'soprano' | 'alto' | 'tenor' | 'bass',
+  pitchSkeleton: readonly number[],
+  metricPositions: readonly number[],
+  strictness: 'strict' | 'moderate' | 'free' = 'moderate'
+): SchemaSkeletonConstraint {
+  return {
+    schemaName,
+    skeletal: voice === 'soprano' ? 'soprano' : voice === 'bass' ? 'bass' : 'any',
+    pitchTargets: [...pitchSkeleton],
+    rhythmicBeats: [...metricPositions],
+    variationLevel: strictness
+  };
+}
+
+// ============================================================================
+// FILM DEVICE MELODY CONSTRAINTS (C463)
+// ============================================================================
+
+/**
+ * Film device to melody constraint mapping
+ */
+export type FilmDevice = 
+  | 'pedal_point' | 'drone' | 'ostinato' | 'planing'
+  | 'chromatic_mediant' | 'modal_mixture' | 'lydian_tonic'
+  | 'dorian_minor' | 'phrygian_color' | 'whole_tone_wash'
+  | 'octatonic_action' | 'cluster_tension' | 'quartal_openness'
+  | 'suspension_chain' | 'cadence_deferral' | 'trailer_rise';
+
+/**
+ * Film device melody constraint
+ */
+export interface FilmDeviceMelodyConstraint {
+  readonly device: FilmDevice;
+  /** Preferred scale degrees */
+  readonly preferredDegrees: readonly number[];
+  /** Avoid scale degrees */
+  readonly avoidDegrees: readonly number[];
+  /** Contour preference */
+  readonly contour: 'ascending' | 'descending' | 'static' | 'arch' | 'free';
+  /** Density multiplier */
+  readonly densityMultiplier: number;
+  /** Interval constraints */
+  readonly maxInterval: number;
+  /** Whether to emphasize repetition */
+  readonly repetitive: boolean;
+}
+
+/**
+ * Film device to melody constraint mappings
+ */
+export const FILM_DEVICE_MELODY_CONSTRAINTS: ReadonlyMap<FilmDevice, FilmDeviceMelodyConstraint> = new Map([
+  ['pedal_point', {
+    device: 'pedal_point',
+    preferredDegrees: [0, 2, 4], // Tonic-oriented
+    avoidDegrees: [6], // Leading tone
+    contour: 'static',
+    densityMultiplier: 0.7,
+    maxInterval: 4,
+    repetitive: true,
+  }],
+  ['ostinato', {
+    device: 'ostinato',
+    preferredDegrees: [0, 2, 4, 5],
+    avoidDegrees: [],
+    contour: 'free',
+    densityMultiplier: 1.2,
+    maxInterval: 3,
+    repetitive: true,
+  }],
+  ['lydian_tonic', {
+    device: 'lydian_tonic',
+    preferredDegrees: [0, 2, 3, 4], // Include #4
+    avoidDegrees: [5], // Avoid natural 4
+    contour: 'ascending',
+    densityMultiplier: 0.8,
+    maxInterval: 5,
+    repetitive: false,
+  }],
+  ['phrygian_color', {
+    device: 'phrygian_color',
+    preferredDegrees: [0, 1, 2, 4], // Include b2
+    avoidDegrees: [6],
+    contour: 'descending',
+    densityMultiplier: 0.9,
+    maxInterval: 3,
+    repetitive: false,
+  }],
+  ['whole_tone_wash', {
+    device: 'whole_tone_wash',
+    preferredDegrees: [0, 2, 4, 6], // Whole tone scale subset
+    avoidDegrees: [1, 3, 5],
+    contour: 'arch',
+    densityMultiplier: 0.6,
+    maxInterval: 4,
+    repetitive: false,
+  }],
+  ['octatonic_action', {
+    device: 'octatonic_action',
+    preferredDegrees: [0, 1, 3, 4, 6], // Octatonic subset
+    avoidDegrees: [],
+    contour: 'free',
+    densityMultiplier: 1.5,
+    maxInterval: 3,
+    repetitive: false,
+  }],
+  ['trailer_rise', {
+    device: 'trailer_rise',
+    preferredDegrees: [0, 2, 4, 5, 7], // Pentatonic + 5th
+    avoidDegrees: [6],
+    contour: 'ascending',
+    densityMultiplier: 1.3,
+    maxInterval: 7,
+    repetitive: false,
+  }],
+]);
+
+/**
+ * Get film device melody constraint
+ */
+export function getFilmDeviceMelodyConstraint(device: FilmDevice): FilmDeviceMelodyConstraint | undefined {
+  return FILM_DEVICE_MELODY_CONSTRAINTS.get(device);
+}
+
+/**
+ * Apply film device constraint to phrase generation.
+ * 
+ * This is the C463 integration: phrase generator uses film devices for melody constraints.
+ */
+export function applyFilmDeviceToPhrase(
+  phrase: DecoupledPhrase,
+  device: FilmDevice
+): DecoupledPhrase {
+  const constraint = FILM_DEVICE_MELODY_CONSTRAINTS.get(device);
+  if (!constraint) return phrase;
+  
+  // Modify shape based on contour preference
+  let modifiedShape = phrase.shape;
+  if (phrase.shape && constraint.contour !== 'free') {
+    const points = [...phrase.shape.points];
+    
+    switch (constraint.contour) {
+      case 'ascending':
+        // Sort points so values increase with position
+        points.sort((a, b) => a.position - b.position);
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i]!;
+          points[i] = { ...pt, value: i / (points.length - 1 || 1) };
+        }
+        break;
+      case 'descending':
+        points.sort((a, b) => a.position - b.position);
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i]!;
+          points[i] = { ...pt, value: 1 - i / (points.length - 1 || 1) };
+        }
+        break;
+      case 'static':
+        // Flatten to middle value
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i]!;
+          points[i] = { ...pt, value: 0.5 };
+        }
+        break;
+      case 'arch':
+        // Create arch shape
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i]!;
+          const t = i / (points.length - 1 || 1);
+          points[i] = { ...pt, value: 1 - Math.pow(2 * t - 1, 2) };
+        }
+        break;
+    }
+    
+    modifiedShape = {
+      ...phrase.shape,
+      points,
+    };
+  }
+  
+  // Modify rhythm based on density multiplier
+  let modifiedRhythm = phrase.rhythm;
+  if (phrase.rhythm && constraint.densityMultiplier !== 1.0) {
+    const steps = phrase.rhythm.steps.map(step => ({
+      ...step,
+      duration: step.duration / constraint.densityMultiplier,
+    }));
+    modifiedRhythm = {
+      ...phrase.rhythm,
+      steps,
+    };
+  }
+  
+  return {
+    ...phrase,
+    shape: modifiedShape,
+    rhythm: modifiedRhythm,
+  };
+}
+
+/**
+ * Generate phrase with film device constraint
+ */
+export function generatePhraseWithFilmDevice(
+  context: PhraseArrangerContext,
+  lineType: LineType,
+  device: FilmDevice,
+  config: Partial<MelodyGeneratorConfig | BassGeneratorConfig> = {}
+): DecoupledPhrase {
+  const basePhrase = generatePhraseFromArranger(context, lineType, config);
+  return applyFilmDeviceToPhrase(basePhrase, device);
+}
+
+// ============================================================================
+// RAGA CONSTRAINTS FOR MELODY GENERATION (C508)
+// ============================================================================
+
+/**
+ * Raga definition for phrase generation
+ */
+export interface RagaDefinition {
+  readonly name: string;
+  readonly displayName: string;
+  /** Ascending scale (arohana) - scale degrees */
+  readonly arohana: readonly number[];
+  /** Descending scale (avarohana) - scale degrees */
+  readonly avarohana: readonly number[];
+  /** Characteristic phrases (pakad) */
+  readonly pakads: readonly (readonly number[])[];
+  /** Strong notes (vadi/samvadi equivalent) */
+  readonly strongNotes: readonly number[];
+  /** Notes requiring gamaka (ornamentation) */
+  readonly gamakaRequiredNotes: readonly number[];
+  /** Mood/rasa */
+  readonly rasa: string;
+}
+
+/**
+ * Predefined raga definitions
+ */
+export const RAGA_DEFINITIONS: ReadonlyMap<string, RagaDefinition> = new Map([
+  ['mohanam', {
+    name: 'mohanam',
+    displayName: 'Mohanam',
+    arohana: [0, 2, 4, 7, 9], // S R G P D (pentatonic)
+    avarohana: [9, 7, 4, 2, 0],
+    pakads: [[4, 2, 0], [9, 7, 4], [0, 2, 4, 7]],
+    strongNotes: [0, 4], // Sa, Ga
+    gamakaRequiredNotes: [2, 7], // Ri, Pa
+    rasa: 'pleasant',
+  }],
+  ['hamsadhwani', {
+    name: 'hamsadhwani',
+    displayName: 'Hamsadhwani',
+    arohana: [0, 2, 4, 7, 11], // S R G P N
+    avarohana: [11, 7, 4, 2, 0],
+    pakads: [[4, 2, 0], [11, 7, 4], [0, 2, 4, 11]],
+    strongNotes: [0, 4, 11], // Sa, Ga, Ni
+    gamakaRequiredNotes: [2, 7],
+    rasa: 'auspicious',
+  }],
+  ['kalyani', {
+    name: 'kalyani',
+    displayName: 'Kalyani',
+    arohana: [0, 2, 4, 6, 7, 9, 11], // S R G M# P D N (Lydian)
+    avarohana: [11, 9, 7, 6, 4, 2, 0],
+    pakads: [[11, 9, 7], [4, 6, 7, 9], [0, 2, 4, 6]],
+    strongNotes: [0, 6, 7], // Sa, Ma#, Pa
+    gamakaRequiredNotes: [4, 9, 11],
+    rasa: 'majestic',
+  }],
+  ['keeravani', {
+    name: 'keeravani',
+    displayName: 'Keeravani',
+    arohana: [0, 2, 3, 5, 7, 8, 11], // S R g M P d N (harmonic minor)
+    avarohana: [11, 8, 7, 5, 3, 2, 0],
+    pakads: [[3, 2, 0], [8, 7, 5], [11, 8, 7]],
+    strongNotes: [0, 3, 7], // Sa, ga, Pa
+    gamakaRequiredNotes: [2, 8, 11],
+    rasa: 'melancholy',
+  }],
+  ['shankarabharanam', {
+    name: 'shankarabharanam',
+    displayName: 'Shankarabharanam',
+    arohana: [0, 2, 4, 5, 7, 9, 11], // Major scale
+    avarohana: [11, 9, 7, 5, 4, 2, 0],
+    pakads: [[4, 2, 0], [7, 5, 4], [11, 9, 7]],
+    strongNotes: [0, 4, 7],
+    gamakaRequiredNotes: [2, 9],
+    rasa: 'devotional',
+  }],
+]);
+
+/**
+ * Get raga definition
+ */
+export function getRagaDefinition(ragaName: string): RagaDefinition | undefined {
+  return RAGA_DEFINITIONS.get(ragaName.toLowerCase());
+}
+
+/**
+ * Raga constraint for phrase generation
+ */
+export interface RagaConstraint {
+  readonly raga: RagaDefinition;
+  /** Direction preference */
+  readonly direction: 'ascending' | 'descending' | 'mixed';
+  /** Gamaka intensity (0-1) */
+  readonly gamakaIntensity: number;
+  /** Include pakad phrases */
+  readonly includePakads: boolean;
+}
+
+/**
+ * Apply raga constraint to phrase generation.
+ * 
+ * This is the C508 integration: phrase generator supports raga constraints for melody generation.
+ */
+export function applyRagaConstraintToPhrase(
+  phrase: DecoupledPhrase,
+  constraint: RagaConstraint
+): DecoupledPhrase {
+  const { raga, direction, gamakaIntensity } = constraint;
+  
+  // Select scale based on direction
+  const allowedDegrees = direction === 'ascending' ? raga.arohana :
+                         direction === 'descending' ? raga.avarohana :
+                         [...new Set([...raga.arohana, ...raga.avarohana])];
+  
+  // Modify shape to emphasize strong notes
+  let modifiedShape = phrase.shape;
+  if (phrase.shape) {
+    const points = phrase.shape.points.map(pt => {
+      // Map contour value to allowed scale degrees
+      const degreeIndex = Math.floor(pt.value * (allowedDegrees.length - 1));
+      const degree = allowedDegrees[degreeIndex] ?? 0;
+      
+      // Boost values for strong notes
+      const isStrong = raga.strongNotes.includes(degree);
+      const valueBoost = isStrong ? 0.1 : 0;
+      
+      return {
+        ...pt,
+        value: Math.min(1, pt.value + valueBoost),
+      };
+    });
+    
+    modifiedShape = {
+      ...phrase.shape,
+      points,
+      id: `${phrase.shape.id}-raga-${raga.name}`,
+    };
+  }
+  
+  // Add pakad influence if enabled
+  if (constraint.includePakads && raga.pakads.length > 0) {
+    // Select a random pakad and embed it in the phrase
+    const pakadIndex = Math.floor(Math.random() * raga.pakads.length);
+    const pakad = raga.pakads[pakadIndex]!;
+    
+    // Create shape points from pakad
+    if (!modifiedShape && pakad.length > 0) {
+      const pakadPoints: ContourPoint[] = pakad.map((degree, i) => ({
+        position: i / (pakad.length - 1 || 1),
+        value: degree / 12, // Normalize to 0-1
+      }));
+      
+      modifiedShape = {
+        id: `raga-${raga.name}-pakad`,
+        name: `${raga.displayName} pakad`,
+        points: pakadPoints,
+        interpolation: 'smooth',
+      };
+    }
+  }
+  
+  // Store gamaka metadata (would be used by renderer)
+  const dynamics = {
+    gamakaIntensity,
+    gamakaRequiredNotes: raga.gamakaRequiredNotes,
+  };
+  
+  return {
+    ...phrase,
+    shape: modifiedShape,
+    dynamics: dynamics as any,
+  };
+}
+
+/**
+ * Generate phrase with raga constraint
+ */
+export function generatePhraseWithRagaConstraint(
+  context: PhraseArrangerContext,
+  lineType: LineType,
+  ragaName: string,
+  options: {
+    direction?: 'ascending' | 'descending' | 'mixed';
+    gamakaIntensity?: number;
+    includePakads?: boolean;
+  } = {}
+): DecoupledPhrase {
+  const raga = getRagaDefinition(ragaName);
+  if (!raga) {
+    return generatePhraseFromArranger(context, lineType);
+  }
+  
+  const basePhrase = generatePhraseFromArranger(context, lineType);
+  
+  return applyRagaConstraintToPhrase(basePhrase, {
+    raga,
+    direction: options.direction ?? 'mixed',
+    gamakaIntensity: options.gamakaIntensity ?? 0.5,
+    includePakads: options.includePakads ?? true,
+  });
+}

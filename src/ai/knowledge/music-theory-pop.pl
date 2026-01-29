@@ -44,7 +44,7 @@ pop_melody_contour(hook_shape, [distinctive_interval, memorable_turn, signature]
 
 %% hook_placement(+HookType, -Location, -Repetition)
 %% Where hooks appear in pop songs. (C1955)
-hook_placement(title_hook, chorus_first_line, 4_to_8_times).
+hook_placement(title_hook, chorus_first_line, four_to_eight_times).
 hook_placement(instrumental_hook, intro_and_between, throughout).
 hook_placement(rhythmic_hook, groove, constant).
 hook_placement(production_hook, signature_sound, throughout).

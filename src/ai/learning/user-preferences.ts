@@ -616,20 +616,28 @@ export async function syncPreferencesToKB(
   await loadUserPrefsKB(adapter);
 
   const userId = prefs.userId.replace(/[^a-zA-Z0-9_]/g, '_');
-  const facts: string[] = [];
+  // Clear any previously asserted facts for this user so repeated syncs
+  // reflect the latest state (important for learning updates).
+  await adapter.retractAll(`user_prefers_board(${userId}, _)`);
+  await adapter.retractAll(`user_workflow(${userId}, _)`);
+  await adapter.retractAll(`user_genre_preference(${userId}, _)`);
+  await adapter.retractAll(`user_skill_level(${userId}, _)`);
+  await adapter.retractAll(`user_generator_style(${userId}, _, _)`);
+  await adapter.retractAll(`user_board_transition(${userId}, _, _)`);
+  await adapter.retractAll(`user_constraint_template(${userId}, _, _)`);
 
   // L326: Board preferences
   for (const board of prefs.boards.frequentBoards.slice(0, 10)) {
     const boardId = board.boardId.replace(/[^a-zA-Z0-9_]/g, '_');
-    facts.push(`user_prefers_board(${userId}, ${boardId}).`);
+    await adapter.assertz(`user_prefers_board(${userId}, ${boardId}).`);
   }
 
   // L327: Workflow patterns from board transitions
   for (const transition of prefs.boards.boardSwitchPatterns.slice(0, 20)) {
     const from = transition.fromBoard.replace(/[^a-zA-Z0-9_]/g, '_');
     const to = transition.toBoard.replace(/[^a-zA-Z0-9_]/g, '_');
-    facts.push(`user_board_transition(${userId}, ${from}, ${to}).`);
-    facts.push(`user_workflow(${userId}, transition_${from}_to_${to}).`);
+    await adapter.assertz(`user_board_transition(${userId}, ${from}, ${to}).`);
+    await adapter.assertz(`user_workflow(${userId}, transition_${from}_to_${to}).`);
   }
 
   // L328: Genre preferences (derived from generator style usage)
@@ -638,7 +646,7 @@ export async function syncPreferencesToKB(
     const genre = pref.style.replace(/[^a-zA-Z0-9_]/g, '_');
     if (!seenGenres.has(genre)) {
       seenGenres.add(genre);
-      facts.push(`user_genre_preference(${userId}, ${genre}).`);
+      await adapter.assertz(`user_genre_preference(${userId}, ${genre}).`);
     }
   }
 
@@ -649,16 +657,12 @@ export async function syncPreferencesToKB(
     totalBoardUse > 50 ? 'advanced' :
     totalBoardUse > 10 ? 'intermediate' :
     'beginner';
-  facts.push(`user_skill_level(${userId}, ${estimatedLevel}).`);
+  await adapter.assertz(`user_skill_level(${userId}, ${estimatedLevel}).`);
 
   // Generator style preferences
   for (const [genType, pref] of prefs.generators.stylePreferences) {
     const style = pref.style.replace(/[^a-zA-Z0-9_]/g, '_');
-    facts.push(`user_generator_style(${userId}, ${genType}, ${style}).`);
-  }
-
-  if (facts.length > 0) {
-    await adapter.loadProgram(facts.join('\n'), `user-prefs-${userId}`);
+    await adapter.assertz(`user_generator_style(${userId}, ${genType}, ${style}).`);
   }
 }
 
@@ -1309,14 +1313,18 @@ export async function syncLearnedPatternsToKB(
   await loadUserPrefsKB(adapter);
 
   const cleanId = userId.replace(/[^a-zA-Z0-9_]/g, '_');
-  const facts: string[] = [];
+  // Clear any prior learned facts for this user so repeated syncs reflect
+  // the latest state (important for simulated learning and long sessions).
+  await adapter.retractAll(`learned_workflow_pattern(${cleanId}, _, _)`);
+  await adapter.retractAll(`learned_parameter_preference(${cleanId}, _, _, _)`);
+  await adapter.retractAll(`learned_routing_pattern(${cleanId}, _, _, _)`);
 
   // N106: Learned workflow patterns
   const workflowPatterns = detectWorkflowPatterns(2);
   for (const pattern of workflowPatterns.slice(0, 20)) {
     const seqAtom = `[${pattern.deckSequence.map((d) => d.replace(/[^a-zA-Z0-9_]/g, '_')).join(',')}]`;
     const patternId = pattern.patternId.replace(/[^a-zA-Z0-9_]/g, '_');
-    facts.push(`learned_workflow_pattern(${cleanId}, ${patternId}, ${seqAtom}).`);
+    await adapter.assertz(`learned_workflow_pattern(${cleanId}, ${patternId}, ${seqAtom}).`);
   }
 
   // N107: Learned parameter preferences (top 30 by frequency)
@@ -1328,7 +1336,7 @@ export async function syncLearnedPatternsToKB(
     const valueAtom = typeof pref.preferredValue === 'number'
       ? String(pref.preferredValue)
       : String(pref.preferredValue).replace(/[^a-zA-Z0-9_]/g, '_');
-    facts.push(`learned_parameter_preference(${cleanId}, ${paramAtom}, ${deckAtom}, ${valueAtom}).`);
+    await adapter.assertz(`learned_parameter_preference(${cleanId}, ${paramAtom}, ${deckAtom}, ${valueAtom}).`);
   }
 
   // N108: Learned routing patterns (all tracked)
@@ -1336,11 +1344,7 @@ export async function syncLearnedPatternsToKB(
     const fromAtom = entry.from.replace(/[^a-zA-Z0-9_]/g, '_');
     const toAtom = entry.to.replace(/[^a-zA-Z0-9_]/g, '_');
     const purposeAtom = entry.purpose.replace(/[^a-zA-Z0-9_]/g, '_');
-    facts.push(`learned_routing_pattern(${cleanId}, ${fromAtom}, ${toAtom}, ${purposeAtom}).`);
-  }
-
-  if (facts.length > 0) {
-    await adapter.loadProgram(facts.join('\n'), `learned-patterns-${cleanId}`);
+    await adapter.assertz(`learned_routing_pattern(${cleanId}, ${fromAtom}, ${toAtom}, ${purposeAtom}).`);
   }
 }
 

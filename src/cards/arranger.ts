@@ -22040,4 +22040,597 @@ export function harmonizeMelody(
   return harmony;
 }
 
+// ============================================================================
+// SCHEMA-BASED ACCOMPANIMENT (C309)
+// ============================================================================
+
+/**
+ * Schema accompaniment pattern definition
+ */
+export interface SchemaAccompanimentPattern {
+  /** Schema name this pattern is for */
+  readonly schemaName: string;
+  /** Bass pattern (scale degrees relative to chord root) */
+  readonly bassPattern: readonly number[];
+  /** Bass rhythm (beat positions in bar) */
+  readonly bassRhythm: readonly number[];
+  /** Chord voicing pattern */
+  readonly chordVoicings: readonly ChordVoicing[];
+  /** Chord rhythm (beat positions) */
+  readonly chordRhythm: readonly number[];
+  /** Optional arpeggiation pattern */
+  readonly arpPattern?: readonly number[];
+  /** Style compatibility */
+  readonly styles: readonly ArrangerStyle[];
+}
+
+/**
+ * Chord voicing type
+ */
+export interface ChordVoicing {
+  readonly intervals: readonly number[]; // From bass
+  readonly spread: 'close' | 'open' | 'drop2' | 'drop3';
+  readonly inversion: 0 | 1 | 2 | 3;
+}
+
+/**
+ * Schema accompaniment library - common galant schema patterns
+ */
+export const SCHEMA_ACCOMPANIMENT_PATTERNS: readonly SchemaAccompanimentPattern[] = [
+  // Romanesca (I-V-vi-III) 
+  {
+    schemaName: 'romanesca',
+    bassPattern: [0, 4, 5, 2], // 1-5-6-3 scale degrees
+    bassRhythm: [0, 1, 2, 3], // One per beat
+    chordVoicings: [
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 1 },
+      { intervals: [0, 3, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+    ],
+    chordRhythm: [0, 1, 2, 3],
+    styles: ['pop', 'classical', 'baroque'],
+  },
+  // Monte (ascending sequence)
+  {
+    schemaName: 'monte',
+    bassPattern: [0, 4, 2, 5], // Ascending bass
+    bassRhythm: [0, 1, 2, 3],
+    chordVoicings: [
+      { intervals: [0, 3, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 3, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+    ],
+    chordRhythm: [0, 1, 2, 3],
+    styles: ['classical', 'baroque'],
+  },
+  // Prinner (descending 6-5 sequence)
+  {
+    schemaName: 'prinner',
+    bassPattern: [5, 4, 3, 2], // 6-5-4-3 descending
+    bassRhythm: [0, 1, 2, 3],
+    chordVoicings: [
+      { intervals: [0, 4, 7], spread: 'close', inversion: 1 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 3, 7], spread: 'close', inversion: 1 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+    ],
+    chordRhythm: [0, 1, 2, 3],
+    styles: ['classical', 'baroque'],
+  },
+  // Fonte (modulating sequence)
+  {
+    schemaName: 'fonte',
+    bassPattern: [1, 4, 0, 3], // Modulating pattern
+    bassRhythm: [0, 1, 2, 3],
+    chordVoicings: [
+      { intervals: [0, 3, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 3, 7], spread: 'close', inversion: 0 },
+      { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
+    ],
+    chordRhythm: [0, 1, 2, 3],
+    styles: ['classical', 'baroque'],
+  },
+];
+
+/**
+ * Get accompaniment pattern for a schema
+ */
+export function getSchemaAccompanimentPattern(
+  schemaName: string,
+  style?: ArrangerStyle
+): SchemaAccompanimentPattern | undefined {
+  const patterns = SCHEMA_ACCOMPANIMENT_PATTERNS.filter(p => 
+    p.schemaName.toLowerCase() === schemaName.toLowerCase()
+  );
+  
+  if (style) {
+    const styleMatch = patterns.find(p => p.styles.includes(style));
+    if (styleMatch) return styleMatch;
+  }
+  
+  return patterns[0];
+}
+
+/**
+ * Generate accompaniment from schema constraint.
+ * 
+ * This is the C309 integration: arranger uses schema to generate accompaniment patterns.
+ */
+export function generateSchemaAccompaniment(
+  schemaName: string,
+  key: number,
+  style: ArrangerStyle,
+  energy: number
+): {
+  readonly bassNotes: readonly { note: number; beat: number; velocity: number }[];
+  readonly chordNotes: readonly { notes: readonly number[]; beat: number; velocity: number }[];
+} {
+  const pattern = getSchemaAccompanimentPattern(schemaName, style);
+  
+  if (!pattern) {
+    return { bassNotes: [], chordNotes: [] };
+  }
+  
+  // Generate bass notes from pattern
+  const bassNotes = pattern.bassPattern.map((degree, idx) => {
+    const scaleDegreeToSemitone = [0, 2, 4, 5, 7, 9, 11]; // Major scale
+    const semitone = scaleDegreeToSemitone[degree % 7] ?? 0;
+    return {
+      note: key + semitone + 36, // Bass octave (C2 = 36)
+      beat: pattern.bassRhythm[idx] ?? 0,
+      velocity: Math.round(80 + energy * 40), // 80-120 velocity range
+    };
+  });
+  
+  // Generate chord voicings from pattern
+  const chordNotes = pattern.chordVoicings.map((voicing, idx) => {
+    const bassNote = bassNotes[idx]?.note ?? key + 48;
+    const notes = voicing.intervals.map(interval => bassNote + 12 + interval); // Chord octave above bass
+    return {
+      notes,
+      beat: pattern.chordRhythm[idx] ?? 0,
+      velocity: Math.round(60 + energy * 30), // 60-90 velocity range
+    };
+  });
+  
+  return { bassNotes, chordNotes };
+}
+
+// ============================================================================
+// SCENE ARC TEMPLATES (C453)
+// ============================================================================
+
+/**
+ * Scene arc template - maps song parts to dramatic arcs
+ */
+export interface SceneArcTemplate {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  /** Song parts to arc intensity mapping */
+  readonly partIntensity: ReadonlyMap<SongPartType, number>;
+  /** Suggested mood for each part */
+  readonly partMoods: ReadonlyMap<SongPartType, string>;
+  /** Style compatibility */
+  readonly genres: readonly string[];
+}
+
+/**
+ * Predefined scene arc templates
+ */
+export const SCENE_ARC_TEMPLATES: readonly SceneArcTemplate[] = [
+  {
+    id: 'hero-journey',
+    name: 'Hero Journey',
+    description: 'Classic 3-act structure with rising action and climax',
+    partIntensity: new Map([
+      ['intro', 0.2],
+      ['verse', 0.4],
+      ['pre-chorus', 0.6],
+      ['chorus', 0.9],
+      ['bridge', 0.7],
+      ['outro', 0.3],
+    ]),
+    partMoods: new Map([
+      ['intro', 'wonder'],
+      ['verse', 'tender'],
+      ['pre-chorus', 'mystery'],
+      ['chorus', 'heroic'],
+      ['bridge', 'ominous'],
+      ['outro', 'tender'],
+    ]),
+    genres: ['film', 'orchestral', 'pop'],
+  },
+  {
+    id: 'tension-release',
+    name: 'Tension & Release',
+    description: 'Building tension with cathartic release',
+    partIntensity: new Map([
+      ['intro', 0.3],
+      ['verse', 0.5],
+      ['pre-chorus', 0.7],
+      ['chorus', 1.0],
+      ['breakdown', 0.3],
+      ['drop', 1.0],
+      ['outro', 0.4],
+    ]),
+    partMoods: new Map([
+      ['intro', 'mystery'],
+      ['verse', 'ominous'],
+      ['pre-chorus', 'action'],
+      ['chorus', 'heroic'],
+      ['breakdown', 'tender'],
+      ['drop', 'action'],
+      ['outro', 'wonder'],
+    ]),
+    genres: ['edm', 'trailer', 'action'],
+  },
+  {
+    id: 'emotional-arc',
+    name: 'Emotional Arc',
+    description: 'Slow build to emotional peak',
+    partIntensity: new Map([
+      ['intro', 0.1],
+      ['verse', 0.3],
+      ['pre-chorus', 0.5],
+      ['chorus', 0.7],
+      ['bridge', 0.9],
+      ['outro', 0.2],
+    ]),
+    partMoods: new Map([
+      ['intro', 'tender'],
+      ['verse', 'sorrow'],
+      ['pre-chorus', 'tender'],
+      ['chorus', 'wonder'],
+      ['bridge', 'heroic'],
+      ['outro', 'tender'],
+    ]),
+    genres: ['ballad', 'drama', 'film'],
+  },
+];
+
+/**
+ * Get scene arc template by ID
+ */
+export function getSceneArcTemplate(id: string): SceneArcTemplate | undefined {
+  return SCENE_ARC_TEMPLATES.find(t => t.id === id);
+}
+
+/**
+ * Map song parts to scene arc intensity.
+ * 
+ * This is the C453 integration: arranger song parts map to scene arc templates.
+ */
+export function mapSongPartsToSceneArc(
+  parts: readonly SongPart[],
+  template: SceneArcTemplate
+): readonly { part: SongPart; intensity: number; mood: string }[] {
+  return parts.map(part => ({
+    part,
+    intensity: template.partIntensity.get(part.type) ?? 0.5,
+    mood: template.partMoods.get(part.type) ?? 'neutral',
+  }));
+}
+
+// ============================================================================
+// ORCHESTRATION BUDGET MODEL (C454)
+// ============================================================================
+
+/**
+ * Orchestration budget - CPU/voice constraints
+ */
+export interface OrchestrationBudget {
+  /** Maximum simultaneous voices */
+  readonly maxVoices: number;
+  /** Maximum CPU usage (0-1) */
+  readonly maxCpuPercent: number;
+  /** Budget per voice type */
+  readonly voiceBudgets: ReadonlyMap<string, number>;
+  /** Priority order for voice types */
+  readonly voicePriority: readonly string[];
+}
+
+/**
+ * Orchestration budget presets
+ */
+export const ORCHESTRATION_BUDGETS: Record<string, OrchestrationBudget> = {
+  'minimal': {
+    maxVoices: 4,
+    maxCpuPercent: 0.2,
+    voiceBudgets: new Map([
+      ['bass', 1], ['drums', 1], ['piano', 1], ['melody', 1]
+    ]),
+    voicePriority: ['bass', 'drums', 'piano', 'melody'],
+  },
+  'standard': {
+    maxVoices: 8,
+    maxCpuPercent: 0.5,
+    voiceBudgets: new Map([
+      ['bass', 1], ['drums', 2], ['piano', 1], ['guitar', 1],
+      ['strings', 1], ['melody', 1], ['pad', 1]
+    ]),
+    voicePriority: ['bass', 'drums', 'melody', 'piano', 'guitar', 'strings', 'pad'],
+  },
+  'full': {
+    maxVoices: 16,
+    maxCpuPercent: 0.8,
+    voiceBudgets: new Map([
+      ['bass', 1], ['drums', 3], ['piano', 2], ['guitar', 2],
+      ['strings', 4], ['brass', 2], ['melody', 1], ['pad', 1]
+    ]),
+    voicePriority: ['bass', 'drums', 'melody', 'strings', 'brass', 'piano', 'guitar', 'pad'],
+  },
+};
+
+/**
+ * Voice allocation result
+ */
+export interface VoiceAllocation {
+  readonly voice: string;
+  readonly enabled: boolean;
+  readonly priority: number;
+  readonly reason?: string;
+}
+
+/**
+ * Allocate voices within orchestration budget.
+ * 
+ * This is the C454 integration: orchestration budget model to keep arrangements feasible.
+ */
+export function allocateVoicesWithinBudget(
+  requestedVoices: readonly string[],
+  budget: OrchestrationBudget
+): VoiceAllocation[] {
+  const allocations: VoiceAllocation[] = [];
+  let usedVoices = 0;
+  
+  // Sort by priority
+  const sortedVoices = [...requestedVoices].sort((a, b) => {
+    const aPriority = budget.voicePriority.indexOf(a);
+    const bPriority = budget.voicePriority.indexOf(b);
+    return (aPriority === -1 ? 999 : aPriority) - (bPriority === -1 ? 999 : bPriority);
+  });
+  
+  for (const voice of sortedVoices) {
+    const voiceCost = budget.voiceBudgets.get(voice) ?? 1;
+    const priority = budget.voicePriority.indexOf(voice);
+    
+    if (usedVoices + voiceCost <= budget.maxVoices) {
+      allocations.push({
+        voice,
+        enabled: true,
+        priority: priority === -1 ? 999 : priority,
+      });
+      usedVoices += voiceCost;
+    } else {
+      allocations.push({
+        voice,
+        enabled: false,
+        priority: priority === -1 ? 999 : priority,
+        reason: `Voice budget exceeded (${usedVoices}/${budget.maxVoices})`,
+      });
+    }
+  }
+  
+  return allocations;
+}
+
+// ============================================================================
+// CARNATIC ENSEMBLE SUPPORT (C509)
+// ============================================================================
+
+/**
+ * Carnatic ensemble role
+ */
+export type CarnaticRole = 
+  | 'drone'       // Tambura/sruti box
+  | 'melodist'    // Main vocalist or instrumentalist
+  | 'mridangam'   // Main percussion
+  | 'ghatam'      // Secondary percussion (clay pot)
+  | 'kanjira'     // Secondary percussion (frame drum)
+  | 'violin'      // Melodic accompaniment
+  | 'veena'       // String accompaniment
+  | 'flute'       // Wind accompaniment
+  | 'chorus';     // Background vocalists
+
+/**
+ * Carnatic ensemble configuration
+ */
+export interface CarnaticEnsembleConfig {
+  /** Active roles in the ensemble */
+  readonly roles: readonly CarnaticRole[];
+  /** Raga for melodic parts */
+  readonly raga: string;
+  /** Tala for rhythmic parts */
+  readonly tala: string;
+  /** Jati (beats per laghu) */
+  readonly jati: 3 | 4 | 5 | 7 | 9;
+  /** Tempo in aksharas per minute */
+  readonly tempo: number;
+  /** Drone tones (relative to Sa) */
+  readonly droneTones: readonly number[];
+}
+
+/**
+ * Carnatic ensemble voice assignment
+ */
+export interface CarnaticVoiceAssignment {
+  readonly role: CarnaticRole;
+  readonly trackId: string;
+  readonly midiChannel: number;
+  readonly instrument?: string;
+  readonly octave: number;
+}
+
+/**
+ * Default Carnatic ensemble configurations
+ */
+export const CARNATIC_ENSEMBLE_PRESETS: Record<string, CarnaticEnsembleConfig> = {
+  'vocal-concert': {
+    roles: ['drone', 'melodist', 'violin', 'mridangam', 'ghatam'],
+    raga: 'shankarabharanam',
+    tala: 'adi',
+    jati: 4,
+    tempo: 80,
+    droneTones: [0, 7], // Sa, Pa
+  },
+  'instrumental': {
+    roles: ['drone', 'veena', 'flute', 'mridangam', 'kanjira'],
+    raga: 'kalyani',
+    tala: 'adi',
+    jati: 4,
+    tempo: 100,
+    droneTones: [0, 7],
+  },
+  'minimal': {
+    roles: ['drone', 'melodist', 'mridangam'],
+    raga: 'mohanam',
+    tala: 'rupaka',
+    jati: 4,
+    tempo: 60,
+    droneTones: [0, 7],
+  },
+};
+
+/**
+ * Get Carnatic ensemble preset
+ */
+export function getCarnaticEnsemblePreset(name: string): CarnaticEnsembleConfig | undefined {
+  return CARNATIC_ENSEMBLE_PRESETS[name];
+}
+
+/**
+ * Generate voice assignments for Carnatic ensemble.
+ * 
+ * This is the C509 integration: arranger supports drone + percussion roles for Carnatic ensemble.
+ */
+export function generateCarnaticVoiceAssignments(
+  config: CarnaticEnsembleConfig
+): CarnaticVoiceAssignment[] {
+  const assignments: CarnaticVoiceAssignment[] = [];
+  let channel = 0;
+  
+  for (const role of config.roles) {
+    let octave = 4;
+    let instrument: string | undefined;
+    
+    switch (role) {
+      case 'drone':
+        octave = 3;
+        instrument = 'tambura';
+        break;
+      case 'melodist':
+        octave = 4;
+        instrument = 'vocal';
+        break;
+      case 'mridangam':
+        octave = 2;
+        instrument = 'mridangam';
+        break;
+      case 'ghatam':
+        octave = 3;
+        instrument = 'ghatam';
+        break;
+      case 'kanjira':
+        octave = 3;
+        instrument = 'kanjira';
+        break;
+      case 'violin':
+        octave = 4;
+        instrument = 'violin';
+        break;
+      case 'veena':
+        octave = 3;
+        instrument = 'veena';
+        break;
+      case 'flute':
+        octave = 5;
+        instrument = 'flute';
+        break;
+      case 'chorus':
+        octave = 4;
+        instrument = 'choir';
+        break;
+    }
+    
+    assignments.push({
+      role,
+      trackId: `carnatic-${role}`,
+      midiChannel: channel,
+      instrument,
+      octave,
+    });
+    
+    channel = (channel + 1) % 16;
+    if (channel === 9) channel++; // Skip percussion channel for melodic parts
+  }
+  
+  return assignments;
+}
+
+/**
+ * Generate drone pattern for Carnatic ensemble
+ */
+export function generateCarnaticDronePattern(
+  config: CarnaticEnsembleConfig,
+  rootNote: number,
+  durationTicks: number
+): { notes: readonly number[]; velocities: readonly number[] } {
+  const notes: number[] = [];
+  const velocities: number[] = [];
+  
+  for (const tone of config.droneTones) {
+    const note = rootNote + tone;
+    notes.push(note);
+    notes.push(note + 12); // Octave doubling
+    velocities.push(60);
+    velocities.push(40); // Softer octave
+  }
+  
+  return { notes, velocities };
+}
+
+/**
+ * Generate mridangam pattern for Carnatic ensemble
+ */
+export function generateMridangamPattern(
+  tala: string,
+  jati: number,
+  density: number
+): { beats: readonly number[]; strokes: readonly string[] } {
+  // Simplified mridangam patterns - each stroke type has a characteristic sound
+  const STROKE_PATTERNS: Record<string, { beats: number[]; strokes: string[] }> = {
+    'adi': {
+      beats: [0, 2, 4, 5, 6, 7],
+      strokes: ['tha', 'ka', 'dhin', 'na', 'tha', 'ka'],
+    },
+    'rupaka': {
+      beats: [0, 2, 3, 4, 5],
+      strokes: ['tha', 'dhin', 'na', 'tha', 'ka'],
+    },
+    'misra_chapu': {
+      beats: [0, 1, 2, 3, 4, 5, 6],
+      strokes: ['tha', 'ka', 'dhin', 'na', 'tha', 'ka', 'dhin'],
+    },
+  };
+  
+  const pattern = STROKE_PATTERNS[tala] ?? STROKE_PATTERNS['adi']!;
+  
+  // Filter beats based on density
+  const filteredBeats: number[] = [];
+  const filteredStrokes: string[] = [];
+  
+  for (let i = 0; i < pattern.beats.length; i++) {
+    if (Math.random() < density || i === 0) {
+      filteredBeats.push(pattern.beats[i]!);
+      filteredStrokes.push(pattern.strokes[i]!);
+    }
+  }
+  
+  return { beats: filteredBeats, strokes: filteredStrokes };
+}
+
 

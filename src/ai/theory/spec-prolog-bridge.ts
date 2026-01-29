@@ -21,6 +21,19 @@ import {
   TonalityModel,
   StyleTag,
   CultureTag,
+  GalantSchemaName,
+  RagaName,
+  TalaName,
+  JatiType,
+  CelticTuneType,
+  ChineseModeName,
+  FilmMood,
+  FilmDevice,
+  AccentModel,
+  CadenceType,
+  DensityLevel,
+  PatternRole,
+  ArrangerStyle,
   createMusicSpec,
 } from './music-spec';
 
@@ -435,10 +448,230 @@ function parseCulture(value: unknown): CultureTag | undefined {
   return undefined;
 }
 
-function parseConstraints(_value: unknown): readonly MusicConstraint[] | undefined {
-  // TODO: Implement full constraint parsing from Prolog list format
-  // For now, return undefined to use defaults
-  return undefined;
+export function prologConstraintTermToMusicConstraint(
+  term: unknown,
+  opts: { readonly hard: boolean; readonly weight?: number }
+): MusicConstraint | null {
+  if (!term || typeof term !== 'object') return null;
+
+  const maybe = term as { functor?: unknown; args?: unknown[] };
+  if (typeof maybe.functor !== 'string' || !Array.isArray(maybe.args)) return null;
+
+  const hard = opts.hard;
+  const weight = opts.weight;
+  const withMeta = <T extends MusicConstraint>(c: Omit<T, 'hard' | 'weight'>): T => {
+    if (hard) return { ...(c as T), hard };
+    return weight !== undefined ? ({ ...(c as T), hard, weight } as T) : ({ ...(c as T), hard } as T);
+  };
+
+  const functor = maybe.functor;
+  const args = maybe.args;
+
+  switch (functor) {
+    case 'key': {
+      const root = parseRoot(args[0]);
+      const mode = parseMode(args[1]);
+      if (!root || !mode) return null;
+      return withMeta({ type: 'key', root, mode });
+    }
+    case 'tempo': {
+      const bpm = parseNumber(args[0]);
+      if (bpm === undefined) return null;
+      return withMeta({ type: 'tempo', bpm });
+    }
+    case 'meter': {
+      const numerator = parseNumber(args[0]);
+      const denominator = parseNumber(args[1]);
+      if (numerator === undefined || denominator === undefined) return null;
+      return withMeta({ type: 'meter', numerator, denominator });
+    }
+    case 'tonality_model': {
+      const model = parseTonalityModel(args[0]);
+      if (!model) return null;
+      return withMeta({ type: 'tonality_model', model });
+    }
+    case 'style': {
+      const style = parseStyle(args[0]);
+      if (!style) return null;
+      return withMeta({ type: 'style', style });
+    }
+    case 'culture': {
+      const culture = parseCulture(args[0]);
+      if (!culture) return null;
+      return withMeta({ type: 'culture', culture });
+    }
+    case 'schema': {
+      const schema = typeof args[0] === 'string' ? (args[0] as GalantSchemaName) : undefined;
+      if (!schema) return null;
+      return withMeta({ type: 'schema', schema });
+    }
+    case 'raga': {
+      const raga = typeof args[0] === 'string' ? (args[0] as RagaName) : undefined;
+      if (!raga) return null;
+      return withMeta({ type: 'raga', raga });
+    }
+    case 'tala': {
+      const tala = typeof args[0] === 'string' ? (args[0] as TalaName) : undefined;
+      if (!tala) return null;
+      const jati = typeof args[1] === 'string' ? (args[1] as JatiType) : undefined;
+      return withMeta({ type: 'tala', tala, ...(jati ? { jati } : {}) });
+    }
+    case 'celtic_tune': {
+      const tuneType = typeof args[0] === 'string' ? (args[0] as CelticTuneType) : undefined;
+      if (!tuneType) return null;
+      return withMeta({ type: 'celtic_tune', tuneType });
+    }
+    case 'chinese_mode': {
+      const mode = typeof args[0] === 'string' ? (args[0] as ChineseModeName) : undefined;
+      if (!mode) return null;
+      const includeBian = args[1] === 'with_bian';
+      return withMeta({ type: 'chinese_mode', mode, ...(includeBian ? { includeBian } : {}) });
+    }
+    case 'film_mood': {
+      const mood = typeof args[0] === 'string' ? (args[0] as FilmMood) : undefined;
+      if (!mood) return null;
+      return withMeta({ type: 'film_mood', mood });
+    }
+    case 'film_device': {
+      const device = typeof args[0] === 'string' ? (args[0] as FilmDevice) : undefined;
+      if (!device) return null;
+      return withMeta({ type: 'film_device', device });
+    }
+    case 'phrase_density': {
+      const density = typeof args[0] === 'string'
+        ? (args[0] as 'sparse' | 'medium' | 'dense')
+        : undefined;
+      if (!density) return null;
+      return withMeta({ type: 'phrase_density', density });
+    }
+    case 'contour': {
+      const contour = typeof args[0] === 'string'
+        ? (args[0] as 'ascending' | 'descending' | 'arch' | 'inverted_arch' | 'level')
+        : undefined;
+      if (!contour) return null;
+      return withMeta({ type: 'contour', contour });
+    }
+    case 'grouping': {
+      const sensitivity = parseNumber(args[0]);
+      if (sensitivity === undefined) return null;
+      return withMeta({ type: 'grouping', sensitivity });
+    }
+    case 'accent_model': {
+      const model = typeof args[0] === 'string' ? (args[0] as AccentModel) : undefined;
+      if (!model) return null;
+      return withMeta({ type: 'accent', model });
+    }
+    case 'gamaka_density': {
+      const density = typeof args[0] === 'string' ? (args[0] as 'light' | 'medium' | 'heavy') : undefined;
+      if (!density) return null;
+      return withMeta({ type: 'gamaka_density', density });
+    }
+    case 'ornament_budget': {
+      const maxPerBeat = parseNumber(args[0]);
+      if (maxPerBeat === undefined) return null;
+      return withMeta({ type: 'ornament_budget', maxPerBeat } as const);
+    }
+    case 'harmonic_rhythm': {
+      const changesPerBar = parseNumber(args[0]);
+      if (changesPerBar === undefined) return null;
+      return withMeta({ type: 'harmonic_rhythm', changesPerBar } as const);
+    }
+    case 'cadence': {
+      const cadenceType = typeof args[0] === 'string' ? (args[0] as CadenceType) : undefined;
+      if (!cadenceType) return null;
+      return withMeta({ type: 'cadence', cadenceType } as const);
+    }
+    case 'trailer_build': {
+      const buildBars = parseNumber(args[0]);
+      const hitCount = parseNumber(args[1]);
+      const percussionDensity = typeof args[2] === 'string' ? (args[2] as DensityLevel) : undefined;
+      if (buildBars === undefined || hitCount === undefined || !percussionDensity) return null;
+      return withMeta({ type: 'trailer_build', buildBars, hitCount, percussionDensity } as const);
+    }
+    case 'leitmotif': {
+      const motifId = typeof args[0] === 'string' ? args[0] : undefined;
+      if (!motifId) return null;
+      const transformOp = typeof args[1] === 'string'
+        ? (args[1] as 'augmentation' | 'diminution' | 'inversion' | 'retrograde' | 'reharmonize')
+        : undefined;
+      return withMeta({ type: 'leitmotif', motifId, ...(transformOp ? { transformOp } : {}) } as const);
+    }
+    case 'drone': {
+      const droneTones = Array.isArray(args[0]) ? args[0].filter((t): t is RootName => parseRoot(t) !== undefined) : [];
+      const droneStyle = typeof args[1] === 'string'
+        ? (args[1] as 'sustained' | 'pulsing' | 'sruti_box' | 'pipes' | 'open_strings')
+        : undefined;
+      if (!droneStyle) return null;
+      return withMeta({ type: 'drone', droneTones, droneStyle } as const);
+    }
+    case 'pattern_role': {
+      const role = typeof args[0] === 'string' ? (args[0] as PatternRole) : undefined;
+      if (!role) return null;
+      return withMeta({ type: 'pattern_role', role } as const);
+    }
+    case 'swing': {
+      const amount = parseNumber(args[0]);
+      if (amount === undefined) return null;
+      return withMeta({ type: 'swing', amount } as const);
+    }
+    case 'heterophony': {
+      const voiceCount = parseNumber(args[0]);
+      const variationDepth = typeof args[1] === 'string' ? (args[1] as 'subtle' | 'moderate' | 'free') : undefined;
+      const timingSpread = parseNumber(args[2]);
+      if (voiceCount === undefined || !variationDepth || timingSpread === undefined) return null;
+      return withMeta({ type: 'heterophony', voiceCount, variationDepth, timingSpread } as const);
+    }
+    case 'max_interval': {
+      const semitones = parseNumber(args[0]);
+      if (semitones === undefined) return null;
+      return withMeta({ type: 'max_interval', semitones } as const);
+    }
+    case 'arranger_style': {
+      const style = typeof args[0] === 'string' ? (args[0] as ArrangerStyle) : undefined;
+      if (!style) return null;
+      return withMeta({ type: 'arranger_style', style } as const);
+    }
+    case 'scene_arc': {
+      const arcType = typeof args[0] === 'string'
+        ? (args[0] as 'rising_action' | 'tension_release' | 'slow_burn' | 'bookend' | 'stinger')
+        : undefined;
+      if (!arcType) return null;
+      return withMeta({ type: 'scene_arc', arcType } as const);
+    }
+    default:
+      return null;
+  }
+}
+
+function parseConstraints(value: unknown): readonly MusicConstraint[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  const out: MusicConstraint[] = [];
+  for (const item of value) {
+    // Full fact form: spec_constraint(SpecId, ConstraintTerm, hard|soft, Weight)
+    if (item && typeof item === 'object') {
+      const compound = item as { functor?: unknown; args?: unknown[] };
+      if (compound.functor === 'spec_constraint' && Array.isArray(compound.args)) {
+        const constraintTerm = compound.args[1];
+        const hardOrSoft = compound.args[2];
+        const weight = parseNumber(compound.args[3]);
+        const hard = hardOrSoft === 'hard';
+        const c = prologConstraintTermToMusicConstraint(constraintTerm, { hard, ...(hard ? {} : { weight }) });
+        if (c) out.push(c);
+        continue;
+      }
+    }
+
+    // Bare constraint term (e.g., from constraint_pack/2): default to soft preferences
+    const c = prologConstraintTermToMusicConstraint(item, { hard: false, weight: 0.7 });
+    if (c) out.push(c);
+  }
+
+  return out;
+}
+
+export function prologValueToMusicConstraints(value: unknown): readonly MusicConstraint[] {
+  return parseConstraints(value) ?? [];
 }
 
 // ============================================================================

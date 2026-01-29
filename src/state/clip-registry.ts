@@ -17,6 +17,9 @@ import type {
 } from './types';
 import { generateClipId, createClipRecord, generateSubscriptionId } from './types';
 
+// Re-export types for external consumers
+export type { ClipId, ClipRecord, CreateClipOptions, EventStreamId, SubscriptionId };
+
 // ============================================================================
 // CLIP CHANGE TYPES
 // ============================================================================

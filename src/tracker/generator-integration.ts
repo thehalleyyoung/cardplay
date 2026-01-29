@@ -630,3 +630,381 @@ export function resetGenerators(): void {
   registryInstance = undefined;
   executorInstance = undefined;
 }
+
+// =============================================================================
+// SCHEMA SKELETON INTEGRATION (C310)
+// =============================================================================
+
+/**
+ * Schema skeleton configuration for tracker insertion
+ */
+export interface SchemaSkeletonConfig {
+  /** Schema name */
+  readonly schemaName: string;
+  /** Voice to extract (soprano or bass) */
+  readonly voice: 'soprano' | 'bass' | 'both';
+  /** Key/root for transposition */
+  readonly rootNote: number;
+  /** Octave offset */
+  readonly octave: number;
+  /** Velocity for skeleton notes */
+  readonly velocity: number;
+  /** Duration in rows per skeleton note */
+  readonly rowsPerNote: number;
+}
+
+/**
+ * Schema skeleton data (predefined patterns)
+ */
+export interface SchemaSkeleton {
+  readonly name: string;
+  readonly soprano: readonly number[]; // Scale degrees
+  readonly bass: readonly number[];    // Scale degrees
+  readonly duration: number;           // Total beats
+}
+
+/**
+ * Predefined schema skeletons
+ */
+export const SCHEMA_SKELETONS: readonly SchemaSkeleton[] = [
+  { name: 'romanesca', soprano: [0, 4, 2, 4], bass: [0, 4, 5, 2], duration: 4 },
+  { name: 'prinner', soprano: [5, 4, 3, 2], bass: [5, 4, 3, 2], duration: 4 },
+  { name: 'monte', soprano: [2, 4, 3, 5], bass: [0, 4, 2, 5], duration: 4 },
+  { name: 'fonte', soprano: [1, 0, 0, 6], bass: [1, 4, 0, 3], duration: 4 },
+  { name: 'do-re-mi', soprano: [0, 1, 2], bass: [0, 4, 0], duration: 3 },
+  { name: 'sol-fa-mi', soprano: [4, 3, 2], bass: [4, 4, 0], duration: 3 },
+  { name: 'quiescenza', soprano: [0, 6, 0, 6], bass: [0, 6, 4, 0], duration: 4 },
+  { name: 'converging', soprano: [5, 4, 3, 2], bass: [0, 1, 2, 2], duration: 4 },
+];
+
+/**
+ * Get schema skeleton by name
+ */
+export function getSchemaSkeleton(name: string): SchemaSkeleton | undefined {
+  return SCHEMA_SKELETONS.find(s => s.name.toLowerCase() === name.toLowerCase());
+}
+
+/**
+ * Convert scale degree to MIDI note
+ */
+function scaleDegreeToMidi(degree: number, rootNote: number, octave: number): number {
+  const majorScale = [0, 2, 4, 5, 7, 9, 11]; // Major scale intervals
+  const normalizedDegree = ((degree % 7) + 7) % 7;
+  const interval = majorScale[normalizedDegree] ?? 0;
+  const octaveAdjust = Math.floor(degree / 7);
+  return rootNote + interval + (octave + octaveAdjust) * 12;
+}
+
+/**
+ * Generate tracker rows from schema skeleton.
+ * 
+ * This is the C310 integration: tracker can insert schema skeleton into pattern lanes.
+ */
+export function generateSchemaSkeletonRows(
+  config: SchemaSkeletonConfig
+): TrackerRow[] {
+  const skeleton = getSchemaSkeleton(config.schemaName);
+  if (!skeleton) return [];
+  
+  const rows: TrackerRow[] = [];
+  
+  // Get degrees based on voice
+  const degrees = config.voice === 'soprano' ? skeleton.soprano :
+                  config.voice === 'bass' ? skeleton.bass :
+                  skeleton.soprano; // Default to soprano for 'both'
+  
+  for (let i = 0; i < degrees.length; i++) {
+    const degree = degrees[i];
+    if (degree === undefined) continue;
+    
+    const midiNote = scaleDegreeToMidi(degree, config.rootNote, config.octave);
+    
+    // Note on row
+    const noteOnRow = noteCell(
+      midiNote as MidiNote,
+      config.velocity as Velocity
+    );
+    rows.push(noteOnRow);
+    
+    // Empty rows for duration
+    for (let j = 1; j < config.rowsPerNote; j++) {
+      rows.push(emptyRow());
+    }
+  }
+  
+  // Add note off at end
+  rows.push(noteOffCell());
+  
+  return rows;
+}
+
+/**
+ * Schema skeleton generator for the registry
+ */
+export const schemaSkeletonGenerator: GeneratorDefinition = {
+  id: 'schema-skeleton',
+  name: 'Schema Skeleton',
+  description: 'Insert galant schema skeleton into pattern',
+  category: 'melody',
+  params: [
+    { name: 'schema', min: 0, max: 7, default: 0 }, // Index into SCHEMA_SKELETONS
+    { name: 'voice', min: 0, max: 2, default: 0 },  // 0=soprano, 1=bass, 2=both
+    { name: 'octave', min: 2, max: 6, default: 4 }, // Octave
+  ],
+  generate: (ctx: GeneratorContext): GeneratorEvent[] => {
+    const schemaIndex = ctx.params['schema'] ?? 0;
+    const voiceIndex = ctx.params['voice'] ?? 0;
+    const octave = ctx.params['octave'] ?? 4;
+    
+    const skeleton = SCHEMA_SKELETONS[schemaIndex];
+    if (!skeleton) return [];
+    
+    const voice = voiceIndex === 0 ? 'soprano' : voiceIndex === 1 ? 'bass' : 'both';
+    const degrees = voice === 'soprano' ? skeleton.soprano :
+                    voice === 'bass' ? skeleton.bass :
+                    skeleton.soprano;
+    
+    const rootNote = ctx.rootNote ?? 60;
+    const ticksPerBeat = 480;
+    const events: GeneratorEvent[] = [];
+    
+    for (let i = 0; i < degrees.length; i++) {
+      const degree = degrees[i];
+      if (degree === undefined) continue;
+      
+      const pitch = scaleDegreeToMidi(degree, rootNote % 12, octave);
+      
+      events.push({
+        id: `schema-${skeleton.name}-${i}`,
+        type: 'note',
+        time: i * ticksPerBeat,
+        duration: ticksPerBeat * 0.9,
+        pitch,
+        velocity: 80,
+      });
+    }
+    
+    return events;
+  },
+};
+
+// =============================================================================
+// TALA GRID SUPPORT (C507)
+// =============================================================================
+
+/**
+ * Carnatic tala definition
+ */
+export interface TalaDefinition {
+  readonly name: string;
+  readonly displayName: string;
+  /** Anga structure (beat groupings) */
+  readonly angas: readonly ('laghu' | 'drutam' | 'anudrutam')[];
+  /** Jati (beats per laghu) */
+  readonly jati: 3 | 4 | 5 | 7 | 9;
+  /** Total aksharas (beats) in cycle */
+  readonly totalAksharas: number;
+  /** Accent pattern */
+  readonly accents: readonly number[];
+}
+
+/**
+ * Predefined tala definitions
+ */
+export const TALA_DEFINITIONS: readonly TalaDefinition[] = [
+  {
+    name: 'adi',
+    displayName: 'Adi Tala (4+2+2)',
+    angas: ['laghu', 'drutam', 'drutam'],
+    jati: 4,
+    totalAksharas: 8,
+    accents: [0, 4, 6], // Sam + drutam starts
+  },
+  {
+    name: 'rupaka',
+    displayName: 'Rupaka Tala (2+4)',
+    angas: ['drutam', 'laghu'],
+    jati: 4,
+    totalAksharas: 6,
+    accents: [0, 2],
+  },
+  {
+    name: 'misra_chapu',
+    displayName: 'Misra Chapu (3+4)',
+    angas: ['laghu', 'drutam'],
+    jati: 3,
+    totalAksharas: 7,
+    accents: [0, 3],
+  },
+  {
+    name: 'khanda_chapu',
+    displayName: 'Khanda Chapu (2+3)',
+    angas: ['drutam', 'laghu'],
+    jati: 3,
+    totalAksharas: 5,
+    accents: [0, 2],
+  },
+  {
+    name: 'triputa',
+    displayName: 'Triputa Tala (3+2+2)',
+    angas: ['laghu', 'drutam', 'drutam'],
+    jati: 3,
+    totalAksharas: 7,
+    accents: [0, 3, 5],
+  },
+];
+
+/**
+ * Get tala definition by name
+ */
+export function getTalaDefinition(name: string): TalaDefinition | undefined {
+  return TALA_DEFINITIONS.find(t => t.name === name);
+}
+
+/**
+ * Tala grid configuration
+ */
+export interface TalaGridConfig {
+  readonly tala: TalaDefinition;
+  /** Rows per akshara (subdivisions) */
+  readonly rowsPerAkshara: number;
+  /** Total cycles to display */
+  readonly cycles: number;
+  /** Eduppu (pickup) offset in aksharas */
+  readonly eduppu: number;
+}
+
+/**
+ * Tala grid marker
+ */
+export interface TalaGridMarker {
+  readonly row: number;
+  readonly type: 'sam' | 'anga_start' | 'akshara' | 'subdivision';
+  readonly cycleNumber: number;
+  readonly aksharaNumber: number;
+  readonly label?: string;
+}
+
+/**
+ * Generate tala grid markers for tracker display.
+ * 
+ * This is the C507 integration: tracker supports tala grids (cycle markers, subdivisions).
+ */
+export function generateTalaGridMarkers(config: TalaGridConfig): TalaGridMarker[] {
+  const markers: TalaGridMarker[] = [];
+  const { tala, rowsPerAkshara, cycles, eduppu } = config;
+  
+  let currentRow = eduppu * rowsPerAkshara;
+  
+  for (let cycle = 0; cycle < cycles; cycle++) {
+    let aksharaInCycle = 0;
+    
+    for (let angaIdx = 0; angaIdx < tala.angas.length; angaIdx++) {
+      const anga = tala.angas[angaIdx]!;
+      const angaLength = anga === 'laghu' ? tala.jati : 
+                         anga === 'drutam' ? 2 : 1;
+      
+      for (let aksharaInAnga = 0; aksharaInAnga < angaLength; aksharaInAnga++) {
+        // Determine marker type
+        let markerType: 'sam' | 'anga_start' | 'akshara' | 'subdivision';
+        let label: string | undefined;
+        
+        if (aksharaInCycle === 0) {
+          markerType = 'sam';
+          label = `||: ${cycle + 1}`;
+        } else if (aksharaInAnga === 0) {
+          markerType = 'anga_start';
+          label = anga === 'laghu' ? 'L' : anga === 'drutam' ? 'D' : 'A';
+        } else {
+          markerType = 'akshara';
+        }
+        
+        markers.push({
+          row: currentRow,
+          type: markerType,
+          cycleNumber: cycle + 1,
+          aksharaNumber: aksharaInCycle + 1,
+          label,
+        });
+        
+        // Add subdivision markers
+        for (let sub = 1; sub < rowsPerAkshara; sub++) {
+          markers.push({
+            row: currentRow + sub,
+            type: 'subdivision',
+            cycleNumber: cycle + 1,
+            aksharaNumber: aksharaInCycle + 1,
+          });
+        }
+        
+        currentRow += rowsPerAkshara;
+        aksharaInCycle++;
+      }
+    }
+  }
+  
+  return markers;
+}
+
+/**
+ * Tala grid generator for pattern creation
+ */
+export const talaGridGenerator: GeneratorDefinition = {
+  id: 'tala-grid',
+  name: 'Tala Grid',
+  description: 'Generate tala cycle markers and accents',
+  category: 'rhythm',
+  params: [
+    { name: 'tala', min: 0, max: 4, default: 0 }, // Index into TALA_DEFINITIONS
+    { name: 'rowsPerAkshara', min: 1, max: 4, default: 2 },
+    { name: 'cycles', min: 1, max: 8, default: 2 },
+  ],
+  generate: (ctx: GeneratorContext): GeneratorEvent[] => {
+    const talaIndex = ctx.params['tala'] ?? 0;
+    const rowsPerAkshara = ctx.params['rowsPerAkshara'] ?? 2;
+    const cycles = ctx.params['cycles'] ?? 2;
+    
+    const tala = TALA_DEFINITIONS[talaIndex];
+    if (!tala) return [];
+    
+    const events: GeneratorEvent[] = [];
+    const ticksPerRow = 480 / rowsPerAkshara;
+    
+    let currentTick = 0;
+    
+    for (let cycle = 0; cycle < cycles; cycle++) {
+      let aksharaInCycle = 0;
+      
+      for (let angaIdx = 0; angaIdx < tala.angas.length; angaIdx++) {
+        const anga = tala.angas[angaIdx]!;
+        const angaLength = anga === 'laghu' ? tala.jati : 
+                           anga === 'drutam' ? 2 : 1;
+        
+        for (let aksharaInAnga = 0; aksharaInAnga < angaLength; aksharaInAnga++) {
+          // Add accent on sam and anga starts
+          const isSam = aksharaInCycle === 0;
+          const isAngaStart = aksharaInAnga === 0;
+          
+          if (isSam || isAngaStart) {
+            events.push({
+              id: `tala-accent-${cycle}-${aksharaInCycle}`,
+              type: 'meta',
+              time: currentTick,
+              data: {
+                type: 'tala_accent',
+                isSam,
+                anga: anga,
+                cycle: cycle + 1,
+              },
+            });
+          }
+          
+          currentTick += rowsPerAkshara * ticksPerRow;
+          aksharaInCycle++;
+        }
+      }
+    }
+    
+    return events;
+  },
+};

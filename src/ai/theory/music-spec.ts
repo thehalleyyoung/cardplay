@@ -883,3 +883,598 @@ export function arrangerStyleConstraint(style: ArrangerStyle): ConstraintArrange
 export function sceneArcConstraint(arcType: ConstraintSceneArc['arcType']): ConstraintSceneArc {
   return { type: 'scene_arc', hard: false, weight: 0.6, arcType };
 }
+
+// ============================================================================
+// C048: VALIDATION RULES FOR CROSS-CARD CONSISTENCY
+// ============================================================================
+
+/**
+ * C048: Validation rules for cross-card consistency (spec conflicts).
+ * These rules detect when constraints from different cards are incompatible.
+ */
+
+export interface SpecConflict {
+  /** Type of conflict */
+  type: 'hard_conflict' | 'soft_conflict' | 'recommendation';
+  /** First conflicting constraint */
+  constraint1: MusicConstraint;
+  /** Second conflicting constraint */
+  constraint2: MusicConstraint;
+  /** Explanation of the conflict */
+  explanation: string;
+  /** Suggested resolution */
+  resolution: string;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  conflicts: SpecConflict[];
+  warnings: string[];
+}
+
+/**
+ * Validation rules for detecting constraint conflicts.
+ * Each rule returns a conflict if detected, or null otherwise.
+ */
+type ConflictRule = (c1: MusicConstraint, c2: MusicConstraint) => SpecConflict | null;
+
+const CONFLICT_RULES: ConflictRule[] = [
+  // Style conflicts
+  (c1, c2) => {
+    if (c1.type === 'culture' && c2.type === 'culture' && 
+        c1.culture !== c2.culture && c1.culture !== 'hybrid' && c2.culture !== 'hybrid') {
+      return {
+        type: 'hard_conflict',
+        constraint1: c1,
+        constraint2: c2,
+        explanation: `Conflicting cultures: ${c1.culture} vs ${c2.culture}`,
+        resolution: 'Use "hybrid" culture or pick one consistently',
+      };
+    }
+    return null;
+  },
+
+  // Tempo conflicts
+  (c1, c2) => {
+    if (c1.type === 'tempo' && c2.type === 'tempo') {
+      const diff = Math.abs(c1.bpm - c2.bpm);
+      if (diff > 20) {
+        return {
+          type: 'hard_conflict',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Tempo mismatch: ${c1.bpm} BPM vs ${c2.bpm} BPM`,
+          resolution: 'Align tempos across cards',
+        };
+      }
+    }
+    return null;
+  },
+
+  // Meter conflicts
+  (c1, c2) => {
+    if (c1.type === 'meter' && c2.type === 'meter') {
+      if (c1.numerator !== c2.numerator || c1.denominator !== c2.denominator) {
+        return {
+          type: 'hard_conflict',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Meter mismatch: ${c1.numerator}/${c1.denominator} vs ${c2.numerator}/${c2.denominator}`,
+          resolution: 'Use consistent meter or add meter change points',
+        };
+      }
+    }
+    return null;
+  },
+
+  // Key conflicts
+  (c1, c2) => {
+    if (c1.type === 'key' && c2.type === 'key') {
+      if (c1.root !== c2.root || c1.mode !== c2.mode) {
+        // This is a soft conflict - key changes are valid
+        return {
+          type: 'soft_conflict',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Different keys: ${c1.root} ${c1.mode} vs ${c2.root} ${c2.mode}`,
+          resolution: 'Intentional key change? Add modulation point',
+        };
+      }
+    }
+    return null;
+  },
+
+  // Schema + culture mismatch
+  (c1, c2) => {
+    if (c1.type === 'schema' && c2.type === 'culture') {
+      const westernSchemas: string[] = ['prinner', 'romanesca', 'monte', 'fonte', 'meyer'];
+      if (westernSchemas.includes(c1.schema) && c2.culture !== 'western' && c2.culture !== 'hybrid') {
+        return {
+          type: 'soft_conflict',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Galant schema "${c1.schema}" typically used in Western music, not ${c2.culture}`,
+          resolution: 'Consider culture-appropriate patterns or use hybrid',
+        };
+      }
+    }
+    return null;
+  },
+
+  // Tala + non-Carnatic culture
+  (c1, c2) => {
+    if (c1.type === 'tala' && c2.type === 'culture') {
+      if (c2.culture !== 'carnatic' && c2.culture !== 'hybrid') {
+        return {
+          type: 'soft_conflict',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Tala "${c1.tala}" is a Carnatic concept, but culture is "${c2.culture}"`,
+          resolution: 'Switch to Carnatic culture or use meter instead of tala',
+        };
+      }
+    }
+    return null;
+  },
+
+  // Phrase density conflicts
+  (c1, c2) => {
+    if (c1.type === 'phrase_density' && c2.type === 'phrase_density') {
+      const levels: Record<string, number> = {
+        'sparse': 1, 'medium': 2, 'dense': 3
+      };
+      const diff = Math.abs((levels[c1.density] || 2) - (levels[c2.density] || 2));
+      if (diff >= 2) {
+        return {
+          type: 'soft_conflict',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Large phrase density difference: ${c1.density} vs ${c2.density}`,
+          resolution: 'Consider gradual density transitions',
+        };
+      }
+    }
+    return null;
+  },
+
+  // Harmonic rhythm conflicts
+  (c1, c2) => {
+    if (c1.type === 'harmonic_rhythm' && c2.type === 'harmonic_rhythm') {
+      const diff = Math.abs(c1.changesPerBar - c2.changesPerBar);
+      if (diff >= 2) {
+        return {
+          type: 'soft_conflict',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Different harmonic rhythm: ${c1.changesPerBar} vs ${c2.changesPerBar} changes/bar`,
+          resolution: 'Align harmonic rhythm or add transition section',
+        };
+      }
+    }
+    return null;
+  },
+
+  // Swing + Celtic tune type (typically no swing in Celtic)
+  (c1, c2) => {
+    if (c1.type === 'swing' && c2.type === 'celtic_tune') {
+      if (c1.amount > 0.3) {
+        return {
+          type: 'recommendation',
+          constraint1: c1,
+          constraint2: c2,
+          explanation: `Celtic tune type "${c2.tuneType}" typically played straight, not swung`,
+          resolution: 'Reduce swing amount for authentic Celtic feel',
+        };
+      }
+    }
+    return null;
+  },
+];
+
+/**
+ * Validate a MusicSpec for internal consistency and cross-constraint conflicts.
+ */
+export function validateSpecConsistency(spec: MusicSpec): ValidationResult {
+  const conflicts: SpecConflict[] = [];
+  const warnings: string[] = [];
+  const constraints = spec.constraints;
+
+  // Check all pairs of constraints for conflicts
+  for (let i = 0; i < constraints.length; i++) {
+    for (let j = i + 1; j < constraints.length; j++) {
+      for (const rule of CONFLICT_RULES) {
+        // Check both orderings since some rules are not symmetric
+        const c1 = constraints[i];
+        const c2 = constraints[j];
+        if (!c1 || !c2) continue;
+        
+        const conflict1 = rule(c1, c2);
+        const conflict2 = rule(c2, c1);
+        
+        if (conflict1) conflicts.push(conflict1);
+        if (conflict2 && !conflict1) conflicts.push(conflict2);
+      }
+    }
+  }
+
+  // Add warnings for recommendations
+  for (const conflict of conflicts) {
+    if (conflict.type === 'recommendation') {
+      warnings.push(conflict.explanation);
+    }
+  }
+
+  // Valid only if no hard conflicts
+  const valid = !conflicts.some(c => c.type === 'hard_conflict');
+
+  return { valid, conflicts, warnings };
+}
+
+/**
+ * Get all hard conflicts from a validation result.
+ */
+export function getHardConflicts(result: ValidationResult): SpecConflict[] {
+  return result.conflicts.filter(c => c.type === 'hard_conflict');
+}
+
+/**
+ * Get all soft conflicts from a validation result.
+ */
+export function getSoftConflicts(result: ValidationResult): SpecConflict[] {
+  return result.conflicts.filter(c => c.type === 'soft_conflict');
+}
+
+/**
+ * Format a conflict as a user-readable message.
+ */
+export function formatConflict(conflict: SpecConflict): string {
+  const severity = conflict.type === 'hard_conflict' ? '❌' : 
+                   conflict.type === 'soft_conflict' ? '⚠️' : 'ℹ️';
+  return `${severity} ${conflict.explanation}\n   → ${conflict.resolution}`;
+}
+
+// ============================================================================
+// C116: SPEC SNAPSHOTS
+// ============================================================================
+
+/**
+ * A named snapshot of a MusicSpec at a point in time.
+ */
+export interface SpecSnapshot {
+  /** Unique ID for this snapshot */
+  readonly id: string;
+  
+  /** User-provided name */
+  readonly name: string;
+  
+  /** ISO timestamp of when snapshot was created */
+  readonly timestamp: string;
+  
+  /** The frozen MusicSpec state */
+  readonly spec: MusicSpec;
+  
+  /** Optional description */
+  readonly description?: string;
+  
+  /** Project ID this belongs to (if any) */
+  readonly projectId?: string;
+}
+
+/**
+ * Create a new spec snapshot.
+ * 
+ * @param spec - The MusicSpec to snapshot
+ * @param name - User-provided name for the snapshot
+ * @param description - Optional description
+ * @param projectId - Optional project ID
+ * @returns A new SpecSnapshot
+ */
+export function createSnapshot(
+  spec: MusicSpec,
+  name: string,
+  description?: string,
+  projectId?: string
+): SpecSnapshot {
+  return {
+    id: `snapshot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    name,
+    timestamp: new Date().toISOString(),
+    spec: { ...spec, constraints: [...spec.constraints] }, // Deep copy
+    description: description ?? undefined,
+    projectId: projectId ?? undefined,
+  };
+}
+
+/**
+ * Serialize a snapshot to JSON string for storage.
+ */
+export function serializeSnapshot(snapshot: SpecSnapshot): string {
+  return JSON.stringify(snapshot);
+}
+
+/**
+ * Deserialize a snapshot from JSON string.
+ */
+export function deserializeSnapshot(json: string): SpecSnapshot {
+  return JSON.parse(json) as SpecSnapshot;
+}
+
+/**
+ * Collection of snapshots for a project.
+ */
+export interface SnapshotCollection {
+  readonly projectId: string;
+  readonly snapshots: readonly SpecSnapshot[];
+  readonly currentIndex: number; // For undo/redo navigation
+}
+
+/**
+ * Add a snapshot to a collection.
+ */
+export function addSnapshot(
+  collection: SnapshotCollection,
+  snapshot: SpecSnapshot
+): SnapshotCollection {
+  return {
+    ...collection,
+    snapshots: [...collection.snapshots, snapshot],
+    currentIndex: collection.snapshots.length, // Point to new snapshot
+  };
+}
+
+// ============================================================================
+// C117: SPEC DIFF
+// ============================================================================
+
+/**
+ * Type of change between two specs.
+ */
+export type SpecChangeType = 
+  | 'key_change'
+  | 'mode_change'
+  | 'tempo_change'
+  | 'meter_change'
+  | 'style_change'
+  | 'culture_change'
+  | 'tonality_model_change'
+  | 'constraint_added'
+  | 'constraint_removed'
+  | 'constraint_modified';
+
+/**
+ * A single change between two specs.
+ */
+export interface SpecChange {
+  readonly type: SpecChangeType;
+  readonly field: string;
+  readonly oldValue: unknown;
+  readonly newValue: unknown;
+  readonly musicalImpact: string;
+}
+
+/**
+ * Result of comparing two MusicSpecs.
+ */
+export interface SpecDiff {
+  /** All changes detected */
+  readonly changes: readonly SpecChange[];
+  
+  /** Summary of musical impact */
+  readonly musicalImpactSummary: string;
+  
+  /** Similarity score (0-100) */
+  readonly similarity: number;
+}
+
+/**
+ * Describe the musical impact of a change.
+ */
+function describeMusicalImpact(change: Omit<SpecChange, 'musicalImpact'>): string {
+  switch (change.type) {
+    case 'key_change':
+      return `Key change from ${change.oldValue} to ${change.newValue} - requires transposition`;
+    case 'mode_change':
+      return `Mode change affects scale notes and melodic character`;
+    case 'tempo_change':
+      return `Tempo change from ${change.oldValue} to ${change.newValue} BPM affects energy`;
+    case 'meter_change':
+      return `Meter change affects rhythmic grouping and accent patterns`;
+    case 'style_change':
+      return `Style change from ${change.oldValue} to ${change.newValue} affects arrangement`;
+    case 'culture_change':
+      return `Culture change affects ornament types and melodic idioms`;
+    case 'tonality_model_change':
+      return `Tonality model change may affect key detection results`;
+    case 'constraint_added':
+      return `Added constraint may restrict generation options`;
+    case 'constraint_removed':
+      return `Removed constraint relaxes generation options`;
+    case 'constraint_modified':
+      return `Modified constraint changes generation behavior`;
+    default:
+      return 'Unknown musical impact';
+  }
+}
+
+/**
+ * C117: Compare two MusicSpecs and return their differences with musical impact.
+ * 
+ * @param specA - First spec (usually "old" or "before")
+ * @param specB - Second spec (usually "new" or "after")
+ * @returns Diff result with changes and musical impact
+ */
+export function diffSpecs(specA: MusicSpec, specB: MusicSpec): SpecDiff {
+  const changes: SpecChange[] = [];
+  
+  // Check basic fields
+  if (specA.keyRoot !== specB.keyRoot) {
+    const change = { type: 'key_change' as const, field: 'keyRoot', oldValue: specA.keyRoot, newValue: specB.keyRoot };
+    changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+  }
+  
+  if (specA.mode !== specB.mode) {
+    const change = { type: 'mode_change' as const, field: 'mode', oldValue: specA.mode, newValue: specB.mode };
+    changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+  }
+  
+  if (specA.tempo !== specB.tempo) {
+    const change = { type: 'tempo_change' as const, field: 'tempo', oldValue: specA.tempo, newValue: specB.tempo };
+    changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+  }
+  
+  if (specA.meterNumerator !== specB.meterNumerator || specA.meterDenominator !== specB.meterDenominator) {
+    const change = {
+      type: 'meter_change' as const,
+      field: 'meter',
+      oldValue: `${specA.meterNumerator}/${specA.meterDenominator}`,
+      newValue: `${specB.meterNumerator}/${specB.meterDenominator}`,
+    };
+    changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+  }
+  
+  if (specA.style !== specB.style) {
+    const change = { type: 'style_change' as const, field: 'style', oldValue: specA.style, newValue: specB.style };
+    changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+  }
+  
+  if (specA.culture !== specB.culture) {
+    const change = { type: 'culture_change' as const, field: 'culture', oldValue: specA.culture, newValue: specB.culture };
+    changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+  }
+  
+  if (specA.tonalityModel !== specB.tonalityModel) {
+    const change = { type: 'tonality_model_change' as const, field: 'tonalityModel', oldValue: specA.tonalityModel, newValue: specB.tonalityModel };
+    changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+  }
+  
+  // Compare constraints
+  const constraintsA = new Map(specA.constraints.map(c => [`${c.type}_${JSON.stringify(c)}`, c]));
+  const constraintsB = new Map(specB.constraints.map(c => [`${c.type}_${JSON.stringify(c)}`, c]));
+  
+  for (const [key, constraint] of constraintsA) {
+    if (!constraintsB.has(key)) {
+      const change = { type: 'constraint_removed' as const, field: `constraint_${constraint.type}`, oldValue: constraint, newValue: null };
+      changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+    }
+  }
+  
+  for (const [key, constraint] of constraintsB) {
+    if (!constraintsA.has(key)) {
+      const change = { type: 'constraint_added' as const, field: `constraint_${constraint.type}`, oldValue: null, newValue: constraint };
+      changes.push({ ...change, musicalImpact: describeMusicalImpact(change) });
+    }
+  }
+  
+  // Calculate similarity (rough metric)
+  const totalFields = 7 + Math.max(specA.constraints.length, specB.constraints.length);
+  const changedFields = changes.length;
+  const similarity = Math.round(((totalFields - changedFields) / totalFields) * 100);
+  
+  // Build summary
+  let summary: string;
+  if (changes.length === 0) {
+    summary = 'Specs are identical';
+  } else if (changes.length === 1) {
+    summary = changes[0]?.musicalImpact ?? 'Unknown change';
+  } else {
+    const keyChanges = changes.filter(c => c.type === 'key_change' || c.type === 'mode_change');
+    const styleChanges = changes.filter(c => c.type === 'style_change' || c.type === 'culture_change');
+    const parts: string[] = [];
+    if (keyChanges.length > 0) parts.push('key/mode changes');
+    if (styleChanges.length > 0) parts.push('style changes');
+    const constraintChanges = changes.filter(c => c.type.startsWith('constraint'));
+    if (constraintChanges.length > 0) parts.push(`${constraintChanges.length} constraint changes`);
+    summary = `${changes.length} changes: ${parts.join(', ')}`;
+  }
+  
+  return { changes, musicalImpactSummary: summary, similarity };
+}
+
+/**
+ * Format a spec diff as a human-readable string.
+ */
+export function formatSpecDiff(diff: SpecDiff): string {
+  if (diff.changes.length === 0) {
+    return '✅ No changes detected';
+  }
+  
+  const lines = [`📊 Spec Diff (${diff.similarity}% similar)`];
+  lines.push('');
+  
+  for (const change of diff.changes) {
+    const icon = change.type.includes('added') ? '➕' :
+                 change.type.includes('removed') ? '➖' : '✏️';
+    lines.push(`${icon} ${change.field}: ${change.oldValue} → ${change.newValue}`);
+    lines.push(`   💡 ${change.musicalImpact}`);
+  }
+  
+  lines.push('');
+  lines.push(`Summary: ${diff.musicalImpactSummary}`);
+  
+  return lines.join('\n');
+}
+
+// ============================================================================
+// C122: SPEC VERSIONING
+// ============================================================================
+
+/**
+ * Spec schema version for migrations.
+ */
+export const SPEC_SCHEMA_VERSION = 1;
+
+/**
+ * Versioned spec wrapper for serialization.
+ */
+export interface VersionedSpec {
+  readonly version: number;
+  readonly spec: MusicSpec;
+}
+
+/**
+ * Create a versioned spec for serialization.
+ */
+export function toVersionedSpec(spec: MusicSpec): VersionedSpec {
+  return { version: SPEC_SCHEMA_VERSION, spec };
+}
+
+/**
+ * C123: Migration function type.
+ */
+export type SpecMigration = (oldSpec: unknown) => MusicSpec;
+
+/**
+ * Migration registry for different versions.
+ */
+const migrations: Map<number, SpecMigration> = new Map();
+
+/**
+ * Register a migration from one version to the next.
+ */
+export function registerMigration(fromVersion: number, migration: SpecMigration): void {
+  migrations.set(fromVersion, migration);
+}
+
+/**
+ * Migrate an old spec to the current version.
+ */
+export function migrateSpec(versioned: VersionedSpec): MusicSpec {
+  if (versioned.version === SPEC_SCHEMA_VERSION) {
+    return versioned.spec;
+  }
+  
+  let current: unknown = versioned.spec;
+  let version = versioned.version;
+  
+  while (version < SPEC_SCHEMA_VERSION) {
+    const migration = migrations.get(version);
+    if (!migration) {
+      throw new Error(`No migration found for version ${version}`);
+    }
+    current = migration(current);
+    version++;
+  }
+  
+  return current as MusicSpec;
+}
+

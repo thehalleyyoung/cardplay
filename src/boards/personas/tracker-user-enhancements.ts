@@ -12,6 +12,7 @@ import { getSharedEventStore } from '../../state/event-store';
 import { asEventId } from '../../types/event-id';
 import { EventKinds } from '../../types/event-kind';
 import { getUndoStack } from '../../state/undo-stack';
+import { asTick } from '../../types/primitives';
 
 // ============================================================================
 // TYPES
@@ -73,7 +74,7 @@ export function clonePattern(streamId: EventStreamId): EventStreamId | null {
     id: asEventId(`${event.id}-clone-${Date.now()}`),
   }));
 
-  store.addEvents(newStreamId, clonedEvents as any);
+  store.addEvents(newStreamId.id, clonedEvents as any);
 
   // Record undo action
   getUndoStack().push({
@@ -88,7 +89,7 @@ export function clonePattern(streamId: EventStreamId): EventStreamId | null {
     },
   });
 
-  return newStreamId;
+  return newStreamId.id;
 }
 
 /**
@@ -244,7 +245,7 @@ export function transformPattern(
 
   // Record undo action
   getUndoStack().push({
-    type: UndoActionType.PATTERN_TRANSFORM,
+    type: 'pattern-transform',
     description: 'Transform pattern',
     undo: () => {
       const newIds = newEvents.map((e) => e.id);
@@ -319,28 +320,37 @@ export function applyGroove(
   const intervals = new Set<number>();
   for (let i = 0; i < noteEvents.length; i++) {
     for (let j = i + 1; j < noteEvents.length; j++) {
-      const diff = Math.abs(noteEvents[i].start - noteEvents[j].start);
-      if (diff > 0) intervals.add(diff);
+      const eventI = noteEvents[i];
+      const eventJ = noteEvents[j];
+      if (eventI && eventJ) {
+        const diff = Math.abs(eventI.start - eventJ.start);
+        if (diff > 0) intervals.add(diff);
+      }
     }
   }
-  const gridSize = intervals.size > 0 ? Math.min(...intervals) : 120; // Default to 16th note
 
   // Apply groove
   const groovedEvents = noteEvents.map((event, index) => {
     const stepIndex = index % groove.timingOffsets.length;
-    const timingOffset = (groove.timingOffsets[stepIndex] * amount) / 100;
-    const velocityOffset = (groove.velocityOffsets[stepIndex] * amount) / 100;
+    const timingOffset = groove.timingOffsets[stepIndex];
+    const velocityOffset = groove.velocityOffsets[stepIndex];
+    
+    if (timingOffset === undefined) return event;
 
+    const adjustedTiming = (timingOffset * amount) / 100;
+    const adjustedVelocity = (velocityOffset ?? 0) * amount / 100;
+
+    const eventPayload = event.payload as { velocity?: number };
     const newVelocity = Math.max(
       1,
-      Math.min(127, (event.payload.velocity ?? 80) + velocityOffset)
+      Math.min(127, (eventPayload.velocity ?? 80) + adjustedVelocity)
     );
 
     return {
       ...event,
-      start: event.start + Math.round(timingOffset),
+      start: asTick(event.start + Math.round(adjustedTiming)),
       payload: {
-        ...event.payload,
+        ...(event.payload as object),
         velocity: newVelocity,
       },
     };
@@ -353,7 +363,7 @@ export function applyGroove(
 
   // Record undo action
   getUndoStack().push({
-    type: UndoActionType.PATTERN_TRANSFORM,
+    type: 'events-modify' as const,
     description: `Apply ${groove.name} groove`,
     undo: () => {
       const groovedIds = groovedEvents.map((e) => e.id);
@@ -388,16 +398,17 @@ export function humanizePattern(
     const timingVariation = (Math.random() * 2 - 1) * timingAmount;
     const velocityVariation = Math.floor((Math.random() * 2 - 1) * velocityAmount);
 
+    const eventPayload = event.payload as { velocity?: number };
     const newVelocity = Math.max(
       1,
-      Math.min(127, (event.payload.velocity ?? 80) + velocityVariation)
+      Math.min(127, (eventPayload.velocity ?? 80) + velocityVariation)
     );
 
     return {
       ...event,
-      start: event.start + Math.round(timingVariation),
+      start: asTick(event.start + Math.round(timingVariation)),
       payload: {
-        ...event.payload,
+        ...(event.payload as object),
         velocity: newVelocity,
       },
     };
@@ -410,7 +421,7 @@ export function humanizePattern(
 
   // Record undo action
   getUndoStack().push({
-    type: UndoActionType.PATTERN_TRANSFORM,
+    type: 'events-modify' as const,
     description: 'Humanize pattern',
     undo: () => {
       const humanizedIds = humanizedEvents.map((e) => e.id);
@@ -452,6 +463,7 @@ export function createTrackerContextMenu(
       label: 'Pattern Length',
       icon: '↔️',
       enabled: true,
+      action: () => {}, // Submenu parent - no action needed
       submenu: [
         {
           id: 'double-length',
@@ -472,6 +484,7 @@ export function createTrackerContextMenu(
       label: 'Transform',
       icon: '🔄',
       enabled: true,
+      action: () => {}, // Submenu parent - no action needed
       submenu: [
         {
           id: 'reverse',
@@ -501,12 +514,17 @@ export function createTrackerContextMenu(
       label: 'Apply Groove',
       icon: '🎵',
       enabled: hasSelection || true,
-      submenu: Object.keys(GROOVE_TEMPLATES).map((grooveId) => ({
-        id: `groove-${grooveId}`,
-        label: GROOVE_TEMPLATES[grooveId].name,
-        enabled: true,
-        action: () => applyGroove(streamId, grooveId),
-      })),
+      action: () => {}, // Submenu parent - no action needed
+      submenu: Object.keys(GROOVE_TEMPLATES).map((grooveId) => {
+        const template = GROOVE_TEMPLATES[grooveId];
+        if (!template) return null;
+        return {
+          id: `groove-${grooveId}`,
+          label: template.name,
+          enabled: true,
+          action: () => applyGroove(streamId, grooveId),
+        };
+      }).filter((item): item is NonNullable<typeof item> => item !== null),
     },
     {
       id: 'humanize',

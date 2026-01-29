@@ -7,7 +7,7 @@
  * @module @cardplay/boards/personas/producer-enhancements
  */
 
-import type { ClipId, UndoActionType, EventId } from '../../state/types';
+import type { ClipId, UndoActionType } from '../../state/types';
 import { getClipRegistry } from '../../state/clip-registry';
 import { getSharedEventStore } from '../../state/event-store';
 import { getUndoStack } from '../../state/undo-stack';

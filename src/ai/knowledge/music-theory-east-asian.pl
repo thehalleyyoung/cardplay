@@ -38,8 +38,8 @@ yanyue_scale(zhong_lv, [0, 1, 3, 5, 7, 8, 10]).
 %% qupai_pattern(+QupaiName, -Structure, -Variations)
 %% Qupai (labeled melodies) used as compositional templates. (C1795)
 qupai_pattern(ba_ban, [head, body_8_phrases, tail], [hua_ban, man_ban, kuai_ban]).
-qupai_pattern(lao_liu_ban, [6_phrase_structure, cadential_formula], [variation_by_region]).
-qupai_pattern(mei_hua, [5_petal_structure, returning_theme], [kunqu, jingju]).
+qupai_pattern(lao_liu_ban, [six_phrase_structure, cadential_formula], [variation_by_region]).
+qupai_pattern(mei_hua, [five_petal_structure, returning_theme], [kunqu, jingju]).
 qupai_pattern(liu_yao_jin, [rolling_pattern, accelerating], [percussion_version, melodic_version]).
 
 %% banshi_meter(+BanshiName, -BeatsPerBar, -Tempo)

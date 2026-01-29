@@ -48,7 +48,7 @@ import musicSpecPl from './music-spec.pl?raw';
 /**
  * Whether the music theory KB has been loaded.
  */
-let musicTheoryLoaded = false;
+let loadedAdapters: WeakSet<PrologAdapter> = new WeakSet();
 
 /**
  * Load the music theory knowledge base into the Prolog engine.
@@ -57,7 +57,7 @@ let musicTheoryLoaded = false;
 export async function loadMusicTheoryKB(
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<void> {
-  if (musicTheoryLoaded) {
+  if (loadedAdapters.has(adapter)) {
     return;
   }
 
@@ -79,21 +79,21 @@ export async function loadMusicTheoryKB(
   await adapter.loadProgram(musicTheoryFusionPl, 'music-theory-kb/fusion');
   await adapter.loadProgram(musicTheoryEastAsianPl, 'music-theory-kb/east-asian');
   await adapter.loadProgram(musicSpecPl, 'music-theory-kb/spec');
-  musicTheoryLoaded = true;
+  loadedAdapters.add(adapter);
 }
 
 /**
  * Check if the music theory KB is loaded.
  */
-export function isMusicTheoryLoaded(): boolean {
-  return musicTheoryLoaded;
+export function isMusicTheoryLoaded(adapter: PrologAdapter = getPrologAdapter()): boolean {
+  return loadedAdapters.has(adapter);
 }
 
 /**
  * Reset the loaded state (for testing).
  */
 export function resetMusicTheoryLoader(): void {
-  musicTheoryLoaded = false;
+  loadedAdapters = new WeakSet();
 }
 
 /**

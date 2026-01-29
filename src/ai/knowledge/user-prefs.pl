@@ -22,33 +22,33 @@
 %% L326: user_prefers_board/2
 %% Dynamic fact recording which boards a user gravitates toward.
 %% ---------------------------------------------------------------------------
-:- dynamic user_prefers_board/2.
+:- dynamic(user_prefers_board/2).
 
 %% ---------------------------------------------------------------------------
 %% L327: user_workflow/2
 %% Learned workflow patterns (e.g. user usually opens tracker then mixer).
 %% ---------------------------------------------------------------------------
-:- dynamic user_workflow/2.
+:- dynamic(user_workflow/2).
 
 %% ---------------------------------------------------------------------------
 %% L328: user_genre_preference/2
 %% Genre usage statistics as atoms.
 %% ---------------------------------------------------------------------------
-:- dynamic user_genre_preference/2.
+:- dynamic(user_genre_preference/2).
 
 %% ---------------------------------------------------------------------------
 %% L329: user_skill_level/2
 %% Estimated skill level per area.
 %% Levels: beginner, intermediate, advanced, expert
 %% ---------------------------------------------------------------------------
-:- dynamic user_skill_level/2.
+:- dynamic(user_skill_level/2).
 
 %% ---------------------------------------------------------------------------
 %% Generator-specific preferences
 %% ---------------------------------------------------------------------------
-:- dynamic user_generator_style/3.
-:- dynamic user_board_transition/3.
-:- dynamic user_constraint_template/3.
+:- dynamic(user_generator_style/3).
+:- dynamic(user_board_transition/3).
+:- dynamic(user_constraint_template/3).
 
 %% ============================================================================
 %% Inference rules over user preferences
@@ -97,21 +97,21 @@ preferred_generator_style(UserId, Generator, Style) :-
 %% Dynamic fact recording recurring deck-opening sequences.
 %% (UserId, PatternId, DeckSequence)
 %% ---------------------------------------------------------------------------
-:- dynamic learned_workflow_pattern/3.
+:- dynamic(learned_workflow_pattern/3).
 
 %% ---------------------------------------------------------------------------
 %% N107: learned_parameter_preference/4
 %% Dynamic fact recording frequently adjusted parameters.
 %% (UserId, ParamName, DeckType, PreferredValue)
 %% ---------------------------------------------------------------------------
-:- dynamic learned_parameter_preference/4.
+:- dynamic(learned_parameter_preference/4).
 
 %% ---------------------------------------------------------------------------
 %% N108: learned_routing_pattern/4
 %% Dynamic fact recording routing connections the user creates repeatedly.
 %% (UserId, FromDeck, ToDeck, Purpose)
 %% ---------------------------------------------------------------------------
-:- dynamic learned_routing_pattern/4.
+:- dynamic(learned_routing_pattern/4).
 
 %% ============================================================================
 %% Inference rules over learned patterns (N106-N108)
@@ -119,9 +119,9 @@ preferred_generator_style(UserId, Generator, Style) :-
 
 %% suggest_workflow/3 – Suggest next deck based on learned workflow patterns.
 %% Given a partial deck sequence prefix, find patterns that start with it.
-suggest_workflow(UserId, _CurrentDecks, SuggestedDeck) :-
+suggest_workflow(UserId, CurrentDecks, SuggestedDeck) :-
     learned_workflow_pattern(UserId, _, Sequence),
-    last(Sequence, SuggestedDeck).
+    append(CurrentDecks, [SuggestedDeck|_], Sequence).
 
 %% suggest_parameter/4 – Suggest a parameter value based on learned preference.
 suggest_parameter(UserId, ParamName, DeckType, Value) :-

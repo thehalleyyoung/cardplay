@@ -30,8 +30,8 @@ breakbeat_pattern(halftime, [kick,rest,rest,rest,snare,rest,rest,rest], halftime
 
 %% edm_arrangement(+Intro, -Build, -Drop, -Breakdown)
 %% Standard EDM arrangement structure. (C2004)
-edm_arrangement(intro(16_bars, minimal), build(8_bars, adding_layers), drop(16_bars, full_energy), breakdown(8_bars, stripped_back)).
-edm_arrangement(intro(8_bars, ambient), build(16_bars, rising_tension), drop(32_bars, peak), breakdown(16_bars, melodic)).
+edm_arrangement(intro(bars(16), minimal), build(bars(8), adding_layers), drop(bars(16), full_energy), breakdown(bars(8), stripped_back)).
+edm_arrangement(intro(bars(8), ambient), build(bars(16), rising_tension), drop(bars(32), peak), breakdown(bars(16), melodic)).
 
 %% drop_types(+DropType, -Characteristics, -Genre)
 %% Types of "drops" in EDM. (C2005)
@@ -73,7 +73,7 @@ sidechain_compression(ghost_kick, everything, [ratio_4_1, attack_fast, release_q
 %% Types of synthesizer bass sounds. (C2009)
 synth_bass_type(sub_bass, [sine_wave, low_pass_filter, sub_frequencies], all_edm).
 synth_bass_type(reese_bass, [detuned_saws, phaser_comb_filter, movement], drum_and_bass).
-synth_bass_type(acid_bass, [303_saw_or_square, resonant_filter, accent_slide], acid_house).
+synth_bass_type(acid_bass, [tb303_saw_or_square, resonant_filter, accent_slide], acid_house).
 synth_bass_type(wobble_bass, [low_pass_filter, lfo_modulation, rhythmic], dubstep).
 synth_bass_type(neuro_bass, [fm_synthesis, distortion, complex_modulation], neurofunk).
 synth_bass_type(pluck_bass, [short_envelope, filter_decay, percussive], future_bass).
@@ -122,14 +122,14 @@ edm_subgenre(lo_fi_house, range(110, 125), [warm, nostalgic, vinyl_texture]).
 house_style(deep_house, [mellow_groove, jazzy_chords, subtle_vocals], [larry_heard, kerri_chandler]).
 house_style(progressive_house, [building_energy, long_arrangement, melodic], [sasha, deadmau5]).
 house_style(tech_house, [techno_influenced, minimal, groove_focused], [fisher, green_velvet]).
-house_style(acid_house, [303_bassline, squelchy_filter, hypnotic], [phuture, dj_pierre]).
+house_style(acid_house, [tb303_bassline, squelchy_filter, hypnotic], [phuture, dj_pierre]).
 house_style(afro_house, [african_rhythms, percussion_heavy, organic], [black_coffee]).
 
 %% techno_style(+Substyle, -Features, -Artists)
 %% Techno substyles. (C2017)
 techno_style(detroit, [soulful, melodic, futuristic], [juan_atkins, derrick_may]).
 techno_style(berlin, [dark, industrial, minimal], [ben_klock, marcel_dettmann]).
-techno_style(acid_techno, [303_bassline, raw, energetic], [hardfloor]).
+techno_style(acid_techno, [tb303_bassline, raw, energetic], [hardfloor]).
 techno_style(minimal, [stripped_back, micro_variations, hypnotic], [richie_hawtin]).
 techno_style(industrial, [harsh, noise_elements, aggressive], [ansome, perc]).
 

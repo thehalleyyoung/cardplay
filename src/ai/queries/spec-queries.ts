@@ -30,7 +30,13 @@ import {
 import {
   specToPrologFacts,
   specToPrologTerm,
+  prologValueToMusicConstraints,
 } from '../theory/spec-prolog-bridge';
+import {
+  type HostAction,
+  parseHostActionFromPrologTerm,
+  prologReasonsToStrings,
+} from '../theory/host-actions';
 
 // ============================================================================
 // TYPES
@@ -116,18 +122,23 @@ async function withSpecContext<T>(
   options: StatelessQueryOptions = {}
 ): Promise<T> {
   if (options.stateless) {
-    // In stateless mode, we use spec_push/spec_pop to create a scoped context
-    // This is safer than raw assert/retract as it handles cleanup automatically
-    await adapter.query('spec_push(Token).');
+    // In stateless mode, we use spec_push/spec_pop to create a scoped context.
+    // Important: clear the current spec after pushing the stack snapshot to avoid
+    // duplicates during the scoped query.
+    const tokenResult = await adapter.querySingle('spec_push(Token).');
+    const token = (tokenResult?.['Token'] as string | undefined) ?? undefined;
+    const tokenTerm = token ? adapter.jsToTermString(token) : null;
+
+    await clearSpec(adapter);
     await pushSpec(spec, adapter);
     try {
       return await queryFn();
     } finally {
       // Pop restores previous state
-      const tokenResult = await adapter.querySingle('spec_stack(Token, _).');
-      if (tokenResult?.['Token']) {
-        await adapter.query(`spec_pop(${tokenResult['Token']}).`);
+      if (tokenTerm) {
+        await adapter.query(`spec_pop(${tokenTerm}).`);
       } else {
+        // Fallback: ensure we don't leak facts if token capture failed
         await clearSpec(adapter);
       }
     }
@@ -195,6 +206,190 @@ async function clearSpec(adapter: PrologAdapter): Promise<void> {
   await adapter.query('retractall(spec_style(current, _)).');
   await adapter.query('retractall(spec_culture(current, _)).');
   await adapter.query('retractall(spec_constraint(current, _, _, _)).');
+}
+
+// ============================================================================
+// C204: ANALYSIS CACHE
+// ============================================================================
+
+/**
+ * C204: Analysis cache keyed by (events hash, spec hash) to avoid recomputation.
+ * 
+ * The cache stores analysis results with a TTL and maximum size.
+ * Cache keys are computed from event content and spec parameters.
+ */
+export interface AnalysisCacheEntry<T> {
+  readonly result: T;
+  readonly timestamp: number;
+  readonly specHash: string;
+  readonly eventsHash: string;
+}
+
+export interface AnalysisCacheOptions {
+  /** Maximum number of entries to cache (default: 100) */
+  readonly maxEntries?: number;
+  /** TTL in milliseconds (default: 60000 = 1 minute) */
+  readonly ttlMs?: number;
+  /** Enable cache (default: true) */
+  readonly enabled?: boolean;
+}
+
+const DEFAULT_CACHE_OPTIONS: Required<AnalysisCacheOptions> = {
+  maxEntries: 100,
+  ttlMs: 60000,
+  enabled: true,
+};
+
+/**
+ * Simple hash function for events/specs.
+ * Uses a combination of key fields to produce a unique string.
+ */
+function hashEvents(events: readonly { pitch: number; startTicks?: number; durationTicks?: number }[]): string {
+  if (events.length === 0) return 'empty';
+  const parts = events.slice(0, 50).map(e => 
+    `${e.pitch}:${e.startTicks ?? 0}:${e.durationTicks ?? 1}`
+  );
+  return `e${events.length}_${simpleHash(parts.join(','))}`;
+}
+
+function hashSpec(spec: MusicSpec): string {
+  const parts = [
+    spec.keyRoot,
+    spec.mode,
+    spec.tempo,
+    spec.culture,
+    spec.style,
+    spec.constraints.length,
+  ];
+  return `s_${simpleHash(parts.join(','))}`;
+}
+
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+/**
+ * Analysis cache implementation.
+ */
+class AnalysisCache {
+  private cache = new Map<string, AnalysisCacheEntry<unknown>>();
+  private options: Required<AnalysisCacheOptions>;
+  
+  constructor(options: AnalysisCacheOptions = {}) {
+    this.options = { ...DEFAULT_CACHE_OPTIONS, ...options };
+  }
+  
+  /**
+   * Get a cached result if available and not expired.
+   */
+  get<T>(key: string): T | undefined {
+    if (!this.options.enabled) return undefined;
+    
+    const entry = this.cache.get(key);
+    if (!entry) return undefined;
+    
+    // Check TTL
+    if (Date.now() - entry.timestamp > this.options.ttlMs) {
+      this.cache.delete(key);
+      return undefined;
+    }
+    
+    return entry.result as T;
+  }
+  
+  /**
+   * Store a result in the cache.
+   */
+  set<T>(key: string, result: T, eventsHash: string, specHash: string): void {
+    if (!this.options.enabled) return;
+    
+    // Evict oldest entries if at capacity
+    if (this.cache.size >= this.options.maxEntries) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey) this.cache.delete(oldestKey);
+    }
+    
+    this.cache.set(key, {
+      result,
+      timestamp: Date.now(),
+      eventsHash,
+      specHash,
+    });
+  }
+  
+  /**
+   * Build a cache key from events and spec.
+   */
+  buildKey(
+    analysisType: string,
+    events: readonly { pitch: number; startTicks?: number; durationTicks?: number }[],
+    spec?: MusicSpec
+  ): string {
+    const eventsHash = hashEvents(events);
+    const specHash = spec ? hashSpec(spec) : 'no_spec';
+    return `${analysisType}_${eventsHash}_${specHash}`;
+  }
+  
+  /**
+   * Clear all cached entries.
+   */
+  clear(): void {
+    this.cache.clear();
+  }
+  
+  /**
+   * Get cache statistics.
+   */
+  stats(): { size: number; maxEntries: number; ttlMs: number } {
+    return {
+      size: this.cache.size,
+      maxEntries: this.options.maxEntries,
+      ttlMs: this.options.ttlMs,
+    };
+  }
+}
+
+// Global analysis cache instance
+const analysisCache = new AnalysisCache();
+
+/**
+ * Get the global analysis cache.
+ */
+export function getAnalysisCache(): AnalysisCache {
+  return analysisCache;
+}
+
+/**
+ * Execute an analysis with caching.
+ */
+export async function withAnalysisCache<T>(
+  analysisType: string,
+  events: readonly { pitch: number; startTicks?: number; durationTicks?: number }[],
+  spec: MusicSpec | undefined,
+  analysisFunc: () => Promise<T>,
+  options: AnalysisCacheOptions = {}
+): Promise<T> {
+  const cache = options.enabled === false ? null : analysisCache;
+  
+  if (cache) {
+    const key = cache.buildKey(analysisType, events, spec);
+    const cached = cache.get<T>(key);
+    if (cached !== undefined) {
+      return cached;
+    }
+    
+    const result = await analysisFunc();
+    cache.set(key, result, hashEvents(events), spec ? hashSpec(spec) : '');
+    return result;
+  }
+  
+  return analysisFunc();
 }
 
 // ============================================================================
@@ -284,6 +479,140 @@ export async function lintSpec(
       message: String(w.message || w[0] || ''),
       severity: (w.severity || w[1] || 'warning') as 'error' | 'warning' | 'info',
     }));
+  }, options);
+}
+
+// ============================================================================
+// SPEC AUTOFIX SUGGESTIONS (C120-C121)
+// ============================================================================
+
+export interface SpecAutofixSuggestion {
+  readonly warning: SpecLintWarning;
+  readonly actions: readonly HostAction[];
+}
+
+function confidenceForLintSeverity(severity: SpecLintWarning['severity']): number {
+  switch (severity) {
+    case 'error':
+      return 90;
+    case 'warning':
+      return 75;
+    case 'info':
+    default:
+      return 60;
+  }
+}
+
+/**
+ * Suggest HostActions to automatically fix common lint warnings.
+ * Uses Prolog `spec_autofix/3` inside the active spec context.
+ */
+export async function suggestSpecAutofix(
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
+): Promise<Explainable<SpecAutofixSuggestion[]>> {
+  await ensureLoaded(adapter);
+
+  const warnings = await lintSpec(spec, adapter, options);
+
+  return withSpecContext(spec, adapter, async () => {
+    const suggestions: SpecAutofixSuggestion[] = [];
+
+    for (const warning of warnings) {
+      const warningTerm = adapter.jsToTermString(warning.message);
+      const solutions = await adapter.queryAll(
+        `spec_autofix(${warningTerm}, Action, Reasons).`
+      );
+
+      const confidence = confidenceForLintSeverity(warning.severity);
+      const actions: HostAction[] = solutions
+        .map(sol => {
+          const actionTerm = sol['Action'];
+          const reasons = prologReasonsToStrings(sol['Reasons']);
+          return parseHostActionFromPrologTerm(actionTerm, confidence, reasons);
+        })
+        .filter((a): a is HostAction => a !== null);
+
+      if (actions.length > 0) {
+        suggestions.push({ warning, actions });
+      }
+    }
+
+    const avgConfidence = suggestions.length > 0
+      ? Math.round(
+          suggestions.reduce(
+            (sum, s) => sum + Math.round(s.actions.reduce((aSum, a) => aSum + a.confidence, 0) / Math.max(1, s.actions.length)),
+            0
+          ) / suggestions.length
+        )
+      : 0;
+
+    return explainable(
+      suggestions,
+      suggestions.length > 0
+        ? [`Found ${suggestions.length} autofix suggestion(s)`]
+        : ['No autofix suggestions available'],
+      avgConfidence
+    );
+  }, options);
+}
+
+// ============================================================================
+// DEV: SPEC FACT DUMP (C124)
+// ============================================================================
+
+/**
+ * Dump the current spec facts and constraints as they exist in the Prolog DB
+ * during a scoped spec query. Intended for debugging/inspection.
+ */
+export async function dumpSpecFacts(
+  spec: MusicSpec,
+  adapter: PrologAdapter = getPrologAdapter(),
+  options: StatelessQueryOptions = {}
+): Promise<readonly string[]> {
+  await ensureLoaded(adapter);
+
+  return withSpecContext(spec, adapter, async () => {
+    const facts: string[] = [];
+
+    const key = await adapter.queryAll('spec_key(current, Root, Mode).');
+    for (const s of key) {
+      facts.push(`spec_key(current, ${s['Root']}, ${s['Mode']}).`);
+    }
+
+    const meter = await adapter.queryAll('spec_meter(current, Num, Den).');
+    for (const s of meter) {
+      facts.push(`spec_meter(current, ${s['Num']}, ${s['Den']}).`);
+    }
+
+    const tempo = await adapter.queryAll('spec_tempo(current, T).');
+    for (const s of tempo) {
+      facts.push(`spec_tempo(current, ${s['T']}).`);
+    }
+
+    const model = await adapter.queryAll('spec_tonality_model(current, M).');
+    for (const s of model) {
+      facts.push(`spec_tonality_model(current, ${s['M']}).`);
+    }
+
+    const style = await adapter.queryAll('spec_style(current, S).');
+    for (const s of style) {
+      facts.push(`spec_style(current, ${s['S']}).`);
+    }
+
+    const culture = await adapter.queryAll('spec_culture(current, C).');
+    for (const s of culture) {
+      facts.push(`spec_culture(current, ${s['C']}).`);
+    }
+
+    const constraints = await adapter.queryAll('spec_constraint(current, C, H, W).');
+    for (const s of constraints) {
+      const cTerm = adapter.jsToTermString(s['C']);
+      facts.push(`spec_constraint(current, ${cTerm}, ${s['H']}, ${s['W']}).`);
+    }
+
+    return facts;
   }, options);
 }
 
@@ -774,9 +1103,7 @@ export async function getConstraintPack(
     return [];
   }
   
-  // TODO: Convert Prolog constraint terms to MusicConstraint objects
-  // For now, return empty - this requires a more complex parser
-  return [];
+  return [...prologValueToMusicConstraints(result['Constraints'])];
 }
 
 /**
@@ -1356,43 +1683,86 @@ export async function getRecommendedActions(
       return explainable([], ['No recommended actions found'], 0);
     }
 
-    const actions: RecommendedAction[] = actionsRaw
-      .filter((a): a is Record<string, unknown> => a != null && typeof a === 'object')
-      .map(a => {
-        // Parse action term: action(ActionTerm, Confidence, Reasons)
-        const actionTerm = a['action'] || a[0];
-        const confidence = (a['confidence'] || a[1] || 0.5) as number;
-        const reasons = (a['reasons'] || a[2] || []) as string[];
+    const actions: RecommendedAction[] = [];
 
-        // Parse action type and params from term
-        let actionType = 'unknown';
-        const params: Record<string, unknown> = {};
+    for (const item of actionsRaw) {
+      if (!item || typeof item !== 'object') continue;
 
-        if (typeof actionTerm === 'string') {
-          actionType = actionTerm;
-        } else if (typeof actionTerm === 'object' && actionTerm) {
-          // Handle structured action terms
-          const term = actionTerm as Record<string, unknown>;
-          if (term['set_param']) {
-            actionType = 'set_param';
-            Object.assign(params, term['set_param']);
-          } else if (term['apply_pack']) {
-            actionType = 'apply_pack';
-            params['packId'] = term['apply_pack'];
-          } else if (term['add_constraint']) {
-            actionType = 'add_constraint';
-            params['constraint'] = term['add_constraint'];
-          }
-        }
+      const wrapper = item as { functor?: unknown; args?: unknown[] };
+      if (wrapper.functor !== 'action' || !Array.isArray(wrapper.args) || wrapper.args.length < 3) continue;
 
-        return {
-          action: actionType,
-          params,
-          confidence: Math.round(confidence * 100),
-          reasons: reasons.map(r => String(r)),
-        };
-      })
-      .sort((a, b) => b.confidence - a.confidence);
+      const actionTerm = wrapper.args[0];
+      const confidenceRaw = wrapper.args[1];
+      const reasonsRaw = wrapper.args[2];
+
+      const confidenceFloat = typeof confidenceRaw === 'number' ? confidenceRaw : Number(confidenceRaw ?? 0);
+      const confidence = confidenceFloat <= 1 ? Math.round(confidenceFloat * 100) : Math.round(confidenceFloat);
+      const reasons = prologReasonsToStrings(reasonsRaw);
+
+      const parsed = parseHostActionFromPrologTerm(actionTerm, confidence, reasons);
+      if (!parsed) continue;
+
+      const params: Record<string, unknown> = {};
+      switch (parsed.action) {
+        case 'set_param':
+          params['cardId'] = parsed.cardId;
+          params['paramId'] = parsed.paramId;
+          params['value'] = parsed.value;
+          break;
+        case 'apply_pack':
+          params['packId'] = parsed.packId;
+          break;
+        case 'add_constraint':
+          params['constraint'] = parsed.constraint;
+          break;
+        case 'remove_constraint':
+          params['constraintType'] = parsed.constraintType;
+          break;
+        case 'set_key':
+          params['root'] = parsed.root;
+          params['mode'] = parsed.mode;
+          break;
+        case 'set_tempo':
+          params['bpm'] = parsed.bpm;
+          break;
+        case 'set_meter':
+          params['numerator'] = parsed.numerator;
+          params['denominator'] = parsed.denominator;
+          break;
+        case 'set_culture':
+          params['culture'] = parsed.culture;
+          break;
+        case 'set_style':
+          params['style'] = parsed.style;
+          break;
+        case 'add_card':
+          params['cardType'] = parsed.cardType;
+          if ('defaultParams' in parsed && parsed.defaultParams) params['defaultParams'] = parsed.defaultParams;
+          break;
+        case 'remove_card':
+          params['cardId'] = parsed.cardId;
+          break;
+        case 'switch_board':
+          params['boardType'] = parsed.boardType;
+          break;
+        case 'add_deck':
+          params['deckTemplate'] = parsed.deckTemplate;
+          break;
+        case 'show_warning':
+          params['message'] = parsed.message;
+          params['severity'] = parsed.severity;
+          break;
+      }
+
+      actions.push({
+        action: parsed.action,
+        params,
+        confidence: parsed.confidence,
+        reasons: [...parsed.reasons],
+      });
+    }
+
+    actions.sort((a, b) => b.confidence - a.confidence);
 
     const avgConfidence = actions.length > 0
       ? Math.round(actions.reduce((sum, a) => sum + a.confidence, 0) / actions.length)
@@ -5451,3 +5821,647 @@ export async function recommendBoardForSpec(
     return explainable(unique, outerReasons, confidence);
   }, options);
 }
+
+// ============================================================================
+// MOTIF/LEITMOTIF FUNCTIONS (C224, C226, C227)
+// ============================================================================
+
+/**
+ * Motif fingerprint containing interval and rhythm patterns.
+ */
+export interface MotifFingerprint {
+  /** Unique identifier for this motif */
+  readonly id: string;
+  /** Interval sequence (semitones between consecutive notes) */
+  readonly intervals: readonly number[];
+  /** Rhythm ratios (relative durations, normalized) */
+  readonly rhythmRatios: readonly number[];
+  /** Human-readable label */
+  readonly label?: string;
+}
+
+/**
+ * Result of motif similarity comparison.
+ */
+export interface MotifSimilarityResult {
+  /** Overall similarity score (0-100) */
+  readonly score: number;
+  /** Interval similarity component (0-100) */
+  readonly intervalScore: number;
+  /** Rhythm similarity component (0-100) */
+  readonly rhythmScore: number;
+  /** Interval n-gram matches */
+  readonly ngramMatches: readonly NgramMatch[];
+}
+
+/**
+ * N-gram match details.
+ */
+export interface NgramMatch {
+  readonly ngram: readonly number[];
+  readonly position1: number;
+  readonly position2: number;
+}
+
+/**
+ * Motif occurrence in a sequence.
+ */
+export interface MotifOccurrence {
+  /** The motif that was found */
+  readonly motifId: string;
+  /** The motif's label */
+  readonly label: string;
+  /** Start position in the event sequence (index) */
+  readonly startIndex: number;
+  /** End position in the event sequence (index) */
+  readonly endIndex: number;
+  /** Similarity score (0-100) */
+  readonly score: number;
+  /** Transformation applied (if any) */
+  readonly transform?: 'original' | 'inversion' | 'retrograde' | 'augmentation' | 'diminution';
+}
+
+/**
+ * Options for motif search.
+ */
+export interface MotifSearchOptions {
+  /** Minimum similarity score to report (default: 70) */
+  readonly minScore?: number;
+  /** Check for transformed versions of motifs */
+  readonly includeTransforms?: boolean;
+  /** Maximum occurrences to return per motif */
+  readonly maxOccurrences?: number;
+  /** Stateless query options */
+  readonly queryOptions?: StatelessQueryOptions;
+}
+
+/**
+ * C224: Calculate theme similarity metric for two motifs.
+ * Uses interval n-grams and rhythm similarity.
+ * 
+ * @param fingerprint1 - First motif fingerprint
+ * @param fingerprint2 - Second motif fingerprint
+ * @returns Similarity result with score breakdown
+ */
+export function calculateThemeSimilarity(
+  fingerprint1: MotifFingerprint,
+  fingerprint2: MotifFingerprint
+): MotifSimilarityResult {
+  const intervalScore = calculateIntervalSimilarity(
+    fingerprint1.intervals,
+    fingerprint2.intervals
+  );
+  
+  const rhythmScore = calculateRhythmSimilarity(
+    fingerprint1.rhythmRatios,
+    fingerprint2.rhythmRatios
+  );
+  
+  const ngramMatches = findNgramMatches(
+    fingerprint1.intervals,
+    fingerprint2.intervals,
+    3 // Trigram matching
+  );
+  
+  // Weighted combination: intervals 60%, rhythm 40%
+  const score = Math.round(intervalScore * 0.6 + rhythmScore * 0.4);
+  
+  return {
+    score,
+    intervalScore,
+    rhythmScore,
+    ngramMatches,
+  };
+}
+
+/**
+ * Calculate interval sequence similarity using longest common subsequence.
+ */
+function calculateIntervalSimilarity(
+  intervals1: readonly number[],
+  intervals2: readonly number[]
+): number {
+  if (intervals1.length === 0 && intervals2.length === 0) return 100;
+  if (intervals1.length === 0 || intervals2.length === 0) return 0;
+  
+  // LCS-based similarity
+  const lcsLength = longestCommonSubsequence(intervals1, intervals2);
+  const maxLen = Math.max(intervals1.length, intervals2.length);
+  
+  return Math.round((lcsLength / maxLen) * 100);
+}
+
+/**
+ * Calculate longest common subsequence length.
+ */
+function longestCommonSubsequence(
+  seq1: readonly number[],
+  seq2: readonly number[]
+): number {
+  const m = seq1.length;
+  const n = seq2.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (seq1[i - 1] === seq2[j - 1]) {
+        const prev = dp[i - 1]?.[j - 1];
+        dp[i]![j] = (prev ?? 0) + 1;
+      } else {
+        const up = dp[i - 1]?.[j] ?? 0;
+        const left = dp[i]?.[j - 1] ?? 0;
+        dp[i]![j] = Math.max(up, left);
+      }
+    }
+  }
+  
+  return dp[m]?.[n] ?? 0;
+}
+
+/**
+ * Calculate rhythm similarity using normalized duration ratios.
+ */
+function calculateRhythmSimilarity(
+  ratios1: readonly number[],
+  ratios2: readonly number[]
+): number {
+  if (ratios1.length === 0 && ratios2.length === 0) return 100;
+  if (ratios1.length === 0 || ratios2.length === 0) return 0;
+  
+  // Normalize both ratio sequences
+  const norm1 = normalizeRatios(ratios1);
+  const norm2 = normalizeRatios(ratios2);
+  
+  // Compare using cosine-like similarity for overlapping portion
+  const minLen = Math.min(norm1.length, norm2.length);
+  let dotProduct = 0;
+  let mag1 = 0;
+  let mag2 = 0;
+  
+  for (let i = 0; i < minLen; i++) {
+    const v1 = norm1[i];
+    const v2 = norm2[i];
+    if (v1 !== undefined && v2 !== undefined) {
+      dotProduct += v1 * v2;
+      mag1 += v1 * v1;
+      mag2 += v2 * v2;
+    }
+  }
+  
+  // Add remaining elements to magnitudes
+  for (let i = minLen; i < norm1.length; i++) {
+    const v1 = norm1[i];
+    if (v1 !== undefined) {
+      mag1 += v1 * v1;
+    }
+  }
+  for (let i = minLen; i < norm2.length; i++) {
+    const v2 = norm2[i];
+    if (v2 !== undefined) {
+      mag2 += v2 * v2;
+    }
+  }
+  
+  const denom = Math.sqrt(mag1) * Math.sqrt(mag2);
+  if (denom === 0) return 100;
+  
+  const similarity = dotProduct / denom;
+  return Math.round(similarity * 100);
+}
+
+/**
+ * Normalize ratio sequence to sum to 1.
+ */
+function normalizeRatios(ratios: readonly number[]): number[] {
+  const sum = ratios.reduce((a, b) => a + b, 0);
+  if (sum === 0) return ratios.map(() => 1 / ratios.length);
+  return ratios.map(r => r / sum);
+}
+
+/**
+ * Find n-gram matches between two interval sequences.
+ */
+function findNgramMatches(
+  intervals1: readonly number[],
+  intervals2: readonly number[],
+  n: number
+): NgramMatch[] {
+  const matches: NgramMatch[] = [];
+  
+  if (intervals1.length < n || intervals2.length < n) return matches;
+  
+  // Build n-grams from first sequence
+  const ngrams1: Map<string, number[]> = new Map();
+  for (let i = 0; i <= intervals1.length - n; i++) {
+    const ngram = intervals1.slice(i, i + n);
+    const key = ngram.join(',');
+    if (!ngrams1.has(key)) ngrams1.set(key, []);
+    ngrams1.get(key)!.push(i);
+  }
+  
+  // Find matches in second sequence
+  for (let j = 0; j <= intervals2.length - n; j++) {
+    const ngram = intervals2.slice(j, j + n);
+    const key = ngram.join(',');
+    const positions1 = ngrams1.get(key);
+    if (positions1) {
+      for (const pos1 of positions1) {
+        matches.push({
+          ngram,
+          position1: pos1,
+          position2: j,
+        });
+      }
+    }
+  }
+  
+  return matches;
+}
+
+/**
+ * Extract motif fingerprint from a sequence of events.
+ */
+export function extractMotifFingerprint(
+  events: readonly { pitch: number; duration: number }[],
+  id: string,
+  label?: string
+): MotifFingerprint {
+  if (events.length === 0) {
+    return {
+      id,
+      intervals: [],
+      rhythmRatios: [],
+      ...(label !== undefined && { label })
+    };
+  }
+  
+  // Extract intervals (differences between consecutive pitches)
+  const intervals: number[] = [];
+  for (let i = 1; i < events.length; i++) {
+    const currentPitch = events[i]?.pitch;
+    const prevPitch = events[i - 1]?.pitch;
+    if (currentPitch !== undefined && prevPitch !== undefined) {
+      intervals.push(currentPitch - prevPitch);
+    }
+  }
+  
+  // Extract rhythm ratios (relative durations)
+  const totalDuration = events.reduce((sum, e) => sum + e.duration, 0);
+  const rhythmRatios = totalDuration > 0
+    ? events.map(e => e.duration / totalDuration)
+    : events.map(() => 1 / events.length);
+  
+  return {
+    id,
+    intervals,
+    rhythmRatios,
+    ...(label !== undefined && { label })
+  };
+}
+
+/**
+ * Apply a transformation to a motif fingerprint.
+ */
+export function transformMotif(
+  fingerprint: MotifFingerprint,
+  transform: 'inversion' | 'retrograde' | 'augmentation' | 'diminution'
+): MotifFingerprint {
+  let newIntervals: number[];
+  
+  switch (transform) {
+    case 'inversion':
+      newIntervals = fingerprint.intervals.map(i => -i);
+      break;
+    case 'retrograde':
+      newIntervals = [...fingerprint.intervals].reverse();
+      break;
+    case 'augmentation':
+      newIntervals = fingerprint.intervals.map(i => i * 2);
+      break;
+    case 'diminution':
+      newIntervals = fingerprint.intervals.map(i => Math.floor(i / 2));
+      break;
+    default:
+      newIntervals = [...fingerprint.intervals];
+  }
+  
+  return {
+    ...fingerprint,
+    id: `${fingerprint.id}_${transform}`,
+    intervals: newIntervals,
+    ...(fingerprint.label !== undefined && { label: `${fingerprint.label} (${transform})` }),
+  };
+}
+
+/**
+ * C226/C227: Find occurrences of motifs from a library in an event sequence.
+ * 
+ * @param events - Sequence of events to search
+ * @param library - Library of motif fingerprints to match against
+ * @param options - Search options
+ * @returns List of motif occurrences found
+ */
+export async function findMotifOccurrences(
+  events: readonly { pitch: number; duration: number }[],
+  library: readonly MotifFingerprint[],
+  options: MotifSearchOptions = {}
+): Promise<Explainable<MotifOccurrence[]>> {
+  const minScore = options.minScore ?? 70;
+  const includeTransforms = options.includeTransforms ?? true;
+  const maxOccurrences = options.maxOccurrences ?? 10;
+  
+  const occurrences: MotifOccurrence[] = [];
+  const transforms: ('original' | 'inversion' | 'retrograde')[] = includeTransforms
+    ? ['original', 'inversion', 'retrograde']
+    : ['original'];
+  
+  // Slide a window over the events and check for motif matches
+  for (const motif of library) {
+    const motifLength = motif.intervals.length + 1; // +1 because intervals = n-1 for n notes
+    if (motifLength < 2 || events.length < motifLength) continue;
+    
+    let motifOccurrenceCount = 0;
+    
+    for (let startIdx = 0; startIdx <= events.length - motifLength && motifOccurrenceCount < maxOccurrences; startIdx++) {
+      const windowEvents = events.slice(startIdx, startIdx + motifLength);
+      const windowFingerprint = extractMotifFingerprint(windowEvents, 'window');
+      
+      for (const transform of transforms) {
+        const compareMotif = transform === 'original'
+          ? motif
+          : transformMotif(motif, transform);
+        
+        const similarity = calculateThemeSimilarity(windowFingerprint, compareMotif);
+        
+        if (similarity.score >= minScore) {
+          occurrences.push({
+            motifId: motif.id,
+            label: motif.label ?? motif.id,
+            startIndex: startIdx,
+            endIndex: startIdx + motifLength - 1,
+            score: similarity.score,
+            ...(transform !== 'original' && { transform }),
+          });
+          motifOccurrenceCount++;
+          break; // Don't double-count same position with different transforms
+        }
+      }
+    }
+  }
+  
+  // Sort by score descending
+  occurrences.sort((a, b) => b.score - a.score);
+  
+  const reasons = occurrences.length > 0
+    ? [`Found ${occurrences.length} motif occurrences in ${events.length} events`]
+    : ['No motif matches found above threshold'];
+  
+  const confidence = occurrences.length > 0 ? 85 : 50;
+  
+  return explainable(occurrences, reasons, confidence);
+}
+
+/**
+ * Store a motif in the Prolog knowledge base for persistent matching.
+ */
+export async function storeMotifInKB(
+  fingerprint: MotifFingerprint,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<void> {
+  await ensureLoaded(adapter);
+  
+  const intervalsStr = `[${fingerprint.intervals.join(',')}]`;
+  const rhythmStr = `[${fingerprint.rhythmRatios.map(r => r.toFixed(4)).join(',')}]`;
+  const label = fingerprint.label ?? fingerprint.id;
+  
+  await adapter.querySingle(
+    `store_motif('${fingerprint.id}', ${intervalsStr}, ${rhythmStr}, '${label}').`
+  );
+}
+
+/**
+ * Query the Prolog KB for motif similarity.
+ */
+export async function queryMotifSimilarity(
+  intervals1: readonly number[],
+  intervals2: readonly number[],
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<number> {
+  await ensureLoaded(adapter);
+  
+  const i1Str = `[${intervals1.join(',')}]`;
+  const i2Str = `[${intervals2.join(',')}]`;
+  
+  const result = await adapter.querySingle(
+    `motif_similarity(${i1Str}, ${i2Str}, Score).`
+  );
+  
+  if (result && typeof result['Score'] === 'number') {
+    return Math.round(result['Score'] * 100);
+  }
+  
+  return 0;
+}
+
+// ============================================================================
+// C210: TYPESCRIPT DFT FALLBACK COMPUTATIONS
+// ============================================================================
+
+/**
+ * TypeScript fallback for DFT computations when Prolog math is unavailable.
+ * Computes the kth DFT bin for a 12-element pitch-class profile.
+ * 
+ * @param profile - 12-element pitch-class profile
+ * @param k - DFT bin number (1=fifths, 2=major thirds, 3=minor thirds)
+ * @returns Complex number as [real, imaginary]
+ */
+export function computeDFTBinTS(profile: readonly number[], k: number): [number, number] {
+  if (profile.length !== 12) {
+    throw new Error('Profile must have exactly 12 elements');
+  }
+  
+  let real = 0;
+  let imag = 0;
+  const factor = (2 * Math.PI * k) / 12;
+  
+  for (let i = 0; i < 12; i++) {
+    const val = profile[i];
+    if (val !== undefined) {
+      real += val * Math.cos(factor * i);
+      imag -= val * Math.sin(factor * i);
+    }
+  }
+  
+  return [real, imag];
+}
+
+/**
+ * Compute DFT magnitude for a specific bin.
+ */
+export function computeDFTMagnitudeTS(profile: readonly number[], k: number): number {
+  const [real, imag] = computeDFTBinTS(profile, k);
+  return Math.sqrt(real * real + imag * imag);
+}
+
+/**
+ * Compute DFT phase (in radians) for a specific bin.
+ */
+export function computeDFTPhaseTS(profile: readonly number[], k: number): number {
+  const [real, imag] = computeDFTBinTS(profile, k);
+  return Math.atan2(imag, real);
+}
+
+/**
+ * Compute tonal centroid (6D point) using DFT bins k=1, k=2, k=3.
+ * Returns [k1_real, k1_imag, k2_real, k2_imag, k3_real, k3_imag].
+ */
+export function computeTonalCentroidTS(profile: readonly number[]): readonly number[] {
+  const [k1r, k1i] = computeDFTBinTS(profile, 1);
+  const [k2r, k2i] = computeDFTBinTS(profile, 2);
+  const [k3r, k3i] = computeDFTBinTS(profile, 3);
+  
+  return [k1r, k1i, k2r, k2i, k3r, k3i];
+}
+
+/**
+ * Compute Euclidean distance between two tonal centroids.
+ */
+export function centroidDistanceTS(
+  centroid1: readonly number[],
+  centroid2: readonly number[]
+): number {
+  if (centroid1.length !== 6 || centroid2.length !== 6) {
+    throw new Error('Centroids must have exactly 6 elements');
+  }
+  
+  let sumSq = 0;
+  for (let i = 0; i < 6; i++) {
+    const c1 = centroid1[i];
+    const c2 = centroid2[i];
+    if (c1 !== undefined && c2 !== undefined) {
+      const diff = c1 - c2;
+      sumSq += diff * diff;
+    }
+  }
+  
+  return Math.sqrt(sumSq);
+}
+
+/**
+ * Estimate tonic using DFT phase (k=1 bin).
+ * Returns pitch-class 0-11 where 0=C.
+ */
+export function estimateTonicFromDFTPhaseTS(profile: readonly number[]): number {
+  const phase = computeDFTPhaseTS(profile, 1);
+  // Convert phase to pitch class: map [-π, π] to [0, 12)
+  // Phase of 0 corresponds to C for a C major profile
+  const pc = Math.round(((phase * 12) / (2 * Math.PI)) + 12) % 12;
+  return pc;
+}
+
+/**
+ * TypeScript fallback for spiral array pitch embedding.
+ * Uses the Chew Spiral Array parameterization.
+ */
+export function spiralPitchEmbeddingTS(pitchClass: number): readonly [number, number, number] {
+  const r = 1.0;  // Radius
+  const h = 0.4;  // Height per semitone
+  const fifthsAngle = (7 * Math.PI) / 6;  // Angle increment per semitone
+  
+  const angle = fifthsAngle * pitchClass;
+  const x = r * Math.cos(angle);
+  const y = r * Math.sin(angle);
+  const z = h * pitchClass;
+  
+  return [x, y, z];
+}
+
+/**
+ * Compute spiral array chord centroid.
+ */
+export function spiralChordCentroidTS(pitchClasses: readonly number[]): readonly [number, number, number] {
+  if (pitchClasses.length === 0) {
+    return [0, 0, 0];
+  }
+  
+  let sumX = 0, sumY = 0, sumZ = 0;
+  
+  for (const pc of pitchClasses) {
+    const [x, y, z] = spiralPitchEmbeddingTS(pc);
+    sumX += x;
+    sumY += y;
+    sumZ += z;
+  }
+  
+  const n = pitchClasses.length;
+  return [sumX / n, sumY / n, sumZ / n];
+}
+
+/**
+ * Compute spiral distance between two chords.
+ */
+export function spiralDistanceTS(
+  chord1: readonly number[],
+  chord2: readonly number[]
+): number {
+  const [x1, y1, z1] = spiralChordCentroidTS(chord1);
+  const [x2, y2, z2] = spiralChordCentroidTS(chord2);
+  
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const dz = z2 - z1;
+  
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+/**
+ * Check if Prolog engine supports math (async version).
+ * Falls back to TS implementations if not.
+ */
+export async function checkPrologMathSupport(
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<{ supportsMath: boolean; supportsAtan2: boolean }> {
+  try {
+    await ensureLoaded(adapter);
+    
+    const mathResult = await adapter.querySingle('supports_math.');
+    const supportsMath = !!mathResult;
+    
+    const atan2Result = await adapter.querySingle('supports_atan2.');
+    const supportsAtan2 = !!atan2Result;
+    
+    return { supportsMath, supportsAtan2 };
+  } catch {
+    return { supportsMath: false, supportsAtan2: false };
+  }
+}
+
+/**
+ * Auto-selecting DFT computation that uses Prolog if available, TS fallback otherwise.
+ */
+export async function computeDFTBinAuto(
+  profile: readonly number[],
+  k: number,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<[number, number]> {
+  const { supportsMath } = await checkPrologMathSupport(adapter);
+  
+  if (supportsMath) {
+    // Try Prolog
+    try {
+      const profileStr = `[${profile.join(',')}]`;
+      const result = await adapter.querySingle(
+        `dft_bin(${profileStr}, ${k}, Real, Imag).`
+      );
+      if (result && typeof result['Real'] === 'number' && typeof result['Imag'] === 'number') {
+        return [result['Real'], result['Imag']];
+      }
+    } catch {
+      // Fall through to TS
+    }
+  }
+  
+  // TypeScript fallback
+  return computeDFTBinTS(profile, k);
+}
+

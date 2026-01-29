@@ -8,6 +8,14 @@
 %% ============================================================================
 
 %% ---------------------------------------------------------------------------
+%% Project state (injected from the app)
+%% ---------------------------------------------------------------------------
+
+:- dynamic(project_has/1).
+:- dynamic(project_issue_flag/2).
+:- dynamic(project_stat/2).
+
+%% ---------------------------------------------------------------------------
 %% N052: project_health_metric/2 – (MetricId, Description)
 %% ---------------------------------------------------------------------------
 project_health_metric(completeness, 'All sections have content; no empty tracks or gaps').
@@ -126,3 +134,54 @@ suggest_improvement(missing, Remedy) :- missing_element_detection(_, Remedy).
 suggest_improvement(overused, Remedy) :- overused_element_detection(_, Remedy).
 suggest_improvement(structural, Remedy) :- structural_issue_detection(_, Remedy).
 suggest_improvement(technical, Remedy) :- technical_issue_detection(_, Remedy).
+
+%% ---------------------------------------------------------------------------
+%% Project-specific issue inference (driven by injected facts)
+%% ---------------------------------------------------------------------------
+
+project_issue(missing, no_bass, Remedy) :-
+  \+ project_has(bass),
+  missing_element_detection(no_bass, Remedy).
+project_issue(missing, no_melody, Remedy) :-
+  \+ project_has(melody),
+  missing_element_detection(no_melody, Remedy).
+project_issue(missing, no_drums, Remedy) :-
+  \+ project_has(drums),
+  missing_element_detection(no_drums, Remedy).
+project_issue(missing, no_harmony, Remedy) :-
+  \+ project_has(harmony),
+  missing_element_detection(no_harmony, Remedy).
+project_issue(missing, no_intro, Remedy) :-
+  \+ project_has(intro),
+  missing_element_detection(no_intro, Remedy).
+project_issue(missing, no_outro, Remedy) :-
+  \+ project_has(outro),
+  missing_element_detection(no_outro, Remedy).
+project_issue(missing, no_transition, Remedy) :-
+  \+ project_has(transition),
+  missing_element_detection(no_transition, Remedy).
+project_issue(missing, no_variation, Remedy) :-
+  \+ project_has(variation),
+  missing_element_detection(no_variation, Remedy).
+
+project_issue(overused, Issue, Remedy) :-
+  project_issue_flag(overused, Issue),
+  overused_element_detection(Issue, Remedy).
+project_issue(structural, Issue, Remedy) :-
+  project_issue_flag(structural, Issue),
+  structural_issue_detection(Issue, Remedy).
+project_issue(technical, Issue, Remedy) :-
+  project_issue_flag(technical, Issue),
+  technical_issue_detection(Issue, Remedy).
+project_issue(style, Issue, Description) :-
+  project_issue_flag(style, Issue),
+  style_consistency_check(Issue, Description).
+project_issue(harmony, Issue, Description) :-
+  project_issue_flag(harmony, Issue),
+  harmony_coherence_check(Issue, Description).
+project_issue(rhythm, Issue, Description) :-
+  project_issue_flag(rhythm, Issue),
+  rhythm_consistency_check(Issue, Description).
+project_issue(balance, Issue, Description) :-
+  project_issue_flag(balance, Issue),
+  instrumentation_balance_check(Issue, Description).

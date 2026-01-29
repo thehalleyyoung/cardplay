@@ -91,6 +91,37 @@ export interface DetectedIssue {
   readonly remedy: string;
 }
 
+/** A high-level project element tracked for missing-element checks. */
+export type ProjectElement =
+  | 'bass'
+  | 'melody'
+  | 'drums'
+  | 'harmony'
+  | 'intro'
+  | 'outro'
+  | 'transition'
+  | 'variation';
+
+/** A project snapshot that can be injected into the analysis KB. */
+export interface ProjectSnapshot {
+  /** Elements present in the project, used to infer missing elements. */
+  readonly elements?: ProjectElement[];
+  /**
+   * Flags indicating issues detected elsewhere in the app (audio analysis,
+   * arrangement analysis, etc.), mapped to KB remedies and descriptions.
+   */
+  readonly issueFlags?: Array<Pick<DetectedIssue, 'category' | 'issueId'>>;
+  /** Optional numeric stats for future KB rules (currently stored for tooling). */
+  readonly stats?: Record<string, number>;
+}
+
+/** Result of analyzing a project snapshot. */
+export interface ProjectAnalysis {
+  readonly issues: DetectedIssue[];
+  readonly complexity?: ComplexityMetrics;
+  readonly safetyWarnings?: SafetyWarning[];
+}
+
 /** Simplification suggestion. */
 export interface SimplificationSuggestion {
   readonly technique: string;
@@ -531,6 +562,42 @@ async function ensureAnalysisKB(adapter: PrologAdapter): Promise<void> {
   await loadProjectAnalysisKB(adapter);
 }
 
+function assertSafePrologAtom(value: string, label: string): void {
+  if (!/^[a-z][a-z0-9_]*$/.test(value)) {
+    throw new Error(`${label} must be a valid Prolog atom (got "${value}")`);
+  }
+}
+
+async function syncProjectSnapshotToKB(
+  snapshot: ProjectSnapshot,
+  adapter: PrologAdapter
+): Promise<void> {
+  await ensureAnalysisKB(adapter);
+
+  // Clear any previous project state
+  await adapter.retractAll('project_has(_)');
+  await adapter.retractAll('project_issue_flag(_, _)');
+  await adapter.retractAll('project_stat(_, _)');
+
+  // Inject current project state
+  for (const el of snapshot.elements ?? []) {
+    assertSafePrologAtom(el, 'Project element');
+    await adapter.assertz(`project_has(${el}).`);
+  }
+
+  for (const flag of snapshot.issueFlags ?? []) {
+    assertSafePrologAtom(flag.category, 'Issue category');
+    assertSafePrologAtom(flag.issueId, 'Issue id');
+    await adapter.assertz(`project_issue_flag(${flag.category}, ${flag.issueId}).`);
+  }
+
+  for (const [metric, rawValue] of Object.entries(snapshot.stats ?? {})) {
+    assertSafePrologAtom(metric, 'Project stat metric');
+    const value = Number.isFinite(rawValue) ? Math.trunc(rawValue) : 0;
+    await adapter.assertz(`project_stat(${metric}, ${value}).`);
+  }
+}
+
 /**
  * N052: Get project health metrics.
  */
@@ -633,6 +700,63 @@ export async function getAllProjectIssues(
       getInstrumentationBalanceIssues(adapter),
     ]);
   return [...missing, ...overused, ...structural, ...technical, ...style, ...harmony, ...rhythm, ...balance];
+}
+
+/**
+ * N057/N097: Analyze a specific project snapshot.
+ *
+ * This injects `project_has/1` and `project_issue_flag/2` facts into the
+ * project analysis KB, then queries `project_issue/3` to return only issues
+ * relevant to the provided snapshot.
+ */
+export async function analyzeProject(
+  snapshot: ProjectSnapshot,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<ProjectAnalysis> {
+  await syncProjectSnapshotToKB(snapshot, adapter);
+
+  const rawIssues = await adapter.queryAll(
+    'project_issue(Category, Issue, Remedy)'
+  );
+
+  const allowedCategories: ReadonlySet<DetectedIssue['category']> = new Set([
+    'missing',
+    'overused',
+    'structural',
+    'technical',
+    'style',
+    'harmony',
+    'rhythm',
+    'balance',
+    'complexity',
+  ]);
+
+  const issues: DetectedIssue[] = [];
+  for (const r of rawIssues) {
+    const category = String(r.Category) as DetectedIssue['category'];
+    if (!allowedCategories.has(category)) continue;
+    issues.push({
+      category,
+      issueId: String(r.Issue),
+      remedy: String(r.Remedy),
+    });
+  }
+
+  const complexity =
+    snapshot.stats && Object.keys(snapshot.stats).length > 0
+      ? await measureComplexity(snapshot.stats, adapter)
+      : undefined;
+
+  const safetyWarnings = await getBeginnerSafetyWarnings(adapter);
+
+  const baseAnalysis = {
+    issues,
+    safetyWarnings,
+  };
+
+  return complexity
+    ? { ...baseAnalysis, complexity }
+    : baseAnalysis;
 }
 
 /**

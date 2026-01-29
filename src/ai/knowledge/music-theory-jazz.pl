@@ -1296,8 +1296,8 @@ harmonized_unison(melody, fourth, lower_voice, upper_voice_fourth_above).
 %% interlude_vamp(+Chords, -Duration, -Texture, -Purpose)
 %% Interlude/vamp sections. (C1299)
 interlude_vamp([i], open, sparse_rhythm, transition).
-interlude_vamp([i, iv], 8_bars, groove_build, energy_change).
-interlude_vamp([vi, iv, i, v], 16_bars, full_band, section_connector).
+interlude_vamp([i, iv], '8_bars', groove_build, energy_change).
+interlude_vamp([vi, iv, i, v], '16_bars', full_band, section_connector).
 
 %% solo_section(+Form, -Choruses, -Trades, -EndingCue)
 %% Solo section structure. (C1301)

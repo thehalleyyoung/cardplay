@@ -359,7 +359,7 @@ mridangam_phrase(end_phrase, [tha, dhin, gi, na, thom]).
 %% Generate a korvai (structured ending pattern). (C633)
 generate_korvai(adi, 3, basic, korvai(
   phrase_3x([tha, dhin, gi, na, thom]),
-  gap(1_beat),
+  gap(beat(1)),
   phrase_3x([tha, dhin, gi, na, thom]),
   gap(half_beat),
   phrase_3x([tha, dhin, gi, na, thom]),
@@ -367,15 +367,15 @@ generate_korvai(adi, 3, basic, korvai(
 )).
 generate_korvai(adi, 3, intermediate, korvai(
   phrase_3x([tha, ka, dhi, mi, tha, ka, ja, nu]),
-  gap(2_beats),
+  gap(beat(2)),
   phrase_3x([tha, ka, dhi, mi, tha, ka, ja, nu]),
-  gap(1_beat),
+  gap(beat(1)),
   phrase_3x([tha, ka, dhi, mi, tha, ka, ja, nu]),
   ends_on(sam)
 )).
 generate_korvai(rupak, 3, basic, korvai(
   phrase_3x([tha, dhi, thom]),
-  gap(1_beat),
+  gap(beat(1)),
   phrase_3x([tha, dhi, thom]),
   gap(half_beat),
   phrase_3x([tha, dhi, thom]),
@@ -384,13 +384,13 @@ generate_korvai(rupak, 3, basic, korvai(
 
 %% gamaka_to_midi(+Gamaka, +Notes, -BendEvents)
 %% Convert gamaka ornaments to MIDI pitch bend events. (C637)
-gamaka_to_midi(kampita, [NoteA], [bend_up(NoteA, 50, 100ms), bend_down(NoteA, 0, 100ms), repeat(3)]).
-gamaka_to_midi(andolan, [NoteA], [slow_bend_up(NoteA, 30, 500ms), slow_bend_down(NoteA, 0, 500ms)]).
-gamaka_to_midi(meend, [NoteA, NoteB], [glide(NoteA, NoteB, 300ms)]).
-gamaka_to_midi(gamaka_slide, [NoteA, NoteB], [fast_glide(NoteA, NoteB, 100ms)]).
-gamaka_to_midi(kan_swar, [NoteA, NoteB], [grace_note(NoteA, 30ms), sustain(NoteB)]).
-gamaka_to_midi(jaru, [NoteA, NoteB], [slide_up(NoteA, NoteB, 200ms)]).
-gamaka_to_midi(murki, [NoteA, NoteB, NoteC], [rapid_alternation(NoteA, NoteB, NoteC, 50ms_each)]).
+gamaka_to_midi(kampita, [NoteA], [bend_up(NoteA, 50, ms(100)), bend_down(NoteA, 0, ms(100)), repeat(3)]).
+gamaka_to_midi(andolan, [NoteA], [slow_bend_up(NoteA, 30, ms(500)), slow_bend_down(NoteA, 0, ms(500))]).
+gamaka_to_midi(meend, [NoteA, NoteB], [glide(NoteA, NoteB, ms(300))]).
+gamaka_to_midi(gamaka_slide, [NoteA, NoteB], [fast_glide(NoteA, NoteB, ms(100))]).
+gamaka_to_midi(kan_swar, [NoteA, NoteB], [grace_note(NoteA, ms(30)), sustain(NoteB)]).
+gamaka_to_midi(jaru, [NoteA, NoteB], [slide_up(NoteA, NoteB, ms(200))]).
+gamaka_to_midi(murki, [NoteA, NoteB, NoteC], [rapid_alternation(NoteA, NoteB, NoteC, ms_each(50))]).
 
 %% ============================================================================
 %% ADDITIONAL CARNATIC DETAIL PREDICATES (C1717-C1743)

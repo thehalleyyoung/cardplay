@@ -19,7 +19,7 @@
 african_rhythm_timeline(standard_bell_12_8, [1,0,0,1,0,0,1,0,1,0,1,0], ewe).
 african_rhythm_timeline(agbadza_bell, [1,0,1,0,1,0,0,1,0,1,0,0], ewe).
 african_rhythm_timeline(gahu_bell, [1,0,0,1,0,0,1,0,0,1,0,1,0,0,0,0], ewe).
-african_rhythm_timeline(bembé, [1,0,1,1,0,1,1,0,1,1,0,1], yoruba).
+african_rhythm_timeline(bembe, [1,0,1,1,0,1,1,0,1,1,0,1], yoruba).
 african_rhythm_timeline(son_clave, [1,0,0,1,0,0,1,0,0,0,1,0,1,0,0,0], afro_cuban).
 african_rhythm_timeline(rumba_clave, [1,0,0,1,0,0,0,1,0,0,1,0,1,0,0,0], afro_cuban).
 african_rhythm_timeline(tresillo, [1,0,0,1,0,0,1,0], west_african).

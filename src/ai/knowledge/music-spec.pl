@@ -499,7 +499,9 @@ new_stack_token(Token) :-
   retract(spec_stack_counter(N)),
   N1 is N + 1,
   assertz(spec_stack_counter(N1)),
-  atom_concat('scope_', N1, Token).
+  number_codes(N1, Codes),
+  atom_codes(N1Atom, Codes),
+  atom_concat('scope_', N1Atom, Token).
 
 %% Push current spec facts and return token
 spec_push(Token) :-
@@ -511,7 +513,12 @@ spec_push(Token) :-
   findall(spec_style(current, S), spec_style(current, S), Styles),
   findall(spec_culture(current, C), spec_culture(current, C), Cultures),
   findall(spec_constraint(current, C, H, W), spec_constraint(current, C, H, W), Constraints),
-  append([Keys, Meters, Tempos, Models, Styles, Cultures, Constraints], AllFacts),
+  append(Keys, Meters, F1),
+  append(F1, Tempos, F2),
+  append(F2, Models, F3),
+  append(F3, Styles, F4),
+  append(F4, Cultures, F5),
+  append(F5, Constraints, AllFacts),
   assertz(spec_stack(Token, AllFacts)).
 
 %% Pop and restore spec facts
@@ -1256,14 +1263,15 @@ recommend_variation(_, _, 1, [because('Default: minimal variation')]).
 
 %% spec_autofix(+Warning, -FixAction, -Reasons)
 spec_autofix('No key specified; defaulting to C major',
-  set_param(tonality_model_card, key, c_major),
+  set_key(c, major),
   [because('Auto-set key to C major when unspecified')]).
 
-spec_autofix(Warning, remove_constraint(Constraint), Reasons) :-
+spec_autofix(Warning, remove_constraint(Type), Reasons) :-
   atom_concat('Constraint ', Rest, Warning),
   atom_concat(ConstraintStr, _, Rest),
   term_to_atom(Constraint, ConstraintStr),
-  format(atom(R), 'Remove conflicting constraint: ~w', [Constraint]),
+  constraint_type(Constraint, Type),
+  format(atom(R), 'Remove conflicting constraint type: ~w', [Type]),
   Reasons = [because(R)].
 
 %% ============================================================================
@@ -2115,3 +2123,134 @@ allocate_registers_([], _, _, []).
 allocate_registers_([Role|Rest], Current, Slice, [Role-range(Current, Top)|Allocs]) :-
   Top is Current + Slice,
   allocate_registers_(Rest, Top, Slice, Allocs).
+
+%% ============================================================================
+%% C206: PURE RELATIONS CONVENTION FOR ANALYSIS PREDICATES
+%% ============================================================================
+
+%% Analysis predicates should be pure (no side effects).
+%% This is documented as a convention:
+%%
+%% RULE: Analysis predicates (those starting with analyze_, detect_, match_)
+%% MUST NOT use assert/retract or any I/O.
+%%
+%% RULE: Use explicit input/output arguments, not global state.
+%%
+%% RULE: For caching, use the TypeScript-side AnalysisCache, not Prolog.
+%%
+%% Example of PURE analysis predicate:
+%%   analyze_key_pure(+Events, -Key, -Mode, -Confidence)
+%%     Does NOT modify any facts, only computes.
+%%
+%% Example of IMPURE (avoid in analysis):
+%%   analyze_key_impure(Events) :-
+%%     assert(last_analysis_result(Key)), ...  % BAD!
+
+%% ============================================================================
+%% C215: TONALITY MODEL AUTOPICK
+%% ============================================================================
+
+%% recommend_tonality_model(+Spec, -Model, -Reasons)
+%% Automatically select the best tonality model based on context.
+
+recommend_tonality_model(Spec, raga_match, Reasons) :-
+  spec_culture(current, carnatic),
+  Reasons = [because('Carnatic culture uses raga-based detection')].
+
+recommend_tonality_model(Spec, raga_match, Reasons) :-
+  member(culture(carnatic), Spec),
+  Reasons = [because('Carnatic culture uses raga-based detection')].
+
+recommend_tonality_model(Spec, spiral_array, Reasons) :-
+  spec_style(current, cinematic),
+  Reasons = [because('Cinematic style benefits from spiral tension modeling')].
+
+recommend_tonality_model(Spec, spiral_array, Reasons) :-
+  member(style(cinematic), Spec),
+  Reasons = [because('Cinematic style benefits from spiral tension modeling')].
+
+recommend_tonality_model(Spec, dft_phase, Reasons) :-
+  spec_style(current, Style),
+  member(Style, [dorian, phrygian, lydian, mixolydian, aeolian, locrian]),
+  Reasons = [because('Modal music works well with DFT phase detection')].
+
+recommend_tonality_model(_Spec, dft_phase, Reasons) :-
+  constraint(grouping(modal)),
+  Reasons = [because('Modal grouping constraint suggests DFT phase model')].
+
+recommend_tonality_model(Spec, spiral_array, Reasons) :-
+  member(style(romantic), Spec),
+  Reasons = [because('Romantic style has chromatic mediants suited for spiral')].
+
+recommend_tonality_model(Spec, ks_profile, Reasons) :-
+  member(style(galant), Spec),
+  Reasons = [because('Galant style has clear major/minor, K-S works well')].
+
+recommend_tonality_model(Spec, ks_profile, Reasons) :-
+  member(culture(western), Spec),
+  Reasons = [because('Western common-practice music suits K-S profiles')].
+
+%% Default fallback
+recommend_tonality_model(_Spec, ks_profile, Reasons) :-
+  Reasons = [because('K-S profile is the default for general use')].
+
+%% ============================================================================
+%% C217: CULTURE-BASED DEFAULTS
+%% ============================================================================
+
+%% culture_default_tonality_model(+Culture, -Model)
+%% Default tonality model for each culture.
+culture_default_tonality_model(carnatic, raga_match).
+culture_default_tonality_model(celtic, dft_phase).  % Modal music
+culture_default_tonality_model(chinese, chinese_mode_match).
+culture_default_tonality_model(western, ks_profile).
+culture_default_tonality_model(hybrid, dft_phase).  % Flexible
+
+%% culture_default_style(+Culture, -Style)
+%% Default style for each culture.
+culture_default_style(carnatic, carnatic_classical).
+culture_default_style(celtic, folk).
+culture_default_style(chinese, traditional).
+culture_default_style(western, cinematic).
+culture_default_style(hybrid, fusion).
+
+%% style_default_tonality_model(+Style, -Model)
+%% Default tonality model for each style.
+style_default_tonality_model(cinematic, spiral_array).
+style_default_tonality_model(romantic, spiral_array).
+style_default_tonality_model(galant, ks_profile).
+style_default_tonality_model(baroque, ks_profile).
+style_default_tonality_model(classical, ks_profile).
+style_default_tonality_model(folk, dft_phase).
+style_default_tonality_model(jazz, dft_phase).
+style_default_tonality_model(edm, dft_phase).
+style_default_tonality_model(ambient, dft_phase).
+style_default_tonality_model(_, ks_profile).  % Default
+
+%% apply_culture_defaults(+Culture, -Defaults)
+%% Get all defaults for a culture as a list.
+apply_culture_defaults(Culture, Defaults) :-
+  culture_default_tonality_model(Culture, Model),
+  culture_default_style(Culture, Style),
+  Defaults = [tonality_model(Model), style(Style)].
+
+%% apply_style_defaults(+Style, -Defaults)
+%% Get all defaults for a style as a list.
+apply_style_defaults(Style, Defaults) :-
+  style_default_tonality_model(Style, Model),
+  Defaults = [tonality_model(Model)].
+
+%% recommend_defaults(+Spec, -RecommendedDefaults, -Reasons)
+%% Recommend default settings based on spec culture and style.
+recommend_defaults(Spec, Defaults, Reasons) :-
+  spec_culture(current, Culture),
+  apply_culture_defaults(Culture, CultureDefaults),
+  Defaults = CultureDefaults,
+  Reasons = [because('Defaults based on culture setting')].
+
+recommend_defaults(Spec, Defaults, Reasons) :-
+  spec_style(current, Style),
+  apply_style_defaults(Style, StyleDefaults),
+  Defaults = StyleDefaults,
+  Reasons = [because('Defaults based on style setting')].
+

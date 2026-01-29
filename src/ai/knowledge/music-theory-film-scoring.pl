@@ -70,7 +70,7 @@ empathetic_music(_, _, partial_alignment).
 %% leitmotif_definition(+MotifId, -Character, -MusicalMaterial)
 %% Define a leitmotif for a character/concept. (C1558)
 %% Dynamic: users define their own leitmotifs
-:- dynamic leitmotif_definition/3.
+:- dynamic(leitmotif_definition/3).
 
 %% leitmotif_transformation(+MotifId, +Scene, -Transform, -Result)
 %% Transform a leitmotif based on dramatic context. (C1559)
@@ -501,7 +501,7 @@ morricone_technique(harmonica, loneliness, [solo_harmonica, sustained_notes]).
 %% Danny Elfman scoring techniques. (C1678)
 elfman_technique(quirky_orchestration, whimsical, [celesta, tubular_bells, xylophone]).
 elfman_technique(gothic_choir, dark_fantasy, [latin_text, minor_mode, organ]).
-elfman_technique(waltz, tim_burton, [3_4_time, quirky_melody, minor_mode]).
+elfman_technique(waltz, tim_burton, ['3_4_time', quirky_melody, minor_mode]).
 
 %% composer_style_match(+Cue, +Composer, -Similarity)
 %% Score how similar a cue is to a composer's style. (C1687)
@@ -739,9 +739,9 @@ drama_scoring_technique(silence_as_score, strategic_absence, maximum_impact).
 
 %% dramatic_pause(+Context, -Duration, -ReentryType)
 %% Using silence/pauses dramatically. (C1640)
-dramatic_pause(before_revelation, 2_4_seconds, sudden_full_orchestra).
-dramatic_pause(after_shock, 1_2_seconds, quiet_sustained_note).
-dramatic_pause(emotional_weight, 3_5_seconds, solo_instrument_entry).
+dramatic_pause(before_revelation, '2_4_seconds', sudden_full_orchestra).
+dramatic_pause(after_shock, '1_2_seconds', quiet_sustained_note).
+dramatic_pause(emotional_weight, '3_5_seconds', solo_instrument_entry).
 dramatic_pause(comedic, half_second, sting_or_button).
 
 %% emotional_swell(+BuildType, -PeakPoint, -Resolution)
@@ -956,8 +956,8 @@ temp_track_analysis(song_temp, [mood, energy, lyrics_relevance, genre], song_rep
 
 %% streamer_and_punch(+StartTC, +EndTC, -Duration, -Tempo)
 %% Streamer and punch synchronization calculation. (C1563)
-streamer_and_punch(tc(0,0,0,0), tc(0,0,2,0), 2_seconds, calculated_from_bar_length).
-streamer_and_punch(tc(0,0,0,0), tc(0,0,5,0), 5_seconds, calculated_from_bar_length).
+streamer_and_punch(tc(0,0,0,0), tc(0,0,2,0), '2_seconds', calculated_from_bar_length).
+streamer_and_punch(tc(0,0,0,0), tc(0,0,5,0), '5_seconds', calculated_from_bar_length).
 
 %% free_timing_cue(+Conductor, -Streamers, -FlexPoints)
 %% Free timing cue with conductor streamers. (C1565)

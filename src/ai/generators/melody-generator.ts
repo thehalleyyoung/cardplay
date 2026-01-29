@@ -505,3 +505,165 @@ export function createMelodyGenerator(
 ): MelodyGenerator {
   return new MelodyGenerator(adapter);
 }
+
+// =============================================================================
+// SCHEMA CHAIN MELODY GENERATION (C338)
+// =============================================================================
+
+/**
+ * Schema melody constraint - defines upper-voice targets for a schema
+ */
+export interface SchemaMelodyConstraint {
+  readonly schemaName: string;
+  /** Scale degrees for upper voice skeleton */
+  readonly upperVoice: readonly number[];
+  /** Metric positions (beats) */
+  readonly metricPositions: readonly number[];
+  /** Elaboration level */
+  readonly elaboration: 'skeletal' | 'simple' | 'ornate';
+}
+
+/**
+ * Predefined schema upper-voice patterns
+ */
+export const SCHEMA_MELODY_PATTERNS: readonly SchemaMelodyConstraint[] = [
+  { schemaName: 'romanesca', upperVoice: [0, 4, 2, 4], metricPositions: [0, 1, 2, 3], elaboration: 'simple' },
+  { schemaName: 'prinner', upperVoice: [5, 4, 3, 2], metricPositions: [0, 1, 2, 3], elaboration: 'simple' },
+  { schemaName: 'monte', upperVoice: [2, 4, 3, 5], metricPositions: [0, 1, 2, 3], elaboration: 'simple' },
+  { schemaName: 'fonte', upperVoice: [1, 0, 0, 6], metricPositions: [0, 1, 2, 3], elaboration: 'simple' },
+  { schemaName: 'do-re-mi', upperVoice: [0, 1, 2], metricPositions: [0, 1, 2], elaboration: 'simple' },
+  { schemaName: 'sol-fa-mi', upperVoice: [4, 3, 2], metricPositions: [0, 1, 2], elaboration: 'simple' },
+  { schemaName: 'quiescenza', upperVoice: [0, 6, 0, 6], metricPositions: [0, 1, 2, 3], elaboration: 'simple' },
+  { schemaName: 'converging', upperVoice: [5, 4, 3, 2], metricPositions: [0, 1, 2, 3], elaboration: 'simple' },
+];
+
+/**
+ * Get melody pattern for a schema
+ */
+export function getSchemaMelodyPattern(schemaName: string): SchemaMelodyConstraint | undefined {
+  return SCHEMA_MELODY_PATTERNS.find(p => 
+    p.schemaName.toLowerCase() === schemaName.toLowerCase()
+  );
+}
+
+/**
+ * Generate melody from schema chain using upper-voice path.
+ * 
+ * This is the C338 integration: schema chain to melody generator (upper-voice path).
+ */
+export function generateMelodyFromSchemaChain(
+  schemata: readonly string[],
+  scale: ScaleContext,
+  options: Partial<MelodyGeneratorOptions> = {}
+): NoteEvent[] {
+  const ticksPerBeat = options.ticksPerBeat ?? 480;
+  const octave = options.octave ?? 5; // Upper voice octave
+  const velocity = options.velocity ?? 90;
+  
+  // Get scale intervals
+  const scaleIntervals = getScaleIntervals(scale.scale);
+  const rootPitch = NOTE_NAME_TO_MIDI[scale.root.toLowerCase()] ?? 60;
+  
+  const notes: NoteEvent[] = [];
+  let currentTick = 0;
+  
+  for (const schemaName of schemata) {
+    const pattern = getSchemaMelodyPattern(schemaName);
+    if (!pattern) {
+      currentTick += ticksPerBeat * 4; // Skip if no pattern
+      continue;
+    }
+    
+    const ticksPerNote = ticksPerBeat; // One beat per skeleton note
+    
+    for (let i = 0; i < pattern.upperVoice.length; i++) {
+      const scaleDegree = pattern.upperVoice[i]!;
+      const pitch = scaleDegreeToMidi(scaleDegree, rootPitch, octave, scaleIntervals);
+      
+      // Generate based on elaboration level
+      if (pattern.elaboration === 'skeletal') {
+        // Just skeleton notes
+        notes.push({
+          pitch,
+          start: currentTick,
+          duration: ticksPerNote * 0.9,
+          velocity,
+        });
+      } else if (pattern.elaboration === 'simple') {
+        // Add slight ornamentation
+        notes.push({
+          pitch,
+          start: currentTick,
+          duration: ticksPerNote * 0.45,
+          velocity,
+        });
+        
+        // Add neighbor tone on upbeat
+        const neighbor = i < pattern.upperVoice.length - 1 ? 
+          scaleDegreeToMidi(scaleDegree + 1, rootPitch, octave, scaleIntervals) :
+          pitch;
+        notes.push({
+          pitch: neighbor,
+          start: currentTick + ticksPerNote * 0.5,
+          duration: ticksPerNote * 0.35,
+          velocity: Math.round(velocity * 0.8),
+        });
+      } else {
+        // Ornate - add more embellishments
+        const duration = ticksPerNote / 4;
+        notes.push({ pitch: pitch + 2, start: currentTick, duration, velocity: Math.round(velocity * 0.7) });
+        notes.push({ pitch, start: currentTick + duration, duration: duration * 2, velocity });
+        notes.push({ pitch: pitch - 1, start: currentTick + duration * 3, duration, velocity: Math.round(velocity * 0.75) });
+      }
+      
+      currentTick += ticksPerNote;
+    }
+  }
+  
+  return notes;
+}
+
+/**
+ * Get scale intervals for a scale type
+ */
+function getScaleIntervals(scaleType: string): readonly number[] {
+  const scales: Record<string, readonly number[]> = {
+    'major': [0, 2, 4, 5, 7, 9, 11],
+    'minor': [0, 2, 3, 5, 7, 8, 10],
+    'harmonic_minor': [0, 2, 3, 5, 7, 8, 11],
+    'melodic_minor': [0, 2, 3, 5, 7, 9, 11],
+    'dorian': [0, 2, 3, 5, 7, 9, 10],
+    'phrygian': [0, 1, 3, 5, 7, 8, 10],
+    'lydian': [0, 2, 4, 6, 7, 9, 11],
+    'mixolydian': [0, 2, 4, 5, 7, 9, 10],
+  };
+  return scales[scaleType.toLowerCase()] ?? scales['major']!;
+}
+
+/**
+ * Convert scale degree to MIDI pitch
+ */
+function scaleDegreeToMidi(
+  degree: number,
+  rootPitch: number,
+  octave: number,
+  scaleIntervals: readonly number[]
+): number {
+  const normalizedDegree = ((degree % 7) + 7) % 7;
+  const octaveOffset = Math.floor(degree / 7);
+  const interval = scaleIntervals[normalizedDegree] ?? 0;
+  return (rootPitch % 12) + octave * 12 + interval + octaveOffset * 12;
+}
+
+/**
+ * Note name to MIDI note number mapping
+ */
+const NOTE_NAME_TO_MIDI: Record<string, number> = {
+  'c': 0, 'csharp': 1, 'dflat': 1,
+  'd': 2, 'dsharp': 3, 'eflat': 3,
+  'e': 4,
+  'f': 5, 'fsharp': 6, 'gflat': 6,
+  'g': 7, 'gsharp': 8, 'aflat': 8,
+  'a': 9, 'asharp': 10, 'bflat': 10,
+  'b': 11,
+};

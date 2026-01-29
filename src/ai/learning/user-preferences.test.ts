@@ -26,6 +26,9 @@ import {
   exportPreferences,
   importPreferences,
   getLearningSummary,
+  syncPreferencesToKB,
+  getKBRecommendedBoards,
+  shouldSimplifyForUser,
   // N101-N111: Enhanced learning
   trackDeckOpening,
   trackParameterAdjustment,
@@ -46,6 +49,7 @@ import {
   getProactiveCorrections,
   type UserAction,
 } from './user-preferences';
+import { createPrologAdapter, resetPrologAdapter } from '../engine/prolog-adapter';
 
 // ============================================================================
 // Test Setup
@@ -59,6 +63,7 @@ describe('User Preferences', () => {
 
   afterEach(() => {
     resetPreferences();
+    resetPrologAdapter();
   });
 
   // ==========================================================================
@@ -526,6 +531,61 @@ describe('User Preferences', () => {
       resetPreferences();
       const summary = getLearningSummary();
       expect(summary).toBeNull();
+    });
+  });
+
+  // ==========================================================================
+  // L358-L359: Learning UX / Bias Checks
+  // ==========================================================================
+
+  describe('learning UX (L358) and bias avoidance (L359)', () => {
+    it('L358: learning improves suggestions over time without being intrusive', async () => {
+      const adapter = createPrologAdapter({ enableCache: false });
+
+      // Early usage: beginner => simplify.
+      for (let i = 0; i < 3; i++) {
+        recordBoardUsage('board-a', 'Board A', 60, ['sketch']);
+      }
+      await syncPreferencesToKB(adapter);
+
+      const simplifyEarly = await shouldSimplifyForUser('test-user', adapter);
+      expect(simplifyEarly).toBe(true);
+
+      const boardsEarly = await getKBRecommendedBoards('test-user', adapter);
+      expect(boardsEarly).toContain('board_a');
+
+      // More usage: intermediate => stop simplifying.
+      for (let i = 0; i < 12; i++) {
+        recordBoardUsage('board-a', 'Board A', 60, ['sketch']);
+      }
+      await syncPreferencesToKB(adapter);
+
+      const simplifyLater = await shouldSimplifyForUser('test-user', adapter);
+      expect(simplifyLater).toBe(false);
+    });
+
+    it('L359: does not bias toward a single workflow when usage is balanced', async () => {
+      const adapter = createPrologAdapter({ enableCache: false });
+
+      // Equal board usage should keep both in recommendations.
+      for (let i = 0; i < 5; i++) {
+        recordBoardUsage('board-a', 'Board A', 30, ['a']);
+        recordBoardUsage('board-b', 'Board B', 30, ['b']);
+      }
+
+      // Balanced transitions should keep both workflow patterns.
+      recordBoardTransition('board-a', 'board-b', 10);
+      recordBoardTransition('board-b', 'board-a', 10);
+
+      await syncPreferencesToKB(adapter);
+
+      const boards = await getKBRecommendedBoards('test-user', adapter);
+      expect(boards).toContain('board_a');
+      expect(boards).toContain('board_b');
+
+      const workflows = await adapter.findAll<string>('W', 'user_workflow(test_user, W)');
+      expect(workflows).toContain('transition_board_a_to_board_b');
+      expect(workflows).toContain('transition_board_b_to_board_a');
     });
   });
 

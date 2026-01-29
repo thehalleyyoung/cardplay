@@ -54,6 +54,7 @@ export {
   unloadKB,
   getUnloadableKBs,
   isKBLoaded,
+  enableKBHotReload,
   type KBTier,
   type KBStatus,
   type KBLoadOptions,
@@ -99,3 +100,8 @@ export {
   type BatchQueryResult,
   type QueryBatch,
 } from './query-batch';
+
+export {
+  // Web Worker support (L013)
+  PrologWorkerClient,
+} from './prolog-worker-client';

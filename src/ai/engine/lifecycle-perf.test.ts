@@ -19,9 +19,11 @@ import {
 import {
   preloadCriticalKBs,
   loadAllKBs,
+  lazyLoadKB,
   getKBStatus,
   isFullyOfflineCapable,
   getKBVersionInfo,
+  unloadKB,
 } from './kb-lifecycle';
 import { getPerfMonitor, resetPerfMonitor } from './perf-monitor';
 import { openKBCache } from './kb-idb-cache';
@@ -65,8 +67,8 @@ describe('KB Lifecycle & Performance (L375-L387)', () => {
   describe('L384: Cold start KB loading', () => {
     it('preloadCriticalKBs loads music-theory and board-layout', async () => {
       await preloadCriticalKBs(adapter);
-      const status = getKBStatus();
-      // getKBStatus checks module-level flags, so this verifies load succeeded
+      const status = getKBStatus(adapter);
+      // getKBStatus reflects per-adapter loader state, so this verifies load succeeded
       expect(status.allCriticalLoaded).toBe(true);
       expect(status.musicTheory).toBe(true);
       expect(status.boardLayout).toBe(true);
@@ -74,7 +76,7 @@ describe('KB Lifecycle & Performance (L375-L387)', () => {
 
     it('loadAllKBs loads all standard KBs', async () => {
       await loadAllKBs(adapter);
-      const status = getKBStatus();
+      const status = getKBStatus(adapter);
       expect(status.allCriticalLoaded).toBe(true);
       expect(status.musicTheory).toBe(true);
       expect(status.boardLayout).toBe(true);
@@ -84,7 +86,7 @@ describe('KB Lifecycle & Performance (L375-L387)', () => {
 
     it('loadAllKBs with includeOptional loads optional KBs too', async () => {
       await loadAllKBs(adapter, { includeOptional: true });
-      const status = getKBStatus();
+      const status = getKBStatus(adapter);
       expect(status.allLoaded).toBe(true);
       expect(status.userPrefs).toBe(true);
       expect(status.adaptation).toBe(true);
@@ -99,6 +101,23 @@ describe('KB Lifecycle & Performance (L375-L387)', () => {
       expect(progressLog[progressLog.length - 1]!.loaded).toBe(
         progressLog[progressLog.length - 1]!.total,
       );
+    });
+  });
+
+  // ========================================================================
+  // N158: Lazy KB loading (optional features)
+  // ========================================================================
+
+  describe('N158: Lazy KB loading', () => {
+    it('lazyLoadKB loads optional KBs on demand', async () => {
+      const before = getKBStatus(adapter);
+      expect(before.userPrefs).toBe(false);
+
+      const ok = await lazyLoadKB('user-prefs', adapter);
+      expect(ok).toBe(true);
+
+      const after = getKBStatus(adapter);
+      expect(after.userPrefs).toBe(true);
     });
   });
 
@@ -381,6 +400,36 @@ describe('KB Lifecycle & Performance (L375-L387)', () => {
       // In Node.js / vitest test env, IndexedDB is not available
       const cache = await openKBCache();
       expect(cache).toBeNull();
+    });
+  });
+
+  // ========================================================================
+  // N181: Memory tests for KB lifecycle (unload optional KBs)
+  // ========================================================================
+
+  describe('N181: KB lifecycle unload clears facts', () => {
+    it('unloadKB(user-prefs) retracts dynamic user and learned pattern facts', async () => {
+      await lazyLoadKB('user-prefs', adapter);
+
+      // Seed some dynamic facts
+      await adapter.assertz('user_prefers_board(test_user, tracker).');
+      await adapter.assertz('learned_workflow_pattern(test_user, p1, [pattern_editor,mixer,effect_chain]).');
+      await adapter.assertz('learned_parameter_preference(test_user, swing, pattern_editor, 57).');
+      await adapter.assertz('learned_routing_pattern(test_user, instrument_rack, mixer, monitoring).');
+
+      const before = await adapter.queryAll('user_prefers_board(test_user, X)');
+      expect(before.length).toBeGreaterThan(0);
+
+      const ok = await unloadKB('user-prefs', adapter);
+      expect(ok).toBe(true);
+
+      const status = getKBStatus(adapter);
+      expect(status.userPrefs).toBe(false);
+
+      expect((await adapter.queryAll('user_prefers_board(test_user, _)')).length).toBe(0);
+      expect((await adapter.queryAll('learned_workflow_pattern(test_user, _, _)')).length).toBe(0);
+      expect((await adapter.queryAll('learned_parameter_preference(test_user, _, _, _)')).length).toBe(0);
+      expect((await adapter.queryAll('learned_routing_pattern(test_user, _, _, _)')).length).toBe(0);
     });
   });
 });

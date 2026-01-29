@@ -1,0 +1,29 @@
+feat(tests): Add comprehensive integration tests for cross-view sync and routing
+
+- Add cross-view-sync.test.ts with 5 tests validating shared event store
+  - A055: Tracker edits reflected in piano roll
+  - A056: Piano roll edits reflected in notation  
+  - A057: Selection synchronization across all views using EventIds
+  - Tests for concurrent edits and event identity preservation
+  
+- Add routing-persistence.test.ts with 5 tests for routing graph
+  - A084: Connection creation and persistence
+  - A085: Connection deletion and cleanup
+  - Tests for multi-source connections and cycle detection
+
+- Fix type errors in persona enhancements
+  - tracker-user-enhancements.ts: Use correct EventStreamId API (.id property)
+  - producer-enhancements.ts: Remove unused EventId import
+
+- Update currentsteps-branchA.md marking integration tests complete
+
+Test suite: 7797 passing tests across 169 test files (new record)
+New tests: 10/10 passing (100% pass rate)
+Type errors: 35 (all pre-existing in AI/theory files)
+
+This validates the core architecture:
+- SharedEventStore as single source of truth
+- Event identity preserved across views
+- Selection by EventId (not indices)
+- Routing graph state management
+- Cross-view data consistency

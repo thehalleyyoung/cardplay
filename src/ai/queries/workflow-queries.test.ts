@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { resetPrologAdapter } from '../engine/prolog-adapter';
+import { createPrologAdapter, resetPrologAdapter } from '../engine/prolog-adapter';
 import { resetWorkflowPlanningLoader } from '../knowledge/workflow-planning-loader';
 import { resetProjectAnalysisLoader } from '../knowledge/project-analysis-loader';
 
@@ -209,6 +209,40 @@ describe('Workflow Planning Queries', () => {
       const result = await validateWorkflow('unknown_goal', 'unknown_persona', []);
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
+    });
+  });
+
+  // ===========================================================================
+  // N047: Workflow planning end-to-end
+  // ===========================================================================
+
+  describe('Workflow planning end-to-end (N047)', () => {
+    it('plans, validates, and executes each step', async () => {
+      const adapter = createPrologAdapter({ enableCache: false });
+
+      const goal = 'make_beat';
+      const persona = 'tracker_user';
+
+      const plan = await planWorkflow(goal, persona, adapter);
+      expect(plan).not.toBeNull();
+      expect(plan!.steps.length).toBeGreaterThan(0);
+
+      const deckSequence = await getDeckSequence(goal, adapter);
+      expect(deckSequence.length).toBeGreaterThan(0);
+
+      const availableDecks = Array.from(new Set([...deckSequence, 'transport']));
+
+      const validation = await validateWorkflow(goal, persona, availableDecks, adapter);
+      expect(validation.valid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+
+      for (let i = 0; i < plan!.steps.length; i++) {
+        const result = await executeWorkflowStep(goal, i, availableDecks, adapter);
+        expect(result.status).not.toBe('failed');
+        if (i < deckSequence.length) {
+          expect(result.status).toBe('completed');
+        }
+      }
     });
   });
 

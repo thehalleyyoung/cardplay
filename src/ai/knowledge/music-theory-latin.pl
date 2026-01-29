@@ -43,9 +43,9 @@ tumbao_pattern(timbales, [rest,1,rest,1,rest,rest,1,rest,rest,1,rest,rest,rest,r
 
 %% montuno_pattern(+ChordType, -Pattern, -Style)
 %% Piano montuno (guajeo) patterns. (C1865)
-montuno_pattern(major, [root_5th, 3rd_root, 5th_3rd, root_5th], son_montuno).
-montuno_pattern(minor, [root_b3rd, 5th_root, b3rd_5th, root_b3rd], son_montuno).
-montuno_pattern(dominant7, [root_b7th, 3rd_root, 5th_3rd, b7th_5th], mambo).
+montuno_pattern(major, [root_5th, third_root, fifth_third, root_5th], son_montuno).
+montuno_pattern(minor, [root_b3rd, fifth_root, b3rd_5th, root_b3rd], son_montuno).
+montuno_pattern(dominant7, [root_b7th, third_root, fifth_third, b7th_5th], mambo).
 
 %% guajeo_style(+Style, -RhythmicFeel, -HarmonicContent)
 %% Named guajeo styles. (C1866)
@@ -60,7 +60,7 @@ guajeo_style(salsa_moderna, complex_syncopation, jazz_voicings).
 
 %% salsa_form(+FormName, -Sections, -Characteristics)
 %% Song forms in salsa and Cuban music. (C1867)
-salsa_form(salsa_standard, [intro, verse, pre_coro, coro, mambo, moña, coro_montuno, outro],
+salsa_form(salsa_standard, [intro, verse, pre_coro, coro, mambo, mona, coro_montuno, outro],
   [clave_based, horn_section, call_response_coro]).
 salsa_form(son_montuno, [largo, montuno],
   [slow_intro_then_fast, improvisation_in_montuno]).
@@ -71,7 +71,7 @@ salsa_form(timba, [intro, verse, coro, section_changes, bomba_section, despelote
 
 %% mambo_section(+Type, -Characteristics, -Instrumentation)
 %% The mambo section in salsa arrangements. (C1868)
-mambo_section(moña, [repeated_horn_riff, building_intensity], [trumpets, trombones]).
+mambo_section(mona, [repeated_horn_riff, building_intensity], [trumpets, trombones]).
 mambo_section(mambo, [counterpoint_riffs, peak_energy], [full_horn_section]).
 mambo_section(diablo, [climactic_riff, maximum_intensity], [tutti]).
 mambo_section(special, [arranged_figure, contrast], [varied]).
@@ -82,7 +82,7 @@ mambo_section(special, [arranged_figure, contrast], [varied]).
 
 %% samba_pattern(+Instrument, -Pattern, -Style)
 %% Samba rhythm patterns by instrument. (C1871)
-samba_pattern(surdo_first, [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], marcação).
+samba_pattern(surdo_first, [1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], marcacao).
 samba_pattern(surdo_second, [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], resposta).
 samba_pattern(surdo_third, [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0], cortador).
 samba_pattern(tamborim, [1,0,1,1,0,1,1,0,1,0,0,1,0,1,0,1], teleco_teco).
@@ -104,15 +104,15 @@ baiao_pattern(sanfona, melodic_lead, accordion_driven).
 
 %% maracatu_pattern(+Part, -Pattern, -Style)
 %% Maracatu (Recife) drumming patterns. (C1874)
-maracatu_pattern(alfaia, [1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0], nação).
+maracatu_pattern(alfaia, [1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0], nacao).
 maracatu_pattern(gongue, [1,0,1,0,1,0,0,1,0,1,0,0], bell).
 maracatu_pattern(caixa, [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], continuous_roll).
-maracatu_pattern(abê, [1,0,1,0,1,0,1,0], shaker).
+maracatu_pattern(abe, [1,0,1,0,1,0,1,0], shaker).
 
 %% frevo_pattern(+Type, -Tempo, -Characteristics)
 %% Frevo (Pernambuco carnival) patterns. (C1875)
 frevo_pattern(frevo_de_rua, 160, [brass_heavy, march_derived, syncopated]).
-frevo_pattern(frevo_canção, 130, [vocal, more_melodic, moderate_tempo]).
+frevo_pattern(frevo_cancao, 130, [vocal, more_melodic, moderate_tempo]).
 frevo_pattern(frevo_de_bloco, 140, [choral, string_section, lyrical]).
 
 %% ============================================================================
@@ -161,7 +161,7 @@ flamenco_compas(tientos, 4, [1,0,1,0]).                        %% Slow tangos
 %% Flamenco palo families and moods. (C1887)
 palo_classification(solea, solea_family, deep_serious).
 palo_classification(buleria, solea_family, festive_virtuosic).
-palo_classification(alegria, cantiñas_family, joyful_elegant).
+palo_classification(alegria, cantinas_family, joyful_elegant).
 palo_classification(siguiriya, siguiriya_family, profound_tragic).
 palo_classification(tangos, tangos_family, rhythmic_festive).
 palo_classification(fandango, fandango_family, lyrical_expressive).
@@ -203,7 +203,7 @@ andean_instrument(quena, wind, [d4, d6]).
 andean_instrument(siku, wind, [g3, g5]).
 andean_instrument(charango, string, [e4, e6]).
 andean_instrument(bombo, percussion, rhythmic_only).
-andean_instrument(zampoña, wind, [c4, c6]).
+andean_instrument(zampona, wind, [c4, c6]).
 andean_instrument(ronroco, string, [g3, g5]).
 
 %% andean_form(+FormName, -Meter, -Characteristics)

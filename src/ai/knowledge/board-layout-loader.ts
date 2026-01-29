@@ -19,7 +19,7 @@ import boardLayoutPl from './board-layout.pl?raw';
 /**
  * Whether the board layout KB has been loaded.
  */
-let boardLayoutLoaded = false;
+let loadedAdapters: WeakSet<PrologAdapter> = new WeakSet();
 
 /**
  * Load the board layout knowledge base into the Prolog engine.
@@ -28,26 +28,26 @@ let boardLayoutLoaded = false;
 export async function loadBoardLayoutKB(
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<void> {
-  if (boardLayoutLoaded) {
+  if (loadedAdapters.has(adapter)) {
     return;
   }
   
   await adapter.loadProgram(boardLayoutPl, 'board-layout-kb');
-  boardLayoutLoaded = true;
+  loadedAdapters.add(adapter);
 }
 
 /**
  * Check if the board layout KB is loaded.
  */
-export function isBoardLayoutLoaded(): boolean {
-  return boardLayoutLoaded;
+export function isBoardLayoutLoaded(adapter: PrologAdapter = getPrologAdapter()): boolean {
+  return loadedAdapters.has(adapter);
 }
 
 /**
  * Reset the loaded state (for testing).
  */
 export function resetBoardLayoutLoader(): void {
-  boardLayoutLoaded = false;
+  loadedAdapters = new WeakSet();
 }
 
 /**

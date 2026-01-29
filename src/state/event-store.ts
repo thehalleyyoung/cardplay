@@ -23,6 +23,9 @@ import {
   createEventStreamRecord,
 } from './types';
 
+// Re-export types for external consumers
+export type { EventStreamId, EventStreamRecord, CreateEventStreamOptions, SubscriptionId };
+
 // ============================================================================
 // SHARED EVENT STORE INTERFACE
 // ============================================================================

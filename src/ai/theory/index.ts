@@ -130,6 +130,8 @@ export {
   currentSpecGoal,
   setCurrentSpecFact,
   generateCompleteSpecProlog,
+  prologConstraintTermToMusicConstraint,
+  prologValueToMusicConstraints,
   type PrologBindings,
   type BoardContext,
 } from './spec-prolog-bridge';

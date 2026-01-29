@@ -282,6 +282,72 @@ export const WORLD_MUSIC_DECK_TEMPLATE: DeckTemplate = {
 };
 
 // ============================================================================
+// C349 — GALANT WORKSPACE BOARD TEMPLATE
+// ============================================================================
+
+export const GALANT_BOARD_TEMPLATE: DeckTemplate = {
+  id: 'template:galant_board',
+  displayName: 'Galant Workspace',
+  description: 'Full galant composition workspace: notation, schema browser, harmony explorer, phrase generation',
+  category: 'phrase',
+  boardTypes: ['notation', 'phrase', 'harmony'],
+  cultures: ['western'],
+  styles: ['galant', 'baroque', 'classical'],
+  cardIds: [
+    'schema:browser',
+    'schema:to_chords',
+    'schema:to_melody',
+    'schema:variation',
+    'schema:constraint',
+    'theory:grouping',
+    'theory:tonality_model',
+  ],
+  slots: [
+    { position: 0, label: 'Schema Browser', cardId: 'schema:browser', required: true },
+    { position: 1, label: 'Schema to Chords', cardId: 'schema:to_chords', required: true },
+    { position: 2, label: 'Schema to Melody', cardId: 'schema:to_melody', required: true },
+    { position: 3, label: 'Variation', cardId: 'schema:variation', required: false, 
+      alternatives: ['schema:to_bass'] },
+    { position: 4, label: 'Constraints', cardId: 'schema:constraint', required: false },
+    { position: 5, label: 'Grouping', cardId: 'theory:grouping', required: false },
+    { position: 6, label: 'Tonality', cardId: 'theory:tonality_model', required: false },
+  ],
+  priority: 75,
+};
+
+// ============================================================================
+// C470 — FILM BOARD TEMPLATE
+// ============================================================================
+
+export const FILM_BOARD_TEMPLATE: DeckTemplate = {
+  id: 'template:film_board',
+  displayName: 'Film Scoring Board',
+  description: 'Film/media scoring workspace: arranger, theory, leitmotif tracking, mixer integration',
+  category: 'arranger',
+  boardTypes: ['arranger', 'tracker', 'notation'],
+  cultures: ['western', 'hybrid'],
+  styles: ['cinematic', 'trailer', 'underscore'],
+  cardIds: [
+    'theory:film_scoring',
+    'film:trailer_build',
+    'theory:leitmotif_library',
+    'theory:leitmotif_matcher',
+    'theory:tonality_model',
+    'theory:constraint_pack',
+  ],
+  slots: [
+    { position: 0, label: 'Film Scoring', cardId: 'theory:film_scoring', required: true },
+    { position: 1, label: 'Trailer Build', cardId: 'film:trailer_build', required: false,
+      alternatives: ['theory:constraint_pack'] },
+    { position: 2, label: 'Leitmotif Library', cardId: 'theory:leitmotif_library', required: false },
+    { position: 3, label: 'Leitmotif Matcher', cardId: 'theory:leitmotif_matcher', required: false },
+    { position: 4, label: 'Tonality Model', cardId: 'theory:tonality_model', required: true },
+    { position: 5, label: 'Presets', cardId: 'theory:constraint_pack', required: false },
+  ],
+  priority: 85,
+};
+
+// ============================================================================
 // TEMPLATE REGISTRY
 // ============================================================================
 
@@ -298,6 +364,8 @@ export const DECK_TEMPLATES: readonly DeckTemplate[] = [
   CELTIC_DECK_TEMPLATE,
   CHINESE_DECK_TEMPLATE,
   WORLD_MUSIC_DECK_TEMPLATE,
+  GALANT_BOARD_TEMPLATE,
+  FILM_BOARD_TEMPLATE,
 ];
 
 /**

@@ -51,7 +51,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] L010 In `prolog-adapter.ts`, implement `queryAll(queryString: string)` returning all solutions. *(Done)*
 - [x] L011 In `prolog-adapter.ts`, implement error handling for malformed queries. *(Done)*
 - [x] L012 In `prolog-adapter.ts`, implement timeout mechanism for infinite loops. *(Default 5000ms)*
-- [ ] L013 Create `cardplay/src/ai/engine/prolog-worker.ts` to run Prolog in a Web Worker (optional perf optimization). *(Deferred - runs on main thread)*
+- [x] L013 Create `cardplay/src/ai/engine/prolog-worker.ts` to run Prolog in a Web Worker (optional perf optimization). *(Done — `src/ai/engine/prolog-worker.ts` + `src/ai/engine/prolog-worker-client.ts`)*
 - [x] L014 Add `cardplay/src/ai/engine/prolog-adapter.test.ts` testing basic query/unify operations. *(472 lines)*
 - [x] L015 Test: load simple facts (`parent(tom, bob)`) and query (`?- parent(tom, X)`). *(Passing)*
 - [x] L016 Test: load rules (`grandparent(X, Z) :- parent(X, Y), parent(Y, Z)`) and query. *(Passing)*
@@ -169,7 +169,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] L122 Verify board knowledge base loads without errors. *(Verified)*
 - [x] L123 Integrate board KB loading with board system initialization. *(Done)*
 - [x] L124 Ensure KB updates when new boards are registered dynamically. *(Done — BoardRegistry.subscribe() + syncKBWithBoardRegistry() in kb-validation.ts)*
-- [ ] L125 Add hot-reload support for KB during development (optional). *(Deferred)*
+- [x] L125 Add hot-reload support for KB during development (optional). *(Done — `enableKBHotReload()` in `src/ai/engine/kb-lifecycle.ts`)*
 - [x] L126 Add KB validation: ensure all referenced boards/decks exist in registry. *(Done — validateBoardReferences() in kb-validation.ts)*
 - [x] L127 Add KB consistency checks: no contradictory rules. *(Done — checkContradictions() in kb-validation.ts)*
 - [x] L128 Document KB extension points for custom boards. *(TODO: Documentation)*
@@ -328,8 +328,8 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] L269 Add tests: modulation suggestions are smooth.
 - [x] L270 Add performance test: harmony queries complete in <10ms.
 - [x] L271 Document harmony explorer API in `docs/ai/harmony-explorer.md`.
-- [ ] L272 Add example: analyzing a standard jazz progression. *(TODO: Documentation)*
-- [ ] L273 Add example: suggesting modal interchange chords. *(TODO: Documentation)*
+- [x] L272 Add example: analyzing a standard jazz progression. *(Done — `docs/ai/harmony-examples.md`)*
+- [x] L273 Add example: suggesting modal interchange chords. *(Done — `docs/ai/harmony-examples.md`)*
 - [x] L274 Create `cardplay/src/ai/knowledge/voice-leading.pl`.
 - [x] L275 Define `voice_leading_cost/3` scoring voice leading quality.
 - [x] L276 Define `optimal_voicing/3` finding best voicing for a chord.
@@ -375,10 +375,10 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] L313 Add "report incorrect answer" feedback button. *(Done — reportIncorrectAnswer() in advisor-telemetry.ts; supports 'incorrect'|'unhelpful'|'misleading' feedback types with optional comment; always recorded regardless of telemetry toggle)*
 - [x] L314 Create feedback log for KB improvement. *(Done — getAdvisorFeedbackLog(), getAdvisorFeedbackPriorities() in advisor-telemetry.ts; groups feedback by category ranked by count for KB prioritisation)*
 - [x] L315 Add performance test: Q&A cycle completes in <100ms. *(Done — 7 benchmark queries in advisor-interface.test.ts)*
-- [ ] L316 Add UX test: advisor is discoverable and helpful.
+- [x] L316 Add UX test: advisor is discoverable and helpful. *(Done — `src/ui/components/ai-advisor-panel.test.ts`)*
 - [x] L317 Add safety checks: advisor never suggests destructive actions without confirmation. *(Done — test + confirmation flag check in advisor-interface.test.ts)*
 - [x] L318 Add "AI Off" mode indicator (advisor hidden when tools disabled). *(Done — isEnabled()/setEnabled() on AIAdvisor, returns disabled answer when off)*
-- [ ] L319 Document how to extend advisor with custom rules.
+- [x] L319 Document how to extend advisor with custom rules. *(Done — `docs/ai/ai-advisor.md`)*
 - [x] L320 Lock AI advisor interface once integrated and usable.
 
 ### Learning & Personalization (L321–L360)
@@ -415,13 +415,13 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] L350 Implement adaptive default values. *(Done — default_chord_type/2, default_scale_type/2, default_complexity/2)*
 - [x] L351 Add tests: adaptation rules respond to skill level correctly. *(Covered by KB loading tests)*
 - [x] L352 Add tests: beginners get simpler suggestions than experts. *(Covered by shouldSimplifyForUser + skill estimation tests)*
-- [ ] L353 Document learning system in `docs/ai/learning.md`.
-- [ ] L354 Document privacy guarantees.
-- [ ] L355 Document data retention policy (how long prefs are kept).
+- [x] L353 Document learning system in `docs/ai/learning.md`. *(Done — `docs/ai/learning.md`)*
+- [x] L354 Document privacy guarantees. *(Done — `docs/ai/learning.md`)*
+- [x] L355 Document data retention policy (how long prefs are kept). *(Done — `docs/ai/learning.md`)*
 - [x] L356 Add manual override for all learned preferences. *(Done — correctAssumption() placeholder)*
 - [x] L357 Add performance test: preference queries complete in <5ms. *(Done — 5 benchmarks in user-preferences.test.ts: getRecommendedBoards, getRecommendedNextBoard, detectWorkflowPatterns, suggestFromLearnedPatterns, getParameterPreferences — all <5ms avg)*
-- [ ] L358 Add UX test: learning improves over time without being intrusive.
-- [ ] L359 Ensure learning doesn't bias users toward specific workflows.
+- [x] L358 Add UX test: learning improves over time without being intrusive. *(Done — tests in `src/ai/learning/user-preferences.test.ts`)*
+- [x] L359 Ensure learning doesn't bias users toward specific workflows. *(Done — balanced-usage tests in `src/ai/learning/user-preferences.test.ts`)*
 - [x] L360 Lock learning system once privacy-safe and helpful. *(✅ Core complete — docs/perf tests pending)*
 
 ### Offline & Performance (L361–L400)
@@ -453,19 +453,19 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] L385 Add tests: KB versioning works correctly. *(Done — getKBVersionInfo + needsMigration + registry tests in lifecycle-perf.test.ts)*
 - [x] L386 Add tests: performance budgets are met. *(Done — checkBudgets pass/fail tests in lifecycle-perf.test.ts)*
 - [x] L387 Add tests: memory budgets are met. *(Done — memory budget config test in lifecycle-perf.test.ts)*
-- [ ] L388 Document KB architecture in `docs/ai/architecture.md`.
-- [ ] L389 Document KB performance characteristics.
-- [ ] L390 Document KB extension guide for contributors.
-- [ ] L391 Add example: adding a new genre to composition KB.
-- [ ] L392 Add example: adding a new voice-leading rule.
-- [ ] L393 Create `cardplay/docs/ai/prolog-reference.md` for all predicates.
-- [ ] L394 Create predicate index by category.
-- [ ] L395 Add search functionality for predicate docs.
+- [x] L388 Document KB architecture in `docs/ai/architecture.md`. *(Done — `docs/ai/architecture.md`)*
+- [x] L389 Document KB performance characteristics. *(Done — `docs/ai/architecture.md`)*
+- [x] L390 Document KB extension guide for contributors. *(Done — `docs/ai/architecture.md`)*
+- [x] L391 Add example: adding a new genre to composition KB. *(Done — `docs/ai/architecture.md`)*
+- [x] L392 Add example: adding a new voice-leading rule. *(Done — `docs/ai/architecture.md`)*
+- [x] L393 Create `cardplay/docs/ai/prolog-reference.md` for all predicates. *(Done — `docs/ai/prolog-reference.md`)*
+- [x] L394 Create predicate index by category. *(Done — `docs/ai/prolog-reference.md`)*
+- [x] L395 Add search functionality for predicate docs. *(Done — VitePress local search in `docs/.vitepress/config.ts`)*
 - [x] L396 Verify all AI features integrate with board system. *(Done — 593/594 AI tests pass; board queries, persona queries, workflow queries, composition queries all integrate with board types)*
-- [x] L397 Run full AI test suite (300+ tests). *(Done — 593 tests passing across 16 test files; 1 pre-existing failure in loadAllKBs optional KB parse)*
-- [ ] L398 Run full AI benchmark suite.
+- [x] L397 Run full AI test suite (300+ tests). *(Done — optional KB parse issues fixed; see `src/ai/knowledge/user-prefs.pl` + music-theory sub-KBs for Tau Prolog compatibility)*
+- [x] L398 Run full AI benchmark suite. *(Done — `npm run test:ai:bench`)*
 - [x] L399 Verify AI features respect "AI Off" mode on manual boards. *(Done — AIAdvisor.setEnabled(false) returns disabled answer)*
-- [ ] L400 Lock Phase L complete once all Prolog AI features are stable and performant.
+- [x] L400 Lock Phase L complete once all Prolog AI features are stable and performant. *(✅ LOCKED — KB parsing fixed; `npm run test:ai:bench` passing)*
 
 ---
 
@@ -533,7 +533,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M072 Implement form-aware composition suggestions. *(Done — suggestFormAwareComposition() returns next section + development techniques in persona-queries.ts)*
 - [x] M073 Add tests: form templates structure sections correctly. *(Covered by getFormTemplates() + applyFormTemplate() returning structured sections)*
 - [x] M074 Add tests: form analysis identifies deviations. *(Covered by checkAgainstForm() returning FormDeviation[] with severity)*
-- [ ] M075 Document notation composer enhancements in persona docs.
+- [x] M075 Document notation composer enhancements in persona docs. *(Done — `docs/ai/personas/notation-composer.md`)*
 - [ ] M076 Add video tutorial: "Using CardPlay for Score Preparation".
 - [ ] M077 Add video tutorial: "AI-Assisted Orchestration".
 - [ ] M078 Run full notation composer workflow test.
@@ -599,7 +599,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M147 Implement live performance board variant for tracker. *(Done — live-performance-tracker-board.ts registered in builtins, session/mixer/dsp/transport layout)*
 - [x] M148 Add scene launch controls to performance tracker board. *(Done — scene_launch_control/3 + scene_transition_rule/3 in Prolog, getSceneLaunchControls() + getSceneTransitionRules() + suggestSceneTransition() + 4 tests)*
 - [x] M150 Add tests: performance mode layout is accessible during live play. *(Done — 6 tests in performance-mode.test.ts: HUD visibility, HUD position config, HUD metrics display, panic accessibility, feature metadata, keyboard shortcuts)*
-- [ ] M151 Document tracker user enhancements in persona docs.
+- [x] M151 Document tracker user enhancements in persona docs. *(Done — `docs/ai/personas/tracker-user.md`)*
 - [ ] M152 Add video tutorial: "Advanced Tracker Techniques".
 - [ ] M153 Add video tutorial: "Live Performance with Tracker Board".
 - [ ] M154 Run full tracker workflow test.
@@ -670,7 +670,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M227 Implement `randomizeParameters(constraints): ParamValues`. *(Done — getRandomizationConstraints() in persona-queries.ts provides constraint data for client-side randomization)*
 - [x] M228 Add tests: randomization respects constraints. *(Done — 3 tests: valid min/max fractions; filter_cutoff avoids extremes; oscillator_pitch never randomized)*
 - [ ] M229 Add tests: randomized sounds are musically useful (quality check).
-- [ ] M230 Document sound designer enhancements in persona docs.
+- [x] M230 Document sound designer enhancements in persona docs. *(Done — `docs/ai/personas/sound-designer.md`)*
 - [ ] M231 Add video tutorial: "Modular Sound Design Workflow".
 - [ ] M232 Add video tutorial: "Creating Custom Synth Presets".
 - [ ] M233 Run full sound design workflow test.
@@ -749,7 +749,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] M310 Implement project comparison view (diff between versions). *(Done — compareProjectVersions() in project-versioning.ts; returns VersionComparison with added/removed/changed diffs; two-level deep object diffing)*
 - [x] M311 Add tests: version system prevents overwrites. *(Done — 2 tests in project-versioning.test.ts: distinct IDs per save, same-name saves create separate versions)*
 - [x] M312 Add tests: version comparison shows meaningful changes. *(Done — 5 tests in project-versioning.test.ts: detects added/removed/changed keys, reports 0 changes for identical versions, handles invalid IDs)*
-- [ ] M313 Document producer enhancements in persona docs.
+- [x] M313 Document producer enhancements in persona docs. *(Done — `docs/ai/personas/producer.md`)*
 - [ ] M314 Add video tutorial: "Full Production Workflow".
 - [ ] M315 Add video tutorial: "Mixing Tips and Techniques".
 - [ ] M316 Run full production workflow test (beat → mix → master).
@@ -864,12 +864,12 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] N040 Add tests: routing templates create valid graphs. *(1 test in workflow-queries.test.ts)*
 - [x] N041 Add tests: signal flow validation detects issues. *(1 test in workflow-queries.test.ts)*
 - [x] N042 Add tests: routing optimization reduces complexity. *(1 test in workflow-queries.test.ts)*
-- [ ] N043 Document workflow planning in AI docs.
-- [ ] N044 Add examples: "Plan a lofi beat workflow".
-- [ ] N045 Add examples: "Optimize mixing board configuration".
-- [ ] N046 Add examples: "Setup routing for live performance".
-- [ ] N047 Run workflow planning end-to-end tests.
-- [ ] N048 Benchmark workflow planning (should complete in <200ms).
+- [x] N043 Document workflow planning in AI docs. *(Done — `docs/ai/workflow-planning.md` + sidebar entry in `docs/.vitepress/config.ts`)*
+- [x] N044 Add examples: "Plan a lofi beat workflow". *(Done — example in `docs/ai/workflow-planning.md`)*
+- [x] N045 Add examples: "Optimize mixing board configuration". *(Done — optimizeConfiguration() example in `docs/ai/workflow-planning.md`)*
+- [x] N046 Add examples: "Setup routing for live performance". *(Done — routing graph + validateSignalFlowGraph() example in `docs/ai/workflow-planning.md`)*
+- [x] N047 Run workflow planning end-to-end tests. *(Done — N047 end-to-end test in `src/ai/queries/workflow-queries.test.ts`)*
+- [x] N048 Benchmark workflow planning (should complete in <200ms). *(Done — N048 benchmark in `src/ai/queries/workflow-planning.bench.test.ts`, run via `npm run test:ai:bench`)*
 - [ ] N049 Gather feedback on workflow planning utility.
 - [ ] N050 Lock workflow planning features.
 
@@ -910,10 +910,10 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] N092 Add tests: complexity metrics correlate with actual difficulty. *(Done — 3 tests: low/high complexity + missing stats in workflow-queries.test.ts)*
 - [x] N093 Add tests: simplification reduces complexity measurably. *(1 test in workflow-queries.test.ts)*
 - [x] N094 Add tests: safety warnings appear for beginners only. *(1 test in workflow-queries.test.ts)*
-- [ ] N095 Document project analysis features.
-- [ ] N096 Add examples showing typical project health issues.
-- [ ] N097 Run project analysis on example projects.
-- [ ] N098 Benchmark project analysis (should complete in <1s for typical project).
+- [x] N095 Document project analysis features. *(Done — `docs/ai/project-analysis.md` + sidebar entry in `docs/.vitepress/config.ts`)*
+- [x] N096 Add examples showing typical project health issues. *(Done — examples in `docs/ai/project-analysis.md`)*
+- [x] N097 Run project analysis on example projects. *(Done — example-driven tests in `src/ai/queries/project-analysis.examples.test.ts`)*
+- [x] N098 Benchmark project analysis (should complete in <1s for typical project). *(Done — N098 benchmark in `src/ai/queries/project-analysis.bench.test.ts`, run via `npm run test:ai:bench`)*
 - [ ] N099 Gather feedback on analysis utility and accuracy.
 - [ ] N100 Lock project analysis features.
 
@@ -951,13 +951,13 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] N137 Implement proactive error prevention suggestions. *(Done — getProactiveCorrections() in user-preferences.ts; queries corrective_suggestion/2 for frequent errors)*
 - [x] N139 Add tests: error patterns are detected correctly. *(Done — 3 tests in user-preferences.test.ts: tracking, filtering, multi-context)*
 - [x] N140 Add tests: corrective suggestions reduce errors. *(Done — 2 tests in user-preferences.test.ts: proactive corrections + routing feedback loop)*
-- [ ] N141 Document learning and adaptation system.
-- [ ] N142 Document privacy protections (all local, no tracking).
-- [ ] N143 Document learning reset and data export.
+- [x] N141 Document learning and adaptation system. *(Done — expanded `docs/ai/learning.md` to cover adaptation rules + integrations)*
+- [x] N142 Document privacy protections (all local, no tracking). *(Done — `docs/ai/learning.md` privacy section)*
+- [x] N143 Document learning reset and data export. *(Done — `docs/ai/learning.md` reset/export/import section; see exportLearningDataJSON()/importLearningData())*
 - [x] N145 Add "Export Learning Data" for backup. *(Done — LearningDataExport interface + exportLearningData() + exportLearningDataJSON() + importLearningData() in user-preferences.ts; bundles preferences + deck openings + parameter adjustments + routing patterns + board configs + error patterns)*
-- [ ] N146 Run learning system over simulated usage.
-- [ ] N147 Verify learning improves suggestions measurably.
-- [ ] N148 Verify privacy protections work (no network calls).
+- [x] N146 Run learning system over simulated usage. *(Done — `src/ai/learning/learning-simulation.test.ts` simulates repeated board sessions and asserts recommendations + simplify policy updates)*
+- [x] N147 Verify learning improves suggestions measurably. *(Done — `src/ai/learning/learning-simulation.test.ts` shows next-deck prediction improves after training and matches Prolog `suggest_workflow/3` after KB sync)*
+- [x] N148 Verify privacy protections work (no network calls). *(Done — `src/ai/learning/privacy-offline.test.ts` asserts AI operations never call fetch)*
 - [ ] N149 Gather feedback on learning system helpfulness.
 - [ ] N150 Lock learning and adaptation features.
 
@@ -968,9 +968,9 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [ ] N153 Optimize slow Prolog predicates with indexing.
 - [ ] N154 Optimize slow predicates with cut placement.
 - [ ] N155 Optimize slow predicates with memoization.
-- [ ] N156 Add query batching for related queries.
+- [x] N156 Add query batching for related queries. *(Done — createQueryBatch() in `src/ai/engine/query-batch.ts` + tests in `src/ai/engine/lifecycle-perf.test.ts`)*
 - [ ] N157 Add incremental KB updates (don't reload everything).
-- [ ] N158 Add lazy KB loading for optional features.
+- [x] N158 Add lazy KB loading for optional features. *(Done — lazyLoadKB() in `src/ai/engine/kb-lifecycle.ts` + test in `src/ai/engine/lifecycle-perf.test.ts`)*
 - [ ] N159 Benchmark all optimizations.
 - [x] N160 Ensure 95th percentile < 50ms for common queries. *(Done — checkPerformanceBudget() in query-profiler.ts; enforces p95 threshold)*
 - [x] N161 Add performance monitoring dashboard (dev-only). *(Done — getProfilingTools().generateOptimizationReport() in profiling-tools.ts)*
@@ -993,19 +993,19 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [ ] N178 Add unit tests for all Prolog predicates.
 - [ ] N179 Add integration tests for all AI features.
 - [ ] N180 Add performance tests for all query types.
-- [ ] N181 Add memory tests for KB lifecycle.
-- [ ] N182 Add end-to-end tests for AI workflows.
+- [x] N181 Add memory tests for KB lifecycle. *(Done — unloadKB(user-prefs) test in `src/ai/engine/lifecycle-perf.test.ts` asserts dynamic facts are retracted, including learned pattern facts)*
+- [x] N182 Add end-to-end tests for AI workflows. *(Done — `src/ai/e2e/ai-workflows.e2e.test.ts` exercises workflow planning, routing validation, project analysis, and learning sync on a single adapter)*
 - [ ] N183 Add regression tests for fixed bugs.
 - [ ] N184 Run full test suite in CI.
 - [ ] N185 Ensure 100% pass rate before release.
-- [ ] N186 Create AI feature documentation index.
-- [ ] N187 Document all AI capabilities with examples.
-- [ ] N188 Document all Prolog predicates with signatures.
-- [ ] N189 Document KB architecture and extension points.
-- [ ] N190 Document performance characteristics and budgets.
-- [ ] N191 Document privacy guarantees and data handling.
-- [ ] N192 Add troubleshooting guide for AI features.
-- [ ] N193 Add FAQ for common AI questions.
+- [x] N186 Create AI feature documentation index. *(Done — `docs/ai/index.md` + VitePress sidebar entry)*
+- [x] N187 Document all AI capabilities with examples. *(Done — `docs/ai/index.md` includes capability overview + API snippets and links)*
+- [x] N188 Document all Prolog predicates with signatures. *(Done — consolidated `docs/ai/predicate-signatures.md` plus existing dedicated predicate references)*
+- [x] N189 Document KB architecture and extension points. *(Done — `docs/ai/kb-architecture.md`)*
+- [x] N190 Document performance characteristics and budgets. *(Done — `docs/ai/performance.md`)*
+- [x] N191 Document privacy guarantees and data handling. *(Done — `docs/ai/privacy.md` + references to N148 offline test)*
+- [x] N192 Add troubleshooting guide for AI features. *(Done — `docs/ai/troubleshooting.md`)*
+- [x] N193 Add FAQ for common AI questions. *(Done — `docs/ai/faq.md`)*
 - [ ] N194 Verify all AI features integrate smoothly.
 - [ ] N195 Verify AI respects "AI Off" mode completely.
 - [ ] N196 Run full AI feature audit.
@@ -1015,4 +1015,3 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [ ] N200 Lock Phase N complete once all advanced AI features are stable, performant, and well-documented.
 
 ---
-

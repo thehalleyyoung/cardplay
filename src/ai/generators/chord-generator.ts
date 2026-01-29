@@ -475,3 +475,402 @@ export function createChordGenerator(
 ): ChordGenerator {
   return new ChordGenerator(adapter);
 }
+
+// =============================================================================
+// SCHEMA CHAIN SUPPORT (C337)
+// =============================================================================
+
+/**
+ * Schema chain - a sequence of galant schemata that define a progression
+ */
+export interface SchemaChain {
+  /** Chain identifier */
+  readonly id: string;
+  /** Human-readable name */
+  readonly name: string;
+  /** Sequence of schema names in order */
+  readonly schemata: readonly string[];
+  /** Duration per schema in beats */
+  readonly beatsPerSchema: number;
+  /** Total duration in beats */
+  readonly totalBeats: number;
+  /** Style tags for this chain */
+  readonly styles: readonly string[];
+}
+
+/**
+ * Schema to chord progression mapping
+ */
+export interface SchemaChordMapping {
+  readonly schemaName: string;
+  /** Chord numerals for this schema */
+  readonly numerals: readonly string[];
+  /** Bass line scale degrees */
+  readonly bassLine: readonly number[];
+  /** Duration in beats */
+  readonly duration: number;
+}
+
+/**
+ * Predefined schema to chord mappings
+ */
+export const SCHEMA_CHORD_MAPPINGS: readonly SchemaChordMapping[] = [
+  { schemaName: 'romanesca', numerals: ['I', 'V', 'vi', 'III'], bassLine: [0, 4, 5, 2], duration: 4 },
+  { schemaName: 'prinner', numerals: ['IV', 'I6', 'ii', 'V'], bassLine: [5, 4, 3, 2], duration: 4 },
+  { schemaName: 'monte', numerals: ['ii', 'V/V', 'iii', 'vi'], bassLine: [0, 4, 2, 5], duration: 4 },
+  { schemaName: 'fonte', numerals: ['v/vi', 'vi', 'V', 'I'], bassLine: [1, 4, 0, 3], duration: 4 },
+  { schemaName: 'do-re-mi', numerals: ['I', 'V', 'I'], bassLine: [0, 4, 0], duration: 3 },
+  { schemaName: 'sol-fa-mi', numerals: ['I', 'IV', 'I'], bassLine: [4, 4, 0], duration: 3 },
+  { schemaName: 'quiescenza', numerals: ['I', 'IV', 'V', 'I'], bassLine: [0, 6, 4, 0], duration: 4 },
+  { schemaName: 'converging', numerals: ['IV', 'vii°', 'I6', 'V'], bassLine: [0, 1, 2, 2], duration: 4 },
+  { schemaName: 'cadence-perfect', numerals: ['V', 'I'], bassLine: [4, 0], duration: 2 },
+  { schemaName: 'cadence-deceptive', numerals: ['V', 'vi'], bassLine: [4, 5], duration: 2 },
+  { schemaName: 'cadence-half', numerals: ['ii', 'V'], bassLine: [1, 4], duration: 2 },
+  { schemaName: 'cadence-plagal', numerals: ['IV', 'I'], bassLine: [3, 0], duration: 2 },
+];
+
+/**
+ * Get chord mapping for a schema
+ */
+export function getSchemaChordMapping(schemaName: string): SchemaChordMapping | undefined {
+  return SCHEMA_CHORD_MAPPINGS.find(m => 
+    m.schemaName.toLowerCase() === schemaName.toLowerCase()
+  );
+}
+
+/**
+ * Generate chord progression from schema chain.
+ * 
+ * This is the C337 integration: schema chain to chord progression generator.
+ */
+export function generateProgressionFromSchemaChain(
+  schemaChain: SchemaChain,
+  key: KeyContext,
+  ticksPerBeat: number = 480
+): Chord[] {
+  const chords: Chord[] = [];
+  let currentTick = 0;
+  
+  for (const schemaName of schemaChain.schemata) {
+    const mapping = getSchemaChordMapping(schemaName);
+    if (!mapping) continue;
+    
+    const ticksPerChord = ticksPerBeat * (schemaChain.beatsPerSchema / mapping.numerals.length);
+    
+    for (const numeral of mapping.numerals) {
+      const { root, quality } = numeralToChord(numeral, key);
+      
+      chords.push({
+        root,
+        quality,
+        numeral,
+        start: currentTick,
+        duration: ticksPerChord,
+      });
+      
+      currentTick += ticksPerChord;
+    }
+  }
+  
+  return chords;
+}
+
+/**
+ * Convert roman numeral to chord in key
+ */
+function numeralToChord(numeral: string, key: KeyContext): { root: string; quality: string } {
+  // Parse numeral: uppercase = major, lowercase = minor, ° = diminished
+  const isMinor = numeral === numeral.toLowerCase() && !numeral.includes('°');
+  const isDiminished = numeral.includes('°');
+  const isMajorQuality = numeral === numeral.toUpperCase() && !isDiminished;
+  
+  // Extract degree number (I=0, ii=1, iii=2, IV=3, V=4, vi=5, vii=6)
+  const degreeMap: Record<string, number> = {
+    'i': 0, 'I': 0,
+    'ii': 1, 'II': 1,
+    'iii': 2, 'III': 2,
+    'iv': 3, 'IV': 3,
+    'v': 4, 'V': 4,
+    'vi': 5, 'VI': 5,
+    'vii': 6, 'VII': 6,
+  };
+  
+  const cleanNumeral = numeral.replace(/[°67]/g, '').replace(/6$/, '').replace(/\/.*/, '');
+  const degree = degreeMap[cleanNumeral] ?? 0;
+  
+  // Scale intervals for major and minor
+  const majorScale = [0, 2, 4, 5, 7, 9, 11];
+  const minorScale = [0, 2, 3, 5, 7, 8, 10];
+  const scale = key.mode === 'minor' ? minorScale : majorScale;
+  
+  const keyRoot = NOTE_TO_SEMITONE[key.root.toLowerCase()] ?? 0;
+  const chordRootSemitone = (keyRoot + (scale[degree] ?? 0)) % 12;
+  
+  const SEMITONE_TO_NOTE_MAP: Record<number, string> = {
+    0: 'c', 1: 'csharp', 2: 'd', 3: 'eflat', 4: 'e', 5: 'f',
+    6: 'fsharp', 7: 'g', 8: 'aflat', 9: 'a', 10: 'bflat', 11: 'b'
+  };
+  
+  const root = SEMITONE_TO_NOTE_MAP[chordRootSemitone] ?? 'c';
+  const quality = isDiminished ? 'diminished' : isMinor ? 'minor' : 'major';
+  
+  return { root, quality };
+}
+
+/**
+ * Create a schema chain from schema names
+ */
+export function createSchemaChain(
+  name: string,
+  schemata: readonly string[],
+  beatsPerSchema: number = 4,
+  styles: readonly string[] = []
+): SchemaChain {
+  return {
+    id: `chain-${name.toLowerCase().replace(/\s+/g, '-')}`,
+    name,
+    schemata,
+    beatsPerSchema,
+    totalBeats: schemata.length * beatsPerSchema,
+    styles,
+  };
+}
+
+/**
+ * Predefined schema chains for common progressions
+ */
+export const SCHEMA_CHAINS: readonly SchemaChain[] = [
+  createSchemaChain('Galant Sentence', ['romanesca', 'prinner', 'cadence-perfect'], 4, ['classical', 'baroque']),
+  createSchemaChain('Monte-Fonte', ['monte', 'fonte'], 4, ['classical']),
+  createSchemaChain('Opening Gambit', ['do-re-mi', 'cadence-half'], 3, ['classical']),
+  createSchemaChain('Full Cadence', ['prinner', 'cadence-perfect'], 4, ['classical', 'baroque']),
+  createSchemaChain('Deceptive Phrase', ['romanesca', 'cadence-deceptive', 'cadence-perfect'], 4, ['classical']),
+];
+
+// =============================================================================
+// CADENCE CONTROL (C460, C461)
+// =============================================================================
+
+/**
+ * Cadence control mode for film scoring
+ */
+export type CadenceMode = 'normal' | 'avoid' | 'emphasize';
+
+/**
+ * Cadence control options
+ */
+export interface CadenceControlOptions {
+  /** Cadence mode */
+  readonly mode: CadenceMode;
+  /** Avoid specific cadence types */
+  readonly avoidTypes?: readonly string[];
+  /** Prefer specific cadence types */
+  readonly preferTypes?: readonly string[];
+  /** Strength of cadence (for emphasis) */
+  readonly strength?: number;
+}
+
+/**
+ * Apply cadence avoidance for underscore cues.
+ * 
+ * This is the C460 integration: cadence avoidance toggles for underscore cues.
+ * Replaces cadential progressions with non-resolving alternatives.
+ */
+export function applyCadenceAvoidance(
+  chords: Chord[],
+  key: KeyContext
+): Chord[] {
+  const result: Chord[] = [];
+  
+  for (let i = 0; i < chords.length; i++) {
+    const chord = chords[i]!;
+    const isLast = i === chords.length - 1;
+    const prevChord = i > 0 ? chords[i - 1] : null;
+    
+    // Detect V-I or V-i cadence and replace
+    const isResolvingCadence = 
+      isLast && 
+      prevChord && 
+      prevChord.numeral.toUpperCase() === 'V' &&
+      (chord.numeral === 'I' || chord.numeral === 'i');
+    
+    if (isResolvingCadence) {
+      // Replace with deceptive or suspended resolution
+      const alternatives = ['vi', 'IV', 'bVII', 'iii'];
+      const replacement = alternatives[Math.floor(Math.random() * alternatives.length)]!;
+      const { root, quality } = numeralToChord(replacement, key);
+      result.push({
+        ...chord,
+        root,
+        quality,
+        numeral: replacement,
+      });
+    } else {
+      result.push(chord);
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Apply cadence emphasis for endings/trailers.
+ * 
+ * This is the C461 integration: cadence emphasis toggles for endings/trailers.
+ * Strengthens cadential progressions with pre-dominants and secondary dominants.
+ */
+export function applyCadenceEmphasis(
+  chords: Chord[],
+  key: KeyContext,
+  strength: number = 0.7
+): Chord[] {
+  const result: Chord[] = [];
+  
+  for (let i = 0; i < chords.length; i++) {
+    const chord = chords[i]!;
+    const nextChord = i < chords.length - 1 ? chords[i + 1] : null;
+    
+    // Detect approach to V and add pre-dominant
+    const isApproachingDominant = nextChord && nextChord.numeral.toUpperCase() === 'V';
+    
+    if (isApproachingDominant && strength > 0.5) {
+      // Add pre-dominant (IV or ii) before current chord if not already there
+      if (chord.numeral !== 'IV' && chord.numeral !== 'ii') {
+        const preDom = strength > 0.8 ? 'IV' : 'ii';
+        const { root, quality } = numeralToChord(preDom, key);
+        result.push({
+          root,
+          quality,
+          numeral: preDom,
+          start: chord.start - chord.duration / 2,
+          duration: chord.duration / 2,
+        });
+        result.push({
+          ...chord,
+          start: chord.start,
+          duration: chord.duration / 2,
+        });
+        continue;
+      }
+    }
+    
+    // Strengthen final cadence with ritardando feel (longer durations)
+    const isLast = i === chords.length - 1;
+    if (isLast && strength > 0.6) {
+      result.push({
+        ...chord,
+        duration: chord.duration * (1 + strength * 0.5),
+      });
+    } else {
+      result.push(chord);
+    }
+  }
+  
+  return result;
+}
+
+// =============================================================================
+// CHROMATIC MEDIANTS AND PLANING (C464)
+// =============================================================================
+
+/**
+ * Chromatic mediant type
+ */
+export type ChromaticMediantType = 
+  | 'upper_major' // Major third above (e.g., C → E)
+  | 'upper_minor' // Minor third above (e.g., C → Eb)
+  | 'lower_major' // Major third below (e.g., C → Ab)
+  | 'lower_minor'; // Minor third below (e.g., C → A)
+
+/**
+ * Get chromatic mediant chord from a given chord
+ */
+export function getChromaticMediant(
+  chord: Chord,
+  mediantType: ChromaticMediantType
+): Chord {
+  const rootSemitone = NOTE_TO_SEMITONE[chord.root.toLowerCase()] ?? 0;
+  
+  let interval: number;
+  let quality: string;
+  
+  switch (mediantType) {
+    case 'upper_major':
+      interval = 4; // Major third up
+      quality = 'major';
+      break;
+    case 'upper_minor':
+      interval = 3; // Minor third up
+      quality = 'minor';
+      break;
+    case 'lower_major':
+      interval = -4; // Major third down
+      quality = 'major';
+      break;
+    case 'lower_minor':
+      interval = -3; // Minor third down
+      quality = 'minor';
+      break;
+  }
+  
+  const newRootSemitone = ((rootSemitone + interval) % 12 + 12) % 12;
+  const SEMITONE_TO_NOTE_MAP: Record<number, string> = {
+    0: 'c', 1: 'csharp', 2: 'd', 3: 'eflat', 4: 'e', 5: 'f',
+    6: 'fsharp', 7: 'g', 8: 'aflat', 9: 'a', 10: 'bflat', 11: 'b'
+  };
+  
+  return {
+    ...chord,
+    root: SEMITONE_TO_NOTE_MAP[newRootSemitone] ?? 'c',
+    quality,
+    numeral: `♭III${quality === 'minor' ? 'm' : ''}`, // Simplified numeral
+  };
+}
+
+/**
+ * Planing type (parallel motion)
+ */
+export type PlaningType = 'chromatic' | 'diatonic' | 'whole_tone';
+
+/**
+ * Generate planing (parallel chord motion)
+ * 
+ * This is the C464 integration: chord generator supports chromatic mediants and planing.
+ */
+export function generatePlaningProgression(
+  startChord: Chord,
+  direction: 'up' | 'down',
+  steps: number,
+  planingType: PlaningType,
+  ticksPerChord: number
+): Chord[] {
+  const chords: Chord[] = [startChord];
+  let currentRoot = NOTE_TO_SEMITONE[startChord.root.toLowerCase()] ?? 0;
+  let currentTick = startChord.start + startChord.duration;
+  
+  const stepSize = planingType === 'chromatic' ? 1 : 
+                   planingType === 'whole_tone' ? 2 : 2; // Diatonic approximated as whole steps
+  
+  const increment = direction === 'up' ? stepSize : -stepSize;
+  
+  const SEMITONE_TO_NOTE_MAP: Record<number, string> = {
+    0: 'c', 1: 'csharp', 2: 'd', 3: 'eflat', 4: 'e', 5: 'f',
+    6: 'fsharp', 7: 'g', 8: 'aflat', 9: 'a', 10: 'bflat', 11: 'b'
+  };
+  
+  for (let i = 0; i < steps; i++) {
+    currentRoot = ((currentRoot + increment) % 12 + 12) % 12;
+    
+    chords.push({
+      root: SEMITONE_TO_NOTE_MAP[currentRoot] ?? 'c',
+      quality: startChord.quality, // Keep same quality for planing
+      numeral: '?', // Planing doesn't follow functional harmony
+      start: currentTick,
+      duration: ticksPerChord,
+    });
+    
+    currentTick += ticksPerChord;
+  }
+  
+  return chords;
+}

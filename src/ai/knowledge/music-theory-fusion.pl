@@ -174,7 +174,7 @@ microtonality_in_fusion(indian_shruti, equal_temperament, simplified).
 microtonality_in_fusion(indian_shruti, just_intonation, mathematically_close).
 microtonality_in_fusion(indian_shruti, gamaka_simulation, expressive_compromise).
 microtonality_in_fusion(turkish_comma, equal_temperament, westernized).
-microtonality_in_fusion(turkish_comma, 53_tet, close_match).
+microtonality_in_fusion(turkish_comma, tet(53), close_match).
 microtonality_in_fusion(african_equiheptatonic, equal_temperament, near_match).
 microtonality_in_fusion(gamelan_pelog, equal_temperament, significant_loss).
 microtonality_in_fusion(gamelan_slendro, equal_temperament, moderate_loss).
