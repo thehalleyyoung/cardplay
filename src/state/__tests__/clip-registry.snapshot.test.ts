@@ -8,14 +8,15 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ClipRegistry } from '../clip-registry';
-import { createNoteEvent } from '../../types/event';
+import { createClipRegistry, type ClipRegistry } from '../clip-registry';
+import { asEventStreamId } from '../types';
+import { asTick } from '../../types/primitives';
 
 describe('ClipRegistry Snapshot', () => {
   let registry: ClipRegistry;
 
   beforeEach(() => {
-    registry = new ClipRegistry();
+    registry = createClipRegistry();
   });
 
   it('should match snapshot for empty registry', () => {
@@ -28,19 +29,28 @@ describe('ClipRegistry Snapshot', () => {
   });
 
   it('should match snapshot after adding clips', () => {
-    const event1 = createNoteEvent({ start: 0, duration: 480, pitch: 60 });
-    const event2 = createNoteEvent({ start: 480, duration: 480, pitch: 64 });
+    const streamId = asEventStreamId('track-1');
 
-    const clip1 = registry.createClip('track-1', [event1]);
-    const clip2 = registry.createClip('track-1', [event2]);
+    const clip1 = registry.createClip({
+      name: 'Clip 1',
+      streamId,
+      duration: asTick(480),
+    });
+
+    const clip2 = registry.createClip({
+      name: 'Clip 2',
+      streamId,
+      duration: asTick(960),
+    });
 
     const snapshot = {
       clips: registry.getAllClips().map(clip => ({
-        id: clip.id,
-        trackId: clip.trackId,
-        eventCount: clip.events.length,
-        // Note: Not including actual events to keep snapshot stable
-        // across event implementation changes
+        name: clip.name,
+        streamId: clip.streamId,
+        duration: clip.duration,
+        loop: clip.loop,
+        speed: clip.speed,
+        pitchShift: clip.pitchShift,
       })),
       count: registry.getAllClips().length,
     };
@@ -49,18 +59,26 @@ describe('ClipRegistry Snapshot', () => {
   });
 
   it('should match snapshot after modifications', () => {
-    const event1 = createNoteEvent({ start: 0, duration: 480, pitch: 60 });
-    const clip1 = registry.createClip('track-1', [event1]);
+    const streamId = asEventStreamId('track-1');
+    const clip1 = registry.createClip({
+      name: 'Original',
+      streamId,
+      duration: asTick(480),
+    });
 
     // Update clip
-    const event2 = createNoteEvent({ start: 480, duration: 480, pitch: 64 });
-    registry.updateClip(clip1.id, { events: [event1, event2] });
+    registry.updateClip(clip1.id, {
+      name: 'Modified',
+      duration: asTick(960),
+      loop: true,
+    });
 
     const snapshot = {
       clips: registry.getAllClips().map(clip => ({
-        id: clip.id,
-        trackId: clip.trackId,
-        eventCount: clip.events.length,
+        name: clip.name,
+        streamId: clip.streamId,
+        duration: clip.duration,
+        loop: clip.loop,
       })),
       count: registry.getAllClips().length,
     };
@@ -69,15 +87,25 @@ describe('ClipRegistry Snapshot', () => {
   });
 
   it('should match snapshot for clip metadata', () => {
-    const event = createNoteEvent({ start: 0, duration: 480, pitch: 60 });
-    const clip = registry.createClip('track-1', [event]);
+    const streamId = asEventStreamId('track-1');
+    const clip = registry.createClip({
+      name: 'Test Clip',
+      streamId,
+      duration: asTick(480),
+      color: '#ff0000',
+      speed: 1.5,
+      pitchShift: 2,
+    });
 
     const snapshot = {
       clip: {
-        id: clip.id,
-        trackId: clip.trackId,
-        eventCount: clip.events.length,
-        hasMetadata: !!clip.metadata,
+        name: clip.name,
+        streamId: clip.streamId,
+        duration: clip.duration,
+        color: clip.color,
+        speed: clip.speed,
+        pitchShift: clip.pitchShift,
+        loop: clip.loop,
       },
     };
 
@@ -85,10 +113,14 @@ describe('ClipRegistry Snapshot', () => {
   });
 
   it('should have stable clip ID format', () => {
-    const event = createNoteEvent({ start: 0, duration: 480, pitch: 60 });
-    const clip = registry.createClip('track-1', [event]);
+    const streamId = asEventStreamId('track-1');
+    const clip = registry.createClip({
+      name: 'Test',
+      streamId,
+      duration: asTick(480),
+    });
 
     // Clip IDs should follow a stable format
-    expect(clip.id).toMatch(/^clip-\d+-\w+$/);
+    expect(clip.id).toMatch(/^clip_\d+_\w+$/);
   });
 });

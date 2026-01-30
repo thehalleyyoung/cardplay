@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ClipRegistry Snapshot > should match snapshot after adding clips 1`] = `
+{
+  "clips": [
+    {
+      "duration": 480,
+      "loop": false,
+      "name": "Clip 1",
+      "pitchShift": 0,
+      "speed": 1,
+      "streamId": "track-1",
+    },
+    {
+      "duration": 960,
+      "loop": false,
+      "name": "Clip 2",
+      "pitchShift": 0,
+      "speed": 1,
+      "streamId": "track-1",
+    },
+  ],
+  "count": 2,
+}
+`;
+
+exports[`ClipRegistry Snapshot > should match snapshot after modifications 1`] = `
+{
+  "clips": [
+    {
+      "duration": 960,
+      "loop": true,
+      "name": "Modified",
+      "streamId": "track-1",
+    },
+  ],
+  "count": 1,
+}
+`;
+
+exports[`ClipRegistry Snapshot > should match snapshot for clip metadata 1`] = `
+{
+  "clip": {
+    "color": "#ff0000",
+    "duration": 480,
+    "loop": false,
+    "name": "Test Clip",
+    "pitchShift": 2,
+    "speed": 1.5,
+    "streamId": "track-1",
+  },
+}
+`;
+
+exports[`ClipRegistry Snapshot > should match snapshot for empty registry 1`] = `
+{
+  "clips": [],
+  "count": 0,
+}
+`;

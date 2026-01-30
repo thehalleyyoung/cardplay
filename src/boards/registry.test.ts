@@ -69,7 +69,6 @@ describe('BoardRegistry', () => {
       registry.register(mockBoard, { isBuiltin: true });
       expect(registry.get('test-board')).toBe(mockBoard);
     });
-    });
     
     it('should return undefined for unknown board', () => {
       expect(registry.get('unknown-board')).toBeUndefined();

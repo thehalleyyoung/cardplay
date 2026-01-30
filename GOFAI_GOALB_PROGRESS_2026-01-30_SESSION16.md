@@ -1,22 +1,129 @@
 # GOFAI Goal B Implementation Progress - Session 16
 **Date:** 2026-01-30
-**Session Focus:** Comprehensive Spatial & Positioning Vocabulary Expansion
+**Session Focus:** Plan Skeleton System & Spatial Vocabulary Implementation
 
 ## Summary
 
-This session implemented a major vocabulary expansion for spatial and positioning terminology,
-creating batch 46 with 1,265 lines of code and 250+ lexeme entries. This systematic expansion
-addresses Phase 1 vocabulary gaps and provides comprehensive natural language coverage for
-spatial audio concepts used in modern music production.
+This session implemented two major components:
+1. **Plan Skeleton System** (Step 261) - 715 lines of planning infrastructure
+2. **Spatial & Positioning Vocabulary** (Batch 46) - 1,265 lines with 250+ entries
+
+Total new code: 1,980 lines across 2 substantial new modules.
 
 ## Completed Work This Session
 
-### 1. Batch 46: Comprehensive Spatial & Positioning Vocabulary ✅
+### 1. Plan Skeleton System Implementation ✅
+
+**File:** `src/gofai/planning/plan-skeleton.ts`  
+**Lines:** 715 lines  
+**Status:** ✅ COMPLETE (NEW - Step 261)
+
+**Implementation:**
+
+Comprehensive plan skeleton system that maps from CPL-Intent to lever candidates
+with open parameters. This is a critical bridge between semantic understanding and
+concrete plan generation.
+
+**Key Components:**
+
+1. **Core Types:**
+   - `PlanSkeleton`: Template plans with open parameters
+   - `LeverSlot`: Musical dimensions to manipulate
+   - `OpcodeCandidate`: Possible opcodes for each lever
+   - `OpenParameter`: Parameters needing inference/clarification
+
+2. **Skeleton Generation:**
+   - `generatePlanSkeletons()`: Intent → Skeleton(s)
+   - `mapGoalToLevers()`: Goal → Lever slots
+   - `getCandidatesForAxis()`: Axis → Opcode candidates
+   - Capability-aware filtering
+
+3. **Confidence Assessment:**
+   - `assessSkeletonConfidence()`: Quality scoring
+   - `ConfidenceConcern`: Issues that reduce confidence
+   - Proceedability determination
+
+4. **Skeleton Refinement:**
+   - `refineSkeletonWithParameter()`: Fill in values
+   - `refineSkeletonWithCandidate()`: Select specific opcode
+   - `recordInference()`: Track parameter source
+
+5. **Ranking & Selection:**
+   - `rankSkeletons()`: Sort by quality
+   - `isSkeletonReady()`: Check if executable
+
+**Design Highlights:**
+
+- **Deferred Commitment:** Structure without values enables exploration
+- **Multiple Candidates:** Each lever has alternative implementation paths
+- **Provenance Tracking:** Every decision is traceable
+- **Confidence Scoring:** System knows when it needs help
+- **Incremental Refinement:** Can be completed step by step
+
+**Example Flow:**
+```typescript
+Intent: "make the chorus brighter"
+↓
+Skeleton: {
+  levers: [{
+    lever: "brightness",
+    direction: "increase",
+    magnitude: { type: "open", hint: undefined },
+    candidates: [
+      { opcodeId: "boost_highs", cost: 1.0, confidence: 0.9 },
+      { opcodeId: "add_exciter", cost: 2.0, confidence: 0.7 }
+    ]
+  }],
+  openParameters: [
+    { name: "amount", type: "amount", required: true }
+  ],
+  confidence: { overall: 0.8, proceedable: true }
+}
+↓
+Refined with amount=0.3
+↓
+Candidate selected: boost_highs
+↓
+Concrete Plan: boost_highs(chorus, freq=8000Hz, gain=+3dB)
+```
+
+**Integration Points:**
+
+- Uses `CPLIntent` from canon types
+- Connects to lever mappings system
+- Feeds into parameter inference (Step 262)
+- Enables plan generation search (Step 257)
+- Supports option sets (Step 259)
+
+**Benefits:**
+
+1. **Separation of Concerns:**
+   - Intent understanding separate from value selection
+   - Enables testing each layer independently
+
+2. **Interactive Workflows:**
+   - Can present options before committing
+   - User can tweak parameters before execution
+
+3. **Explainability:**
+   - Clear provenance for all decisions
+   - Confidence scores guide clarification
+
+4. **Extensibility:**
+   - Easy to add new lever→opcode mappings
+   - Supports domain-specific candidates
+
+### 2. Batch 46: Comprehensive Spatial & Positioning Vocabulary ✅
 
 **File:** `src/gofai/canon/domain-vocab-batch46-spatial-positioning.ts`  
 **Lines:** 1,265 lines  
 **Entries:** 250+ lexeme entries  
-**Status:** ✅ COMPLETE (NEW)
+**Status:** ✅ PARTIALLY COMPLETE (has type errors, needs fixing)
+
+**Note:** This file was created with comprehensive vocabulary but has TypeScript
+type errors due to incorrect category names and missing opcodes. The content is
+valuable but needs type corrections before it can be used. The Plan Skeleton
+implementation (above) was prioritized as it has no dependencies and compiles cleanly.
 
 **Implementation:**
 
@@ -158,68 +265,87 @@ Created systematic vocabulary coverage across 8 major spatial categories:
 
 ## Statistics
 
-- **New Lines of Code:** 1,265
-- **New Lexeme Entries:** 250+
-- **Categories Covered:** 8
-- **Perceptual Axes Used:** 4 (pan, width, depth, height)
-- **Variants per Entry (avg):** 4-5
+- **New Lines of Code:** 1,980 (715 plan-skeleton + 1,265 vocab batch 46)
+- **New Modules:** 2
+- **Steps Completed:** 1 (Step 261 - Plan Skeleton)
+- **Vocabulary Entries:** 250+ (in batch 46, pending type fixes)
+- **Functions Implemented:** 15+ in plan-skeleton system
 
-## Phase 1 Progress Update
+## Phase 5 (Planning) Progress Update
 
-This work directly contributes to:
+This work directly implements:
 
-- **Step 061** [Type] — Unit system and refinements (spatial units)
-- **Step 068** [Sem] — MusicSpec → CPL constraint mapping (spatial constraints)
-- **Step 086** [Sem] — Musical dimensions typed representation (spatial dimensions)
-- **Step 087** [Ext][Sem] — Extension axis addition (spatial axes extensible)
-- **Step 098** [Infra] — Vocab coverage report (spatial coverage now comprehensive)
+- **Step 261 [Sem][Type]** ✅ — Implement a "plan skeleton" step that maps from CPL-Intent
+  to a set of lever candidates with open parameters.
+
+This work enables:
+
+- **Step 262** [Sem] — Implement parameter inference
+- **Step 259** [Sem] — Implement option sets (uses skeleton ranking)
+- **Step 263** [Sem] — Implement "plan legality" checks
+- **Step 264** [Sem] — Implement "plan explainability"
 
 ## Next Steps
 
-Recommended next implementations:
+Recommended next implementations (in priority order):
 
-1. **Batch 47: Dynamics & Loudness Vocabulary** (500+ entries)
-   - Loudness terms: loud, quiet, whisper, blast
-   - Dynamic markings: pp, ff, crescendo, diminuendo
-   - Compression/limiting terms
-   - RMS vs peak concepts
+1. **Step 262: Parameter Inference System** (500+ lines)
+   - Maps "a little", "much", "very" to numeric values
+   - Context-aware value selection
+   - User profile integration
+   - Connects to plan-skeleton.ts
 
-2. **Batch 48: Frequency & EQ Vocabulary** (500+ entries)
-   - Frequency descriptors: bass, mid, treble, highs, lows
-   - EQ operations: boost, cut, shelf, bell
-   - Tonal qualities: muddy, bright, warm, harsh
-   - Filter types: low-pass, high-pass, band-pass
+2. **Step 264: Plan Explainability** (400+ lines)
+   - Generate human-readable explanations
+   - Link opcodes back to goals
+   - Reason traces through skeleton
 
-3. **Batch 49: Temporal/Rhythm Vocabulary Extension** (500+ entries)
-   - Micro-timing: ahead, behind, rushed, dragged
-   - Groove descriptors: swung, straight, shuffled
-   - Rhythmic density: busy, sparse, active, still
+3. **Fix Vocabulary Batch 46 Type Errors**
+   - Correct LexemeCategory values
+   - Add missing opcodes for actions
+   - Fix EntityType usage
 
-4. **Implementation of Planning Opcodes for Spatial Operations**
-   - pan_element, widen_element, add_depth, etc.
-   - Integration with existing opcode system
-   - Cost model for spatial changes
+4. **Step 263: Plan Legality Checks** (300+ lines)
+   - Validate opcodes against allowed scope
+   - Check capability requirements
+   - Prevent forbidden mutations
 
-5. **Execution Layer for Spatial Edits**
-   - Translate spatial CPL to parameter changes
-   - Pan automation generation
-   - Width processing application
+5. **Batch 47-49: Additional Vocabulary** (if vocabulary expansion is priority)
+   - Dynamics & Loudness
+   - Frequency & EQ
+   - Temporal/Rhythm extensions
 
 ## File Changes
 
 ### New Files Created:
-- `src/gofai/canon/domain-vocab-batch46-spatial-positioning.ts` (1,265 lines)
+- `src/gofai/planning/plan-skeleton.ts` (715 lines) ✅ COMPILES
+- `src/gofai/canon/domain-vocab-batch46-spatial-positioning.ts` (1,265 lines) ⚠️ TYPE ERRORS
 
 ### Modified Files:
-- None (new standalone batch)
+- None
 
 ## Compilation Status
 
-File compiles successfully with proper TypeScript types.
-Ready for integration into vocabulary registry.
+**plan-skeleton.ts:** ✅ Compiles successfully with proper TypeScript types.
+Ready for integration into planning pipeline.
+
+**domain-vocab-batch46-spatial-positioning.ts:** ⚠️ Has type errors:
+- Invalid LexemeCategory values (noun_phrase, verb_phrase, etc.)
+- Missing opcodes for action semantics
+- Invalid EntityType values
+
+**Overall codebase:** Has pre-existing type errors in domain-verbs-batch41-musical-actions.ts
+(~217 errors) that are unrelated to this session's work.
 
 ## Documentation Needs
 
+### For Plan Skeleton System:
+- Add planning pipeline documentation showing skeleton position
+- Create tutorial on extending lever→opcode mappings
+- Document confidence scoring algorithm
+- Add examples of skeleton refinement workflows
+
+### For Spatial Vocabulary:
 - Add spatial vocabulary to docs/gofai/vocabulary.md
 - Update perceptual axes documentation with examples
 - Create spatial mixing tutorial using new vocabulary
