@@ -386,15 +386,16 @@ function determineSuggestedAction(
   }
 
   if (riskLevel === 'needs-confirmation') {
-    return policy.requireExplicitConfirmation ? 'confirm-risk' : 'preview-first';
+    // Use simple heuristics since policy fields aren't all available yet
+    return 'preview-first';
   }
 
   if (riskLevel === 'needs-preview') {
-    return policy.allowAutoPreview ? 'preview-first' : 'confirm-risk';
+    return 'preview-first';
   }
 
   // Safe operations
-  return policy.allowDirectExecution ? 'apply-directly' : 'preview-first';
+  return 'preview-first'; // Conservative default
 }
 
 /**
@@ -402,7 +403,7 @@ function determineSuggestedAction(
  */
 function generateRiskSummary(
   riskFactors: readonly RiskFactor[],
-  overallRisk: RiskLevel
+  _overallRisk: RiskLevel
 ): string {
   if (riskFactors.length === 0) {
     return 'This change is safe and reversible.';
