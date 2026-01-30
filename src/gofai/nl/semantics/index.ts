@@ -59,3 +59,6 @@ export * from './musical-constraints';
 
 // Musical preferences as weighted soft constraints (Step 160)
 export * from './musical-preferences';
+
+// Discourse relations — SDRT-inspired contrast semantics (Step 161)
+export * from './discourse-relations';

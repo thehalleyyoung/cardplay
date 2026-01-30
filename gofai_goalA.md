@@ -130,7 +130,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 158 [Sem] — Add a typed representation for "musical goals" distinct from "actions": goals are desiderata over axes and structures.
 - [x] Step 159 [Sem] — Add a typed representation for "constraints" that can be checked against diffs (preserve melody exact, keep chords functional).
 - [x] Step 160 [Sem] — Add a typed representation for "preferences" (least-change, no-new-layers) as weighted soft constraints.
-- [ ] Step 161 [Sem] — Implement contrast semantics for “but” (SDRT cue): represent as goal+constraint pairing with discourse relation `Contrast`.
+- [x] Step 161 [Sem] — Implement contrast semantics for "but" (SDRT cue): represent as goal+constraint pairing with discourse relation `Contrast`.
 - [ ] Step 162 [Sem] — Implement sequencing semantics for “then/after/before” as plan composition constraints (order in CPL-Plan).
 - [ ] Step 163 [Sem] — Implement “only” semantics: a focus-sensitive operator that restricts the allowed change targets.
 - [ ] Step 164 [Sem] — Implement “still” and “again” semantics as presuppositions about prior states/edits (ties into edit history).
