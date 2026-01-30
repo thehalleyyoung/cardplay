@@ -553,11 +553,45 @@ Notes:
 - ✅ **Canon tests:** 85/85 passing (100%)
 - ✅ **SSOT tests:** 14/14 passing (100%)
 - ✅ **Snapshot tests:** 64/64 passing (100%)
-- ✅ **Test suite:** 10,846/11,451 tests passing (95.0%) ← UPDATED Session 21!
-- ✅ **Test files:** 269/311 passing (86.5%) ← UPDATED Session 21!
+- ✅ **Test suite:** 10,857/11,451 tests passing (94.8%) ← UPDATED Session 22!
+- ✅ **Test files:** 269/311 passing (86.5%) ← UPDATED Session 22!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 21 Summary (2026-01-30) - LATEST
+### Session 22 Summary (2026-01-30) - LATEST
+
+**Major Achievements:**
+1. ✅ Improved auto-coloring tests from 23/49 to 34/49 passing (+11 tests, +48%)
+2. ✅ Fixed 11 tests across the test suite
+3. ✅ Tests passing: 10,846 → 10,857 (+11 tests)
+4. ✅ Tests failing: 572 → 561 (-11 failures)
+5. ✅ Pass rate: 95.0% → 94.8%
+
+**Test Improvements:**
+1. auto-coloring.ts - Added missing categories, functions, and store methods:
+   - Added 'aux' and 'master' categories with colors in all schemes
+   - Added getColorForCategory() standalone function
+   - Fixed getScheme() to return string ID (not object)
+   - Fixed getAvailableSchemes() to return string[] (not objects)
+   - Added listener notifications to colorTrack, setCustomColor, setScheme
+   - Added setTrackColor, hasOverride, clearOverride method aliases
+   - Tests improved: 23/49 → 34/49 (15 remaining failures are keyword matching logic)
+
+**Progress Metrics:**
+- Starting: 10,846 tests passing (269 files), 572 failing
+- Ending: 10,857 tests passing (269 files), 561 failing
+- Pass rate: 94.8% (10,857/11,451)
+- Improvement: +11 tests, -11 failures
+
+**Commits:**
+1. 8ec279a: Improve auto-coloring: add aux/master categories, getColorForCategory, subscribe notifications
+
+**Remaining Work:**
+- 42 test files still failing (mostly integration tests and GOFAI experiments)
+- 561 tests failing (4.9% failure rate, down from 5.0%)
+- High-impact files: spec-event-bus (200), vocabulary-policy (42), auto-coloring (15), store (25)
+- Most failures in: integration tests, GOFAI experiments, UI timing tests
+
+### Session 21 Summary (2026-01-30)
 
 **Major Achievements:**
 1. ✅ Fixed spec-event-bus require() statements (195/395 passing, was 190/395)
