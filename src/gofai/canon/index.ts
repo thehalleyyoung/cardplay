@@ -60,6 +60,9 @@ export * from './constraint-types';
 // Effect taxonomy (inspect, propose, mutate)
 export * from './effect-taxonomy';
 
+// Goals, constraints, and preferences model
+export * from './goals-constraints-preferences';
+
 // Normalization utilities (from normalize.ts, not re-exported from vocabularies)
 export {
   normalizeSectionName,
@@ -88,3 +91,38 @@ export {
 
 // Semantic safety invariants
 export * from './semantic-safety';
+
+// Domain nouns vocabulary (musical terminology)
+export {
+  ALL_DOMAIN_NOUNS,
+  DOMAIN_NOUNS_TABLE,
+  DOMAIN_NOUNS_BATCH_1,
+  getDomainNounById,
+  getDomainNounByTerm,
+  getDomainNounsByCategory,
+  getDomainNounsByTradition,
+  searchDomainNouns,
+  getAllCategories,
+  getAllTraditions,
+  getDomainNounStats,
+  type DomainNoun,
+  type DomainNounCategory,
+  type DomainNounSemantics,
+} from './domain-nouns';
+
+// Musical object ontology
+export {
+  ALL_MUSICAL_OBJECTS,
+  MUSICAL_OBJECTS_TABLE,
+  getMusicalObjectById,
+  getMusicalObjectsByDomain,
+  getMusicalObjectsByType,
+  getMusicalObjectsByTradition,
+  getChildObjects,
+  isAbstract,
+  getOntologyPath,
+  getOntologyStats,
+  type MusicalObject,
+  type OntologicalDomain,
+  type OntologicalType,
+} from './musical-ontology';

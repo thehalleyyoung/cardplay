@@ -630,12 +630,15 @@ function invertDiffEntry(entry: DiffEntry): DiffEntry {
       return {
         type: 'event',
         diff: {
-          ...d,
+          eventId: d.eventId,
+          eventKind: d.eventKind,
+          layerId: d.layerId,
+          tick: d.tick,
           kind: invertedKind,
           before: d.after,
           after: d.before,
           description: `Undo: ${d.description}`,
-        },
+        } as EventDiff,
       };
     }
     case 'param': {
@@ -657,12 +660,14 @@ function invertDiffEntry(entry: DiffEntry): DiffEntry {
       return {
         type: 'structure',
         diff: {
-          ...d,
           kind: invertedKind,
+          entityType: d.entityType,
+          entityId: d.entityId,
+          entityName: d.entityName,
           from: d.to,
           to: d.from,
           description: `Undo: ${d.description}`,
-        },
+        } as StructureDiff,
       };
     }
   }

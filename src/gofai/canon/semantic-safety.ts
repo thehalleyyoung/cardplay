@@ -678,6 +678,883 @@ export const EFFECT_TYPING_INVARIANT: SemanticInvariant<
 };
 
 // =============================================================================
+// Determinism Invariant (Step 002)
+// =============================================================================
+
+/**
+ * Context for determinism checks.
+ */
+export interface DeterminismContext {
+  /** The operation being checked */
+  readonly operationId: string;
+
+  /** Input to the operation */
+  readonly input: unknown;
+
+  /** First execution result fingerprint */
+  readonly result1Fingerprint: string;
+
+  /** Second execution result fingerprint */
+  readonly result2Fingerprint: string;
+
+  /** Whether the operation uses Date.now() or Math.random() */
+  readonly usesNondeterministicApis: boolean;
+
+  /** Nondeterministic API calls detected */
+  readonly detectedApis?: readonly string[];
+}
+
+/**
+ * Evidence of a determinism violation.
+ */
+export interface DeterminismViolationEvidence {
+  /** The operation that is nondeterministic */
+  readonly operationId: string;
+
+  /** The two different result fingerprints */
+  readonly fingerprints: readonly [string, string];
+
+  /** Which nondeterministic APIs were used */
+  readonly nondeterministicApis: readonly string[];
+}
+
+/**
+ * Invariant: Same input + same state = same output, always.
+ *
+ * ∀ operation O, input I, state S:
+ *   O(I, S) === O(I, S)
+ *   AND O uses no nondeterministic APIs (Date.now, Math.random, network)
+ */
+export const DETERMINISM_INVARIANT: SemanticInvariant<
+  DeterminismContext,
+  DeterminismViolationEvidence
+> = {
+  id: 'determinism',
+  name: 'Determinism',
+  statement:
+    'Every operation must produce identical output given identical input and state. ' +
+    'No operation may use Date.now(), Math.random(), or network calls in the semantics/planning path.',
+  priority: 'P0',
+  requiredTests: ['unit', 'property', 'golden'],
+
+  check: (context) => {
+    // Check for nondeterministic API usage
+    if (context.usesNondeterministicApis) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'determinism',
+          evidence: {
+            operationId: context.operationId,
+            fingerprints: [context.result1Fingerprint, context.result2Fingerprint],
+            nondeterministicApis: context.detectedApis ?? [],
+          },
+          message: `Operation '${context.operationId}' uses nondeterministic APIs: ${(context.detectedApis ?? []).join(', ')}`,
+          suggestions: [
+            'Replace Date.now() with timestamps passed via execution metadata',
+            'Replace Math.random() with deterministic seed-based alternatives',
+            'Remove network calls from the semantics/planning path',
+            'Isolate timestamps to execution metadata only',
+          ],
+          severity: 'error',
+        },
+      };
+    }
+
+    // Check that repeated execution produces identical results
+    if (context.result1Fingerprint !== context.result2Fingerprint) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'determinism',
+          evidence: {
+            operationId: context.operationId,
+            fingerprints: [context.result1Fingerprint, context.result2Fingerprint],
+            nondeterministicApis: [],
+          },
+          message: `Operation '${context.operationId}' produced different results on repeated execution`,
+          suggestions: [
+            'Check for hidden mutable state affecting output',
+            'Ensure Map/Set iteration order is stable',
+            'Use deterministic sorting for all collections',
+            'Check for closure-captured mutable variables',
+          ],
+          severity: 'error',
+        },
+      };
+    }
+
+    return { ok: true };
+  },
+
+  docLink: 'docs/gofai/semantic-safety-invariants.md#determinism',
+};
+
+// =============================================================================
+// Undoability Invariant (Step 002)
+// =============================================================================
+
+/**
+ * Context for undoability checks.
+ */
+export interface UndoabilityContext {
+  /** The operation being checked */
+  readonly operationId: string;
+
+  /** Whether the operation produces an undo token */
+  readonly producesUndoToken: boolean;
+
+  /** Whether the undo token is valid (can actually reverse the operation) */
+  readonly undoTokenValid: boolean;
+
+  /** State fingerprint before the operation */
+  readonly stateBefore: string;
+
+  /** State fingerprint after the operation */
+  readonly stateAfter: string;
+
+  /** State fingerprint after undo */
+  readonly stateAfterUndo?: string;
+
+  /** Whether undo restores original state exactly */
+  readonly undoRestoresState: boolean;
+}
+
+/**
+ * Evidence of an undoability violation.
+ */
+export interface UndoabilityViolationEvidence {
+  /** The operation that cannot be undone */
+  readonly operationId: string;
+
+  /** Whether undo token was missing or invalid */
+  readonly tokenIssue: 'missing' | 'invalid' | 'incomplete_restore';
+
+  /** State fingerprints for diagnosis */
+  readonly stateFingerprints: {
+    readonly before: string;
+    readonly after: string;
+    readonly afterUndo: string | undefined;
+  };
+}
+
+/**
+ * Invariant: Every mutation is reversible via undo token.
+ *
+ * ∀ mutation M:
+ *   ∃ undo token T such that:
+ *     apply(M) produces T
+ *     AND apply(T) restores state exactly
+ */
+export const UNDOABILITY_INVARIANT: SemanticInvariant<
+  UndoabilityContext,
+  UndoabilityViolationEvidence
+> = {
+  id: 'undoability',
+  name: 'Undoability',
+  statement:
+    'Every mutation must produce a valid undo token. Applying the undo token must restore ' +
+    'the project state to its exact pre-mutation fingerprint.',
+  priority: 'P0',
+  requiredTests: ['unit', 'property', 'golden', 'fuzzing'],
+
+  check: (context) => {
+    if (!context.producesUndoToken) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'undoability',
+          evidence: {
+            operationId: context.operationId,
+            tokenIssue: 'missing',
+            stateFingerprints: {
+              before: context.stateBefore,
+              after: context.stateAfter,
+              afterUndo: undefined,
+            },
+          },
+          message: `Operation '${context.operationId}' does not produce an undo token`,
+          suggestions: [
+            'Return an UndoToken from the apply function',
+            'Capture before-state snapshot for undo',
+            'Use transactional execution to enable automatic undo',
+          ],
+          severity: 'error',
+        },
+      };
+    }
+
+    if (!context.undoTokenValid) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'undoability',
+          evidence: {
+            operationId: context.operationId,
+            tokenIssue: 'invalid',
+            stateFingerprints: {
+              before: context.stateBefore,
+              after: context.stateAfter,
+              afterUndo: undefined,
+            },
+          },
+          message: `Operation '${context.operationId}' produces an invalid undo token`,
+          suggestions: [
+            'Verify the undo token captures all changed state',
+            'Ensure the undo operation is the exact inverse',
+            'Test with property-based roundtrip checks',
+          ],
+          severity: 'error',
+        },
+      };
+    }
+
+    if (!context.undoRestoresState) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'undoability',
+          evidence: {
+            operationId: context.operationId,
+            tokenIssue: 'incomplete_restore',
+            stateFingerprints: {
+              before: context.stateBefore,
+              after: context.stateAfter,
+              afterUndo: context.stateAfterUndo,
+            },
+          },
+          message: `Operation '${context.operationId}' undo does not restore original state`,
+          suggestions: [
+            'Compare state fingerprints before and after undo',
+            'Check for state leaked outside the undo scope',
+            'Ensure all side effects are captured in the undo token',
+          ],
+          severity: 'error',
+        },
+      };
+    }
+
+    return { ok: true };
+  },
+
+  docLink: 'docs/gofai/semantic-safety-invariants.md#undoability',
+};
+
+// =============================================================================
+// Scope Visibility Invariant (Step 002)
+// =============================================================================
+
+/**
+ * Context for scope visibility checks.
+ */
+export interface ScopeVisibilityContext {
+  /** The operation being checked */
+  readonly operationId: string;
+
+  /** The declared scope of the operation */
+  readonly declaredScope: ScopeDescriptor;
+
+  /** Entities actually affected by the operation */
+  readonly affectedEntities: readonly string[];
+
+  /** Entities that should have been in scope but weren't */
+  readonly outOfScopeEffects: readonly string[];
+
+  /** Whether the scope was communicated to the user */
+  readonly scopeDisplayed: boolean;
+}
+
+/**
+ * Descriptor for an operation's scope.
+ */
+export interface ScopeDescriptor {
+  /** Scope type */
+  readonly type: 'section' | 'layer' | 'global' | 'selection' | 'card';
+
+  /** Human-readable description */
+  readonly description: string;
+
+  /** Entity IDs included in scope */
+  readonly includedEntities: readonly string[];
+}
+
+/**
+ * Evidence of scope visibility violation.
+ */
+export interface ScopeVisibilityEvidence {
+  /** The operation with scope issues */
+  readonly operationId: string;
+
+  /** Entities affected outside declared scope */
+  readonly outOfScopeEntities: readonly string[];
+
+  /** Whether scope was hidden from user */
+  readonly scopeHidden: boolean;
+}
+
+/**
+ * Invariant: Operations must not affect entities outside their declared scope,
+ * and scope must always be visible to the user.
+ *
+ * ∀ operation O with scope S:
+ *   affected(O) ⊆ entities(S)
+ *   AND S is displayed to user
+ */
+export const SCOPE_VISIBILITY_INVARIANT: SemanticInvariant<
+  ScopeVisibilityContext,
+  ScopeVisibilityEvidence
+> = {
+  id: 'scope-visibility',
+  name: 'Scope Visibility',
+  statement:
+    'Every operation must declare its scope, the scope must be visible to the user, ' +
+    'and no operation may affect entities outside its declared scope.',
+  priority: 'P1',
+  requiredTests: ['unit', 'property', 'golden'],
+
+  check: (context) => {
+    if (context.outOfScopeEffects.length > 0) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'scope-visibility',
+          evidence: {
+            operationId: context.operationId,
+            outOfScopeEntities: context.outOfScopeEffects,
+            scopeHidden: !context.scopeDisplayed,
+          },
+          message: `Operation '${context.operationId}' affected ${context.outOfScopeEffects.length} entities outside its declared scope`,
+          suggestions: [
+            'Widen the declared scope to include all affected entities',
+            'Add scope constraints to prevent out-of-scope effects',
+            'Split the operation into per-scope sub-operations',
+          ],
+          severity: 'error',
+        },
+      };
+    }
+
+    if (!context.scopeDisplayed) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'scope-visibility',
+          evidence: {
+            operationId: context.operationId,
+            outOfScopeEntities: [],
+            scopeHidden: true,
+          },
+          message: `Operation '${context.operationId}' does not display its scope to the user`,
+          suggestions: [
+            'Add scope highlighting in the UI',
+            'Include scope description in the plan preview',
+            'Show affected bar ranges and layers',
+          ],
+          severity: 'warning',
+        },
+      };
+    }
+
+    return { ok: true };
+  },
+
+  docLink: 'docs/gofai/semantic-safety-invariants.md#scope-visibility',
+};
+
+// =============================================================================
+// Plan Explainability Invariant (Step 002)
+// =============================================================================
+
+/**
+ * Context for plan explainability checks.
+ */
+export interface PlanExplainabilityContext {
+  /** The plan being checked */
+  readonly planId: string;
+
+  /** Goals in the request */
+  readonly goals: readonly string[];
+
+  /** Plan steps */
+  readonly planSteps: readonly PlanStepExplanation[];
+
+  /** Whether every goal is linked to at least one step */
+  readonly allGoalsCovered: boolean;
+
+  /** Whether every step has a reason */
+  readonly allStepsExplained: boolean;
+}
+
+/**
+ * A plan step with its explanation link.
+ */
+export interface PlanStepExplanation {
+  /** Step identifier */
+  readonly stepId: string;
+
+  /** Which goal(s) this step serves */
+  readonly servesGoals: readonly string[];
+
+  /** Human-readable reason */
+  readonly reason: string;
+
+  /** Whether the step has a clear reason */
+  readonly hasReason: boolean;
+}
+
+/**
+ * Evidence of plan explainability violation.
+ */
+export interface PlanExplainabilityEvidence {
+  /** Plan with explainability issues */
+  readonly planId: string;
+
+  /** Goals not covered by any step */
+  readonly uncoveredGoals: readonly string[];
+
+  /** Steps without reasons */
+  readonly unexplainedSteps: readonly string[];
+}
+
+/**
+ * Invariant: Every plan must be explainable — each step linked to a goal
+ * with a human-readable reason.
+ *
+ * ∀ plan P:
+ *   ∀ goal G in P: ∃ step S such that S.servesGoals includes G
+ *   AND ∀ step S in P: S.reason is non-empty
+ */
+export const PLAN_EXPLAINABILITY_INVARIANT: SemanticInvariant<
+  PlanExplainabilityContext,
+  PlanExplainabilityEvidence
+> = {
+  id: 'plan-explainability',
+  name: 'Plan Explainability',
+  statement:
+    'Every plan step must link to at least one goal it serves, and every goal ' +
+    'must be addressed by at least one plan step. Each step must carry a human-readable reason.',
+  priority: 'P1',
+  requiredTests: ['unit', 'golden'],
+
+  check: (context) => {
+    const coveredGoals = new Set<string>();
+    const unexplainedSteps: string[] = [];
+
+    for (const step of context.planSteps) {
+      for (const goalId of step.servesGoals) {
+        coveredGoals.add(goalId);
+      }
+      if (!step.hasReason || step.reason.trim() === '') {
+        unexplainedSteps.push(step.stepId);
+      }
+    }
+
+    const uncoveredGoals = context.goals.filter(g => !coveredGoals.has(g));
+
+    if (uncoveredGoals.length > 0 || unexplainedSteps.length > 0) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'plan-explainability',
+          evidence: {
+            planId: context.planId,
+            uncoveredGoals,
+            unexplainedSteps,
+          },
+          message: uncoveredGoals.length > 0
+            ? `Plan has ${uncoveredGoals.length} goal(s) not addressed by any step`
+            : `Plan has ${unexplainedSteps.length} step(s) without reasons`,
+          suggestions: [
+            ...(uncoveredGoals.length > 0
+              ? ['Add plan steps to address uncovered goals', 'Report uncovered goals as unsatisfiable']
+              : []),
+            ...(unexplainedSteps.length > 0
+              ? ['Add reason strings to all plan steps', 'Link steps to the goals they serve']
+              : []),
+          ],
+          severity: uncoveredGoals.length > 0 ? 'error' : 'warning',
+        },
+      };
+    }
+
+    return { ok: true };
+  },
+
+  docLink: 'docs/gofai/semantic-safety-invariants.md#plan-explainability',
+};
+
+// =============================================================================
+// Constraint Compatibility Invariant (Step 002)
+// =============================================================================
+
+/**
+ * Context for constraint compatibility checks.
+ */
+export interface ConstraintCompatibilityContext {
+  /** All constraints in the request */
+  readonly constraints: readonly ConstraintPair[];
+
+  /** Whether any pair is incompatible */
+  readonly hasIncompatiblePair: boolean;
+
+  /** The incompatible pairs (if any) */
+  readonly incompatiblePairs: readonly ConstraintConflict[];
+}
+
+/**
+ * A pair of constraints for compatibility checking.
+ */
+export interface ConstraintPair {
+  /** Constraint identifier */
+  readonly id: string;
+
+  /** Constraint type */
+  readonly type: string;
+
+  /** Human-readable description */
+  readonly description: string;
+}
+
+/**
+ * A conflict between two constraints.
+ */
+export interface ConstraintConflict {
+  /** First constraint */
+  readonly constraint1: string;
+
+  /** Second constraint */
+  readonly constraint2: string;
+
+  /** Why they conflict */
+  readonly reason: string;
+
+  /** Suggested resolution */
+  readonly resolution: string;
+}
+
+/**
+ * Evidence of constraint compatibility violation.
+ */
+export interface ConstraintCompatibilityEvidence {
+  /** Number of conflicts */
+  readonly conflictCount: number;
+
+  /** The conflicts */
+  readonly conflicts: readonly ConstraintConflict[];
+}
+
+/**
+ * Invariant: All constraints in a request must be mutually compatible.
+ * Incompatible constraints must be reported before planning.
+ *
+ * ∀ constraint set C:
+ *   ∀ c1, c2 ∈ C: compatible(c1, c2)
+ *   OR report conflict with suggested resolution
+ */
+export const CONSTRAINT_COMPATIBILITY_INVARIANT: SemanticInvariant<
+  ConstraintCompatibilityContext,
+  ConstraintCompatibilityEvidence
+> = {
+  id: 'constraint-compatibility',
+  name: 'Constraint Compatibility',
+  statement:
+    'All constraints in a request must be mutually satisfiable. Incompatible constraints ' +
+    'must be detected and reported before planning begins, with suggested resolutions.',
+  priority: 'P1',
+  requiredTests: ['unit', 'property'],
+
+  check: (context) => {
+    if (context.hasIncompatiblePair && context.incompatiblePairs.length > 0) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'constraint-compatibility',
+          evidence: {
+            conflictCount: context.incompatiblePairs.length,
+            conflicts: context.incompatiblePairs,
+          },
+          message: `${context.incompatiblePairs.length} constraint conflict(s) detected`,
+          suggestions: context.incompatiblePairs.map(p => p.resolution),
+          severity: 'error',
+        },
+      };
+    }
+
+    return { ok: true };
+  },
+
+  docLink: 'docs/gofai/semantic-safety-invariants.md#constraint-compatibility',
+};
+
+// =============================================================================
+// Presupposition Verification Invariant (Step 002)
+// =============================================================================
+
+/**
+ * Context for presupposition verification checks.
+ */
+export interface PresuppositionVerificationContext {
+  /** The utterance being checked */
+  readonly utterance: string;
+
+  /** Presuppositions detected */
+  readonly presuppositions: readonly PresuppositionCheck[];
+
+  /** Whether all presuppositions are satisfied */
+  readonly allSatisfied: boolean;
+}
+
+/**
+ * A presupposition and its verification status.
+ */
+export interface PresuppositionCheck {
+  /** What is presupposed */
+  readonly description: string;
+
+  /** The triggering expression */
+  readonly trigger: string;
+
+  /** Whether the presupposition holds in the current project state */
+  readonly satisfied: boolean;
+
+  /** Why it fails (if unsatisfied) */
+  readonly failureReason?: string;
+
+  /** Type of presupposition */
+  readonly type: PresuppositionType;
+}
+
+/**
+ * Types of presupposition.
+ */
+export type PresuppositionType =
+  | 'existential'    // "the chorus" presupposes a chorus exists
+  | 'factive'        // "I like how the melody goes" presupposes a melody exists
+  | 'aspectual'      // "stop the drums" presupposes drums are playing
+  | 'iterative'      // "do it again" presupposes a previous action
+  | 'change_of_state' // "make it brighter" presupposes it has brightness
+  | 'temporal';      // "before the drop" presupposes a drop exists
+
+/**
+ * Evidence of presupposition verification violation.
+ */
+export interface PresuppositionViolationEvidence {
+  /** The utterance */
+  readonly utterance: string;
+
+  /** Failed presuppositions */
+  readonly failedPresuppositions: readonly PresuppositionCheck[];
+}
+
+/**
+ * Invariant: All presuppositions in an utterance must be verified against
+ * the current project state before proceeding.
+ *
+ * ∀ utterance U with presuppositions P1..Pn:
+ *   ∀ Pi: verify(Pi, projectState) OR fail with explanation
+ */
+export const PRESUPPOSITION_VERIFICATION_INVARIANT: SemanticInvariant<
+  PresuppositionVerificationContext,
+  PresuppositionViolationEvidence
+> = {
+  id: 'presupposition-verification',
+  name: 'Presupposition Verification',
+  statement:
+    'All presuppositions in an utterance must be verified against the project state. ' +
+    'Failed presuppositions must produce clear error messages explaining what is missing.',
+  priority: 'P1',
+  requiredTests: ['unit', 'golden'],
+
+  check: (context) => {
+    const failed = context.presuppositions.filter(p => !p.satisfied);
+
+    if (failed.length > 0) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'presupposition-verification',
+          evidence: {
+            utterance: context.utterance,
+            failedPresuppositions: failed,
+          },
+          message: `${failed.length} presupposition(s) failed: ${failed.map(p => p.description).join('; ')}`,
+          suggestions: failed.map(p =>
+            p.failureReason ?? `Verify that ${p.description}`
+          ),
+          severity: 'error',
+        },
+      };
+    }
+
+    return { ok: true };
+  },
+
+  docLink: 'docs/gofai/semantic-safety-invariants.md#presupposition-verification',
+};
+
+// =============================================================================
+// Extension Isolation Invariant (Step 002)
+// =============================================================================
+
+/**
+ * Context for extension isolation checks.
+ */
+export interface ExtensionIsolationContext {
+  /** The extension being checked */
+  readonly extensionId: string;
+
+  /** Extension namespace */
+  readonly namespace: string;
+
+  /** Whether the extension attempts to mutate core state directly */
+  readonly attemptsCoreStateMutation: boolean;
+
+  /** Whether the extension uses namespaced IDs */
+  readonly usesNamespacedIds: boolean;
+
+  /** IDs contributed by the extension */
+  readonly contributedIds: readonly string[];
+
+  /** IDs that conflict with core or other extensions */
+  readonly conflictingIds: readonly string[];
+
+  /** Whether the extension's Prolog module uses namespaced predicates */
+  readonly prologNamespaced: boolean;
+
+  /** Whether execution hooks are gated by trust level */
+  readonly executionGated: boolean;
+}
+
+/**
+ * Evidence of extension isolation violation.
+ */
+export interface ExtensionIsolationEvidence {
+  /** The offending extension */
+  readonly extensionId: string;
+
+  /** The namespace */
+  readonly namespace: string;
+
+  /** Specific violations */
+  readonly violations: readonly ExtensionIsolationViolationType[];
+}
+
+/**
+ * Types of extension isolation violation.
+ */
+export type ExtensionIsolationViolationType =
+  | { readonly type: 'core_mutation'; readonly description: string }
+  | { readonly type: 'non_namespaced_id'; readonly ids: readonly string[] }
+  | { readonly type: 'id_conflict'; readonly conflictingIds: readonly string[] }
+  | { readonly type: 'prolog_not_namespaced'; readonly predicates: readonly string[] }
+  | { readonly type: 'ungated_execution'; readonly operations: readonly string[] };
+
+/**
+ * Invariant: Extensions must be fully isolated from core and from each other.
+ * All extension contributions must be namespaced, execution must be gated,
+ * and extensions must never directly mutate core state.
+ *
+ * ∀ extension E:
+ *   E cannot mutate core state directly
+ *   AND all E's IDs are namespaced
+ *   AND E's Prolog predicates are namespaced
+ *   AND E's execution hooks are gated by trust level
+ */
+export const EXTENSION_ISOLATION_INVARIANT: SemanticInvariant<
+  ExtensionIsolationContext,
+  ExtensionIsolationEvidence
+> = {
+  id: 'extension-isolation',
+  name: 'Extension Isolation',
+  statement:
+    'Extensions must be fully isolated: namespaced IDs, no direct core state mutation, ' +
+    'namespaced Prolog predicates, and execution gated by trust level.',
+  priority: 'P0',
+  requiredTests: ['unit', 'property', 'integration'],
+
+  check: (context) => {
+    const violations: ExtensionIsolationViolationType[] = [];
+
+    if (context.attemptsCoreStateMutation) {
+      violations.push({
+        type: 'core_mutation',
+        description: `Extension '${context.extensionId}' attempts to mutate core state directly`,
+      });
+    }
+
+    if (!context.usesNamespacedIds) {
+      const nonNamespaced = context.contributedIds.filter(
+        id => !id.startsWith(`${context.namespace}:`)
+      );
+      if (nonNamespaced.length > 0) {
+        violations.push({
+          type: 'non_namespaced_id',
+          ids: nonNamespaced,
+        });
+      }
+    }
+
+    if (context.conflictingIds.length > 0) {
+      violations.push({
+        type: 'id_conflict',
+        conflictingIds: context.conflictingIds,
+      });
+    }
+
+    if (!context.prologNamespaced) {
+      violations.push({
+        type: 'prolog_not_namespaced',
+        predicates: [],
+      });
+    }
+
+    if (!context.executionGated) {
+      violations.push({
+        type: 'ungated_execution',
+        operations: [],
+      });
+    }
+
+    if (violations.length > 0) {
+      return {
+        ok: false,
+        violation: {
+          invariantId: 'extension-isolation',
+          evidence: {
+            extensionId: context.extensionId,
+            namespace: context.namespace,
+            violations,
+          },
+          message: `Extension '${context.extensionId}' has ${violations.length} isolation violation(s)`,
+          suggestions: [
+            ...(context.attemptsCoreStateMutation
+              ? ['Return pure patch proposals instead of mutating core state directly']
+              : []),
+            ...(!context.usesNamespacedIds
+              ? [`Prefix all IDs with '${context.namespace}:'`]
+              : []),
+            ...(context.conflictingIds.length > 0
+              ? ['Rename conflicting IDs to avoid collisions']
+              : []),
+            ...(!context.prologNamespaced
+              ? ['Use namespaced module names for Prolog predicates']
+              : []),
+            ...(!context.executionGated
+              ? ['Gate execution hooks behind trust-level checks']
+              : []),
+          ],
+          severity: 'error',
+        },
+      };
+    }
+
+    return { ok: true };
+  },
+
+  docLink: 'docs/gofai/semantic-safety-invariants.md#extension-isolation',
+};
+
+// =============================================================================
 // Invariant Registry
 // =============================================================================
 
@@ -690,7 +1567,13 @@ export const CORE_SEMANTIC_INVARIANTS: readonly SemanticInvariant<unknown, unkno
   CONSTRAINT_PRESERVATION_INVARIANT as SemanticInvariant<unknown, unknown>,
   REFERENT_RESOLUTION_COMPLETENESS as SemanticInvariant<unknown, unknown>,
   EFFECT_TYPING_INVARIANT as SemanticInvariant<unknown, unknown>,
-  // More invariants will be added in subsequent steps
+  DETERMINISM_INVARIANT as SemanticInvariant<unknown, unknown>,
+  UNDOABILITY_INVARIANT as SemanticInvariant<unknown, unknown>,
+  SCOPE_VISIBILITY_INVARIANT as SemanticInvariant<unknown, unknown>,
+  PLAN_EXPLAINABILITY_INVARIANT as SemanticInvariant<unknown, unknown>,
+  CONSTRAINT_COMPATIBILITY_INVARIANT as SemanticInvariant<unknown, unknown>,
+  PRESUPPOSITION_VERIFICATION_INVARIANT as SemanticInvariant<unknown, unknown>,
+  EXTENSION_ISOLATION_INVARIANT as SemanticInvariant<unknown, unknown>,
 ];
 
 /**

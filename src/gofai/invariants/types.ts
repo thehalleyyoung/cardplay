@@ -359,7 +359,9 @@ export function constraintViolated(
   reason: string,
   details?: Record<string, unknown>
 ): ConstraintVerificationResult {
-  return { satisfied: false, reason, details };
+  return details !== undefined 
+    ? { satisfied: false, reason, details }
+    : { satisfied: false, reason };
 }
 
 // =============================================================================

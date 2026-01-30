@@ -115,7 +115,10 @@ function extractRhythmSignature(notes: readonly NoteEvent[]): string {
 
   if (sorted.length < 2) return '';
 
-  const firstStart = sorted[0].startTick;
+  const firstNote = sorted[0];
+  if (!firstNote) return '';
+  
+  const firstStart = firstNote.startTick;
   const relativeOnsets = sorted.map((n) => n.startTick - firstStart);
 
   // Normalize to beat fractions
@@ -228,7 +231,10 @@ function extractDrumPatternSignature(layers: readonly LayerSnapshot[]): string {
 
   if (sorted.length === 0) return '';
 
-  const firstTick = sorted[0].startTick;
+  const firstNote = sorted[0];
+  if (!firstNote) return '';
+  
+  const firstTick = firstNote.startTick;
   const pattern = sorted.map((n) => `${n.startTick - firstTick}:${n.pitch}`);
 
   return pattern.join(',');

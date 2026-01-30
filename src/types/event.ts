@@ -261,3 +261,118 @@ export function eventIdEquals<P>(a: Event<P>, b: Event<P>): boolean {
 export function eventPositionEquals<P>(a: Event<P>, b: Event<P>): boolean {
   return a.start === b.start && a.duration === b.duration;
 }
+
+// ============================================================================
+// LEGACY NORMALIZATION
+// ============================================================================
+
+/**
+ * Legacy event shape (uses `type`, `tick`, etc.)
+ * Change 075: Define legacy shape for ingestion.
+ */
+export interface LegacyEventShape<P> {
+  id?: string;
+  type?: string;
+  kind?: EventKind;
+  tick?: number;
+  startTick?: number;
+  start?: number;
+  durationTick?: number;
+  duration?: number;
+  payload?: P;
+  triggers?: readonly Trigger<P>[];
+  automation?: readonly Lane<Control>[];
+  tags?: Iterable<string> | Set<string>;
+  meta?: EventMeta;
+}
+
+/**
+ * Normalizes a legacy event shape to the canonical Event format.
+ * 
+ * Change 075: Add normalizeEvent() for ingesting legacy shapes.
+ * 
+ * Maps legacy field names to canonical ones:
+ * - `type` → `kind`
+ * - `tick` → `start`
+ * - `startTick` → `start`
+ * - `durationTick` → `duration`
+ * 
+ * @param legacy Legacy event shape to normalize
+ * @returns Canonical Event<P>
+ * 
+ * @example
+ * ```ts
+ * // Legacy shape from older serialization
+ * const legacyNote = {
+ *   id: 'note-1',
+ *   type: 'note',
+ *   tick: 480,
+ *   durationTick: 240,
+ *   payload: { pitch: 60, velocity: 100 }
+ * };
+ * 
+ * // Normalize to canonical shape
+ * const canonicalNote = normalizeEvent(legacyNote);
+ * // { id: 'note-1', kind: 'note', start: 480, duration: 240, payload: { ... } }
+ * ```
+ */
+export function normalizeEvent<P>(legacy: LegacyEventShape<P>): Event<P> {
+  // Determine kind: prefer `kind`, fall back to `type`
+  const kind = (legacy.kind ?? legacy.type ?? 'unknown') as EventKind;
+  
+  // Determine start: prefer `start`, fall back to `tick` or `startTick`
+  const start = legacy.start ?? legacy.tick ?? legacy.startTick ?? 0;
+  
+  // Determine duration: prefer `duration`, fall back to `durationTick`
+  const duration = legacy.duration ?? legacy.durationTick ?? 0;
+  
+  // Payload is required
+  if (legacy.payload === undefined) {
+    throw new Error('normalizeEvent: payload is required');
+  }
+  
+  return createEvent({
+    id: legacy.id as EventId | undefined,
+    kind,
+    start,
+    duration,
+    payload: legacy.payload,
+    triggers: legacy.triggers,
+    automation: legacy.automation,
+    tags: legacy.tags,
+    meta: legacy.meta,
+  });
+}
+
+/**
+ * Checks if a value looks like a legacy event shape.
+ * 
+ * @param value Value to check
+ * @returns true if value has legacy field names (type, tick, etc.)
+ */
+export function isLegacyEventShape(value: unknown): value is LegacyEventShape<unknown> {
+  if (value === null || typeof value !== 'object') return false;
+  const obj = value as Record<string, unknown>;
+  
+  // Has legacy-only field names
+  const hasLegacyFields = 'type' in obj || 'tick' in obj || 
+                          'startTick' in obj || 'durationTick' in obj;
+  
+  // Has required payload
+  const hasPayload = 'payload' in obj;
+  
+  return hasLegacyFields && hasPayload;
+}
+
+/**
+ * Normalizes a value that may be either a legacy or canonical event.
+ * 
+ * @param value Event or legacy event shape
+ * @returns Canonical Event<P>
+ */
+export function ensureCanonicalEvent<P>(value: Event<P> | LegacyEventShape<P>): Event<P> {
+  if (isEvent(value)) {
+    return value;
+  }
+  return normalizeEvent(value as LegacyEventShape<P>);
+}

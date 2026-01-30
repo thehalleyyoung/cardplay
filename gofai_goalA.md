@@ -49,8 +49,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 072 [Prag] — Encode deictic resolution rules (“this section”, “these notes”) and require a UI selection context for them.
 - [ ] Step 074 [Sem] — Specify how event-level references surface in language (“the last note”, “the downbeats”, “every other bar”).
 - [ ] Step 075 [HCI] — Add UI copy guidelines for showing entity bindings (“‘that chorus’ → Chorus 2 (bars 49–65)”).
-- [ ] Step 076 [Infra] — Create a canonical “domain noun inventory” (bars, hook, motif, voicing, groove, drop, build) with definitions and examples.  Note that it should include nouns from as many music theories and traditions as possible.
-- [ ] Step 077 [Sem] — Define a “musical object ontology” that distinguishes structure, harmony, rhythm, timbre/production, performance.  Note that it should include ontological objects from as many music theories and traditions as possible.
+- [x] Step 076 [Infra] — Create a canonical “domain noun inventory” (bars, hook, motif, voicing, groove, drop, build) with definitions and examples.  Note that it should include nouns from as many music theories and traditions as possible.
+- [x] Step 077 [Sem] — Define a “musical object ontology” that distinguishes structure, harmony, rhythm, timbre/production, performance.  Note that it should include ontological objects from as many music theories and traditions as possible.
 - [ ] Step 078 [Type] — Define typed “targets” for preserve-only-change constraints (preserve melody exact vs functional harmony vs recognizable hook), again aiming for wide scope.
 - [ ] Step 079 [Prag] — Define a model of “shared plans” (plan recognition) for repeated edits (“do it again but bigger”).
 - [ ] Step 080 [Infra] — Implement a canonical registry of “default interpretations” with user-overridable mappings and versioned provenance.

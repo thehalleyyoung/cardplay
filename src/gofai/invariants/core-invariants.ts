@@ -123,7 +123,7 @@ builder.define({
     'Constraints are not annotations—they are runtime-checked predicates.',
   severity: 'critical',
 
-  check(ctx, operation) {
+  check(_ctx, operation) {
     for (const constraint of operation.constraints) {
       const verifier = CONSTRAINT_VERIFIERS.getVerifier(constraint.typeId);
 
