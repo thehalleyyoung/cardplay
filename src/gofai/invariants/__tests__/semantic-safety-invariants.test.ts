@@ -85,6 +85,13 @@ function createTestState(): ProjectStateSnapshot {
   };
 }
 
+/**
+ * Extract violations from check results.
+ */
+function getViolations(results: ReturnType<typeof checkCoreInvariants>) {
+  return results.filter((r): r is Extract<typeof r, { ok: false }> => !r.ok);
+}
+
 // =============================================================================
 // Test Suite: Invariant 1 - Constraint Executability
 // =============================================================================
@@ -99,9 +106,9 @@ describe('Invariant 1: Constraint Executability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
 
-    expect(result.violations).toHaveLength(0);
+    expect(violations).toHaveLength(0);
   });
 
   it('should fail when constraint has no verifier', () => {
@@ -112,16 +119,18 @@ describe('Invariant 1: Constraint Executability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find(
-      (v) => v.invariantId === 'constraint-executability'
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find(
+      (v) => !v.ok && v.invariantId === 'constraint-executability'
     );
     expect(violation).toBeDefined();
-    expect(violation?.severity).toBe('critical');
-    expect(violation?.message).toContain('unknown_constraint_type');
-    expect(violation?.evidence.expected).toContain('verifier');
+    if (violation && !violation.ok) {
+      expect(violation.severity).toBe('critical');
+      expect(violation.message).toContain('unknown_constraint_type');
+      expect(violation.evidence.expected).toContain('verifier');
+    }
   });
 
   it('should check multiple unknown constraints', () => {
@@ -134,11 +143,12 @@ describe('Invariant 1: Constraint Executability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
+    expect(violations.length).toBeGreaterThan(0);
     // Should catch first unknown constraint
-    expect(result.violations[0].message).toContain('unknown_a');
+    expect(violations[0].message).toContain('unknown_a');
   });
 
   it('should allow empty constraint list', () => {
@@ -147,9 +157,10 @@ describe('Invariant 1: Constraint Executability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-executability'
     );
     expect(violation).toBeUndefined();
@@ -167,9 +178,10 @@ describe('Invariant 2: Silent Ambiguity Prohibition', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'ambiguity-prohibition'
     );
     expect(violation).toBeUndefined();
@@ -188,9 +200,10 @@ describe('Invariant 2: Silent Ambiguity Prohibition', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'ambiguity-prohibition'
     );
     expect(violation).toBeUndefined();
@@ -209,10 +222,11 @@ describe('Invariant 2: Silent Ambiguity Prohibition', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find(
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find(
       (v) => v.invariantId === 'ambiguity-prohibition'
     );
     expect(violation).toBeDefined();
@@ -235,10 +249,11 @@ describe('Invariant 2: Silent Ambiguity Prohibition', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find(
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find(
       (v) => v.invariantId === 'ambiguity-prohibition'
     );
     expect(violation).toBeDefined();
@@ -258,9 +273,10 @@ describe('Invariant 2: Silent Ambiguity Prohibition', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'ambiguity-prohibition'
     );
     expect(violation).toBeUndefined();
@@ -279,9 +295,10 @@ describe('Invariant 3: Constraint Preservation', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-preservation'
     );
     expect(violation).toBeUndefined();
@@ -295,9 +312,10 @@ describe('Invariant 3: Constraint Preservation', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-preservation'
     );
     expect(violation).toBeUndefined();
@@ -317,9 +335,10 @@ describe('Invariant 3: Constraint Preservation', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-preservation'
     );
     expect(violation).toBeUndefined();
@@ -344,9 +363,10 @@ describe('Invariant 3: Constraint Preservation', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-preservation'
     );
     expect(violation).toBeDefined();
@@ -374,9 +394,10 @@ describe('Invariant 3: Constraint Preservation', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-preservation'
     );
     expect(violation).toBeDefined();
@@ -397,9 +418,10 @@ describe('Invariant 4: Referent Resolution Completeness', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'referent-resolution'
     );
     expect(violation).toBeUndefined();
@@ -411,9 +433,10 @@ describe('Invariant 4: Referent Resolution Completeness', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'referent-resolution'
     );
     expect(violation).toBeUndefined();
@@ -428,10 +451,11 @@ describe('Invariant 4: Referent Resolution Completeness', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find(
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find(
       (v) => v.invariantId === 'referent-resolution'
     );
     expect(violation).toBeDefined();
@@ -449,9 +473,10 @@ describe('Invariant 4: Referent Resolution Completeness', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'referent-resolution'
     );
     expect(violation).toBeDefined();
@@ -471,9 +496,10 @@ describe('Invariant 5: Effect Typing', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'effect-typing');
+    const violation = violations.find((v) => v.invariantId === 'effect-typing');
     expect(violation).toBeUndefined();
   });
 
@@ -484,9 +510,10 @@ describe('Invariant 5: Effect Typing', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'effect-typing');
+    const violation = violations.find((v) => v.invariantId === 'effect-typing');
     expect(violation).toBeUndefined();
   });
 
@@ -497,10 +524,11 @@ describe('Invariant 5: Effect Typing', () => {
     });
     const context = createTestContext({ autoApplyEnabled: false });
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find((v) => v.invariantId === 'effect-typing');
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find((v) => v.invariantId === 'effect-typing');
     expect(violation).toBeDefined();
     expect(violation?.severity).toBe('critical');
     expect(violation?.message).toContain('approval');
@@ -516,9 +544,10 @@ describe('Invariant 5: Effect Typing', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'effect-typing');
+    const violation = violations.find((v) => v.invariantId === 'effect-typing');
     expect(violation).toBeUndefined();
   });
 
@@ -532,9 +561,10 @@ describe('Invariant 5: Effect Typing', () => {
     });
     const context = createTestContext({ autoApplyEnabled: true });
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'effect-typing');
+    const violation = violations.find((v) => v.invariantId === 'effect-typing');
     expect(violation).toBeUndefined();
   });
 
@@ -545,10 +575,11 @@ describe('Invariant 5: Effect Typing', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find((v) => v.invariantId === 'effect-typing');
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find((v) => v.invariantId === 'effect-typing');
     expect(violation).toBeDefined();
     expect(violation?.message).toContain('Invalid effect type');
   });
@@ -563,9 +594,10 @@ describe('Invariant 6: Determinism', () => {
     const operation = createTestOperation();
     const context = createTestContext({ determinismCheckEnabled: false });
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'determinism');
+    const violation = violations.find((v) => v.invariantId === 'determinism');
     expect(violation).toBeUndefined();
   });
 
@@ -576,9 +608,10 @@ describe('Invariant 6: Determinism', () => {
       previousRunResult: undefined,
     });
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'determinism');
+    const violation = violations.find((v) => v.invariantId === 'determinism');
     expect(violation).toBeUndefined();
   });
 
@@ -592,9 +625,10 @@ describe('Invariant 6: Determinism', () => {
       previousRunResult: { /* some result */ },
     });
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'determinism');
+    const violation = violations.find((v) => v.invariantId === 'determinism');
     expect(violation).toBeUndefined();
   });
 });
@@ -610,9 +644,10 @@ describe('Invariant 7: Undoability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'undoability');
+    const violation = violations.find((v) => v.invariantId === 'undoability');
     expect(violation).toBeUndefined();
   });
 
@@ -624,9 +659,10 @@ describe('Invariant 7: Undoability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'undoability');
+    const violation = violations.find((v) => v.invariantId === 'undoability');
     expect(violation).toBeUndefined();
   });
 
@@ -640,10 +676,11 @@ describe('Invariant 7: Undoability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find((v) => v.invariantId === 'undoability');
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find((v) => v.invariantId === 'undoability');
     expect(violation).toBeDefined();
     expect(violation?.severity).toBe('critical');
     expect(violation?.message).toContain('undo token');
@@ -659,9 +696,10 @@ describe('Invariant 7: Undoability', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'undoability');
+    const violation = violations.find((v) => v.invariantId === 'undoability');
     expect(violation).toBeUndefined();
   });
 });
@@ -678,9 +716,10 @@ describe('Secondary Invariant: Scope Visibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'scope-visibility');
+    const violation = violations.find((v) => v.invariantId === 'scope-visibility');
     expect(violation).toBeUndefined();
   });
 
@@ -695,9 +734,10 @@ describe('Secondary Invariant: Scope Visibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'scope-visibility');
+    const violation = violations.find((v) => v.invariantId === 'scope-visibility');
     expect(violation).toBeDefined();
     expect(violation?.severity).toBe('error');
   });
@@ -713,9 +753,10 @@ describe('Secondary Invariant: Scope Visibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'scope-visibility');
+    const violation = violations.find((v) => v.invariantId === 'scope-visibility');
     expect(violation).toBeDefined();
     expect(violation?.message).toContain('empty scope');
   });
@@ -735,9 +776,10 @@ describe('Secondary Invariant: Scope Visibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find((v) => v.invariantId === 'scope-visibility');
+    const violation = violations.find((v) => v.invariantId === 'scope-visibility');
     expect(violation).toBeUndefined();
   });
 });
@@ -749,9 +791,10 @@ describe('Secondary Invariant: Presupposition Verification', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'presupposition-verification'
     );
     expect(violation).toBeUndefined();
@@ -768,9 +811,10 @@ describe('Secondary Invariant: Presupposition Verification', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'presupposition-verification'
     );
     expect(violation).toBeDefined();
@@ -789,9 +833,10 @@ describe('Secondary Invariant: Presupposition Verification', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'presupposition-verification'
     );
     expect(violation).toBeDefined();
@@ -810,9 +855,10 @@ describe('Secondary Invariant: Presupposition Verification', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'presupposition-verification'
     );
     expect(violation).toBeUndefined();
@@ -829,9 +875,10 @@ describe('Secondary Invariant: Constraint Compatibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-compatibility'
     );
     expect(violation).toBeUndefined();
@@ -846,9 +893,10 @@ describe('Secondary Invariant: Constraint Compatibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-compatibility'
     );
     expect(violation).toBeDefined();
@@ -864,9 +912,10 @@ describe('Secondary Invariant: Constraint Compatibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-compatibility'
     );
     expect(violation).toBeDefined();
@@ -882,9 +931,10 @@ describe('Secondary Invariant: Constraint Compatibility', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    const violation = result.violations.find(
+    const violation = violations.find(
       (v) => v.invariantId === 'constraint-compatibility'
     );
     expect(violation).toBeUndefined();
@@ -905,10 +955,11 @@ describe('Integration: Multiple Invariant Violations', () => {
     });
     const context = createTestContext();
 
-    const result = checkCriticalInvariants(context, operation);
+    const results = checkCriticalInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(2);
-    expect(result.passed).toBe(false);
+    expect(violations.length).toBeGreaterThan(2);
+    // Some invariants violated (violations found)
   });
 
   it('should report all violations across all invariants', () => {
@@ -923,9 +974,10 @@ describe('Integration: Multiple Invariant Violations', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThanOrEqual(3);
+    expect(violations.length).toBeGreaterThanOrEqual(3);
   });
 });
 
@@ -967,10 +1019,11 @@ describe('Real-World Scenario: Make it darker in the chorus', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations).toHaveLength(0);
-    expect(result.passed).toBe(true);
+    expect(violations).toHaveLength(0);
+    // All invariants passed (no violations)
   });
 });
 
@@ -994,10 +1047,11 @@ describe('Real-World Scenario: Transpose the melody', () => {
     });
     const context = createTestContext();
 
-    const result = checkCoreInvariants(context, operation);
+    const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
-    expect(result.violations.length).toBeGreaterThan(0);
-    const violation = result.violations.find(
+    expect(violations.length).toBeGreaterThan(0);
+    const violation = violations.find(
       (v) => v.invariantId === 'ambiguity-prohibition'
     );
     expect(violation).toBeDefined();
