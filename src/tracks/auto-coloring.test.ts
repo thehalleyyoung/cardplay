@@ -26,7 +26,14 @@ describe('Auto Track Coloring', () => {
       expect(detectCategoryFromName('Kick').category).toBe('drums');
       expect(detectCategoryFromName('Snare Track').category).toBe('drums');
       expect(detectCategoryFromName('HiHat Loop').category).toBe('drums');
-      expect(detectCategoryFromName('Percussion').category).toBe('drums');
+      expect(detectCategoryFromName('808 Kit').category).toBe('drums');
+    });
+    
+    it('should detect percussion', () => {
+      expect(detectCategoryFromName('Percussion').category).toBe('percussion');
+      expect(detectCategoryFromName('Congas').category).toBe('percussion');
+      expect(detectCategoryFromName('Shaker Loop').category).toBe('percussion');
+      expect(detectCategoryFromName('Tambourine').category).toBe('percussion');
     });
     
     it('should detect bass', () => {
@@ -397,10 +404,10 @@ describe('Auto Track Coloring', () => {
     it('should have color schemes', () => {
       expect(COLOR_SCHEMES.length).toBe(5);
       
-      const schemeNames = COLOR_SCHEMES.map(s => s.name);
-      expect(schemeNames).toContain('default');
-      expect(schemeNames).toContain('warm');
-      expect(schemeNames).toContain('cool');
+      const schemeIds = COLOR_SCHEMES.map(s => s.id);
+      expect(schemeIds).toContain('default');
+      expect(schemeIds).toContain('warm');
+      expect(schemeIds).toContain('cool');
     });
     
     it('should have colors for all categories in each scheme', () => {

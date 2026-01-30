@@ -40,10 +40,10 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 052 [Type] — Define `GofaiId` as a namespaced ID type that composes with `CardPlayId` rules; reject non-namespaced extension entries.
 - [ ] Step 053 [Infra] — Build a “canon check” script for GOFAI (like existing canon checks) that validates all vocab tables and IDs.
 - [x] Step 061 [Type] — Create a single “unit system” type layer: `Bpm`, `Semitones`, `Bars`, `Beats`, `Ticks`, with conversion rules and refinements.
-- [ ] Step 062 [Infra] — Add a stable, human-readable ID pretty-printer and parser for all GOFAI entity references.
+- [x] Step 062 [Infra] — Add a stable, human-readable ID pretty-printer and parser for all GOFAI entity references.
 - [ ] Step 063 [Type] — Define a “capability lattice” (e.g., production enabled, routing editable, AI allowed) to control which semantics can compile to execution.
-- [ ] Step 064 [Ext][Type] — Define extension namespaces as first-class provenance on lexeme senses, constraints, and opcodes.
-- [ ] Step 065 [Ext][Infra] — Add an extension registry conceptually mirroring BoardRegistry/CardRegistry, with register/unregister events.
+- [x] Step 064 [Ext][Type] — Define extension namespaces as first-class provenance on lexeme senses, constraints, and opcodes.
+- [x] Step 065 [Ext][Infra] — Add an extension registry conceptually mirroring BoardRegistry/CardRegistry, with register/unregister events.
 - [ ] Step 066 [Ext][Infra] — Define “auto-binding” rules: how card/board/deck metadata becomes baseline lexicon entries without custom code.
 - [ ] Step 067 [Ext][Type] — Specify a schema for pack-provided GOFAI annotations (synonyms, roles, param semantics, default scopes).
 - [ ] Step 068 [Sem] — Define the mapping between `MusicSpec` constraints and CPL constraints (lossless where possible).

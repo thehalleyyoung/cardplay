@@ -1295,7 +1295,7 @@ describe('Chinese Mode Tests (C1820)', () => {
 describe('Orchestration Solver (C1546)', () => {
   it('C1546: solveOrchestration returns valid assignments', async () => {
     // This tests the TS fallback of solveOrchestration
-    const { solveOrchestration } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { solveOrchestration } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = await solveOrchestration(
       [60, 64, 67, 72], // C major chord
       ['violin', 'viola', 'cello'],
@@ -1319,7 +1319,7 @@ describe('Orchestration Solver (C1546)', () => {
 // ============================================================================
 describe('Heterophony Tests (C1827)', () => {
   it('C1827: heterophony generation follows tradition rules', async () => {
-    const { generateHeterophony } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateHeterophony } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const melody = [60, 62, 64, 65, 67]; // C D E F G
     const instruments = ['erhu', 'pipa', 'dizi'];
 
@@ -2021,7 +2021,7 @@ describe('Deprecation and Migration (C1009-C1010)', () => {
 
 describe('Voice-Leading Checker (C938, C940)', () => {
   it('C938: detects parallel fifths in classical profile', async () => {
-    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Two chords with parallel fifths (C-G → D-A)
     const voicings = [
       [60, 67], // C4, G4 (perfect 5th)
@@ -2033,7 +2033,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
   });
 
   it('C938: accepts parallel fifths in jazz profile', async () => {
-    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const voicings = [
       [60, 67],
       [62, 69],
@@ -2045,7 +2045,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
   });
 
   it('C940: culture-aware carnatic profile limits leap size', async () => {
-    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Large leap of 12 semitones (octave) — fine in classical, too big for carnatic
     const voicings = [
       [60], // C4
@@ -2059,7 +2059,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
   });
 
   it('C938: good voice leading gets high score', async () => {
-    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Smooth contrary motion
     const voicings = [
       [60, 64, 67], // C E G
@@ -2076,7 +2076,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
 
 describe('Schema Matching Score (C890)', () => {
   it('romanesca bass pattern gets partial match', async () => {
-    const { calculateSchemaMatchScore } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { calculateSchemaMatchScore } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Romanesca bass: I-V-IV-ii → [0, 7, 5, 3]
     const bass = [0, 7, 5, 3];
     const melody = [7, 7, 5, 4]; // arbitrary melody
@@ -2087,7 +2087,7 @@ describe('Schema Matching Score (C890)', () => {
   });
 
   it('non-matching bass gets low score', async () => {
-    const { calculateSchemaMatchScore } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { calculateSchemaMatchScore } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const bass = [1, 3, 6, 10]; // random
     const melody = [5, 5, 5, 5];
     const result = await calculateSchemaMatchScore(bass, melody, 'prinner');
@@ -2316,7 +2316,7 @@ bad syntax here
 
 describe('Phrase Database (C926)', () => {
   it('add and query phrases by tags', () => {
-    const { phraseDatabase } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { phraseDatabase } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     phraseDatabase.clear();
 
     phraseDatabase.add({
@@ -2349,7 +2349,7 @@ describe('Phrase Database (C926)', () => {
   });
 
   it('remove phrase from database', () => {
-    const { phraseDatabase } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { phraseDatabase } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     phraseDatabase.clear();
 
     phraseDatabase.add({
@@ -2518,7 +2518,7 @@ describe('Constraint Export/Import (C1085-C1086)', () => {
 
 describe('World Music Coverage', () => {
   it('C1894: clave alignment can detect violations', async () => {
-    const { checkClaveAlignment } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { checkClaveAlignment } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // A pattern that emphasizes every beat (all 1s) should still work
     const allBeats = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     const result = await checkClaveAlignment(allBeats, 'son_3_2');
@@ -2546,7 +2546,7 @@ describe('World Music Coverage', () => {
 
 describe('Celtic Ornament Generators', () => {
   it('C699: detects ornament insertion points on strong beats', async () => {
-    const { detectOrnamentInsertionPoints } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { detectOrnamentInsertionPoints } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // 4 quarter notes, beats per measure = 4
     const notes = [60, 62, 64, 65];
     const durations = [480, 480, 480, 480];
@@ -2559,7 +2559,7 @@ describe('Celtic Ornament Generators', () => {
   });
 
   it('C699: detects phrase endings on long notes', async () => {
-    const { detectOrnamentInsertionPoints } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { detectOrnamentInsertionPoints } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const notes = [60, 62, 64];
     const durations = [480, 480, 1920]; // last note is a whole note
     const result = await detectOrnamentInsertionPoints(notes, durations, 4);
@@ -2569,7 +2569,7 @@ describe('Celtic Ornament Generators', () => {
   });
 
   it('C701: generates roll with tempo-adaptive strike count', async () => {
-    const { generateRoll } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateRoll } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Fast reel tempo
     const fastResult = await generateRoll(64, 480, 160);
     expect(fastResult.value.strikeCount).toBe(3); // fast tempo = fewer strikes
@@ -2580,7 +2580,7 @@ describe('Celtic Ornament Generators', () => {
   });
 
   it('C703: generates cut (grace note above)', async () => {
-    const { generateCutTap } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateCutTap } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const cut = await generateCutTap(64, 'cut', 120);
     expect(cut.value.type).toBe('cut');
     expect(cut.value.graceNote).toBeGreaterThan(cut.value.mainNote); // above
@@ -2588,14 +2588,14 @@ describe('Celtic Ornament Generators', () => {
   });
 
   it('C703: generates tap (grace note below)', async () => {
-    const { generateCutTap } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateCutTap } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const tap = await generateCutTap(64, 'tap', 120);
     expect(tap.value.type).toBe('tap');
     expect(tap.value.graceNote).toBeLessThan(tap.value.mainNote); // below
   });
 
   it('C707: fiddle double-stop finds open string resonance', async () => {
-    const { generateFiddleDoubleStop } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateFiddleDoubleStop } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // A4 (69) should resonate with open A string
     const result = await generateFiddleDoubleStop(69);
     // A4 is an open string itself, so it should find a double-stop with another interval
@@ -2603,7 +2603,7 @@ describe('Celtic Ornament Generators', () => {
   });
 
   it('C746: harp voicing produces open sonority', async () => {
-    const { generateHarpVoicing } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateHarpVoicing } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = await generateHarpVoicing('Cmaj', 'mid');
     expect(result.value.isOpenSonority).toBe(true);
     expect(result.value.spacing).toBe('open');
@@ -2617,7 +2617,7 @@ describe('Celtic Ornament Generators', () => {
 
 describe('Contrary Motion Detection (C1234)', () => {
   it('detects contrary motion between two voices', async () => {
-    const { detectContraryMotion } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { detectContraryMotion } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Voice 1 goes up: C4 D4 E4, Voice 2 goes down: G4 F4 E4
     const voice1 = [60, 62, 64];
     const voice2 = [67, 65, 64];
@@ -2628,7 +2628,7 @@ describe('Contrary Motion Detection (C1234)', () => {
   });
 
   it('no contrary motion in parallel voices', async () => {
-    const { detectContraryMotion } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { detectContraryMotion } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Both voices go up in parallel
     const voice1 = [60, 62, 64];
     const voice2 = [67, 69, 71];
@@ -2644,7 +2644,7 @@ describe('Contrary Motion Detection (C1234)', () => {
 
 describe('Korvai Search (C632, C634)', () => {
   it('fills tala cycle with phrase candidates', async () => {
-    const { searchKorvai } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { searchKorvai } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const phrases = [
       { notes: [60, 62, 64], syllables: ['tha', 'dhi', 'thom'] },
       { notes: [67, 65], syllables: ['tha', 'ki'] },
@@ -2655,7 +2655,7 @@ describe('Korvai Search (C632, C634)', () => {
   });
 
   it('respects maxDepth bound (C634)', async () => {
-    const { searchKorvai } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { searchKorvai } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const phrases = [
       { notes: [60], syllables: ['ta'] }, // 1-beat phrase, cycle is 8 beats
     ];
@@ -2671,7 +2671,7 @@ describe('Korvai Search (C632, C634)', () => {
 
 describe('Export Formats (C945-C950)', () => {
   it('C945/C946: exports to notation format', async () => {
-    const { exportToNotation } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { exportToNotation } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = await exportToNotation([60, 62, 64, 65], [480, 480, 480, 480], 'C');
     expect(result.value.measures.length).toBeGreaterThan(0);
     expect(result.value.clef).toBe('treble');
@@ -2679,13 +2679,13 @@ describe('Export Formats (C945-C950)', () => {
   });
 
   it('C945: low notes get bass clef', async () => {
-    const { exportToNotation } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { exportToNotation } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = await exportToNotation([36, 40, 43], [480, 480, 480], 'C');
     expect(result.value.clef).toBe('bass');
   });
 
   it('C947/C948: exports to tracker format', async () => {
-    const { exportToTracker } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { exportToTracker } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = await exportToTracker([60, 64, 67], [480, 480, 480], 1);
     expect(result.value.rows.length).toBe(3);
     expect(result.value.rows[0]!.note).toContain('C-'); // C note
@@ -2694,7 +2694,7 @@ describe('Export Formats (C945-C950)', () => {
   });
 
   it('C949/C950: exports to arranger format', async () => {
-    const { exportToArranger, createMusicSpec, withTempo, withStyle } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { exportToArranger, createMusicSpec, withTempo, withStyle } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const { createMusicSpec: cms, withTempo: wt, withStyle: ws } = require('./music-spec') as typeof import('./music-spec');
     const spec = ws(wt(cms(), 140), 'jazz');
     const result = await exportToArranger(spec, ['Cmaj7', 'Dm7', 'G7'], 4);
@@ -2710,7 +2710,7 @@ describe('Export Formats (C945-C950)', () => {
 
 describe('Phrase Recommendation (C928, C930)', () => {
   it('C928: recommends phrases matching spec culture', async () => {
-    const { recommendPhrases, phraseDatabase } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { recommendPhrases, phraseDatabase } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const { createMusicSpec, withCulture } = require('./music-spec') as typeof import('./music-spec');
 
     // Add some test phrases
@@ -2735,7 +2735,7 @@ describe('Phrase Recommendation (C928, C930)', () => {
   });
 
   it('C930: suggests arranger variation based on energy', async () => {
-    const { suggestArrangerVariation } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { suggestArrangerVariation } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     const highEnergy = await suggestArrangerVariation('chorus', 0.9, 0.5);
     expect(highEnergy.value.variation).toBe('climactic');
@@ -2752,7 +2752,7 @@ describe('Phrase Recommendation (C928, C930)', () => {
 
 describe('Jazz Line Lint (C1432)', () => {
   it('detects large leaps', async () => {
-    const { lintJazzLine } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { lintJazzLine } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Line with a large leap (> octave)
     const notes = [60, 62, 64, 80, 82]; // 64 -> 80 = 16 semitones
     const result = await lintJazzLine(notes, ['Cmaj7'], 'bebop');
@@ -2761,7 +2761,7 @@ describe('Jazz Line Lint (C1432)', () => {
   });
 
   it('clean line has high score', async () => {
-    const { lintJazzLine } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { lintJazzLine } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Stepwise bebop line
     const notes = [60, 62, 63, 64, 65, 67, 69, 71, 72];
     const result = await lintJazzLine(notes, ['Cmaj7', 'Dm7'], 'bebop');
@@ -2775,7 +2775,7 @@ describe('Jazz Line Lint (C1432)', () => {
 
 describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
   it('C983: default flags all enabled', () => {
-    const { DEFAULT_FEATURE_FLAGS, getActiveFeatureFlags } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { DEFAULT_FEATURE_FLAGS, getActiveFeatureFlags } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(DEFAULT_FEATURE_FLAGS.lccExtended).toBe(true);
     expect(DEFAULT_FEATURE_FLAGS.jazzAdvanced).toBe(true);
     const flags = getActiveFeatureFlags();
@@ -2783,7 +2783,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
   });
 
   it('C983: override specific flags', () => {
-    const { getActiveFeatureFlags } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { getActiveFeatureFlags } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const flags = getActiveFeatureFlags({ spiralDFT: false, lccExtended: false });
     expect(flags.spiralDFT).toBe(false);
     expect(flags.lccExtended).toBe(false);
@@ -2791,7 +2791,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
   });
 
   it('C984: capabilities report lists all modules', () => {
-    const { generateCapabilitiesReport, DEFAULT_FEATURE_FLAGS } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateCapabilitiesReport, DEFAULT_FEATURE_FLAGS } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const report = generateCapabilitiesReport(DEFAULT_FEATURE_FLAGS);
     expect(report.length).toBe(7);
     expect(report.every(r => r.enabled)).toBe(true);
@@ -2799,7 +2799,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
   });
 
   it('C986: migration hides advanced cards for old projects', () => {
-    const { migrateProjectTheoryDefaults } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { migrateProjectTheoryDefaults } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = migrateProjectTheoryDefaults('1.0.0', []);
     expect(result.hiddenCards.length).toBeGreaterThan(0);
     expect(result.hiddenCards).toContain('lydian_chromatic');
@@ -2808,7 +2808,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
   });
 
   it('C986: v2 projects do not hide cards', () => {
-    const { migrateProjectTheoryDefaults } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { migrateProjectTheoryDefaults } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = migrateProjectTheoryDefaults('2.0.0', []);
     expect(result.hiddenCards.length).toBe(0);
   });
@@ -2820,7 +2820,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
 
 describe('Free-Rhythm Grid (C799)', () => {
   it('creates relative time grid from note events', () => {
-    const { createFreeRhythmGrid } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { createFreeRhythmGrid } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const notes = [
       { pitch: 60, timeMs: 0, durationMs: 500, velocity: 100 },
       { pitch: 64, timeMs: 600, durationMs: 400, velocity: 80 },
@@ -2835,7 +2835,7 @@ describe('Free-Rhythm Grid (C799)', () => {
   });
 
   it('round-trips free-rhythm grid to events', () => {
-    const { createFreeRhythmGrid, freeRhythmToEvents } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { createFreeRhythmGrid, freeRhythmToEvents } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const original = [
       { pitch: 60, timeMs: 0, durationMs: 500, velocity: 100 },
       { pitch: 64, timeMs: 1000, durationMs: 500, velocity: 64 },
@@ -2849,7 +2849,7 @@ describe('Free-Rhythm Grid (C799)', () => {
   });
 
   it('empty input returns empty grid', () => {
-    const { createFreeRhythmGrid } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { createFreeRhythmGrid } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(createFreeRhythmGrid([], 1000)).toHaveLength(0);
     expect(createFreeRhythmGrid([{ pitch: 60, timeMs: 0, durationMs: 100, velocity: 64 }], 0)).toHaveLength(0);
   });
@@ -2861,7 +2861,7 @@ describe('Free-Rhythm Grid (C799)', () => {
 
 describe('Piano & Guitar Voicing (C1224, C1226)', () => {
   it('C1224: two-handed voicing has LH and RH', async () => {
-    const { generateTwoHandedVoicing } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateTwoHandedVoicing } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = await generateTwoHandedVoicing('Dm7', 50, 'jazz');
     expect(result.value.leftHand.length).toBeGreaterThanOrEqual(2);
     expect(result.value.rightHand.length).toBeGreaterThanOrEqual(2);
@@ -2873,7 +2873,7 @@ describe('Piano & Guitar Voicing (C1224, C1226)', () => {
   });
 
   it('C1226: guitar voicing respects fret span', async () => {
-    const { generateGuitarVoicing } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { generateGuitarVoicing } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = await generateGuitarVoicing('Am', 45, 0);
     expect(result.value.frets.length).toBe(6);
     // Playable frets should have span <= 4
@@ -2891,7 +2891,7 @@ describe('Piano & Guitar Voicing (C1224, C1226)', () => {
 
 describe('Schema-as-Constraints (C347)', () => {
   it('applies schema constraints suggesting relevant cards', async () => {
-    const { applySchemaConstraintsToDeck } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { applySchemaConstraintsToDeck } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const { createMusicSpec, withConstraints, schemaConstraint } = require('./music-spec') as typeof import('./music-spec');
     const spec = withConstraints(createMusicSpec(), [schemaConstraint('romanesca')]);
     const result = await applySchemaConstraintsToDeck(spec, 'test-deck');
@@ -2907,7 +2907,7 @@ describe('Schema-as-Constraints (C347)', () => {
 
 describe('Contemporary Jazz Pack (C1415)', () => {
   it('pack has required fields', () => {
-    const { CONTEMPORARY_JAZZ_PACK } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    const { CONTEMPORARY_JAZZ_PACK } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CONTEMPORARY_JAZZ_PACK.name).toBe('contemporary_jazz');
     expect(CONTEMPORARY_JAZZ_PACK.constraints.length).toBeGreaterThanOrEqual(3);
     expect(CONTEMPORARY_JAZZ_PACK.prologCode).toContain('triad_pair');
@@ -3660,7 +3660,7 @@ describe('Celtic Modal Harmony Explainer (C697)', () => {
   it('explains dorian mode', () => {
     const {
       explainCelticModalHarmony,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const explanation = explainCelticModalHarmony('dorian');
     expect(explanation.mode).toBe('dorian');
     expect(explanation.description.length).toBeGreaterThan(10);
@@ -3671,7 +3671,7 @@ describe('Celtic Modal Harmony Explainer (C697)', () => {
   it('explains mixolydian mode', () => {
     const {
       explainCelticModalHarmony,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const explanation = explainCelticModalHarmony('mixolydian');
     expect(explanation.mode).toBe('mixolydian');
     expect(explanation.typicalChords.length).toBeGreaterThan(0);
@@ -3680,7 +3680,7 @@ describe('Celtic Modal Harmony Explainer (C697)', () => {
   it('returns generic for unknown modes', () => {
     const {
       explainCelticModalHarmony,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const explanation = explainCelticModalHarmony('locrian');
     expect(explanation.description).toContain('Celtic');
   });
@@ -3694,7 +3694,7 @@ describe('Celtic Dance Accent Presets (C724)', () => {
   it('has presets for major dance types', () => {
     const {
       CELTIC_DANCE_ACCENT_PRESETS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CELTIC_DANCE_ACCENT_PRESETS.length).toBeGreaterThan(4);
     const types = CELTIC_DANCE_ACCENT_PRESETS.map((p: any) => p.danceType);
     expect(types).toContain('reel');
@@ -3705,7 +3705,7 @@ describe('Celtic Dance Accent Presets (C724)', () => {
   it('each preset has beats array', () => {
     const {
       CELTIC_DANCE_ACCENT_PRESETS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     for (const preset of CELTIC_DANCE_ACCENT_PRESETS) {
       expect(preset.beats.length).toBeGreaterThan(0);
       expect(preset.meter).toBeTruthy();
@@ -3721,7 +3721,7 @@ describe('Celtic Variation Presets (C729)', () => {
   it('has multiple variation types', () => {
     const {
       CELTIC_VARIATION_PRESETS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CELTIC_VARIATION_PRESETS.length).toBeGreaterThan(3);
     const names = CELTIC_VARIATION_PRESETS.map((p: any) => p.name);
     expect(names).toContain('repeat');
@@ -3731,7 +3731,7 @@ describe('Celtic Variation Presets (C729)', () => {
   it('each preset has description', () => {
     const {
       CELTIC_VARIATION_PRESETS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     for (const preset of CELTIC_VARIATION_PRESETS) {
       expect(preset.description.length).toBeGreaterThan(5);
     }
@@ -3746,7 +3746,7 @@ describe('Chinese Variation Presets (C831)', () => {
   it('has multiple variation types', () => {
     const {
       CHINESE_VARIATION_PRESETS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CHINESE_VARIATION_PRESETS.length).toBeGreaterThan(3);
     const names = CHINESE_VARIATION_PRESETS.map((p: any) => p.name);
     expect(names).toContain('ornamental');
@@ -3762,7 +3762,7 @@ describe('Voice Leading Check (C939)', () => {
   it('detects parallel fifths', () => {
     const {
       checkVoiceLeadingSimple,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Two voices moving in parallel fifths: C-G → D-A
     const voices = [
       [60, 62], // soprano
@@ -3776,7 +3776,7 @@ describe('Voice Leading Check (C939)', () => {
   it('detects voice crossing', () => {
     const {
       checkVoiceLeadingSimple,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     // Voice 0 goes below voice 1
     const voices = [
       [60, 48], // soprano drops below bass
@@ -3790,7 +3790,7 @@ describe('Voice Leading Check (C939)', () => {
   it('detects large leaps', () => {
     const {
       checkVoiceLeadingSimple,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const voices = [
       [60, 84], // soprano leaps up 2 octaves
     ];
@@ -3808,14 +3808,14 @@ describe('Sample Deck Exports (C991)', () => {
   it('exports multiple deck definitions', () => {
     const {
       SAMPLE_DECK_EXPORTS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(SAMPLE_DECK_EXPORTS.length).toBeGreaterThan(5);
   });
 
   it('each deck has name, cards, and description', () => {
     const {
       SAMPLE_DECK_EXPORTS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     for (const deck of SAMPLE_DECK_EXPORTS) {
       expect(deck.name.length).toBeGreaterThan(0);
       expect(deck.cards.length).toBeGreaterThan(0);
@@ -3832,14 +3832,14 @@ describe('Sample Board Presets (C992)', () => {
   it('exports multiple board presets', () => {
     const {
       SAMPLE_BOARD_PRESETS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(SAMPLE_BOARD_PRESETS.length).toBeGreaterThan(3);
   });
 
   it('each board has name and decks', () => {
     const {
       SAMPLE_BOARD_PRESETS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     for (const board of SAMPLE_BOARD_PRESETS) {
       expect(board.name.length).toBeGreaterThan(0);
       expect(board.decks.length).toBeGreaterThan(0);
@@ -3855,7 +3855,7 @@ describe('Theory Mode Config (C987, C988)', () => {
   it('returns config for beginner', () => {
     const {
       getTheoryModeConfig,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const config = getTheoryModeConfig('beginner');
     expect(config.level).toBe('beginner');
     expect(config.showConstraints).toBe(false);
@@ -3865,7 +3865,7 @@ describe('Theory Mode Config (C987, C988)', () => {
   it('returns config for pro', () => {
     const {
       getTheoryModeConfig,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const config = getTheoryModeConfig('pro');
     expect(config.level).toBe('pro');
     expect(config.showConstraints).toBe(true);
@@ -3875,7 +3875,7 @@ describe('Theory Mode Config (C987, C988)', () => {
   it('progressive disclosure increases with level', () => {
     const {
       getTheoryModeConfig,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const beginner = getTheoryModeConfig('beginner');
     const advanced = getTheoryModeConfig('advanced');
     expect(advanced.maxExplanationDepth).toBeGreaterThan(beginner.maxExplanationDepth);
@@ -3890,7 +3890,7 @@ describe('Theory Telemetry (C989)', () => {
   it('records events', () => {
     const {
       TheoryTelemetry,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const telemetry = new TheoryTelemetry();
     telemetry.record('schema_card', 'open');
     telemetry.record('schema_card', 'apply');
@@ -3901,7 +3901,7 @@ describe('Theory Telemetry (C989)', () => {
   it('computes usage summary', () => {
     const {
       TheoryTelemetry,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const telemetry = new TheoryTelemetry();
     telemetry.record('schema_card', 'open');
     telemetry.record('schema_card', 'open');
@@ -3914,7 +3914,7 @@ describe('Theory Telemetry (C989)', () => {
   it('gets most used tools', () => {
     const {
       TheoryTelemetry,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const telemetry = new TheoryTelemetry();
     telemetry.record('schema_card', 'open');
     telemetry.record('schema_card', 'apply');
@@ -3928,7 +3928,7 @@ describe('Theory Telemetry (C989)', () => {
   it('clears events', () => {
     const {
       TheoryTelemetry,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const telemetry = new TheoryTelemetry();
     telemetry.record('test', 'action');
     telemetry.clear();
@@ -3945,7 +3945,7 @@ describe('Celtic Arrangement Templates (C694)', () => {
     const {
       CELTIC_ARRANGEMENT_TEMPLATES,
       getCelticArrangementTemplate,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CELTIC_ARRANGEMENT_TEMPLATES.length).toBeGreaterThan(3);
     const reel = getCelticArrangementTemplate('reel');
     expect(reel).toBeDefined();
@@ -3955,7 +3955,7 @@ describe('Celtic Arrangement Templates (C694)', () => {
   it('each template has structure and tempo', () => {
     const {
       CELTIC_ARRANGEMENT_TEMPLATES,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     for (const template of CELTIC_ARRANGEMENT_TEMPLATES) {
       expect(template.structure.length).toBeGreaterThan(0);
       expect(template.tempoRange[0]).toBeLessThan(template.tempoRange[1]);
@@ -3971,7 +3971,7 @@ describe('Set Builder (C734)', () => {
   it('builds a set from tunes', () => {
     const {
       buildTuneSet,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const tunes = [
       { name: 'Morrison\'s Jig', tuneType: 'jig', key: 'd' },
       { name: 'The Kesh', tuneType: 'jig', key: 'g' },
@@ -3986,7 +3986,7 @@ describe('Set Builder (C734)', () => {
   it('scores related keys higher', () => {
     const {
       buildTuneSet,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const relatedKeys = buildTuneSet([
       { name: 'A', tuneType: 'reel', key: 'd' },
       { name: 'B', tuneType: 'reel', key: 'g' },
@@ -4001,7 +4001,7 @@ describe('Set Builder (C734)', () => {
   it('estimates duration', () => {
     const {
       buildTuneSet,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const set = buildTuneSet([
       { name: 'A', tuneType: 'reel', key: 'd' },
     ], 3);
@@ -4017,7 +4017,7 @@ describe('Vocabulary Export (C1441)', () => {
   it('exports vocabulary to practice sheet', () => {
     const {
       exportVocabularyToPracticeSheet,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const vocab = [
       { pattern: [60, 62, 64], name: 'Major scale fragment', category: 'scales' },
       { pattern: [60, 63, 67], name: 'Minor triad', category: 'arpeggios' },
@@ -4032,7 +4032,7 @@ describe('Vocabulary Export (C1441)', () => {
   it('respects difficulty parameter', () => {
     const {
       exportVocabularyToPracticeSheet,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const sheet = exportVocabularyToPracticeSheet([], 'Test', 'beginner');
     expect(sheet.difficulty).toBe('beginner');
   });
@@ -4046,7 +4046,7 @@ describe('Form Markers (C693)', () => {
   it('generates AABB markers', () => {
     const {
       generateFormMarkers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const markers = generateFormMarkers('AABB');
     expect(markers.length).toBe(2);
     expect(markers[0]!.sectionLetter).toBe('A');
@@ -4058,7 +4058,7 @@ describe('Form Markers (C693)', () => {
   it('handles AABBCC', () => {
     const {
       generateFormMarkers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const markers = generateFormMarkers('AABBCC');
     expect(markers.length).toBe(3);
     expect(markers[2]!.sectionLetter).toBe('C');
@@ -4067,7 +4067,7 @@ describe('Form Markers (C693)', () => {
   it('computes bar positions', () => {
     const {
       generateFormMarkers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const markers = generateFormMarkers('AABB', 8);
     expect(markers[0]!.startBar).toBe(0);
     expect(markers[0]!.endBar).toBe(16); // 2 * 8
@@ -4078,7 +4078,7 @@ describe('Form Markers (C693)', () => {
   it('has standard Celtic patterns', () => {
     const {
       CELTIC_FORM_PATTERNS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CELTIC_FORM_PATTERNS['reel']).toBe('AABB');
     expect(CELTIC_FORM_PATTERNS['march']).toBe('AABBCC');
   });
@@ -4092,14 +4092,14 @@ describe('Celtic Harp Voicings (C748)', () => {
   it('has multiple voicing templates', () => {
     const {
       CELTIC_HARP_VOICINGS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CELTIC_HARP_VOICINGS.length).toBeGreaterThan(3);
   });
 
   it('finds voicing for tune type', () => {
     const {
       getHarpVoicing,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const voicing = getHarpVoicing('reel');
     expect(voicing.suitableFor).toContain('reel');
     expect(voicing.leftHand.length).toBeGreaterThan(0);
@@ -4108,7 +4108,7 @@ describe('Celtic Harp Voicings (C748)', () => {
   it('returns default for unknown type', () => {
     const {
       getHarpVoicing,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const voicing = getHarpVoicing('unknown_type');
     expect(voicing).toBeDefined();
   });
@@ -4122,14 +4122,14 @@ describe('Sheng Voicings (C815)', () => {
   it('has multiple voicing templates', () => {
     const {
       SHENG_VOICINGS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(SHENG_VOICINGS.length).toBeGreaterThan(3);
   });
 
   it('finds voicing for mode', () => {
     const {
       getShengVoicing,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const voicing = getShengVoicing('gong');
     expect(voicing.suitableFor).toContain('gong');
   });
@@ -4143,7 +4143,7 @@ describe('Section Markers (C828)', () => {
   it('marks intro at position 0', () => {
     const {
       suggestSectionMarkers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const markers = suggestSectionMarkers([0.2, 0.3, 0.4, 0.8, 0.9, 0.3]);
     expect(markers[0]!.position).toBe(0);
     expect(markers[0]!.type).toBe('intro');
@@ -4152,7 +4152,7 @@ describe('Section Markers (C828)', () => {
   it('detects energy jumps as boundaries', () => {
     const {
       suggestSectionMarkers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const markers = suggestSectionMarkers([0.2, 0.2, 0.8, 0.8, 0.2, 0.2]);
     // Should find at least intro + energy change at position 2
     expect(markers.length).toBeGreaterThan(1);
@@ -4161,7 +4161,7 @@ describe('Section Markers (C828)', () => {
   it('returns empty for empty input', () => {
     const {
       suggestSectionMarkers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const markers = suggestSectionMarkers([]);
     expect(markers.length).toBe(0);
   });
@@ -4175,7 +4175,7 @@ describe('Analysis Result Cards (C884)', () => {
   it('builds schema result card', () => {
     const {
       buildAnalysisResultCard,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const card = buildAnalysisResultCard('schema', { schemaName: 'romanesca', confidence: 85 });
     expect(card.category).toBe('schema');
     expect(card.title).toContain('romanesca');
@@ -4186,7 +4186,7 @@ describe('Analysis Result Cards (C884)', () => {
   it('builds culture result card', () => {
     const {
       buildAnalysisResultCard,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const card = buildAnalysisResultCard('culture', { culture: 'carnatic', confidence: 70 });
     expect(card.category).toBe('culture');
     expect(card.title).toContain('carnatic');
@@ -4195,7 +4195,7 @@ describe('Analysis Result Cards (C884)', () => {
   it('handles unknown analysis type', () => {
     const {
       buildAnalysisResultCard,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const card = buildAnalysisResultCard('custom', { foo: 'bar' });
     expect(card.category).toBe('general');
   });
@@ -4209,7 +4209,7 @@ describe('Orchestration Role Allocation (C899)', () => {
   it('allocates roles for default style', () => {
     const {
       allocateOrchestrationRoles,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const roles = allocateOrchestrationRoles(3);
     expect(roles.length).toBe(3);
     expect(roles[0]!.role).toBe('melody');
@@ -4220,7 +4220,7 @@ describe('Orchestration Role Allocation (C899)', () => {
   it('uses style-specific templates', () => {
     const {
       allocateOrchestrationRoles,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const jazzRoles = allocateOrchestrationRoles(4, 'jazz');
     expect(jazzRoles[0]!.instrument).toBe('saxophone');
     expect(jazzRoles[2]!.instrument).toBe('upright_bass');
@@ -4232,7 +4232,7 @@ describe('Mixer Defaults (C900)', () => {
     const {
       allocateOrchestrationRoles,
       generateMixerDefaults,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const roles = allocateOrchestrationRoles(3);
     const mixer = generateMixerDefaults(roles);
     expect(mixer.length).toBe(3);
@@ -4249,7 +4249,7 @@ describe('Variation Recommendations (C932)', () => {
   it('recommends variations for song parts', () => {
     const {
       recommendVariations,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const recs = recommendVariations(['intro', 'verse', 'chorus', 'outro']);
     expect(recs.length).toBe(4);
     expect(recs[0]!.recommendedVariation).toBe(0); // intro = simple
@@ -4265,7 +4265,7 @@ describe('Fill Triggers (C934)', () => {
   it('suggests fills at section boundaries', () => {
     const {
       suggestFillTriggers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const triggers = suggestFillTriggers([8, 16, 24], 32);
     expect(triggers.length).toBe(3);
     expect(triggers[0]!.barPosition).toBe(7);
@@ -4274,7 +4274,7 @@ describe('Fill Triggers (C934)', () => {
   it('assigns higher intensity near end', () => {
     const {
       suggestFillTriggers,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const triggers = suggestFillTriggers([4, 28], 32);
     expect(triggers[1]!.intensity).toBeGreaterThan(triggers[0]!.intensity);
   });
@@ -4288,7 +4288,7 @@ describe('Board Templates (C349, C350, C751)', () => {
   it('provides galant board template', () => {
     const {
       GALANT_BOARD_TEMPLATE,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(GALANT_BOARD_TEMPLATE.id).toBe('galant-workspace');
     expect(GALANT_BOARD_TEMPLATE.decks).toContain('notation');
     expect(GALANT_BOARD_TEMPLATE.decks).toContain('schema_browser');
@@ -4297,7 +4297,7 @@ describe('Board Templates (C349, C350, C751)', () => {
   it('provides celtic board template', () => {
     const {
       CELTIC_BOARD_TEMPLATE,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(CELTIC_BOARD_TEMPLATE.id).toBe('celtic-session');
     expect(CELTIC_BOARD_TEMPLATE.decks).toContain('tracker');
     expect(CELTIC_BOARD_TEMPLATE.decks).toContain('drone');
@@ -4306,7 +4306,7 @@ describe('Board Templates (C349, C350, C751)', () => {
   it('getAllBoardTemplates returns all', () => {
     const {
       getAllBoardTemplates,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const templates = getAllBoardTemplates();
     expect(templates.length).toBe(3);
   });
@@ -4320,7 +4320,7 @@ describe('Constraint Search (C1012)', () => {
   it('searches by query', () => {
     const {
       searchConstraints,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const results = searchConstraints('raga');
     expect(results.length).toBeGreaterThan(0);
     expect(results[0]!.constraintType).toBe('raga');
@@ -4329,7 +4329,7 @@ describe('Constraint Search (C1012)', () => {
   it('filters by culture', () => {
     const {
       searchConstraints,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const results = searchConstraints('', { culture: 'celtic' });
     const allCelticOrUniversal = results.every(
       (r: any) => r.culture === 'celtic' || r.culture === 'universal'
@@ -4340,7 +4340,7 @@ describe('Constraint Search (C1012)', () => {
   it('filters by category', () => {
     const {
       searchConstraints,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const results = searchConstraints('', { category: 'rhythm' });
     expect(results.every((r: any) => r.category === 'rhythm')).toBe(true);
   });
@@ -4348,7 +4348,7 @@ describe('Constraint Search (C1012)', () => {
   it('returns all for empty query', () => {
     const {
       searchConstraints,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const results = searchConstraints('');
     expect(results.length).toBeGreaterThan(20);
   });
@@ -4362,14 +4362,14 @@ describe('LCC Polychord Templates (C1171)', () => {
   it('has multiple templates', () => {
     const {
       LCC_POLYCHORD_TEMPLATES,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(LCC_POLYCHORD_TEMPLATES.length).toBeGreaterThan(2);
   });
 
   it('finds template for lydian scale', () => {
     const {
       getLCCPolychordForScale,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const template = getLCCPolychordForScale('lydian');
     expect(template).toBeDefined();
     expect(template!.name).toBe('lydian_stack');
@@ -4378,7 +4378,7 @@ describe('LCC Polychord Templates (C1171)', () => {
   it('returns undefined for unknown scale', () => {
     const {
       getLCCPolychordForScale,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const template = getLCCPolychordForScale('chromatic');
     expect(template).toBeUndefined();
   });
@@ -4392,7 +4392,7 @@ describe('Reharmonization (C1340, C1341)', () => {
   it('suggests tritone substitutions', () => {
     const {
       suggestReharmonizations,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const results = suggestReharmonizations(['G7', 'Cmaj7'], 'jazz');
     expect(results[0]!.suggestions.length).toBeGreaterThan(0);
     const tritoneSub = results[0]!.suggestions.find((s: any) => s.name === 'Tritone Substitution');
@@ -4403,7 +4403,7 @@ describe('Reharmonization (C1340, C1341)', () => {
   it('filters by context', () => {
     const {
       suggestReharmonizations,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const jazzResults = suggestReharmonizations(['C'], 'jazz');
     const filmResults = suggestReharmonizations(['C'], 'film');
     // Both should have suggestions but possibly different ones
@@ -4420,7 +4420,7 @@ describe('Bebop Vocabulary Constraints (C1398)', () => {
   it('has multiple pattern constraints', () => {
     const {
       BEBOP_VOCABULARY_CONSTRAINTS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(BEBOP_VOCABULARY_CONSTRAINTS.length).toBeGreaterThan(4);
   });
 });
@@ -4429,7 +4429,7 @@ describe('Tracker Jazz Patterns (C1399)', () => {
   it('has patterns of various difficulties', () => {
     const {
       getJazzPatterns,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const beginner = getJazzPatterns(undefined, 'beginner');
     const advanced = getJazzPatterns(undefined, 'advanced');
     expect(beginner.length).toBeGreaterThan(0);
@@ -4439,7 +4439,7 @@ describe('Tracker Jazz Patterns (C1399)', () => {
   it('filters by category', () => {
     const {
       getJazzPatterns,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const bebop = getJazzPatterns('bebop');
     expect(bebop.length).toBeGreaterThan(0);
     expect(bebop.every((p: any) => p.category === 'bebop')).toBe(true);
@@ -4450,7 +4450,7 @@ describe('Solo Section Config (C1400)', () => {
   it('generates config for bebop', () => {
     const {
       generateSoloSectionConfig,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const config = generateSoloSectionConfig('saxophone', 'bebop', 2);
     expect(config.instrument).toBe('saxophone');
     expect(config.vocabularyLevel).toBe('advanced');
@@ -4461,7 +4461,7 @@ describe('Solo Section Config (C1400)', () => {
   it('generates config for blues', () => {
     const {
       generateSoloSectionConfig,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const config = generateSoloSectionConfig('guitar', 'blues', 1);
     expect(config.vocabularyLevel).toBe('beginner');
     expect(config.backingRhythm).toBe('shuffle_groove');
@@ -4476,7 +4476,7 @@ describe('Heterophony Lanes (C794)', () => {
   it('generates lanes with lead as first', () => {
     const {
       generateHeterophonyLanes,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const melody = [
       { midi: 60, time: 0, duration: 0.5 },
       { midi: 64, time: 0.5, duration: 0.5 },
@@ -4490,7 +4490,7 @@ describe('Heterophony Lanes (C794)', () => {
   it('assigns culture-specific labels', () => {
     const {
       generateHeterophonyLanes,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const melody = [{ midi: 60, time: 0, duration: 0.5 }];
     const lanes = generateHeterophonyLanes(melody, 3, 'chinese');
     expect(lanes[1]!.label).toBe('Secondary');
@@ -4506,7 +4506,7 @@ describe('HostActionUndoStack (C922)', () => {
   it('supports push and undo', () => {
     const {
       HostActionUndoStack,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const stack = new HostActionUndoStack();
     const action = {
       id: '1',
@@ -4526,7 +4526,7 @@ describe('HostActionUndoStack (C922)', () => {
   it('supports redo', () => {
     const {
       HostActionUndoStack,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const stack = new HostActionUndoStack();
     stack.push({ id: '1', timestamp: 0, description: 'test', type: 'x', previousState: {}, newState: {} });
     stack.undo();
@@ -4538,7 +4538,7 @@ describe('HostActionUndoStack (C922)', () => {
   it('clears redo on new push', () => {
     const {
       HostActionUndoStack,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const stack = new HostActionUndoStack();
     stack.push({ id: '1', timestamp: 0, description: 'test', type: 'x', previousState: {}, newState: {} });
     stack.undo();
@@ -4555,7 +4555,7 @@ describe('ConstraintPackManager (C1013)', () => {
   it('installs and retrieves packs', () => {
     const {
       ConstraintPackManager,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const manager = new ConstraintPackManager();
     const result = manager.install({
       id: 'jazz-basics',
@@ -4573,7 +4573,7 @@ describe('ConstraintPackManager (C1013)', () => {
   it('prevents duplicate installs', () => {
     const {
       ConstraintPackManager,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const manager = new ConstraintPackManager();
     manager.install({ id: 'p1', name: 'P1', version: '1.0', constraintCount: 1, culture: 'x', enabled: true });
     const second = manager.install({ id: 'p1', name: 'P1', version: '2.0', constraintCount: 2, culture: 'x', enabled: true });
@@ -4583,7 +4583,7 @@ describe('ConstraintPackManager (C1013)', () => {
   it('enables and disables packs', () => {
     const {
       ConstraintPackManager,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const manager = new ConstraintPackManager();
     manager.install({ id: 'p1', name: 'P1', version: '1.0', constraintCount: 1, culture: 'x', enabled: true });
     manager.disable('p1');
@@ -4601,7 +4601,7 @@ describe('LCC Voice Leading (C1170)', () => {
   it('scores smooth voice leading', () => {
     const {
       suggestLCCVoiceLeading,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = suggestLCCVoiceLeading([60, 64, 67], [60, 65, 69]);
     expect(result.totalMovement).toBe(3); // 0 + 1 + 2
     expect(result.explanation).toContain('Moderate');
@@ -4610,7 +4610,7 @@ describe('LCC Voice Leading (C1170)', () => {
   it('flags wide voice leading', () => {
     const {
       suggestLCCVoiceLeading,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = suggestLCCVoiceLeading([48, 55, 60], [60, 67, 72]);
     expect(result.totalMovement).toBeGreaterThan(6);
     expect(result.explanation).toContain('Wide');
@@ -4625,7 +4625,7 @@ describe('PersonalVocabularyLibrary (C1439)', () => {
   it('adds and retrieves entries', () => {
     const {
       PersonalVocabularyLibrary,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const lib = new PersonalVocabularyLibrary();
     lib.add({
       id: 'lick-1',
@@ -4644,7 +4644,7 @@ describe('PersonalVocabularyLibrary (C1439)', () => {
   it('searches by query', () => {
     const {
       PersonalVocabularyLibrary,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const lib = new PersonalVocabularyLibrary();
     lib.add({
       id: 'l1', name: 'Blues run', pattern: [60], durations: [0.5],
@@ -4668,7 +4668,7 @@ describe('Pitch Class Visualization (C1079)', () => {
   it('generates 12 pitch classes', () => {
     const {
       generatePitchClassVisualization,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const viz = generatePitchClassVisualization(0, [0, 2, 4, 5, 7, 9, 11]); // C major
     expect(viz.pitchClasses.length).toBe(12);
     expect(viz.pitchClasses[0]!.active).toBe(true); // C
@@ -4681,7 +4681,7 @@ describe('Beat Grid Visualization (C1080)', () => {
   it('generates beats for 4/4', () => {
     const {
       generateBeatGridVisualization,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const viz = generateBeatGridVisualization(4, 4, 120);
     expect(viz.beats.length).toBe(4);
     expect(viz.beats[0]!.accent).toBe(1.0); // downbeat
@@ -4693,7 +4693,7 @@ describe('Tension Graph Visualization (C1081)', () => {
   it('generates tension points', () => {
     const {
       generateTensionGraph,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const viz = generateTensionGraph([
       { chord: 'Cmaj7', tension: 0.2 },
       { chord: 'Dm7', tension: 0.4 },
@@ -4712,7 +4712,7 @@ describe('Constraint Diff (C1084)', () => {
   it('detects added constraints', () => {
     const {
       diffConstraints,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const before = [{ type: 'key', hard: true, key: { root: 'c', mode: 'ionian' } }] as any;
     const after = [
       { type: 'key', hard: true, key: { root: 'c', mode: 'ionian' } },
@@ -4727,7 +4727,7 @@ describe('Constraint Diff (C1084)', () => {
   it('detects removed constraints', () => {
     const {
       diffConstraints,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const before = [
       { type: 'key', hard: true },
       { type: 'tempo', hard: false },
@@ -4747,7 +4747,7 @@ describe('ConstraintUsageTracker (C1097)', () => {
   it('tracks events and computes stats', () => {
     const {
       ConstraintUsageTracker,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const tracker = new ConstraintUsageTracker();
     tracker.track('key', 'add');
     tracker.track('key', 'modify');
@@ -4761,7 +4761,7 @@ describe('ConstraintUsageTracker (C1097)', () => {
   it('finds most used constraints', () => {
     const {
       ConstraintUsageTracker,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const tracker = new ConstraintUsageTracker();
     tracker.track('key', 'add');
     tracker.track('key', 'query');
@@ -4781,7 +4781,7 @@ describe('Ear Training (C1442)', () => {
   it('generates interval exercises', () => {
     const {
       generateEarTrainingExercises,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const exercises = generateEarTrainingExercises('interval', 'beginner', 3);
     expect(exercises.length).toBe(3);
     expect(exercises[0]!.type).toBe('interval');
@@ -4792,7 +4792,7 @@ describe('Ear Training (C1442)', () => {
   it('generates chord exercises', () => {
     const {
       generateEarTrainingExercises,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const exercises = generateEarTrainingExercises('chord', 'intermediate', 2);
     expect(exercises.length).toBe(2);
     expect(exercises[0]!.type).toBe('chord');
@@ -4808,7 +4808,7 @@ describe('Phrase Adaptation (C877, C878)', () => {
   it('transposes phrase to target key', () => {
     const {
       adaptPhraseToContext,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = adaptPhraseToContext(
       [60, 64, 67], [0.5, 0.5, 1.0],
       62, 60, // target D, source C
@@ -4821,7 +4821,7 @@ describe('Phrase Adaptation (C877, C878)', () => {
   it('scales rhythm for tempo change', () => {
     const {
       adaptPhraseToContext,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = adaptPhraseToContext(
       [60], [0.5],
       60, 60,
@@ -4839,7 +4839,7 @@ describe('Constraint Prolog Preview (C1052)', () => {
   it('generates key constraint preview', () => {
     const {
       constraintToPrologPreview,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const preview = constraintToPrologPreview({ type: 'style', style: 'jazz', hard: false } as any);
     expect(preview).toContain('style_constraint');
     expect(preview).toContain('jazz');
@@ -4848,7 +4848,7 @@ describe('Constraint Prolog Preview (C1052)', () => {
   it('generates multi-constraint preview', () => {
     const {
       constraintsToPrologPreview,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const preview = constraintsToPrologPreview([
       { type: 'tempo', bpm: 120, hard: false } as any,
       { type: 'swing', amount: 0.67, hard: false } as any,
@@ -4866,7 +4866,7 @@ describe('Explain Constraint (C1054)', () => {
   it('explains key constraint', () => {
     const {
       explainConstraint,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const explanation = explainConstraint({ type: 'key', hard: true, key: { root: 'c', mode: 'ionian' } } as any);
     expect(explanation.humanReadable).toContain('key');
     expect(explanation.prologTerm).toContain('key_constraint');
@@ -4877,7 +4877,7 @@ describe('Explain Constraint (C1054)', () => {
   it('handles unknown constraint types', () => {
     const {
       explainConstraint,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const explanation = explainConstraint({ type: 'custom_xyz', hard: false } as any);
     expect(explanation.humanReadable).toContain('custom_xyz');
   });
@@ -4891,14 +4891,14 @@ describe('Theory Card Marketplace (C1070)', () => {
   it('has starter listings', () => {
     const {
       MARKETPLACE_LISTINGS,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     expect(MARKETPLACE_LISTINGS.length).toBeGreaterThan(2);
   });
 
   it('searches by query', () => {
     const {
       searchMarketplace,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const results = searchMarketplace('jazz');
     expect(results.length).toBeGreaterThan(0);
   });
@@ -4906,7 +4906,7 @@ describe('Theory Card Marketplace (C1070)', () => {
   it('filters by culture', () => {
     const {
       searchMarketplace,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const results = searchMarketplace('', { culture: 'celtic' });
     expect(results.length).toBeGreaterThan(0);
     expect(results.every((r: any) => r.culture === 'celtic')).toBe(true);
@@ -4921,7 +4921,7 @@ describe('Target Note Practice (C1436)', () => {
   it('generates practice for known chords', () => {
     const {
       generateTargetNotePractice,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const practice = generateTargetNotePractice(['Cmaj7', 'Dm7', 'G7'], 'beginner');
     expect(practice.chordProgression.length).toBe(3);
     expect(practice.targetNotes.length).toBe(3); // 1 per chord for beginner
@@ -4931,7 +4931,7 @@ describe('Target Note Practice (C1436)', () => {
   it('increases targets with difficulty', () => {
     const {
       generateTargetNotePractice,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const beginner = generateTargetNotePractice(['Cmaj7'], 'beginner');
     const advanced = generateTargetNotePractice(['Cmaj7'], 'advanced');
     expect(advanced.targetNotes.length).toBeGreaterThan(beginner.targetNotes.length);
@@ -4946,7 +4946,7 @@ describe('Card Pack Prolog Bundling (C1032)', () => {
   it('extracts predicates from Prolog code', () => {
     const {
       createCardPackPrologBundle,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const bundle = createCardPackPrologBundle('test-pack', 'my_pred(X) :- atom(X).\nother_pred(Y) :- number(Y).');
     expect(bundle.packId).toBe('test-pack');
     expect(bundle.predicates.length).toBe(2);
@@ -4957,7 +4957,7 @@ describe('Inline Prolog Snippets (C1033)', () => {
   it('namespaces predicates', () => {
     const {
       createInlinePrologSnippet,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = createInlinePrologSnippet('card1', 'my_rule(X) :- test(X).');
     expect(result.namespacedCode).toContain('user_card1_my_rule');
   });
@@ -4971,7 +4971,7 @@ describe('Prolog Syntax Check (C981)', () => {
   it('validates correct Prolog', () => {
     const {
       checkPrologSyntax,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = checkPrologSyntax('my_pred(X) :- atom(X).\nother(Y) :- number(Y).');
     expect(result.valid).toBe(true);
     expect(result.errors.length).toBe(0);
@@ -4980,7 +4980,7 @@ describe('Prolog Syntax Check (C981)', () => {
   it('detects missing period', () => {
     const {
       checkPrologSyntax,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = checkPrologSyntax('my_pred(X) :- atom(X)');
     // Should detect missing period
     expect(result.errors.length + result.warnings.length).toBeGreaterThanOrEqual(0);
@@ -4989,7 +4989,7 @@ describe('Prolog Syntax Check (C981)', () => {
   it('skips comments', () => {
     const {
       checkPrologSyntax,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
     const result = checkPrologSyntax('% This is a comment\n/* block */\nmy_pred(X) :- atom(X).');
     expect(result.valid).toBe(true);
   });
@@ -5003,7 +5003,7 @@ describe('Round-Trip Tests (C921)', () => {
   it('changing spec constraints updates recommendations', () => {
     const {
       searchConstraints,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     // First: filter for jazz constraints
     const jazzConstraints = searchConstraints('', { culture: 'jazz' });
@@ -5023,7 +5023,7 @@ describe('Round-Trip Tests (C921)', () => {
   it('accept recommendation → modify → new recommendations differ', () => {
     const {
       recommendVariations,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     // First recommendation
     const recs1 = recommendVariations(['intro', 'verse', 'chorus']);
@@ -5044,7 +5044,7 @@ describe('Constraint Visualization Updates (C1089)', () => {
   it('pitch class display updates on scale change', () => {
     const {
       generatePitchClassVisualization,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     const cMajor = generatePitchClassVisualization(0, [0, 2, 4, 5, 7, 9, 11]);
     const dMajor = generatePitchClassVisualization(2, [0, 2, 4, 5, 7, 9, 11]);
@@ -5061,7 +5061,7 @@ describe('Constraint Visualization Updates (C1089)', () => {
   it('beat grid updates on meter change', () => {
     const {
       generateBeatGridVisualization,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     const four4 = generateBeatGridVisualization(4, 4);
     const three4 = generateBeatGridVisualization(3, 4);
@@ -5107,7 +5107,7 @@ describe('Celtic Workflow Integration (C760)', () => {
       CELTIC_VARIATION_PRESETS,
       buildTuneSet,
       getCelticArrangementTemplate,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     // 1. Choose tune type
     const tuneType = 'reel';
@@ -5150,7 +5150,7 @@ describe('Chinese Workflow Integration (C857)', () => {
       getShengVoicing,
       generateHeterophonyLanes,
       assignHeterophonyRoles,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     // 1. Select mode
     const mode = 'gong';
@@ -5197,7 +5197,7 @@ describe('LCC Workflow Integration (C1200)', () => {
     const {
       getLCCPolychordForScale,
       suggestLCCVoiceLeading,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     const polychord = getLCCPolychordForScale('lydian');
     expect(polychord).toBeDefined();
@@ -5220,7 +5220,7 @@ describe('Jazz Arranging Workflow (C1350)', () => {
       getJazzPatterns,
       BEBOP_VOCABULARY_CONSTRAINTS,
       allocateOrchestrationRoles,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     // 1. Get reharmonizations
     const reharms = suggestReharmonizations(['Dm7', 'G7', 'Cmaj7'], 'jazz');
@@ -5255,7 +5255,7 @@ describe('Jazz Improv Workflow (C1445)', () => {
       generateEarTrainingExercises,
       exportVocabularyToPracticeSheet,
       PersonalVocabularyLibrary,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     // 1. Browse patterns
     const patterns = getJazzPatterns();
@@ -5299,7 +5299,7 @@ describe('Custom Constraint Ecosystem Integration (C1099)', () => {
       diffConstraints,
       ConstraintUsageTracker,
       ConstraintPackManager,
-    } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+    } = require('../../queries/spec-queries') as typeof import('../../queries/spec-queries');
 
     // 1. Search available constraints
     const results = searchConstraints('key');

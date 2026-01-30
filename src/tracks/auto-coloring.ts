@@ -156,7 +156,7 @@ export const COLOR_SCHEMES: ColorScheme[] = [
 // --------------------------------------------------------------------------
 
 /** Keywords for detecting instrument categories */
-const CATEGORY_KEYWORDS: Record<InstrumentCategory, string[]> = {
+export const CATEGORY_KEYWORDS: Record<InstrumentCategory, string[]> = {
   drums: ['drum', 'kick', 'snare', 'hat', 'hihat', 'hi-hat', 'tom', 'cymbal', 'crash', 'ride', 'kit', 'beat', '808', '909', 'breakbeat'],
   percussion: ['perc', 'conga', 'bongo', 'shaker', 'tambourine', 'clap', 'snap', 'rim', 'cowbell', 'triangle', 'wood', 'maracas'],
   bass: ['bass', 'sub', 'low', 'reese', 'wobble', 'dub', 'synbass', 'acid'],
@@ -173,7 +173,7 @@ const CATEGORY_KEYWORDS: Record<InstrumentCategory, string[]> = {
 };
 
 /** Plugin keywords for category detection */
-const PLUGIN_KEYWORDS: Record<InstrumentCategory, string[]> = {
+export const PLUGIN_KEYWORDS: Record<InstrumentCategory, string[]> = {
   drums: ['addictive drums', 'superior drummer', 'ezdrummer', 'battery', 'maschine', 'ultrabeat'],
   percussion: ['percussion', 'latin', 'world'],
   bass: ['trilian', 'monark', 'diva', 'massive'],
