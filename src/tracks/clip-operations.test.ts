@@ -3,6 +3,7 @@
  * Tests M261-M263 implementations
  */
 
+import { describe, test, expect, beforeEach } from 'vitest';
 import {
   Clip,
   Track,

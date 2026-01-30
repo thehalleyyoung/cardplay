@@ -4,7 +4,7 @@
  * B124: Tests for switchBoard function with recents/favorites behavior.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { switchBoard } from './switch-board';
 import { getBoardRegistry } from '../registry';
 import { getBoardStateStore } from '../store/store';

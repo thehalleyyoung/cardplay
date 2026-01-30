@@ -2,6 +2,7 @@
  * Tests for Canonical Representations (Phase C0)
  */
 
+import { describe, test, expect } from 'vitest';
 import {
   MUSIC_SPEC_INVARIANTS,
   validateSpecInvariants,

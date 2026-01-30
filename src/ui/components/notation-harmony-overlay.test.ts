@@ -14,7 +14,7 @@ import { getSharedEventStore } from '../../state/event-store';
 import { getSelectionStore } from '../../state/selection-state';
 import { getUndoStack } from '../../state/undo-stack';
 import type { EventStreamId, EventId } from '../../state/types';
-import { asTick, asTickDuration } from '../../types/branded';
+import { asTick, asTickDuration } from '../../types/primitives';
 import { EventKinds } from '../../types/event';
 
 describe('NotationHarmonyOverlay', () => {

@@ -44,6 +44,12 @@ import {
   listConstraintPacks,
   getConstraintPack,
   dumpSpecFacts,
+  computeDFTBinTS,
+  computeDFTMagnitudeTS,
+  computeDFTPhaseTS,
+  computeTonalCentroidTS,
+  spiralChordCentroidTS,
+  spiralDistanceTS,
 } from '../queries/spec-queries';
 
 describe('MusicSpec Types (C051-C052)', () => {
@@ -973,16 +979,6 @@ describe('Modulation Detection (C250)', () => {
 // ============================================================================
 
 describe('C260: Performance benchmarks for tonality and segmentation', () => {
-  // Import the TS fallback functions for benchmarking
-  const {
-    computeDFTBinTS,
-    computeDFTMagnitudeTS,
-    computeDFTPhaseTS,
-    computeTonalCentroidTS,
-    spiralChordCentroidTS,
-    spiralDistanceTS,
-  } = require('./spec-queries');
-  
   // Typical pitch-class profile (C major chord emphasis)
   const typicalProfile = [5, 1, 2, 1, 4, 3, 1, 4, 1, 2, 1, 2];
   

@@ -56,6 +56,16 @@ import {
   type ConstraintParamNumber,
 } from './custom-constraints';
 
+import {
+  extractProfile,
+  matchCultures,
+  matchRagas,
+  matchChineseModes,
+  analyzeSelection,
+  type NoteEvent,
+  type SelectionProfile,
+} from './selection-analyzer';
+
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -396,15 +406,6 @@ describe('Card Change Integration (C916-C920)', () => {
 // ============================================================================
 
 describe('SelectionAnalyzer (C882-C883)', () => {
-  // Import here to keep test focused
-  const {
-    extractProfile,
-    matchCultures,
-    matchRagas,
-    matchChineseModes,
-    analyzeSelection,
-  } = require('./selection-analyzer') as typeof import('./selection-analyzer');
-
   it('should extract an empty profile for no events', () => {
     const profile = extractProfile([]);
     expect(profile.eventCount).toBe(0);
