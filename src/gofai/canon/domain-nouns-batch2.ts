@@ -66,7 +66,7 @@ const HARMONY_NOUNS_CONTINUED: readonly DomainNoun[] = [
     tradition: 'Jazz',
   },
   {
-    id: createLexemeId('noun', 'ii-V-I'),
+    id: createLexemeId('noun', 'ii-v-i-progression'),
     term: 'ii-V-I',
     variants: ['two-five-one', 'turnaround', 'jazz cadence'],
     category: 'harmony',

@@ -1260,3 +1260,332 @@ export interface SourceCoverageEntry {
   readonly span: SourceSpan;
   readonly stages: readonly PipelineStageId[];
 }
+
+// =============================================================================
+// Plan-Specific Provenance Extensions (Step 265)
+// =============================================================================
+
+/**
+ * Provenance specifically for plan opcodes.
+ * Links each opcode back through levers, goals, semantics, to original words.
+ */
+export interface PlanOpcodeProvenance extends Provenance {
+  readonly kind: 'plan-opcode';
+  
+  /** The opcode ID this provenance describes */
+  readonly opcodeId: string;
+  
+  /** Which goal(s) this opcode serves */
+  readonly servesGoals: readonly string[];
+  
+  /** Which lever(s) led to selecting this opcode */
+  readonly fromLevers: readonly string[];
+  
+  /** Which axes are being manipulated */
+  readonly manipulatesAxes: readonly string[];
+  
+  /** Parameters and their inference provenance */
+  readonly parameterProvenance: ReadonlyMap<string, ProvenanceId>;
+  
+  /** Cost/scoring information */
+  readonly selectionRationale: {
+    readonly cost: number;
+    readonly goalSatisfaction: number;
+    readonly constraintCompliance: number;
+    readonly alternativesConsidered: readonly string[];
+    readonly reasonChosen: string;
+  };
+  
+  /** Constraints this opcode preserves */
+  readonly preservesConstraints: readonly string[];
+  
+  /** Potential side effects identified */
+  readonly knownSideEffects: readonly string[];
+}
+
+/**
+ * Create plan opcode provenance.
+ */
+export function createPlanOpcodeProvenance(
+  params: {
+    opcodeId: string;
+    servesGoals: readonly string[];
+    fromLevers: readonly string[];
+    manipulatesAxes: readonly string[];
+    parameterProvenance: ReadonlyMap<string, ProvenanceId>;
+    selectionRationale: {
+      cost: number;
+      goalSatisfaction: number;
+      constraintCompliance: number;
+      alternativesConsidered: readonly string[];
+      reasonChosen: string;
+    };
+    preservesConstraints: readonly string[];
+    knownSideEffects: readonly string[];
+    parents?: readonly ProvenanceId[];
+    sourceSpans?: readonly SourceSpan[];
+    lexemes?: readonly LexemeId[];
+    rules?: readonly RuleId[];
+    stages?: readonly PipelineStageId[];
+  }
+): PlanOpcodeProvenance {
+  const baseProvenance = createProvenance({
+    sourceSpans: params.sourceSpans ?? [],
+    lexemes: params.lexemes ?? [],
+    rules: params.rules ?? [],
+    compositions: [],
+    stages: params.stages ?? ['planning'],
+    decisions: [],
+    defaults: [],
+    parents: params.parents ?? [],
+  });
+
+  return {
+    ...baseProvenance,
+    kind: 'plan-opcode',
+    opcodeId: params.opcodeId,
+    servesGoals: params.servesGoals,
+    fromLevers: params.fromLevers,
+    manipulatesAxes: params.manipulatesAxes,
+    parameterProvenance: params.parameterProvenance,
+    selectionRationale: params.selectionRationale,
+    preservesConstraints: params.preservesConstraints,
+    knownSideEffects: params.knownSideEffects,
+  };
+}
+
+/**
+ * Provenance for a complete plan.
+ */
+export interface CompletePlanProvenance {
+  /** Provenance ID for the entire plan */
+  readonly planId: ProvenanceId;
+  
+  /** Original utterance that led to this plan */
+  readonly utterance: string;
+  
+  /** Provenance for the intent */
+  readonly intentProvenance: ProvenanceId;
+  
+  /** Provenance for each opcode in order */
+  readonly opcodeProvenance: readonly PlanOpcodeProvenance[];
+  
+  /** How goals map to opcodes */
+  readonly goalToOpcodeMapping: ReadonlyMap<string, readonly string[]>;
+  
+  /** How constraints affected planning */
+  readonly constraintInfluence: readonly {
+    readonly constraintId: string;
+    readonly eliminatedOpcodes: readonly string[];
+    readonly modifiedOpcodes: readonly string[];
+    readonly reason: string;
+  }[];
+  
+  /** User preferences that influenced planning */
+  readonly preferenceInfluence: readonly {
+    readonly preference: string;
+    readonly affectedDecisions: readonly string[];
+    readonly impact: string;
+  }[];
+  
+  /** Full decision tree for planning */
+  readonly decisionTree: PlanningDecisionNode;
+  
+  /** Timestamp of plan generation */
+  readonly timestamp: number;
+  
+  /** Compiler version/fingerprint */
+  readonly compilerVersion: string;
+}
+
+/**
+ * Node in the planning decision tree.
+ */
+export interface PlanningDecisionNode {
+  readonly decision: string;
+  readonly rationale: string;
+  readonly alternatives: readonly {
+    readonly option: string;
+    readonly rejectionReason: string;
+    readonly score: number;
+  }[];
+  readonly chosen: string;
+  readonly children: readonly PlanningDecisionNode[];
+}
+
+/**
+ * Create a complete plan provenance record.
+ */
+export function createCompletePlanProvenance(
+  params: {
+    utterance: string;
+    intentProvenance: ProvenanceId;
+    opcodeProvenance: readonly PlanOpcodeProvenance[];
+    goalToOpcodeMapping: ReadonlyMap<string, readonly string[]>;
+    constraintInfluence: CompletePlanProvenance['constraintInfluence'];
+    preferenceInfluence: CompletePlanProvenance['preferenceInfluence'];
+    decisionTree: PlanningDecisionNode;
+    compilerVersion: string;
+  }
+): CompletePlanProvenance {
+  return {
+    planId: nextProvenanceId(),
+    utterance: params.utterance,
+    intentProvenance: params.intentProvenance,
+    opcodeProvenance: params.opcodeProvenance,
+    goalToOpcodeMapping: params.goalToOpcodeMapping,
+    constraintInfluence: params.constraintInfluence,
+    preferenceInfluence: params.preferenceInfluence,
+    decisionTree: params.decisionTree,
+    timestamp: Date.now(),
+    compilerVersion: params.compilerVersion,
+  };
+}
+
+/**
+ * Extract human-readable provenance chain.
+ */
+export function explainProvenanceChain(
+  opcode: PlanOpcodeProvenance,
+  store: ProvenanceStore
+): string[] {
+  const explanation: string[] = [];
+  
+  explanation.push(`Opcode: ${opcode.opcodeId}`);
+  explanation.push('');
+  
+  explanation.push('Serves goals:');
+  for (const goal of opcode.servesGoals) {
+    explanation.push(`  • ${goal}`);
+  }
+  explanation.push('');
+  
+  explanation.push('Derived from levers:');
+  for (const lever of opcode.fromLevers) {
+    explanation.push(`  • ${lever}`);
+  }
+  explanation.push('');
+  
+  explanation.push('Manipulates axes:');
+  for (const axis of opcode.manipulatesAxes) {
+    explanation.push(`  • ${axis}`);
+  }
+  explanation.push('');
+  
+  explanation.push('Selection rationale:');
+  explanation.push(`  Cost: ${opcode.selectionRationale.cost.toFixed(2)}`);
+  explanation.push(`  Goal satisfaction: ${opcode.selectionRationale.goalSatisfaction.toFixed(2)}`);
+  explanation.push(`  Constraint compliance: ${opcode.selectionRationale.constraintCompliance.toFixed(2)}`);
+  explanation.push(`  Reason: ${opcode.selectionRationale.reasonChosen}`);
+  explanation.push('');
+  
+  if (opcode.selectionRationale.alternativesConsidered.length > 0) {
+    explanation.push('Alternatives considered:');
+    for (const alt of opcode.selectionRationale.alternativesConsidered) {
+      explanation.push(`  • ${alt}`);
+    }
+    explanation.push('');
+  }
+  
+  if (opcode.preservesConstraints.length > 0) {
+    explanation.push('Preserves constraints:');
+    for (const constraint of opcode.preservesConstraints) {
+      explanation.push(`  ✓ ${constraint}`);
+    }
+    explanation.push('');
+  }
+  
+  if (opcode.knownSideEffects.length > 0) {
+    explanation.push('Known side effects:');
+    for (const effect of opcode.knownSideEffects) {
+      explanation.push(`  ⚠ ${effect}`);
+    }
+    explanation.push('');
+  }
+  
+  // Trace back to source text
+  if (opcode.sourceSpans.length > 0 && opcode.sourceSpans[0].text) {
+    explanation.push(`Source text: "${opcode.sourceSpans[0].text}"`);
+  }
+  
+  // Show lexeme trail
+  if (opcode.lexemes.length > 0) {
+    explanation.push('Lexeme trail:');
+    for (const lexeme of opcode.lexemes) {
+      explanation.push(`  → ${lexeme}`);
+    }
+  }
+  
+  return explanation;
+}
+
+/**
+ * Visualize complete plan provenance as a tree.
+ */
+export function visualizePlanProvenanceTree(
+  plan: CompletePlanProvenance,
+  options?: {
+    includeScores?: boolean;
+    includeAlternatives?: boolean;
+    maxDepth?: number;
+  }
+): string {
+  const lines: string[] = [];
+  const opts = {
+    includeScores: options?.includeScores ?? true,
+    includeAlternatives: options?.includeAlternatives ?? false,
+    maxDepth: options?.maxDepth ?? 10,
+  };
+  
+  lines.push(`Plan Provenance Tree: ${plan.planId}`);
+  lines.push(`Utterance: "${plan.utterance}"`);
+  lines.push(`Generated: ${new Date(plan.timestamp).toISOString()}`);
+  lines.push(`Compiler: ${plan.compilerVersion}`);
+  lines.push('');
+  
+  // Show goal → opcode mapping
+  lines.push('Goal Coverage:');
+  for (const [goal, opcodes] of plan.goalToOpcodeMapping.entries()) {
+    lines.push(`  ${goal}`);
+    for (const opcode of opcodes) {
+      lines.push(`    → ${opcode}`);
+    }
+  }
+  lines.push('');
+  
+  // Show each opcode
+  lines.push('Opcode Sequence:');
+  for (let i = 0; i < plan.opcodeProvenance.length; i++) {
+    const op = plan.opcodeProvenance[i];
+    lines.push(`  ${i + 1}. ${op.opcodeId}`);
+    
+    if (opts.includeScores) {
+      lines.push(`     Cost: ${op.selectionRationale.cost.toFixed(2)} | ` +
+                 `Satisfaction: ${op.selectionRationale.goalSatisfaction.toFixed(2)}`);
+    }
+    
+    lines.push(`     Reason: ${op.selectionRationale.reasonChosen}`);
+    
+    if (opts.includeAlternatives && op.selectionRationale.alternativesConsidered.length > 0) {
+      lines.push(`     Alternatives: ${op.selectionRationale.alternativesConsidered.join(', ')}`);
+    }
+  }
+  lines.push('');
+  
+  // Show constraint influence
+  if (plan.constraintInfluence.length > 0) {
+    lines.push('Constraint Influence:');
+    for (const ci of plan.constraintInfluence) {
+      lines.push(`  ${ci.constraintId}: ${ci.reason}`);
+      if (ci.eliminatedOpcodes.length > 0) {
+        lines.push(`    Eliminated: ${ci.eliminatedOpcodes.join(', ')}`);
+      }
+      if (ci.modifiedOpcodes.length > 0) {
+        lines.push(`    Modified: ${ci.modifiedOpcodes.join(', ')}`);
+      }
+    }
+    lines.push('');
+  }
+  
+  return lines.join('\n');
+}

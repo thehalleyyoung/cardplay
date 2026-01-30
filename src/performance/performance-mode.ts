@@ -49,6 +49,12 @@ export interface PerformanceModeConfig {
   
   /** Show performance HUD */
   showPerformanceHUD: boolean;
+  
+  /** HUD position */
+  hudPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  
+  /** Show keyboard shortcuts */
+  keyboardShortcuts?: boolean;
 }
 
 /** Feature that can be disabled in performance mode */
@@ -82,6 +88,29 @@ export interface PerformanceHUD {
   warnings: string[];
 }
 
+/** HUD configuration */
+export interface HUDConfig {
+  visible: boolean;
+  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  showCpu: boolean;
+  showLatency: boolean;
+  showMemory: boolean;
+  showDroppedFrames: boolean;
+}
+
+/** Panic result */
+export interface PanicResult {
+  audioCleared: boolean;
+  timestamp: number;
+}
+
+/** Precheck result */
+export interface PrecheckResult {
+  passed: boolean;
+  warnings: string[];
+  errors: string[];
+}
+
 /** Performance mode state */
 export interface PerformanceModeState {
   active: boolean;
@@ -110,6 +139,8 @@ export const DEFAULT_PERFORMANCE_CONFIG: PerformanceModeConfig = {
   disableAISuggestions: true,
   cpuThreshold: 80,
   showPerformanceHUD: true,
+  hudPosition: 'top-right',
+  keyboardShortcuts: true,
 };
 
 // --------------------------------------------------------------------------
@@ -296,16 +327,23 @@ export class PerformanceModeStore {
   }
   
   // Panic button
-  panic(): void {
+  panic(): PanicResult {
     // In a real implementation, this would:
     // 1. Stop all audio playback
     // 2. Send MIDI all-notes-off
     // 3. Reset audio engine state
     console.log('PANIC: Stopping all audio');
     
+    const result: PanicResult = {
+      audioCleared: true,
+      timestamp: Date.now(),
+    };
+    
     // Emit panic event
     this.state.warnings = [...this.state.warnings, 'Panic triggered'];
     this.notifyListeners();
+    
+    return result;
   }
   
   // Metrics
@@ -369,6 +407,75 @@ export class PerformanceModeStore {
       midiActivity: false, // Would be updated from MIDI system
       audioClipping: false, // Would be updated from audio system
       warnings: [...this.state.warnings],
+    };
+  }
+  
+  getHUDConfig(): HUDConfig {
+    return {
+      visible: this.state.active && this.state.config.showPerformanceHUD,
+      position: this.state.config.hudPosition ?? 'top-right',
+      showCpu: true,
+      showLatency: true,
+      showMemory: true,
+      showDroppedFrames: true,
+    };
+  }
+  
+  // Stability score (0-1, 1 is best)
+  getStabilityScore(): number {
+    if (this.metricsHistory.length === 0) return 1.0;
+    
+    // Calculate stability based on recent metrics
+    const recent = this.metricsHistory.slice(-10);
+    let totalScore = 0;
+    
+    for (const m of recent) {
+      let score = 1.0;
+      
+      // Penalize high CPU
+      if (m.cpuUsage > 80) score -= 0.3;
+      else if (m.cpuUsage > 60) score -= 0.1;
+      
+      // Penalize dropped frames
+      score -= Math.min(0.3, m.droppedFrames * 0.05);
+      
+      // Penalize high latency
+      if (m.latency > 50) score -= 0.2;
+      else if (m.latency > 20) score -= 0.1;
+      
+      totalScore += Math.max(0, score);
+    }
+    
+    return totalScore / recent.length;
+  }
+  
+  // Precheck validation
+  runPrecheck(): PrecheckResult {
+    const warnings: string[] = [];
+    const errors: string[] = [];
+    
+    // Check if samples need loading
+    if (this.state.config.preloadSamples) {
+      // Would check sample loading status in real implementation
+    }
+    
+    // Check current metrics
+    if (this.state.metrics) {
+      if (this.state.metrics.cpuUsage > 70) {
+        warnings.push('CPU usage is already high');
+      }
+      if (this.state.metrics.cpuUsage > 90) {
+        errors.push('CPU usage is critical');
+      }
+      if (this.state.metrics.memoryUsage > 1000) {
+        warnings.push('Memory usage is high');
+      }
+    }
+    
+    return {
+      passed: errors.length === 0,
+      warnings,
+      errors,
     };
   }
   

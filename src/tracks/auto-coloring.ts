@@ -171,18 +171,18 @@ export const COLOR_SCHEMES: ColorScheme[] = [
 export const CATEGORY_KEYWORDS: Record<InstrumentCategory, string[]> = {
   drums: ['drum', 'kick', 'snare', 'hat', 'hihat', 'hi-hat', 'tom', 'cymbal', 'crash', 'ride', 'kit', 'beat', '808', '909', 'breakbeat'],
   percussion: ['perc', 'conga', 'bongo', 'shaker', 'tambourine', 'clap', 'snap', 'rim', 'cowbell', 'triangle', 'wood', 'maracas'],
-  bass: ['bass', 'sub', 'low', 'reese', 'wobble', 'dub', 'synbass', 'acid'],
-  synth: ['synth', 'pad', 'lead', 'arp', 'pluck', 'stab', 'saw', 'square', 'analog', 'digital', 'fm'],
-  keys: ['piano', 'key', 'rhodes', 'wurli', 'organ', 'clav', 'electric piano', 'epiano', 'ep'],
-  guitar: ['guitar', 'gtr', 'acoustic', 'electric', 'strat', 'tele', 'les paul', 'nylon', 'steel', 'distort'],
+  bass: ['bass guitar', 'bass', 'sub', 'low', 'reese', 'wobble', 'dub', 'synbass', 'acid'],
+  synth: ['synth lead', 'synth pad', 'synth bass', 'synth', 'pad', 'lead', 'arp', 'pluck', 'stab', 'saw', 'square', 'analog', 'digital', 'fm'],
+  keys: ['electric piano', 'piano', 'key', 'rhodes', 'wurli', 'organ', 'clav', 'epiano', 'ep'],
+  guitar: ['electric guitar', 'acoustic guitar', 'guitar', 'gtr', 'acoustic', 'electric', 'strat', 'tele', 'les paul', 'nylon', 'steel', 'distort'],
   strings: ['string', 'violin', 'viola', 'cello', 'contrabass', 'orchestra', 'ensemble', 'pizz', 'legato', 'tremolo'],
-  brass: ['brass', 'trumpet', 'trombone', 'horn', 'tuba', 'sax', 'saxophone', 'section'],
-  woodwinds: ['flute', 'clarinet', 'oboe', 'bassoon', 'piccolo', 'recorder', 'wind', 'reed'],
-  vocals: ['vocal', 'voice', 'vox', 'sing', 'choir', 'harmony', 'lead vocal', 'backing', 'adlib', 'acapella'],
-  fx: ['fx', 'effect', 'sfx', 'riser', 'sweep', 'noise', 'impact', 'whoosh', 'transition', 'foley'],
+  brass: ['brass section', 'brass', 'trumpet', 'trombone', 'horn', 'tuba', 'section'],
+  woodwinds: ['flute', 'clarinet', 'oboe', 'bassoon', 'piccolo', 'recorder', 'wind', 'reed', 'sax', 'saxophone'],
+  vocals: ['lead vocal', 'backing vocal', 'vocal', 'voice', 'vox', 'sing', 'choir', 'harmony', 'backing', 'adlib', 'acapella'],
+  fx: ['sound effects', 'ambient fx', 'fx', 'effect', 'sfx', 'riser', 'sweep', 'noise', 'impact', 'whoosh', 'transition', 'foley'],
   ambient: ['ambient', 'atmosphere', 'texture', 'drone', 'pad', 'field', 'nature', 'environmental'],
-  aux: ['aux', 'bus', 'send', 'return'],
-  master: ['master', 'stereo out', 'mix bus', 'main out'],
+  aux: ['reverb send', 'delay send', 'aux', 'bus', 'send', 'return'],
+  master: ['stereo out', 'main out', 'mix bus', 'master'],
   other: [],
 };
 
@@ -215,14 +215,25 @@ export const PLUGIN_KEYWORDS: Record<InstrumentCategory, string[]> = {
 export function detectCategoryFromName(name: string): { category: InstrumentCategory; confidence: number } {
   const nameLower = name.toLowerCase();
   
+  // Find all matching categories with their best keyword match
+  let bestMatch: { category: InstrumentCategory; confidence: number; keywordLength: number } | null = null;
+  
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS) as [InstrumentCategory, string[]][]) {
     for (const keyword of keywords) {
       if (nameLower.includes(keyword)) {
         // Higher confidence for longer matches
         const confidence = Math.min(0.9, 0.5 + (keyword.length / 20));
-        return { category, confidence };
+        
+        // Keep the match with the longest keyword (most specific)
+        if (!bestMatch || keyword.length > bestMatch.keywordLength) {
+          bestMatch = { category, confidence, keywordLength: keyword.length };
+        }
       }
     }
+  }
+  
+  if (bestMatch) {
+    return { category: bestMatch.category, confidence: bestMatch.confidence };
   }
   
   return { category: 'other', confidence: 0.1 };
@@ -234,12 +245,24 @@ export function detectCategoryFromName(name: string): { category: InstrumentCate
 export function detectCategoryFromPlugins(plugins: string[]): { category: InstrumentCategory; confidence: number } {
   const pluginsLower = plugins.map(p => p.toLowerCase());
   
+  // Find all matching categories with their best keyword match
+  let bestMatch: { category: InstrumentCategory; confidence: number; keywordLength: number } | null = null;
+  
   for (const [category, keywords] of Object.entries(PLUGIN_KEYWORDS) as [InstrumentCategory, string[]][]) {
     for (const keyword of keywords) {
       if (pluginsLower.some(p => p.includes(keyword))) {
-        return { category, confidence: 0.8 };
+        const confidence = 0.8;
+        
+        // Keep the match with the longest keyword (most specific)
+        if (!bestMatch || keyword.length > bestMatch.keywordLength) {
+          bestMatch = { category, confidence, keywordLength: keyword.length };
+        }
       }
     }
+  }
+  
+  if (bestMatch) {
+    return { category: bestMatch.category, confidence: bestMatch.confidence };
   }
   
   return { category: 'other', confidence: 0.1 };
