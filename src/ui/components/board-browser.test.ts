@@ -86,9 +86,9 @@ describe('BoardBrowser', () => {
       decks: [],
     };
     
-    registry.register(manualBoard);
-    registry.register(assistedBoard);
-    registry.register(generativeBoard);
+    registry.register(manualBoard, { isBuiltin: true });
+    registry.register(assistedBoard, { isBuiltin: true });
+    registry.register(generativeBoard, { isBuiltin: true });
   });
   
   afterEach(() => {

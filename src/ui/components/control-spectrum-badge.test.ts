@@ -1,5 +1,6 @@
 /**
  * Control Spectrum Badge Tests
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect } from 'vitest';
