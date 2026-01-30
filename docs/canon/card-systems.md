@@ -62,8 +62,8 @@ The term "Card" appears in five distinct subsystems:
 | `CardStyle` | type | `src/ui/cards.ts` | N/A |
 | `CardSurfaceConfig` | interface | `src/ui/cards.ts` | N/A |
 | `CardSurfaceSize` | type | `src/ui/cards.ts` | N/A |
-| `CardSurfaceState` | type | `src/ui/cards.ts` | N/A |
 | `CardSurfaceState` | interface | `src/ui/cards.ts` | N/A |
+| `CardSurfaceStateEnum` | type | `src/ui/cards.ts` | N/A |
 | `CardSurfaceStyle` | type | `src/ui/cards.ts` | N/A |
 | `CardToolbarConfig` | interface | `src/ui/cards.ts` | N/A |
 | `UICardComponent` | class | `src/ui/components/card-component.ts` | N/A |

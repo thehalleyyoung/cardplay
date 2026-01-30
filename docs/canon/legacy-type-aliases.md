@@ -10,26 +10,10 @@ All legacy symbols should be migrated to their canonical equivalents.
 
 ## Type Aliases
 
-### Multiple Meanings (Ambiguous Symbols)
-
-These symbols are exported from multiple locations with different meanings:
-
-| Symbol | Context | Canonical Name | Location | Notes |
-|--------|---------|----------------|----------|-------|
-| `CardState` (UI surface) | UI card surface state | `CardSurfaceState` | `src/ui/cards.ts` | Deprecated alias |
-| `CardState` (core) | Core card state (generic) | `CardState<A,B>` | `src/cards/card.ts` | Generic card state |
-| `CardState` (component) | Component state | `CardState` | `src/ui/components/card-component.ts` | Component-specific |
-| `PortType` (canonical) | Canonical port type enum | `CanonicalPortType` | `src/canon/ids.ts` | Enum of port types |
-| `PortType` (registry) | Core port type registry string | `PortType` | `src/cards/card.ts` | Runtime registry string |
-| `Track` (freeze) | Freeze/bounce track model | `FreezeTrackModel` | `src/tracks/clip-operations.ts` | Audio freeze operations |
-| `Track` (arrangement) | Arrangement UI track | `ArrangementTrack` | `src/ui/components/arrangement-panel.ts` | UI arrangement track |
-| `Track` (project) | GOFAI project API track | `Track` | `gofai/infra/project-world-api.ts` | Project world API |
-
-### Single Meaning (Deprecated Aliases)
-
 | Legacy Name | Canonical Name | Location |
 |-------------|---------------|----------|
 | `CardSize` | `CardSurfaceSize` | `src/ui/cards.ts` |
+| `CardState` | `CardSurfaceStateEnum` | `src/ui/cards.ts` |
 | `CardStyle` | `CardSurfaceStyle` | `src/ui/cards.ts` |
 | `GeneratorConfig` | `Partial` | `src/cards/generator-mixin.ts` |
 | `HostAction` | `AdvisorHostAction` | `src/ai/advisor/advisor-interface.ts` |
@@ -39,6 +23,8 @@ These symbols are exported from multiple locations with different meanings:
 | `SessionScene` | `SceneHeader` | `src/ui/session-clip-adapter.ts` |
 | `StackComponent` | `UIStackComponent` | `src/ui/components/stack-component.ts` |
 | `StackMode` | `UILayoutStackMode` | `src/ui/cards.ts` |
+| `Track` | `FreezeTrackModel` | `src/tracks/clip-operations.ts` |
+| `Track` | `ArrangementTrack` | `src/ui/components/arrangement-panel.ts` |
 
 ## Value Aliases
 

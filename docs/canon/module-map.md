@@ -383,7 +383,7 @@ These modules are stable and match their canonical paths:
 | `src/cards/sampler.ts` | `src/cards/sampler.ts` | MAX_ZONES, MAX_VELOCITY_LAYERS, MAX_ROUND_ROBIN, +37 |
 | `src/cards/score-notation.ts` | `src/cards/score-notation.ts` | InternalNotationEvent, InternalNotationMeasure, ScoreNoteInput, +16 |
 | `src/cards/sequencer.ts` | `src/cards/sequencer.ts` | NOTE_NAMES, NoteName, MAX_STEPS, +21 |
-| `src/cards/stack.ts` | `src/cards/stack.ts` | StackMode, StackEntry, StackSnapshot, +29 |
+| `src/cards/stack.ts` | `src/cards/stack.ts` | StackMode, StackEntry, StackSnapshot, +30 |
 | `src/cards/testing/advanced-testing.ts` | `src/cards/testing/advanced-testing.ts` | SnapshotTester, PerformanceBenchmark, MemoryLeakDetector, +3 |
 | `src/cards/testing/card-test.ts` | `src/cards/testing/card-test.ts` | CardTest, UnitTest, IntegrationTest, +22 |
 | `src/cards/testing/coverage-reporting.ts` | `src/cards/testing/coverage-reporting.ts` | CoverageData, CoverageReporter, CICDIntegration, +4 |
@@ -432,6 +432,7 @@ These modules are stable and match their canonical paths:
 | `src/extensions/types.ts` | `src/extensions/types.ts` | ExtensionVersion, ExtensionCategory, ExtensionManifest, +24 |
 | `src/extensions/validate.ts` | `src/extensions/validate.ts` | validateExtensionManifest, isCompatibleVersion |
 | `src/extensions/validators.ts` | `src/extensions/validators.ts` | RegistryTrustLevel, RegistryEntryProvenance, createBuiltinProvenance, +12 |
+| `src/gofai/canon/adjectives-audio-descriptors-batch38.ts` | `src/gofai/canon/adjectives-audio-descriptors-batch38.ts` | FREQUENCY_ADJECTIVES, TIME_DOMAIN_ADJECTIVES, SPATIAL_ADJECTIVES, +6 |
 | `src/gofai/canon/adjectives-emotional-mood-character.ts` | `src/gofai/canon/adjectives-emotional-mood-character.ts` | AdjectiveLexeme, POSITIVE_EMOTIONAL_ADJECTIVES, NEGATIVE_EMOTIONAL_ADJECTIVES, +3 |
 | `src/gofai/canon/adjectives-harmony-emotion.ts` | `src/gofai/canon/adjectives-harmony-emotion.ts` | TENSION_ADJECTIVES, TONAL_COLOR_ADJECTIVES, EMOTIONAL_ADJECTIVES, +6 |
 | `src/gofai/canon/adjectives-production-timbre.ts` | `src/gofai/canon/adjectives-production-timbre.ts` | AdjectiveLexeme, BRIGHTNESS_ADJECTIVES, CLARITY_ADJECTIVES, +7 |
@@ -473,13 +474,16 @@ These modules are stable and match their canonical paths:
 | `src/gofai/canon/domain-nouns-batch9.ts` | `src/gofai/canon/domain-nouns-batch9.ts` | MelodyLexeme, MELODY_LEXEMES, getMelodyElementByName, +5 |
 | `src/gofai/canon/domain-nouns-harmony-melody-batch1.ts` | `src/gofai/canon/domain-nouns-harmony-melody-batch1.ts` | BASIC_HARMONY_NOUNS, FUNCTIONAL_HARMONY_NOUNS, MELODY_NOUNS, +5 |
 | `src/gofai/canon/domain-nouns-instruments.ts` | `src/gofai/canon/domain-nouns-instruments.ts` | InstrumentCategory, InstrumentLexeme, NOUN_KICK, +39 |
+| `src/gofai/canon/domain-nouns-music-theory-batch39.ts` | `src/gofai/canon/domain-nouns-music-theory-batch39.ts` | TRIAD_NOUNS, SEVENTH_CHORD_NOUNS, CHORD_EXTENSION_NOUNS, +9 |
 | `src/gofai/canon/domain-nouns-production-arrangement-batch1.ts` | `src/gofai/canon/domain-nouns-production-arrangement-batch1.ts` | ARRANGEMENT_NOUNS, MIXING_NOUNS, EFFECTS_NOUNS, +6 |
+| `src/gofai/canon/domain-nouns-production-effects-batch40.ts` | `src/gofai/canon/domain-nouns-production-effects-batch40.ts` | DYNAMIC_PROCESSOR_NOUNS, TIME_BASED_EFFECTS_NOUNS, DISTORTION_SATURATION_NOUNS, +5 |
 | `src/gofai/canon/domain-nouns-rhythm-tempo-batch1.ts` | `src/gofai/canon/domain-nouns-rhythm-tempo-batch1.ts` | RHYTHM_PATTERN_NOUNS, TEMPO_NOUNS, RHYTHM_ARTICULATION_NOUNS, +8 |
 | `src/gofai/canon/domain-nouns-techniques.ts` | `src/gofai/canon/domain-nouns-techniques.ts` | TechniqueCategory, TechniqueLexeme, NOUN_STACCATO, +49 |
 | `src/gofai/canon/domain-nouns.ts` | `src/gofai/canon/domain-nouns.ts` | DomainNounCategory, DomainNounSemantics, DomainNoun, +11 |
 | `src/gofai/canon/domain-verbs-batch2.ts` | `src/gofai/canon/domain-verbs-batch2.ts` | DUPLICATION_VERBS, COMBINATION_VERBS, SEPARATION_VERBS, +4 |
 | `src/gofai/canon/domain-verbs-batch27-commands.ts` | `src/gofai/canon/domain-verbs-batch27-commands.ts` | VerbLexeme, VerbConjugation, VerbCategory, +6 |
 | `src/gofai/canon/domain-verbs-batch3.ts` | `src/gofai/canon/domain-verbs-batch3.ts` | TEMPORAL_VERBS, DYNAMIC_VERBS, HARMONIC_VERBS, +6 |
+| `src/gofai/canon/domain-verbs-batch37-editing-operations.ts` | `src/gofai/canon/domain-verbs-batch37-editing-operations.ts` | STRUCTURAL_EDITING_VERBS, PARAMETER_ADJUSTMENT_VERBS, LAYER_CONTROL_VERBS, +6 |
 | `src/gofai/canon/domain-verbs.ts` | `src/gofai/canon/domain-verbs.ts` | VerbLexeme, VerbConjugation, VerbCategory, +10 |
 | `src/gofai/canon/edit-opcodes-phase5-batch1.ts` | `src/gofai/canon/edit-opcodes-phase5-batch1.ts` | OP_DUPLICATE_SECTION, OP_EXTEND_SECTION, OP_SHORTEN_SECTION, +22 |
 | `src/gofai/canon/edit-opcodes-phase5-batch2.ts` | `src/gofai/canon/edit-opcodes-phase5-batch2.ts` | OP_ADD_ORNAMENTATION, OP_SHAPE_MELODIC_CONTOUR, OP_SHIFT_MELODY_REGISTER, +17 |
@@ -561,6 +565,12 @@ These modules are stable and match their canonical paths:
 | `src/gofai/nl/grammar/time-expressions.ts` | `src/gofai/nl/grammar/time-expressions.ts` | TimeRange, AbsoluteRange, SectionRange, +45 |
 | `src/gofai/nl/grammar/unknown-tokens.ts` | `src/gofai/nl/grammar/unknown-tokens.ts` | UnknownToken, UnknownTokenCategory, UnknownTokenCandidate, +16 |
 | `src/gofai/nl/grammar/user-defined-names.ts` | `src/gofai/nl/grammar/user-defined-names.ts` | NamedReference, NameReferenceType, QuoteStyle, +28 |
+| `src/gofai/nl/hci/clarification-defaults.ts` | `src/gofai/nl/hci/clarification-defaults.ts` | ValidatableClarification, ValidatableOption, ClarificationValidationResult, +20 |
+| `src/gofai/nl/hci/clarification-templates.ts` | `src/gofai/nl/hci/clarification-templates.ts` | ClarificationTemplate, ClarificationOptionTemplate, ClarificationPattern, +7 |
+| `src/gofai/nl/hci/error-recovery-ux.ts` | `src/gofai/nl/hci/error-recovery-ux.ts` | ErrorCategory, ErrorRecoveryContext, ErrorSpan, +20 |
+| `src/gofai/nl/hci/grammar-authorship-workflow.ts` | `src/gofai/nl/hci/grammar-authorship-workflow.ts` | ChecklistItem, ChecklistCategory, GRAMMAR_PR_CHECKLIST, +7 |
+| `src/gofai/nl/hci/index.ts` | `src/gofai/nl/hci/index.ts` |  |
+| `src/gofai/nl/hci/typing-ux-spec.ts` | `src/gofai/nl/hci/typing-ux-spec.ts` | ParseStatus, ParseStatusVisual, StatusIcon, +26 |
 | `src/gofai/nl/index.ts` | `src/gofai/nl/index.ts` |  |
 | `src/gofai/nl/parser/earley-engine.ts` | `src/gofai/nl/parser/earley-engine.ts` | GrammarSymbol, TerminalSymbol, NonTerminalSymbol, +33 |
 | `src/gofai/nl/parser/incremental.ts` | `src/gofai/nl/parser/incremental.ts` | TokenFingerprint, computeTokenFingerprint, serializeFingerprint, +42 |
@@ -604,6 +614,9 @@ These modules are stable and match their canonical paths:
 | `src/gofai/planning/constraint-satisfaction.ts` | `src/gofai/planning/constraint-satisfaction.ts` | ConstraintViolation, ConstraintCounterexample, PreserveViolation, +12 |
 | `src/gofai/planning/cost-model.ts` | `src/gofai/planning/cost-model.ts` | CostFactors, CATEGORY_BASE_COSTS, RISK_COST_MULTIPLIERS, +17 |
 | `src/gofai/planning/least-change-strategy.ts` | `src/gofai/planning/least-change-strategy.ts` | EditMagnitude, analyzeEditMagnitude, MagnitudePreference, +7 |
+| `src/gofai/planning/lever-mappings-comprehensive-batch1.ts` | `src/gofai/planning/lever-mappings-comprehensive-batch1.ts` | BRIGHTNESS_VIA_HARMONIC_SHIFT, BRIGHTNESS_VIA_REGISTER_SHIFT, BRIGHTNESS_VIA_VOICING, +10 |
+| `src/gofai/planning/lever-mappings-comprehensive-batch2.ts` | `src/gofai/planning/lever-mappings-comprehensive-batch2.ts` | WIDTH_VIA_STEREO_SPREAD, WIDTH_VIA_PANNING_DISTRIBUTION, WIDTH_VIA_STEREO_DOUBLING, +13 |
+| `src/gofai/planning/lever-mappings-comprehensive-batch3.ts` | `src/gofai/planning/lever-mappings-comprehensive-batch3.ts` | ENERGY_VIA_TEMPO_INCREASE, ENERGY_VIA_DENSITY_INCREASE, ENERGY_VIA_RHYTHMIC_ACTIVATION, +12 |
 | `src/gofai/planning/lever-mappings.ts` | `src/gofai/planning/lever-mappings.ts` | PerceptualDirection, Lever, LeverContext, +4 |
 | `src/gofai/planning/plan-generation.ts` | `src/gofai/planning/plan-generation.ts` | SearchConfig, DEFAULT_SEARCH_CONFIG, FAST_SEARCH_CONFIG, +12 |
 | `src/gofai/planning/plan-types.ts` | `src/gofai/planning/plan-types.ts` | OpcodeId, createOpcodeId, OpcodeCategory, +64 |
@@ -977,16 +990,16 @@ These modules are stable and match their canonical paths:
 
 These modules have been moved but maintain compatibility:
 
-| Legacy Alias | Actual Path | Status |
+| Canonical Path | Actual Path | Status |
 |---------------|-------------|--------|
-| `src/extensions/registry/v2/diff.ts` | `src/registry/v2/diff.ts` | Implemented |
-| `src/extensions/registry/v2/index.ts` | `src/registry/v2/index.ts` | Implemented |
-| `src/extensions/registry/v2/merge.ts` | `src/registry/v2/merge.ts` | Implemented |
-| `src/extensions/registry/v2/policy.ts` | `src/registry/v2/policy.ts` | Implemented |
-| `src/extensions/registry/v2/reports.ts` | `src/registry/v2/reports.ts` | Implemented |
-| `src/extensions/registry/v2/schema.ts` | `src/registry/v2/schema.ts` | Implemented |
-| `src/extensions/registry/v2/types.ts` | `src/registry/v2/types.ts` | Implemented |
-| `src/extensions/registry/v2/validate.ts` | `src/registry/v2/validate.ts` | Implemented |
+| `src/extensions/registry/v2/diff.ts` | `src/registry/v2/diff.ts` | Redirected |
+| `src/extensions/registry/v2/index.ts` | `src/registry/v2/index.ts` | Redirected |
+| `src/extensions/registry/v2/merge.ts` | `src/registry/v2/merge.ts` | Redirected |
+| `src/extensions/registry/v2/policy.ts` | `src/registry/v2/policy.ts` | Redirected |
+| `src/extensions/registry/v2/reports.ts` | `src/registry/v2/reports.ts` | Redirected |
+| `src/extensions/registry/v2/schema.ts` | `src/registry/v2/schema.ts` | Redirected |
+| `src/extensions/registry/v2/types.ts` | `src/registry/v2/types.ts` | Redirected |
+| `src/extensions/registry/v2/validate.ts` | `src/registry/v2/validate.ts` | Redirected |
 
 ## Legacy Modules
 

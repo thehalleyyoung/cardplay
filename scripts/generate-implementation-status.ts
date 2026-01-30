@@ -67,7 +67,7 @@ async function scanCanonDocs(): Promise<CanonDocStatus[]> {
     const statusMatch = content.match(/\*\*Status:\*\*\s*(\w+)/i);
     if (statusMatch) {
       const s = statusMatch[1].toLowerCase();
-      if (s.includes('implement')) status = 'implemented';
+      if (s.includes('implement') || s.includes('maintain')) status = 'implemented';
       else if (s.includes('partial')) status = 'partial';
       else if (s.includes('aspiration')) status = 'aspirational';
     }
@@ -120,6 +120,7 @@ function generateMarkdown(statuses: CanonDocStatus[]): string {
 
   let md = `# Canon Implementation Status
 
+**Status:** Maintained (auto-generated)
 **Generated:** ${new Date().toISOString().split('T')[0]}
 
 This document tracks implementation status of canonical documentation.

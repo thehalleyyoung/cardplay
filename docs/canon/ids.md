@@ -14,35 +14,56 @@ This document enumerates all canonical ID spaces used in CardPlay.
 **Source:** `src/canon/ids.ts`  
 **Description:** Union type defining DeckType values
 
-```typescript
-type DeckType = 
-  | 'pattern-deck'
-  | 'notation-deck'
-  | 'piano-roll-deck'
-  | 'session-deck'
-  | 'arrangement-deck'
-  | 'instruments-deck'
-  | 'dsp-chain'
-  | 'effects-deck'
-  | 'samples-deck'
-  | 'sample-manager-deck'
-  | 'phrases-deck'
-  | 'harmony-deck'
-  | 'generators-deck'
-  | 'mixer-deck'
-  | 'mix-bus-deck'
-  | 'routing-deck'
-  | 'automation-deck'
-  | 'properties-deck'
-  | 'transport-deck'
-  | 'arranger-deck'
-  | 'ai-advisor-deck'
-  | 'modulation-matrix-deck'
-  | 'track-groups-deck'
-  | 'reference-track-deck'
-  | 'spectrum-analyzer-deck'
-  | 'waveform-editor-deck';
-```
+**Values:**
+- `// Pattern/Tracker`
+- `ai-advisor-deck
+  // Modulation`
+- `arrangement-deck
+  // Instruments`
+- `arranger-deck
+  // AI`
+- `automation-deck
+  // Properties`
+- `dsp-chain`
+- `effects-deck
+  // Samples`
+- `generators-deck
+  // Mixing`
+- `harmony-deck
+  // Generators`
+- `instruments-deck
+  // DSP/Effects`
+- `mix-bus-deck
+  // Routing`
+- `mixer-deck`
+- `modulation-matrix-deck
+  // Groups`
+- `notation-deck
+  // Piano Roll`
+- `pattern-deck
+  // Notation`
+- `phrases-deck
+  // Harmony/Theory`
+- `piano-roll-deck
+  // Session/Clips`
+- `properties-deck
+  // Transport`
+- `reference-track-deck
+  // Analysis`
+- `routing-deck
+  // Automation`
+- `sample-manager-deck
+  // Phrases`
+- `samples-deck`
+- `session-deck
+  // Arrangement`
+- `spectrum-analyzer-deck
+  // Waveform`
+- `track-groups-deck
+  // Reference`
+- `transport-deck
+  // Arranger`
+- `waveform-editor-deck`
 
 ### `BoardDifficulty`
 
@@ -126,19 +147,6 @@ type DeckType =
 - `split      // Split view (multiple visible)`
 - `stack      // Stacked cards (one visible at a time)`
 - `tabs       // Tabbed interface`
-
-## Time & Synchronization
-
-### `PPQ`
-
-**Source:** `src/types/primitives.ts`  
-**Description:** Pulses Per Quarter Note - the canonical timing resolution
-
-```typescript
-export const PPQ = 960;
-```
-
-All timing calculations must use this canonical PPQ value of 960.
 
 ## Cards & Ports
 
@@ -439,10 +447,6 @@ All timing calculations must use this canonical PPQ value of 960.
 
 **Source:** `src/boards/types.ts`  
 **Description:** Union type defining ControlLevel values
-
-```typescript
-type ControlLevel = 'full-manual' | 'manual-with-hints' | 'assisted' | 'collaborative' | 'directed' | 'generative';
-```
 
 **Values:**
 - `assisted              // Your ideas + tool execution`
