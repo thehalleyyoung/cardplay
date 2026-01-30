@@ -16,8 +16,13 @@
  * @see src/gofai/execution/diff-summary.ts (summarization logic)
  */
 
-import type { CardPlayId } from '../../types';
-import type { TimeRange } from '../../music/time';
+import type { CardPlayId } from '../../canon/cardplay-id';
+
+// Temporary TimeRange type until music/time module is available
+export interface TimeRange {
+  readonly startTick: number;
+  readonly endTick: number;
+}
 
 // ============================================================================
 // Section-Level Diffs

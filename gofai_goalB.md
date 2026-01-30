@@ -75,7 +75,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 257 [Sem] — Implement plan generation as bounded search over opcodes (depth limit, beam size) to keep runtime predictable offline.
 - [x] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
 - [x] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
-- [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
+- [x] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
 - [x] Step 261 [Sem][Type] — Implement a “plan skeleton” step that maps from CPL-Intent to a set of lever candidates with open parameters.
 - [x] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
 - [x] Step 263 [Sem] — Implement “plan legality” checks: ensure opcodes only touch allowed scope and do not mutate forbidden targets.
@@ -88,17 +88,17 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 270 [Infra] — Add caching for analysis facts keyed by project version and scope to avoid recomputation per keystroke.
 - [x] Step 271 [Sem] — Implement “constraints as filters”: constraints prune candidate levers early (if preserve melody exact, avoid reharmonize ops).
 - [x] Step 272 [Sem] — Implement “soft constraints as weights”: preferences influence scoring but never violate hard constraints.
-- [ ] Step 273 [Sem] — Implement “capability-aware planning”: if production layer disabled, map “wider” to orchestration levers instead of DSP.
-- [ ] Step 274 [Sem][HCI] — Implement “ask vs act” planning: if satisfaction requires risky ops, produce a clarification/choice rather than auto-select.
-- [ ] Step 275 [Type] — Implement an “effect typing” rule: plans with mutation effects cannot be executed in `full-manual` without explicit confirmation.
+- [x] Step 273 [Sem] — Implement “capability-aware planning”: if production layer disabled, map “wider” to orchestration levers instead of DSP.
+- [x] Step 274 [Sem][HCI] — Implement “ask vs act” planning: if satisfaction requires risky ops, produce a clarification/choice rather than auto-select.
+- [x] Step 275 [Type] — Implement an “effect typing” rule: plans with mutation effects cannot be executed in `full-manual` without explicit confirmation.
 - [x] Step 276 [Sem] — Add plan opcodes for musical structure edits: duplicate section, shorten/extend, insert pickup, add break/build/drop.
 - [x] Step 277 [Sem] — Add plan opcodes for rhythm edits: swing adjustment, quantize strength, humanize timing, halftime/doubletime transforms.
 - [x] Step 278 [Sem] — Add plan opcodes for harmony edits: revoice, add extensions, substitute chords under melody constraints, functional reharmonization.
 - [x] Step 279 [Sem] — Add plan opcodes for melody edits: ornamentation, contour shaping, register shifts under range constraints (must be optional/high cost).
 - [x] Step 280 [Sem] — Add plan opcodes for arrangement edits: add/remove layers, role redistribution, density shaping across sections.
-- [ ] Step 281 [Type] — Define a typed “plan execution preflight” that checks project world invariants and gathers required entity bindings.
-- [ ] Step 282 [Type] — Define a typed “plan postflight” that recomputes diffs and verifies constraints; if fail, rollback automatically.
-- [ ] Step 283 [Type] — Define a deterministic “plan-to-diff summary” mapping for UI (what changed by layer/section).
+- [x] Step 281 [Type] — Define a typed “plan execution preflight” that checks project world invariants and gathers required entity bindings.
+- [x] Step 282 [Type] — Define a typed “plan postflight” that recomputes diffs and verifies constraints; if fail, rollback automatically.
+- [x] Step 283 [Type] — Define a deterministic “plan-to-diff summary” mapping for UI (what changed by layer/section).
 - [ ] Step 284 [HCI] — Design a “plan preview timeline” that visually marks where edits apply (bar ranges highlighted).
 - [ ] Step 285 [HCI] — Design “confidence UI”: show confidence as “ready / needs clarification / risky” derived from hole count + cost.
 - [ ] Step 286 [Eval] — Build a planning golden suite: given CPL-Intent and a fixture, expected top plan(s) are stable and deterministic.

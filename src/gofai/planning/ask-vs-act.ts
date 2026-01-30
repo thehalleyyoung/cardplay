@@ -450,7 +450,7 @@ export function selectPlanningStrategy(
     score: PlanScore;
     risk: PlanRiskAssessment;
   }>,
-  policy: BoardPolicy
+  _policy: BoardPolicy
 ): PlanningStrategy {
   if (candidates.length === 0) {
     return {
@@ -505,11 +505,22 @@ export function selectPlanningStrategy(
   }
 
   // Multiple candidates - check if one is clearly best
-  const sorted = [...allowedCandidates].sort((a, b) => b.score.totalScore - a.score.totalScore);
-  const best = sorted[0]!; // Must exist since allowedCandidates.length > 1
-  const secondBest = sorted[1]!; // Must exist since allowedCandidates.length > 1
+  const sorted = [...allowedCandidates].sort((a, b) => b.score.overallScore - a.score.overallScore);
+  const best = sorted[0]!; // Must exist since allowedCandidates.length >= 1
+  
+  if (sorted.length === 1) {
+    // This shouldn't happen since we handled length === 1 above, but TypeScript needs the check
+    return {
+      strategy: 'act',
+      reason: 'Single option available',
+      recommendedAction: 'preview-first',
+      selectedPlan: best.plan,
+    };
+  }
+  
+  const secondBest = sorted[1]!; // Must exist since sorted.length > 1
 
-  const scoreGap = best.score.totalScore - secondBest.score.totalScore;
+  const scoreGap = best.score.overallScore - secondBest.score.overallScore;
   const significantGap = scoreGap > 0.2; // 20% better
 
   if (significantGap && best.risk.overallRisk === 'safe') {
@@ -579,13 +590,4 @@ function categorizeRiskReason(reason: string): RiskFactorType {
   return 'expensive';
 }
 
-// ============================================================================
-// Exports
-// ============================================================================
-
-export type {
-  PlanRiskAssessment,
-  OpcodeRiskAssessment,
-  RiskFactor,
-  PlanningStrategy,
-};
+// Types are exported inline above

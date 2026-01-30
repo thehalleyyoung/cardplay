@@ -87,6 +87,13 @@ import {
   DEFAULT_PROLOG_TIMEOUT,
   saveConstraintPreset,
   loadConstraintPresets,
+  deleteConstraintPreset,
+  randomizeConstraintParams,
+  interpolateConstraintParams,
+  learnConstraintsFromSelection,
+  exportConstraintsToJSON,
+  importConstraintsFromJSON,
+  exportConstraintsToProlog,
   type CustomConstraintDefinition,
   type CustomConstraint,
   type ConflictInfo,
@@ -112,6 +119,13 @@ const {
   generateHeterophony,
   calculateSchemaMatchScore,
   phraseDatabase,
+  checkClaveAlignment,
+  detectOrnamentInsertionPoints,
+  generateRoll,
+  generateCutTap,
+  generateFiddleDoubleStop,
+  generateHarpVoicing,
+  detectContraryMotion,
 } = specQueries;
 
 // ============================================================================
