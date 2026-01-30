@@ -317,7 +317,7 @@ export interface DeckReferentResolution {
  */
 export interface DeckResolutionContext {
   /** Current deck instances in the UI */
-  readonly activeDeck instances: readonly {
+  readonly activeDeckInstances: readonly {
     readonly id: DeckInstanceId;
     readonly type: DeckTypeId;
     readonly name?: string;

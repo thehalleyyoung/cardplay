@@ -98,40 +98,111 @@ export function createGofaiId(
 }
 
 /**
+ * Validate namespace format.
+ * Must be 2-32 chars, start with letter, lowercase alphanumeric with hyphens/underscores.
+ */
+function validateNamespace(namespace: string): void {
+  if (namespace.length < 2 || namespace.length > 32) {
+    throw new Error(`Invalid namespace length: ${namespace} (must be 2-32 chars)`);
+  }
+  
+  if (!/^[a-z]/.test(namespace)) {
+    throw new Error(`Invalid namespace: ${namespace} (must start with lowercase letter)`);
+  }
+  
+  if (!/^[a-z][a-z0-9_-]*$/.test(namespace)) {
+    throw new Error(`Invalid namespace: ${namespace} (must be lowercase alphanumeric with hyphens/underscores)`);
+  }
+  
+  if (/--|__/.test(namespace)) {
+    throw new Error(`Invalid namespace: ${namespace} (no consecutive hyphens or underscores)`);
+  }
+  
+  // Reserved namespaces
+  const reserved = ['core', 'builtin', 'cardplay', 'system', 'gofai', 'internal'];
+  if (reserved.includes(namespace)) {
+    throw new Error(`Reserved namespace: ${namespace}`);
+  }
+}
+
+/**
+ * Validate name format before normalization.
+ * Must be 2-64 chars, start with letter, lowercase alphanumeric with hyphens/underscores only.
+ * No spaces allowed.
+ */
+function validateName(name: string): void {
+  if (!name || name.trim().length === 0) {
+    throw new Error(`Invalid name: name cannot be empty`);
+  }
+  
+  // Check for uppercase (not allowed)
+  if (name !== name.toLowerCase()) {
+    throw new Error(`Invalid name: ${name} (must be lowercase)`);
+  }
+  
+  // Check format: must start with letter, contain only lowercase alphanumeric, hyphens, underscores
+  // NO SPACES
+  if (!/^[a-z][a-z0-9_-]*$/.test(name)) {
+    throw new Error(`Invalid name: ${name} (must start with lowercase letter and contain only lowercase alphanumeric, hyphens, or underscores)`);
+  }
+  
+  // Check length
+  if (name.length < 2 || name.length > 64) {
+    throw new Error(`Invalid name length: ${name} (must be 2-64 chars)`);
+  }
+  
+  // Check for consecutive hyphens or underscores
+  if (/--|__/.test(name)) {
+    throw new Error(`Invalid name: ${name} (no consecutive hyphens or underscores)`);
+  }
+}
+
+/**
  * Create a LexemeId from components.
  */
 export function createLexemeId(
-  category: string,
-  lemma: string,
+  name: string,
   namespace?: string
 ): LexemeId {
-  const normalizedLemma = lemma.toLowerCase().replace(/\s+/g, '_');
+  // Validate BEFORE any transformation
+  validateName(name);
+  
   if (namespace) {
-    return `${namespace}:lex:${category}:${normalizedLemma}` as LexemeId;
+    validateNamespace(namespace);
+    return `lexeme:${namespace}:${name}` as LexemeId;
   }
-  return `lex:${category}:${normalizedLemma}` as LexemeId;
+  
+  return `lexeme:${name}` as LexemeId;
 }
 
 /**
  * Create an AxisId from a name.
  */
 export function createAxisId(name: string, namespace?: string): AxisId {
-  const normalizedName = name.toLowerCase().replace(/\s+/g, '_');
+  // Validate (no normalization needed)
+  validateName(name);
+  
   if (namespace) {
-    return `${namespace}:axis:${normalizedName}` as AxisId;
+    validateNamespace(namespace);
+    return `axis:${namespace}:${name}` as AxisId;
   }
-  return `axis:${normalizedName}` as AxisId;
+  
+  return `axis:${name}` as AxisId;
 }
 
 /**
  * Create an OpcodeId from a name.
  */
 export function createOpcodeId(name: string, namespace?: string): OpcodeId {
-  const normalizedName = name.toLowerCase().replace(/\s+/g, '_');
+  // Validate (no normalization needed)
+  validateName(name);
+  
   if (namespace) {
-    return `${namespace}:op:${normalizedName}` as OpcodeId;
+    validateNamespace(namespace);
+    return `opcode:${namespace}:${name}` as OpcodeId;
   }
-  return `op:${normalizedName}` as OpcodeId;
+  
+  return `opcode:${name}` as OpcodeId;
 }
 
 /**
@@ -141,11 +212,15 @@ export function createConstraintTypeId(
   name: string,
   namespace?: string
 ): ConstraintTypeId {
-  const normalizedName = name.toLowerCase().replace(/\s+/g, '_');
+  // Validate (no normalization needed)
+  validateName(name);
+  
   if (namespace) {
-    return `${namespace}:constraint:${normalizedName}` as ConstraintTypeId;
+    validateNamespace(namespace);
+    return `${namespace}:${name}` as ConstraintTypeId;
   }
-  return `constraint:${normalizedName}` as ConstraintTypeId;
+  
+  return name as ConstraintTypeId;
 }
 
 /**
@@ -198,25 +273,25 @@ export function createLayerTypeId(
  * Check if an ID is namespaced (from an extension).
  */
 export function isNamespaced(id: string): boolean {
-  // Namespaced IDs have format: namespace:type:...
-  // Core IDs have format: type:...
+  // Check different ID formats:
+  // - lexeme:<name> (not namespaced) vs lexeme:<namespace>:<name> (namespaced)
+  // - axis:<name> (not namespaced) vs axis:<namespace>:<name> (namespaced)
+  // - opcode:<name> (not namespaced) vs opcode:<namespace>:<name> (namespaced)
+  // - <name> (not namespaced) vs <namespace>:<name> (namespaced, for constraints)
+  
   const parts = id.split(':');
-  if (parts.length < 2) return false;
-
-  // Core prefixes that indicate non-namespaced
-  const coreTypes = [
-    'gofai',
-    'lex',
-    'axis',
-    'op',
-    'constraint',
-    'rule',
-    'unit',
-    'section',
-    'layer',
-  ];
-  const firstPart = parts[0];
-  return firstPart !== undefined && !coreTypes.includes(firstPart);
+  
+  // Constraint IDs: <name> (1 part) or <namespace>:<name> (2 parts)
+  if (parts.length === 2 && !['lexeme', 'axis', 'opcode', 'gofai', 'rule', 'unit', 'section', 'layer'].includes(parts[0]!)) {
+    return true; // namespace:name format for constraint
+  }
+  
+  // Other IDs: type:<name> (2 parts) or type:<namespace>:<name> (3 parts)
+  if (parts.length === 3) {
+    return true; // type:namespace:name format
+  }
+  
+  return false;
 }
 
 /**
@@ -224,39 +299,99 @@ export function isNamespaced(id: string): boolean {
  */
 export function getNamespace(id: string): string | undefined {
   if (!isNamespaced(id)) return undefined;
-  return id.split(':')[0];
+  
+  const parts = id.split(':');
+  
+  // For constraint IDs: <namespace>:<name>
+  if (parts.length === 2 && !['lexeme', 'axis', 'opcode', 'gofai', 'rule', 'unit', 'section', 'layer'].includes(parts[0]!)) {
+    return parts[0];
+  }
+  
+  // For other IDs: type:<namespace>:<name>
+  if (parts.length === 3) {
+    return parts[1];
+  }
+  
+  return undefined;
 }
 
 /**
  * Validate that a LexemeId has correct format.
+ * Format: lexeme:<name> or lexeme:<namespace>:<name>
+ * - name: 2-64 chars, lowercase, can contain hyphens, underscores, numbers (not at start)
+ * - namespace: 2-32 chars, lowercase, can contain hyphens, underscores, numbers (not at start)
  */
 export function isValidLexemeId(id: string): id is LexemeId {
-  const pattern = /^(?:[a-z0-9_-]+:)?lex:[a-z]+:[a-z0-9_]+$/;
-  return pattern.test(id);
+  // Match: lexeme:<name> or lexeme:<namespace>:<name>
+  const pattern = /^lexeme:(?:([a-z][a-z0-9_-]{1,31}):)?([a-z][a-z0-9_-]{1,63})$/;
+  const match = pattern.exec(id);
+  if (!match) return false;
+  
+  const namespace = match[1];
+  const name = match[2];
+  
+  // Check for consecutive hyphens/underscores
+  if (namespace && (/--|__/.test(namespace))) return false;
+  if (/--|__/.test(name)) return false;
+  
+  return true;
 }
 
 /**
  * Validate that an AxisId has correct format.
+ * Format: axis:<name> or axis:<namespace>:<name>
  */
 export function isValidAxisId(id: string): id is AxisId {
-  const pattern = /^(?:[a-z0-9_-]+:)?axis:[a-z0-9_]+$/;
-  return pattern.test(id);
+  const pattern = /^axis:(?:([a-z][a-z0-9_-]{1,31}):)?([a-z][a-z0-9_-]{1,63})$/;
+  const match = pattern.exec(id);
+  if (!match) return false;
+  
+  const namespace = match[1];
+  const name = match[2];
+  
+  // Check for consecutive hyphens/underscores
+  if (namespace && (/--|__/.test(namespace))) return false;
+  if (/--|__/.test(name)) return false;
+  
+  return true;
 }
 
 /**
  * Validate that an OpcodeId has correct format.
+ * Format: opcode:<name> or opcode:<namespace>:<name>
  */
 export function isValidOpcodeId(id: string): id is OpcodeId {
-  const pattern = /^(?:[a-z0-9_-]+:)?op:[a-z0-9_]+$/;
-  return pattern.test(id);
+  const pattern = /^opcode:(?:([a-z][a-z0-9_-]{1,31}):)?([a-z][a-z0-9_-]{1,63})$/;
+  const match = pattern.exec(id);
+  if (!match) return false;
+  
+  const namespace = match[1];
+  const name = match[2];
+  
+  // Check for consecutive hyphens/underscores
+  if (namespace && (/--|__/.test(namespace))) return false;
+  if (/--|__/.test(name)) return false;
+  
+  return true;
 }
 
 /**
  * Validate that a ConstraintTypeId has correct format.
+ * Format: <name> or <namespace>:<name> (no prefix for constraints)
  */
 export function isValidConstraintTypeId(id: string): id is ConstraintTypeId {
-  const pattern = /^(?:[a-z0-9_-]+:)?constraint:[a-z0-9_]+$/;
-  return pattern.test(id);
+  const pattern = /^(?:([a-z][a-z0-9_-]{1,31}):)?([a-z][a-z0-9_-]{1,63})$/;
+  const match = pattern.exec(id);
+  if (!match) return false;
+  
+  const namespace = match[1];
+  const name = match[2];
+  
+  // Check for consecutive hyphens/underscores
+  if (namespace && (/--|__/.test(namespace))) return false;
+  if (/--|__/.test(name)) return false;
+  
+  return true;
 }
 
 // =============================================================================
