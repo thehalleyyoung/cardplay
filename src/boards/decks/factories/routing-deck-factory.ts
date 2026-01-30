@@ -10,6 +10,9 @@
 import type { BoardDeck } from '../../types';
 import type { DeckFactory, DeckFactoryContext, DeckInstance } from '../factory-types';
 import { suggestRouting } from '../../../ai/queries/workflow-queries';
+import { getRoutingGraph } from '../../../state/routing-graph';
+import { RoutingOverlay, injectRoutingOverlayStyles } from '../../../ui/components/routing-overlay';
+import { ConnectionInspector, injectConnectionInspectorStyles } from '../../../ui/components/connection-inspector';
 
 /**
  * Routing/modular deck factory.
@@ -20,7 +23,8 @@ import { suggestRouting } from '../../../ai/queries/workflow-queries';
  * - Drag-to-connect interface
  * - Connection validation
  *
- * E062: Reuses ui/components/connection-router.ts for rendering.
+ * E062: Uses ui/components/routing-overlay.ts for rendering.
+ * Change 248: Reads/writes only SSOT RoutingGraphStore (no parallel graph).
  */
 export const routingFactory: DeckFactory = {
   deckType: 'routing-deck',
@@ -43,13 +47,16 @@ export const routingFactory: DeckFactory = {
           overflow: hidden;
         `;
 
-        // Canvas for routing visualization
-        const canvas = document.createElement('canvas');
-        canvas.style.cssText = `
-          width: 100%;
-          height: 100%;
-          display: block;
-        `;
+        // Change 248: Inject required styles
+        injectRoutingOverlayStyles();
+        injectConnectionInspectorStyles();
+
+        // Change 248: Use RoutingOverlay component reading from SSOT RoutingGraphStore
+        const overlay = new RoutingOverlay(container);
+        overlay.setVisible(true);
+
+        // Change 248: Use ConnectionInspector for selected connection details
+        const inspector = new ConnectionInspector(container);
 
         // Overlay controls
         const controls = document.createElement('div');
@@ -59,11 +66,53 @@ export const routingFactory: DeckFactory = {
           right: 1rem;
           display: flex;
           gap: 0.5rem;
+          z-index: 1001;
         `;
-        controls.innerHTML = `
-          <button style="padding: 0.5rem 1rem; border: none; background: var(--color-primary); color: var(--color-on-primary); border-radius: var(--radius-sm); cursor: pointer;">Add Node</button>
-          <button style="padding: 0.5rem 1rem; border: none; background: var(--color-surface-variant); color: var(--color-on-surface); border-radius: var(--radius-sm); cursor: pointer;">Clear</button>
+
+        // Add Node button
+        const addNodeBtn = document.createElement('button');
+        addNodeBtn.style.cssText = `
+          padding: 0.5rem 1rem;
+          border: none;
+          background: var(--color-primary);
+          color: var(--color-on-primary);
+          border-radius: var(--radius-sm);
+          cursor: pointer;
         `;
+        addNodeBtn.textContent = 'Add Node';
+        addNodeBtn.addEventListener('click', () => {
+          // Change 248: Use SSOT routing graph to add node
+          const graph = getRoutingGraph();
+          const nodeId = `node-${Date.now()}`;
+          graph.addNode({
+            id: nodeId,
+            type: 'deck',
+            name: `Node ${graph.getState().nodes.size + 1}`,
+            inputs: ['input'],
+            outputs: ['output'],
+            bypassed: false,
+          });
+        });
+        controls.appendChild(addNodeBtn);
+
+        // Clear button
+        const clearBtn = document.createElement('button');
+        clearBtn.style.cssText = `
+          padding: 0.5rem 1rem;
+          border: none;
+          background: var(--color-surface-variant);
+          color: var(--color-on-surface);
+          border-radius: var(--radius-sm);
+          cursor: pointer;
+        `;
+        clearBtn.textContent = 'Clear';
+        clearBtn.addEventListener('click', () => {
+          // Change 248: Use SSOT routing graph to clear
+          const graph = getRoutingGraph();
+          const state = graph.getState();
+          state.edges.forEach(edge => graph.disconnect(edge.id));
+        });
+        controls.appendChild(clearBtn);
 
         // M121: Routing suggestion button
         const suggestBtn = document.createElement('button');
@@ -105,48 +154,38 @@ export const routingFactory: DeckFactory = {
           suggestionOverlay.style.display = 'block';
           suggestionOverlay.innerHTML = '<em>Generating routing suggestion&hellip;</em>';
           try {
-            const graph = await suggestRouting('tracker_mixing', ['pattern_editor', 'mixer', 'effect_chain', 'master']);
-            if (graph.connections.length === 0) {
-              suggestionOverlay.innerHTML = '<strong>Nodes:</strong> ' + graph.nodes.join(', ') + '<br><em>No connections suggested.</em>';
+            // M121: Get AI routing suggestions
+            const suggestedGraph = await suggestRouting('tracker_mixing', ['pattern_editor', 'mixer', 'effect_chain', 'master']);
+            if (suggestedGraph.connections.length === 0) {
+              suggestionOverlay.innerHTML = '<strong>Nodes:</strong> ' + suggestedGraph.nodes.join(', ') + '<br><em>No connections suggested.</em>';
             } else {
               suggestionOverlay.innerHTML = '<strong>Suggested Routing:</strong><br>' +
-                graph.connections.map(c => `${c.from} → ${c.to} <small>(${c.type})</small>`).join('<br>');
+                suggestedGraph.connections.map(c => `${c.from} → ${c.to} <small>(${c.type})</small>`).join('<br>');
+              
+              // Change 248: Apply suggestions to SSOT routing graph
+              const graph = getRoutingGraph();
+              suggestedGraph.connections.forEach(conn => {
+                // Map connection type to EdgeType
+                const edgeType = conn.type === 'modulation' ? 'cv' : conn.type as 'audio' | 'midi';
+                graph.connect(conn.from, 'output', conn.to, 'input', edgeType);
+              });
             }
           } catch {
             suggestionOverlay.innerHTML = '<em style="color: var(--danger-base, red);">Failed to generate suggestion.</em>';
           }
         });
 
-        container.appendChild(canvas);
         container.appendChild(controls);
         container.appendChild(suggestionOverlay);
 
-        // TODO: E062 - Wire up connection-router.ts
-        // TODO: Load routing graph from routing-graph store
-        // TODO: Implement drag-to-connect UI
-        // TODO: Implement connection validation (Phase D rules)
-        // TODO: Add undo support for routing changes
-
-        // Resize canvas to fill container
-        const resizeCanvas = () => {
-          const rect = container.getBoundingClientRect();
-          canvas.width = rect.width;
-          canvas.height = rect.height;
-          
-          // Simple placeholder visualization
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#666';
-            ctx.font = '16px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Routing Graph Visualization', canvas.width / 2, canvas.height / 2 - 10);
-            ctx.fillText('(Connection Router Integration Pending)', canvas.width / 2, canvas.height / 2 + 20);
-          }
+        // Change 248: Cleanup function to destroy overlay and inspector
+        const cleanup = () => {
+          overlay.destroy();
+          inspector.destroy();
         };
 
-        // Initial resize
-        setTimeout(resizeCanvas, 0);
+        // Store cleanup for deck destruction
+        (container as any)._cleanup = cleanup;
 
         return container;
       },

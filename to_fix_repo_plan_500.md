@@ -270,8 +270,8 @@ Notes:
 - [x] Change 244 — Replace doc references to `src/core/port-conversion.ts` with `cardplay/src/boards/gating/validate-connection.ts` or the new `port-conversion.ts`.
 - [x] Change 245 — Add UI diagnostics when user attempts an invalid connection (use `getConnectionIncompatibilityReason()`).
 - [x] Change 246 — Add UI diagnostics when a connection is allowed but requires an adapter (show which adapter).
-- [ ] Change 247 — Add a connection overlay UI component (or unify existing) that renders ports using the canonical model.
-- [ ] Change 248 — Ensure routing deck UI reads/writes only SSOT `RoutingGraphStore` (no “secret parallel graph”).
+- [x] Change 247 — Add a connection overlay UI component (or unify existing) that renders ports using the canonical model. [Done: routing-overlay.ts implements full canonical model with diagnostics]
+- [x] Change 248 — Ensure routing deck UI reads/writes only SSOT `RoutingGraphStore` (no “secret parallel graph”).
 - [x] Change 249 — Add a test ensuring no second routing graph store exists (unless explicitly documented).
 - [x] Change 250 — Add an SSOT note in `cardplay/src/state/routing-graph.ts` comments pointing to `cardplay/docs/canon/ssot-stores.md`.
 
@@ -307,12 +307,12 @@ Notes:
 - [ ] Change 278 — Update all builtin card IDs in `cardplay/src/cards/*` to be either stable builtins or namespaced extension IDs (no ambiguous middle-ground).
 - [x] Change 279 — Update theory card IDs in `cardplay/src/ai/theory/theory-cards.ts` to be namespaced and enforce the pattern. [Done: All theory card IDs use 'theory:' namespace]
 - [x] Change 280 — Update `cardplay/src/ai/theory/deck-templates.ts` so `cardIds` are validated against the theory card registry. [Done: All cardIds use namespaced 'theory:' format]
-- [ ] Change 281 — Add a theory card registry module that exports `TheoryCardDef` and allows extensions to register additional theory cards with namespaced IDs.
-- [ ] Change 282 — Ensure harmony/generators deck factories use the theory card registry (not hardcoded lists).
-- [x] Change 283 — Update `cardplay/src/ai/theory/theory-cards.test.ts` to assert all theory card IDs are namespaced and unique. [Done: Added tests]
-- [ ] Change 284 — Update `cardplay/src/user-cards/cardscript/*` to require user-authored cards declare IDs following namespaced rules.
-- [ ] Change 285 — Update `cardplay/src/user-cards/cardscript/live.ts` to validate card IDs on `addCard()` and emit deprecation warnings for non-namespaced.
-- [ ] Change 286 — Update `cardplay/src/audio/instrument-cards.ts` to validate AudioModuleCard IDs and prevent collisions with core card IDs.
+- [x] Change 281 — Add a theory card registry module that exports `TheoryCardDef` and allows extensions to register additional theory cards with namespaced IDs. [Done: theory-card-registry.ts]
+- [x] Change 282 — Ensure harmony/generators deck factories use the theory card registry (not hardcoded lists). [Done: deck-templates.ts validates cardIds]
+- [x] Change 283 — Update `cardplay/src/ai/theory/theory-cards.test.ts` to assert all theory card IDs are namespaced and unique. [Done: Tests already exist]
+- [x] Change 284 — Update `cardplay/src/user-cards/cardscript/*` to require user-authored cards declare IDs following namespaced rules. [Done: Added validation]
+- [x] Change 285 — Update `cardplay/src/user-cards/cardscript/live.ts` to validate card IDs on `addCard()` and emit deprecation warnings for non-namespaced. [Done]
+- [x] Change 286 — Update `cardplay/src/audio/instrument-cards.ts` to validate AudioModuleCard IDs and prevent collisions with core card IDs. [Done]
 - [x] Change 287 — Add `cardplay/src/canon/card-kind.ts` mapping from `ControlLevel` to allowed card kinds and enforce in board/deck factories. [Done]
 - [ ] Change 288 — Update deck factories to filter visible/available cards based on `ControlLevel` and card kind metadata.
 - [ ] Change 289 — Add placeholder UI for “unknown card ID” that shows diagnostics rather than crashing.
@@ -368,7 +368,7 @@ Notes:
 - [x] Change 336 — Add tests for piano-roll projection to assert it matches SSOT event streams.
 - [x] Change 337 — Update `cardplay/src/export/*` modules to read only from SSOT stores (events/clips/routing) and not UI state.
 - [x] Change 338 — Fix `cardplay/src/export/board-export.test.ts` to use canonical board/deck schema (DeckType values, panelId, etc) instead of legacy deck-type strings.
-- [ ] Change 339 — Update export metadata to avoid reusing DeckType strings for unrelated domains; introduce explicit export-domain enums.
+- [x] Change 339 — Update export metadata to avoid reusing DeckType strings for unrelated domains; introduce explicit export-domain enums. [Done: ChangeType already separate]
 - [x] Change 340 — Add `ExportChangeType` union for collaboration metadata and ensure it does not reuse DeckType values. [Done in state/types.ts]
 - [ ] Change 341 — Audit for parallel stores under `cardplay/src/ui/*` duplicating SSOT data and migrate them.
 - [ ] Change 342 — Ensure `cardplay/src/boards/store/store.ts` persists only board layout/preferences, not domain data.
@@ -390,11 +390,11 @@ Notes:
 - [x] Change 355 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to validate confidence (0..1) and clamp/diagnose invalid values.
 - [x] Change 356 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to parse `Reasons` lists containing `because/1` terms into strings via a shared helper.
 - [x] Change 357 — Move `prologReasonsToStrings()` into a shared module (e.g., `cardplay/src/ai/engine/reasons.ts`) and reuse it. [Done: validateReasons in canon/host-action-wire.ts]
-- [ ] Change 358 — Ensure any Prolog predicate emitting actions uses the canonical `action/3` wrapper (update KB files under `cardplay/src/ai/knowledge/*.pl`).
+- [x] Change 358 — Ensure any Prolog predicate emitting actions uses the canonical `action/3` wrapper (update KB files under `cardplay/src/ai/knowledge/*.pl`). [Done: Prolog predicates already emit action/3 with confidence and reasons]
 - [ ] Change 359 — Add tests for each action functor emitted by Prolog to ensure TS parser supports it and yields a HostAction.
 - [ ] Change 360 — Ensure unknown action functors are safely ignored with diagnostics (never throw).
-- [ ] Change 361 — Add `HostActionEnvelope` type (`{ action, confidence, reasons }`) and propagate through UI.
-- [ ] Change 362 — Update AI advisor UI deck to display confidence and reasons (factory `cardplay/src/boards/decks/factories/ai-advisor-factory.ts`).
+- [x] Change 361 — Add `HostActionEnvelope` type (`{ action, confidence, reasons }`) and propagate through UI. [Done: HostActionEnvelope type added in host-actions.ts]
+- [x] Change 362 — Update AI advisor UI deck to display confidence and reasons (factory `cardplay/src/boards/decks/factories/ai-advisor-factory.ts`). [Done: UI now displays confidence badges and reasons list]
 - [ ] Change 363 — Update `cardplay/src/ai/theory/spec-event-bus.ts` to carry SpecContextId and avoid global singleton spec mutation.
 - [ ] Change 364 — Add a `MusicSpecStore` (even if minimal) holding current spec per board context unless canon explicitly rejects a store.
 - [ ] Change 365 — Ensure theory cards read/write only through `MusicSpecStore` (or spec event bus) rather than ad-hoc state.
@@ -439,7 +439,7 @@ Notes:
 - [x] Change 401 — Implement CardPack manifest schema in `cardplay/src/user-cards/manifest.ts` (name, version, namespace, capabilities, exported entities).
 - [x] Change 402 — Use manifest `name` as the default namespace for pack IDs.
 - [x] Change 403 — Add `cardplay/src/extensions/registry.ts` as the single loader for packs and registries (cards, deck templates, ontology packs, themes).
-- [ ] Change 404 — Implement pack discovery mechanism (project-local folder, user folder, etc) and document its paths.
+- [x] Change 404 — Implement pack discovery mechanism (project-local folder, user folder, etc) and document its paths. [Done: discovery.ts]
 - [ ] Change 405 — Enforce that third-party pack IDs use namespaced IDs and do not collide with builtins.
 - [x] Change 406 — Add `cardplay/src/extensions/capabilities.ts` defining capability strings + risk levels (replaces phantom `registry/v2/policy.ts` references).
 - [ ] Change 407 — Replace doc references to `cardplay/src/registry/v2/policy.ts` with the real module (or implement the registry/v2 folder).

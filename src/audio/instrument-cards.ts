@@ -13,6 +13,7 @@
 
 import { Instrument, ModulationRouting, MacroControl } from './unified-instrument';
 import { HybridInstrument, HybridMode, HybridConfig } from './hybrid-instrument';
+import { isNamespacedId, isBuiltinId } from '../canon/id-validation';
 
 // ============================================================================
 // CARD TYPES
@@ -1616,18 +1617,36 @@ export class Deck {
 }
 
 // ============================================================================
-// FACTORY FUNCTIONS
+// FACTORY FUNCTIONS (Change 286)
 // ============================================================================
 
+/**
+ * Validate AudioModuleCard ID to prevent collisions with core card IDs.
+ * AudioModule card IDs should be namespaced unless they are builtins.
+ */
+function validateAudioModuleCardId(id: string): void {
+  // Check for namespacing
+  if (!isBuiltinId(id) && !isNamespacedId(id)) {
+    console.warn(
+      `[DEPRECATED] AudioModuleCard ID '${id}' is not namespaced. ` +
+      `Custom audio module cards should use namespaced IDs (e.g., 'mypack:${id}') ` +
+      `to prevent collisions with core card IDs and future builtins.`
+    );
+  }
+}
+
 export function createSamplerCard(id: string, name: string): SamplerCard {
+  validateAudioModuleCardId(id);
   return new SamplerCard(id, name);
 }
 
 export function createWavetableCard(id: string, name: string): WavetableCard {
+  validateAudioModuleCardId(id);
   return new WavetableCard(id, name);
 }
 
 export function createHybridCard(id: string, name: string): HybridCard {
+  validateAudioModuleCardId(id);
   return new HybridCard(id, name);
 }
 

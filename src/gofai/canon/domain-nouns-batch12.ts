@@ -25,7 +25,8 @@
  * Total: 55 domain noun lexemes, ~700 LOC
  */
 
-import type { DomainNounLexeme, SemanticBinding, EntityType } from './types';
+import type { Lexeme, LexemeId, DomainNounLexeme } from './types';
+import { createLexemeId } from './types';
 
 // ============================================================================
 // Extended Techniques (12 terms)

@@ -24,6 +24,7 @@ import {
   createParam,
   PortTypes,
 } from '../../cards/card';
+import { isNamespacedId } from '../../canon/id-validation';
 
 // Re-export needed types for reference
 export type { Card, CardContext, CardResult, CardState };
@@ -660,8 +661,19 @@ const cardRegistry = new Map<string, CompleteCardDef<unknown, unknown, unknown>>
 
 /**
  * Registers a complete card definition for invocation.
+ * 
+ * Change 285: Validates card IDs and emits deprecation warnings for non-namespaced IDs.
  */
 export function registerCard<A, B, S>(def: CompleteCardDef<A, B, S>): void {
+  // Validate card ID (Change 285)
+  if (!isNamespacedId(def.id)) {
+    console.warn(
+      `[DEPRECATED] Card ID '${def.id}' is not namespaced. ` +
+      `User-authored cards should use namespaced IDs (e.g., 'mypack:${def.id}'). ` +
+      `Non-namespaced IDs are reserved for builtin cards and may conflict with future builtins.`
+    );
+  }
+  
   cardRegistry.set(def.id, def as CompleteCardDef<unknown, unknown, unknown>);
 }
 

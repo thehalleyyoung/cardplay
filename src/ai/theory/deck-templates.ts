@@ -20,6 +20,7 @@
 
 import type { CultureTag, StyleTag, MusicSpec } from './music-spec';
 import { validateId, isNamespacedId } from '../../canon/id-validation';
+import { validateTheoryCardIds } from './theory-card-registry';
 
 // ============================================================================
 // DECK TEMPLATE TYPES
@@ -490,6 +491,35 @@ export const DECK_TEMPLATES: readonly DeckTemplate[] = [
   CHINESE_BOARD_TEMPLATE,
   LCC_BOARD_TEMPLATE,
 ];
+
+// ============================================================================
+// VALIDATION (Change 280)
+// ============================================================================
+
+/**
+ * Validate all deck templates at module load time.
+ * Ensures all cardIds reference registered theory cards.
+ */
+function validateTemplates(): void {
+  for (const template of DECK_TEMPLATES) {
+    try {
+      validateTheoryCardIds(template.cardIds);
+    } catch (error) {
+      console.error(
+        `Deck template '${template.id}' references invalid card IDs:`,
+        error
+      );
+      throw error;
+    }
+  }
+}
+
+// Validate templates on module load
+validateTemplates();
+
+// ============================================================================
+// TEMPLATE LOOKUP
+// ============================================================================
 
 /**
  * Lookup a deck template by ID.

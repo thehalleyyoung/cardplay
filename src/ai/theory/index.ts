@@ -151,6 +151,32 @@ export {
   type ConstraintLatinStyle,
 } from './music-spec';
 
+// Host Actions (Change 351, 361)
+export {
+  // Envelope type (Change 361)
+  type HostActionEnvelope,
+  
+  // Action types
+  type HostAction,
+  type SetParamAction,
+  type AddConstraintAction,
+  type RemoveConstraintAction,
+  type ApplyPackAction,
+  type AddCardAction,
+  type RemoveCardAction,
+  type SetKeyAction,
+  type SetTempoAction,
+  type SetMeterAction,
+  type SetCultureAction,
+  type SetStyleAction,
+  type SwitchBoardAction,
+  type AddDeckAction,
+  type ShowWarningAction,
+  
+  // Parsing
+  parseHostActionFromPrologTerm,
+} from './host-actions';
+
 // Prolog bridge
 export {
   specToPrologFacts,

@@ -628,6 +628,54 @@ checkEffect(effect, policy): EffectCheckResult
 
 ## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)
 
+### Completed Steps
+
+#### ✅ Step 062 [Infra] — Stable ID Pretty-Printer and Parser
+**Status**: COMPLETE (2026-01-30 Part 9)
+
+**Implementation**:
+- Created `src/gofai/canon/id-formatting.ts` (684 LOC)
+- Complete human-readable formatting and parsing for all GOFAI entity IDs
+- Bidirectional conversion with stable round-tripping
+
+**Key Components**:
+- **Formatting Functions**: formatGofaiId(), formatLexemeId(), formatAxisId(), formatOpcodeId(), etc.
+  - Format options: namespace inclusion, type prefix, short form, capitalization, separators
+  - Examples: `lex:adj:brighter` → "Brighter", `my-pack:axis:grit` → "Grit (my-pack)"
+  
+- **Parsing Functions**: parseGofaiId(), parseLexemeId(), parseAxisId(), etc.
+  - Handles formatted names, namespaced names, raw IDs, fuzzy matches
+  - Returns ParseResult with confidence scoring
+  - Options for type inference, namespace validation, case-insensitive matching
+  
+- **Validation Functions**:
+  - validateIdFormat(): Check format correctness
+  - validateNamespacing(): Ensure proper namespacing for extensions
+  - validateIdComprehensive(): Full validation with issues and warnings
+  
+- **Utility Functions**:
+  - getShortName(), getIdType(): Extract ID components
+  - idsSemanticallyEqual(): Compare IDs ignoring namespace variations
+  - formatIdList(): Format multiple IDs as human-readable lists
+  - formatIdsByType(): Group and format IDs by type
+  - debugFormatId(): Detailed formatting for debugging
+  
+**Design Principles**:
+- Stable format across versions (compatibility)
+- Bijective mapping (format/parse round-trips)
+- Namespace-aware (extension IDs clearly marked)
+- Type-safe (branded ID types preserved)
+- Human-friendly (readable in logs, UI, error messages)
+
+**Test Requirements**:
+- Round-trip tests (format → parse → format)
+- Namespace handling tests (core vs extension)
+- Type inference tests
+- Fuzzy matching tests
+- Validation tests
+
+---
+
 ### Completed Vocabulary Files
 
 #### ✅ Core Lexemes (750 LOC)
@@ -1044,7 +1092,9 @@ Phase 5 is 10% complete (5 of 50 steps done). Next priorities:
 ## Statistics
 
 ### Code Written (All Sessions)
-- **Total Lines of Code**: ~17,491 LOC (+2,340 this part)
+- **Total Lines of Code**: ~18,175 LOC (+684 this part)
+- **Session 2026-01-30 Part 9 Added**: 684 LOC (ID formatting system)
+  - id-formatting.ts: 684 LOC (Step 062)
 - **Session 2026-01-30 Part 8 Added**: 2,340 LOC (Planning core + vocabulary)
   - constraint-satisfaction.ts: 600 LOC (Step 256)
   - plan-generation.ts: 550 LOC (Step 257)
@@ -1055,16 +1105,17 @@ Phase 5 is 10% complete (5 of 50 steps done). Next priorities:
   - Phase 1 vocabulary: ~3,741 LOC
 
 ### Files Created (All Sessions)
-- Infrastructure: 18 files (~11,410 LOC)
+- Infrastructure: 19 files (~12,094 LOC)
   - Testing framework: 2 files (build-matrix, success-metrics)
   - Core infrastructure: 10 files (Phase 0)
   - Planning: 6 files (Phase 5)
+  - ID formatting: 1 file (Phase 1)
 - Vocabulary: 15 files (~14,193 LOC)
 - Documentation: 6 comprehensive docs
 
 ### Phases Complete
 - **Phase 0** (Charter & Invariants): ✅ 100% (19/19 steps)
-- **Phase 1** (Vocabulary): 🔄 71% complete (~14,193 LOC vocabulary)
+- **Phase 1** (Vocabulary & Ontology): 🔄 3% complete (1/50 steps: Step 062)
 - **Phase 5** (Planning): 🔄 18% complete (9/50 steps)
 
 ### Types Defined

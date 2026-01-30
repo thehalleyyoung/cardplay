@@ -51,10 +51,10 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 075 [HCI] — Add UI copy guidelines for showing entity bindings ("'that chorus' → Chorus 2 (bars 49–65)").
 - [x] Step 076 [Infra] — Create a canonical “domain noun inventory” (bars, hook, motif, voicing, groove, drop, build) with definitions and examples.  Note that it should include nouns from as many music theories and traditions as possible.
 - [x] Step 077 [Sem] — Define a “musical object ontology” that distinguishes structure, harmony, rhythm, timbre/production, performance.  Note that it should include ontological objects from as many music theories and traditions as possible.
-- [ ] Step 078 [Type] — Define typed “targets” for preserve-only-change constraints (preserve melody exact vs functional harmony vs recognizable hook), again aiming for wide scope.
-- [ ] Step 079 [Prag] — Define a model of “shared plans” (plan recognition) for repeated edits (“do it again but bigger”).
-- [ ] Step 080 [Infra] — Implement a canonical registry of “default interpretations” with user-overridable mappings and versioned provenance.
-- [ ] Step 084 [HCI] — Define how the UI exposes the current focus stack (board → deck → selection) as an explicit context panel.
+- [x] Step 078 [Type] — Define typed "targets" for preserve-only-change constraints (preserve melody exact vs functional harmony vs recognizable hook), again aiming for wide scope.
+- [x] Step 079 [Prag] — Define a model of "shared plans" (plan recognition) for repeated edits ("do it again but bigger").
+- [x] Step 080 [Infra] — Implement a canonical registry of "default interpretations" with user-overridable mappings and versioned provenance.
+- [x] Step 084 [HCI] — Define how the UI exposes the current focus stack (board → deck → selection) as an explicit context panel.
 - [ ] Step 085 [Infra] — Add deterministic fuzzy matching rules for resolving names (same algorithm everywhere; stable tie-breakers; explainable matches).
 - [ ] Step 092 [Prag] — Specify how temporal adverbs (“now”, “then”) interact with dialogue state to choose edit targets.
 - [ ] Step 093 [Prag] — Specify how demonstratives (“that”, “those”) choose referents using salience, recency, and UI focus.

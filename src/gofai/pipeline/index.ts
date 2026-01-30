@@ -15,3 +15,4 @@ export * from './provenance';
 export * from './preview-first-ux';
 export * from './degree-affordances';
 export * from './entity-binding-ui';
+export * from './focus-stack-ui';

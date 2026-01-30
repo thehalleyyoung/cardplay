@@ -323,9 +323,9 @@ export type LexemeSemantics =
   | { type: 'scope'; scopeType: ScopeType }
   | { type: 'quantity'; quantityType: QuantityType }
   | { type: 'coordination'; coordType: CoordinationType }
-  | { type: 'entity'; entityType: EntityType; [key: string]: any }
+  | { type: 'entity'; entityType?: EntityType; [key: string]: any }
   | { type: 'concept'; domain: string; aspect: string; [key: string]: any }
-  | { type: 'modifier'; modifierType: string; [key: string]: any }
+  | { type: 'modifier'; modifierType?: string; [key: string]: any }
   | { type: 'custom'; handler: string };
 
 /**
@@ -396,6 +396,21 @@ export interface LexemeRestrictions {
 
   /** Mutually exclusive with */
   readonly conflictsWith?: readonly LexemeId[];
+}
+
+/**
+ * Domain Noun Lexeme (compatibility type for batch files using different structure)
+ * @deprecated Batch files should migrate to base Lexeme interface
+ */
+export interface DomainNounLexeme {
+  readonly id: string;
+  readonly term: string;
+  readonly variants: readonly string[];
+  readonly category: string;
+  readonly definition: string;
+  readonly semantics: LexemeSemantics;
+  readonly examples: readonly string[];
+  readonly deprecated?: boolean;
 }
 
 // =============================================================================

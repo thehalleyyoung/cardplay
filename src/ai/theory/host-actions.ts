@@ -22,6 +22,27 @@ import { prologConstraintTermToMusicConstraint } from './spec-prolog-bridge';
 import { isValidConstraintType } from '../../canon/constraint-types';
 
 // ============================================================================
+// HOST ACTION ENVELOPE (Change 361)
+// ============================================================================
+
+/**
+ * Change 361: Host action envelope wrapping action with confidence and reasons.
+ * This envelope type can be used in UI layers that need to display or filter
+ * actions based on confidence scores or explanations.
+ * 
+ * Note: Individual HostAction types also embed confidence/reasons for backwards
+ * compatibility, but this envelope provides a cleaner separation for new code.
+ */
+export interface HostActionEnvelope<T = HostAction> {
+  /** The action to be performed */
+  readonly action: T;
+  /** AI confidence score (0.0-1.0) */
+  readonly confidence: number;
+  /** Human-readable reasons for this suggestion */
+  readonly reasons: readonly string[];
+}
+
+// ============================================================================
 // HOST ACTION TYPES
 // ============================================================================
 

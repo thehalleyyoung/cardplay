@@ -3,12 +3,14 @@
  * 
  * Factory for AI advisor deck - provides intelligent suggestions and workflow guidance.
  * Phase L299 implementation - Prolog-based AI advisor interface.
+ * Change 362: Display confidence and reasons for HostAction suggestions.
  * 
  * @module @cardplay/boards/decks/factories/ai-advisor-factory
  */
 
 import type { BoardDeck } from '../../types';
 import type { DeckFactory, DeckFactoryContext, DeckInstance } from '../factory-types';
+import type { HostAction } from '../../../ai/theory/host-actions';
 
 /**
  * AI Advisor deck factory.
@@ -91,40 +93,165 @@ export const aiAdvisorFactory: DeckFactory = {
 };
 
 /**
- * Creates the suggestions section showing current recommendations.
+ * Change 362: Creates the suggestions section showing current recommendations
+ * with confidence scores and reasons.
  */
 function createSuggestionsSection(): HTMLElement {
   const section = document.createElement('div');
   section.className = 'advisor-section suggestions-section';
   
-  section.innerHTML = `
-    <h4>Current Suggestions</h4>
-    <div class="suggestion-list">
-      <div class="suggestion-item">
-        <span class="suggestion-icon">💡</span>
-        <div class="suggestion-content">
-          <strong>Board Configuration</strong>
-          <p>Consider enabling phrase library for faster workflow</p>
-        </div>
-      </div>
-      <div class="suggestion-item">
-        <span class="suggestion-icon">⚡</span>
-        <div class="suggestion-content">
-          <strong>Workflow Optimization</strong>
-          <p>Your pattern editing is frequent - try keyboard shortcuts</p>
-        </div>
-      </div>
-      <div class="suggestion-item">
-        <span class="suggestion-icon">🎵</span>
-        <div class="suggestion-content">
-          <strong>Music Theory</strong>
-          <p>Detected key of C major - harmony helpers available</p>
-        </div>
-      </div>
-    </div>
-  `;
+  // Mock HostAction suggestions with confidence and reasons
+  // In production, these would come from queryHostActionsWithEnvelope
+  const mockSuggestions = [
+    {
+      action: { action: 'add_deck' as const, deckType: 'phrase-library' },
+      confidence: 0.85,
+      reasons: ['Frequent phrase editing detected', 'Phrase library improves workflow efficiency']
+    },
+    {
+      action: { action: 'set_key' as const, root: 'c' as const, mode: 'major' as const },
+      confidence: 0.92,
+      reasons: ['Most notes are in C major scale', 'Key center detected with high confidence']
+    },
+    {
+      action: { action: 'show_hint' as const, hintId: 'keyboard-shortcuts' },
+      confidence: 0.70,
+      reasons: ['Many mouse-based actions', 'Keyboard shortcuts available for common operations']
+    }
+  ];
+  
+  const headerEl = document.createElement('h4');
+  headerEl.textContent = 'Current Suggestions';
+  section.appendChild(headerEl);
+  
+  const listEl = document.createElement('div');
+  listEl.className = 'suggestion-list';
+  
+  mockSuggestions.forEach(suggestion => {
+    const item = createSuggestionItem(
+      suggestion.action,
+      suggestion.confidence,
+      suggestion.reasons
+    );
+    listEl.appendChild(item);
+  });
+  
+  section.appendChild(listEl);
   
   return section;
+}
+
+/**
+ * Change 362: Creates a single suggestion item with confidence and reasons.
+ */
+function createSuggestionItem(
+  action: HostAction | { action: string; [key: string]: unknown },
+  confidence: number,
+  reasons: readonly string[]
+): HTMLElement {
+  const item = document.createElement('div');
+  item.className = 'suggestion-item';
+  
+  // Confidence badge with color coding
+  const confidenceBadge = document.createElement('div');
+  confidenceBadge.className = 'confidence-badge';
+  const confidencePercent = Math.round(confidence * 100);
+  confidenceBadge.textContent = `${confidencePercent}%`;
+  
+  // Color code by confidence level
+  if (confidence >= 0.8) {
+    confidenceBadge.classList.add('high-confidence');
+  } else if (confidence >= 0.6) {
+    confidenceBadge.classList.add('medium-confidence');
+  } else {
+    confidenceBadge.classList.add('low-confidence');
+  }
+  
+  // Icon based on action type
+  const iconEl = document.createElement('span');
+  iconEl.className = 'suggestion-icon';
+  iconEl.textContent = getActionIcon(action.action);
+  
+  // Content container
+  const contentEl = document.createElement('div');
+  contentEl.className = 'suggestion-content';
+  
+  // Action title
+  const titleEl = document.createElement('strong');
+  titleEl.textContent = getActionTitle(action);
+  contentEl.appendChild(titleEl);
+  
+  // Reasons list
+  const reasonsEl = document.createElement('ul');
+  reasonsEl.className = 'suggestion-reasons';
+  reasons.forEach(reason => {
+    const li = document.createElement('li');
+    li.textContent = reason;
+    reasonsEl.appendChild(li);
+  });
+  contentEl.appendChild(reasonsEl);
+  
+  // Action button
+  const actionBtn = document.createElement('button');
+  actionBtn.className = 'suggestion-action-btn';
+  actionBtn.textContent = 'Apply';
+  actionBtn.onclick = () => applyAction(action);
+  
+  item.appendChild(confidenceBadge);
+  item.appendChild(iconEl);
+  item.appendChild(contentEl);
+  item.appendChild(actionBtn);
+  
+  return item;
+}
+
+/**
+ * Get icon for action type.
+ */
+function getActionIcon(actionType: string): string {
+  const icons: Record<string, string> = {
+    add_deck: '📚',
+    set_key: '🎵',
+    set_tempo: '⏱️',
+    add_constraint: '🔧',
+    show_hint: '💡',
+    apply_pack: '📦',
+    set_param: '⚙️',
+  };
+  return icons[actionType] || '✨';
+}
+
+/**
+ * Get human-readable title for action.
+ */
+function getActionTitle(action: HostAction | { action: string; [key: string]: unknown }): string {
+  const actionType = action.action;
+  switch (actionType) {
+    case 'add_deck':
+      return `Add ${(action as any).deckType || 'Deck'}`;
+    case 'set_key':
+      return `Set Key to ${(action as any).root} ${(action as any).mode}`;
+    case 'set_tempo':
+      return `Set Tempo to ${(action as any).bpm} BPM`;
+    case 'add_constraint':
+      return 'Add Music Constraint';
+    case 'show_hint':
+      return 'View Hint';
+    case 'apply_pack':
+      return `Apply ${(action as any).packId} Pack`;
+    case 'set_param':
+      return `Set ${(action as any).paramId}`;
+    default:
+      return actionType;
+  }
+}
+
+/**
+ * Apply a suggested action (stub - would integrate with apply-host-action).
+ */
+function applyAction(action: unknown): void {
+  console.log('Applying action:', action);
+  // TODO: Wire to applyHostAction from apply-host-action.ts
 }
 
 /**
@@ -273,10 +400,43 @@ function injectStyles(): void {
       border-radius: 6px;
       border: 1px solid var(--color-border, #333);
       transition: background 0.2s;
+      align-items: flex-start;
     }
     
     .suggestion-item:hover {
       background: var(--color-surface-hover, #2a2a2a);
+    }
+    
+    /* Change 362: Confidence badge styling */
+    .confidence-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 45px;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .confidence-badge.high-confidence {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    
+    .confidence-badge.medium-confidence {
+      background: rgba(251, 191, 36, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    
+    .confidence-badge.low-confidence {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
     
     .suggestion-icon {
@@ -286,18 +446,50 @@ function injectStyles(): void {
     
     .suggestion-content {
       flex: 1;
+      min-width: 0;
     }
     
     .suggestion-content strong {
       display: block;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.5rem;
       color: var(--color-text, #e0e0e0);
     }
     
-    .suggestion-content p {
+    /* Change 362: Reasons list styling */
+    .suggestion-reasons {
       margin: 0;
-      font-size: 0.875rem;
+      padding-left: 1.25rem;
+      list-style-type: disc;
+    }
+    
+    .suggestion-reasons li {
+      margin: 0.25rem 0;
+      font-size: 0.8125rem;
       color: var(--color-text-secondary, #999);
+      line-height: 1.4;
+    }
+    
+    /* Change 362: Action button styling */
+    .suggestion-action-btn {
+      padding: 0.5rem 1rem;
+      background: var(--color-primary, #6366f1);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    
+    .suggestion-action-btn:hover {
+      background: var(--color-primary-hover, #4f46e5);
+      transform: translateY(-1px);
+    }
+    
+    .suggestion-action-btn:active {
+      transform: translateY(0);
     }
     
     .insight-list {

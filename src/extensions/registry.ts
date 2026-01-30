@@ -21,6 +21,7 @@ import type {
   ExtensionUIAPI
 } from './types';
 import { validateExtensionManifest, isCompatibleVersion } from './validate';
+import { discoverExtensions, type DiscoveryPaths } from './discovery';
 
 // ============================================================================
 // EXTENSION REGISTRY
@@ -39,12 +40,27 @@ export class ExtensionRegistry {
   }
 
   /**
-   * Discovers extensions from a directory path.
-   * In a real implementation, this would scan the file system.
+   * Discovers extensions from a directory path or discovery paths config.
+   * 
+   * Change 404: Implements pack discovery from multiple sources:
+   * - Project-local folder (./extensions/)
+   * - User folder (~/.cardplay/extensions/)
+   * - System folder (platform-specific)
+   * 
+   * @param pathOrPaths Single path string or DiscoveryPaths config
+   * @returns List of discovered extension manifests
    */
-  async discoverExtensions(_path: string): Promise<ExtensionManifest[]> {
-    // Placeholder: In production, scan directory for extension.json files
-    return [];
+  async discoverExtensions(pathOrPaths: string | DiscoveryPaths): Promise<ExtensionManifest[]> {
+    // Convert string path to DiscoveryPaths
+    const paths: DiscoveryPaths = typeof pathOrPaths === 'string'
+      ? { projectLocal: pathOrPaths }
+      : pathOrPaths;
+    
+    // Use discovery module
+    const results = await discoverExtensions(paths);
+    
+    // Return just the manifests
+    return results.map(r => r.manifest);
   }
 
   /**
