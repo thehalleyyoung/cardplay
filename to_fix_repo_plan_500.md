@@ -436,8 +436,8 @@ Notes:
 
 ## Phase 8 — Extensions, Packs, Registries (Changes 401–450)
 
-- [ ] Change 401 — Implement CardPack manifest schema in `cardplay/src/user-cards/manifest.ts` (name, version, namespace, capabilities, exported entities).
-- [ ] Change 402 — Use manifest `name` as the default namespace for pack IDs.
+- [x] Change 401 — Implement CardPack manifest schema in `cardplay/src/user-cards/manifest.ts` (name, version, namespace, capabilities, exported entities).
+- [x] Change 402 — Use manifest `name` as the default namespace for pack IDs.
 - [ ] Change 403 — Add `cardplay/src/extensions/registry.ts` as the single loader for packs and registries (cards, deck templates, ontology packs, themes).
 - [ ] Change 404 — Implement pack discovery mechanism (project-local folder, user folder, etc) and document its paths.
 - [ ] Change 405 — Enforce that third-party pack IDs use namespaced IDs and do not collide with builtins.

@@ -7,3 +7,4 @@
 export * from './seed-dataset';
 export * from './paraphrase-suite';
 export * from './paraphrase-suite-batch2';
+export * from './ambiguity-suite';

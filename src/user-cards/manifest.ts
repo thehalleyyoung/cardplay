@@ -191,6 +191,13 @@ export interface CardManifest {
   name: string;
   /** Package version (semver) */
   version: string;
+  /**
+   * Namespace for IDs in this pack (Change 402).
+   * Defaults to the pack name if not specified.
+   * Card IDs, port types, event kinds, etc. in this pack should use this namespace.
+   * Example: if namespace is 'my-pack', card IDs should be 'my-pack:my-card'.
+   */
+  namespace?: string;
   /** Display name */
   displayName?: string;
   /** Package description */
@@ -274,6 +281,17 @@ export interface CardManifest {
   platform?: PlatformSpec;
   /** Engine requirements */
   engines?: Record<string, string>;
+  
+  // -------------------------------------------------------------------------
+  // CAPABILITIES (Change 401)
+  // -------------------------------------------------------------------------
+  
+  /** 
+   * Capabilities required by this pack.
+   * Extensions declare which capabilities they need (e.g., 'audio:process', 'files:write').
+   * User will be prompted when installing packs with elevated/dangerous capabilities.
+   */
+  capabilities?: string[];
   
   // -------------------------------------------------------------------------
   // CONFIGURATION
