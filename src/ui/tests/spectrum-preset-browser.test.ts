@@ -3,6 +3,7 @@
  * Tests M193 (spectrum real-time updates) and M194 (preset browser categories)
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   filterPresets,
   sortPresets,

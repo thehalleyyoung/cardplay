@@ -519,8 +519,6 @@ describe('SelectionAnalyzer (C882-C883)', () => {
 // ============================================================================
 
 describe('Pentatonic Mode Tests (C804-C805)', () => {
-  const { matchChineseModes, extractProfile } = require('./selection-analyzer') as typeof import('./selection-analyzer');
-
   // Reference pitch class sets for the five Chinese pentatonic modes
   const MODE_PCS: Record<string, number[]> = {
     gong:  [0, 2, 4, 7, 9],
