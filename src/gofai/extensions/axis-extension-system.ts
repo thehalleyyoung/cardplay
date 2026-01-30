@@ -20,7 +20,7 @@
  * @see docs/gofai/extension-spec.md for usage examples
  */
 
-import type { GofaiId, NamespacedId } from '../canon/types.ts';
+import type { GofaiId } from '../canon/types.ts';
 import type { AxisAnnotation } from './pack-annotations-schema.ts';
 
 /**
@@ -287,13 +287,13 @@ export function defineBuiltinAxis(
   }
   
   return {
-    id,
+    id: id as AxisId,
     displayName,
     type,
     range,
     description,
-    opposite: options?.opposite,
-    related: options?.related,
+    opposite: options?.opposite as AxisId | undefined,
+    related: options?.related as readonly AxisId[] | undefined,
     dimensions: options?.dimensions,
     examples: options?.examples,
     tags: options?.tags,
@@ -309,26 +309,28 @@ export function axisDefinitionFromAnnotation(
   annotation: AxisAnnotation,
   namespace: string
 ): AxisDefinition {
+  const range = annotation.range ?? { min: 0, max: 1, neutral: 0.5, bipolar: false };
+  const type = annotation.type ?? 'perceptual';
+  const description = annotation.description ?? `Axis ${axisId}`;
+  
   return {
     id: axisId,
     displayName: annotation.displayName,
-    type: annotation.type,
+    type,
     range: {
-      min: annotation.range.min,
-      max: annotation.range.max,
-      neutral: annotation.range.neutral,
-      bipolar: annotation.range.bipolar
+      min: range.min ?? 0,
+      max: range.max ?? 1,
+      neutral: range.neutral ?? 0.5,
+      bipolar: range.bipolar ?? false
     },
-    opposite: annotation.opposite,
-    related: annotation.related,
+    opposite: annotation.opposite as AxisId | undefined,
+    related: annotation.related as readonly AxisId[] | undefined,
     dimensions: annotation.dimensions?.map(d => ({
-      dimensionId: d.dimensionId,
-      weight: d.weight,
+      dimensionId: d.name,
+      weight: d.weight ?? 1.0,
       description: d.description
     })),
-    description: annotation.description,
-    examples: annotation.examples,
-    tags: annotation.tags,
+    description,
     namespace,
     schemaVersion: '1.0'
   };

@@ -25,7 +25,7 @@
  */
 
 import type { GofaiId } from '../canon/types.ts';
-import type { CardPlayId } from '../../canon/types.ts';
+import type { CardPlayId } from '../../canon/id-validation.ts';
 import type { EventKind } from '../../events/types.ts';
 
 /**

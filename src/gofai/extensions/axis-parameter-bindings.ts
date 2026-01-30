@@ -20,7 +20,7 @@
  */
 
 import type { AxisId } from './axis-extension-system.ts';
-import type { CardPlayId } from '../../canon/types.ts';
+import type { CardPlayId } from '../../canon/id-validation.ts';
 import type { GofaiId } from '../canon/types.ts';
 
 /**
@@ -488,8 +488,8 @@ export const bindingRegistry = new AxisParameterBindingRegistry();
 export function registerBuiltinBindings(): void {
   // Width → Stereo Width parameter on any spatial card
   bindingRegistry.registerRoleBased({
-    id: 'builtin:width_to_stereo',
-    axisId: 'width',
+    id: 'builtin:width_to_stereo' as GofaiId,
+    axisId: 'width' as AxisId,
     role: 'spatial',
     parameterPattern: '*width*',
     direction: 'positive',
@@ -500,8 +500,8 @@ export function registerBuiltinBindings(): void {
   
   // Brightness → High-frequency EQ
   bindingRegistry.registerRoleBased({
-    id: 'builtin:brightness_to_highshelf',
-    axisId: 'brightness',
+    id: 'builtin:brightness_to_highshelf' as GofaiId,
+    axisId: 'brightness' as AxisId,
     role: 'equalizer',
     parameterPattern: 'high*gain',
     direction: 'positive',
@@ -512,8 +512,8 @@ export function registerBuiltinBindings(): void {
   
   // Warmth → Low-mid boost
   bindingRegistry.registerRoleBased({
-    id: 'builtin:warmth_to_lowmid',
-    axisId: 'warmth',
+    id: 'builtin:warmth_to_lowmid' as GofaiId,
+    axisId: 'warmth' as AxisId,
     role: 'equalizer',
     parameterPattern: '*lowmid*gain',
     direction: 'positive',
@@ -524,8 +524,8 @@ export function registerBuiltinBindings(): void {
   
   // Depth → Reverb amount
   bindingRegistry.registerRoleBased({
-    id: 'builtin:depth_to_reverb',
-    axisId: 'depth',
+    id: 'builtin:depth_to_reverb' as GofaiId,
+    axisId: 'depth' as AxisId,
     role: 'reverb',
     parameterPattern: '*mix*',
     direction: 'positive',
@@ -536,8 +536,8 @@ export function registerBuiltinBindings(): void {
   
   // Intimacy → Dry signal (inverse of reverb)
   bindingRegistry.registerRoleBased({
-    id: 'builtin:intimacy_to_dry',
-    axisId: 'intimacy',
+    id: 'builtin:intimacy_to_dry' as GofaiId,
+    axisId: 'intimacy' as AxisId,
     role: 'reverb',
     parameterPattern: '*mix*',
     direction: 'negative',
@@ -548,8 +548,8 @@ export function registerBuiltinBindings(): void {
   
   // Air → Ultra-high boost
   bindingRegistry.registerRoleBased({
-    id: 'builtin:air_to_ultrahigh',
-    axisId: 'air',
+    id: 'builtin:air_to_ultrahigh' as GofaiId,
+    axisId: 'air' as AxisId,
     role: 'equalizer',
     parameterPattern: '*air*',
     direction: 'positive',

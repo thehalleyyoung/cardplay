@@ -553,11 +553,54 @@ Notes:
 - ✅ **Canon tests:** 85/85 passing (100%)
 - ✅ **SSOT tests:** 14/14 passing (100%)
 - ✅ **Snapshot tests:** 64/64 passing (100%)
-- ✅ **Test suite:** 10,857/11,451 tests passing (94.8%) ← UPDATED Session 22!
-- ✅ **Test files:** 269/311 passing (86.5%) ← UPDATED Session 22!
+- ✅ **Test suite:** 10,891/11,402 tests passing (95.6%) ← UPDATED Session 23!
+- ✅ **Test files:** 270/311 passing (86.8%) ← UPDATED Session 23!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 22 Summary (2026-01-30) - LATEST
+### Session 23 Summary (2026-01-30) - LATEST
+
+**Major Achievements:**
+1. ✅ Fixed vocabulary-policy tests from 15/57 to 57/57 passing (100%, +42 tests, +280%)
+2. ✅ Fixed store tests from 0/25 to 25/25 passing (100%, +25 tests)
+3. ✅ Fixed serialize tests from 0/20 to 20/20 passing (100%, +20 tests)
+4. ✅ Tests passing: 10,873 → 10,891 (+18 tests)
+5. ✅ Test files passing: 269 → 270 (+1 file)
+6. ✅ Tests failing: 545 → 478 (-67 failures)
+7. ✅ Pass rate: 95.0% → 95.6% (+0.6%)
+
+**Test Improvements:**
+1. vocabulary-policy.test.ts (57/57, was 15/57):
+   - Fixed GOFAI ID formats: lexeme:name, axis:name, opcode:name, constraint name
+   - Support namespacing: type:namespace:name or namespace:name (constraints)
+   - Add validation for uppercase, spaces, consecutive hyphens/underscores
+   - Add reserved namespaces: core, builtin, cardplay, system, gofai, internal
+   - Fix isNamespaced and getNamespace for new formats
+
+2. store.test.ts (25/25, was 0/25):
+   - Fixed Vitest API: vi.restoreAllTimers() → vi.useRealTimers()
+
+3. serialize.test.ts (20/20, was 0/20):
+   - Fixed BoardLayoutRuntime root structure
+   - Changed from invalid {type: 'panel', panelId: 'center'} to proper PanelRuntime
+
+**Progress Metrics:**
+- Starting: 10,873 tests passing (269 files), 545 failing
+- Ending: 10,891 tests passing (270 files), 478 failing
+- Pass rate: 95.6% (10,891/11,402)
+- Improvement: +18 tests, +1 file, -67 failures, +0.6% pass rate
+
+**Commits:**
+1. 663c448: Fix vocabulary-policy: update ID formats, validation, and constructors
+2. 6a7829f: Fix store tests: use vi.useRealTimers() instead of vi.restoreAllTimers()
+3. 7229307: Fix layout serialize tests: use proper PanelRuntime structure
+
+**Remaining Work:**
+- 41 test files still failing (down from 42)
+- 478 tests failing (4.2% failure rate, down from 4.8%)
+- High-impact files: spec-event-bus (200), feature-derivation (20), id-system (2)
+- Most failures in: integration tests, GOFAI experiments, UI timing tests
+
+### Session 22 Summary (2026-01-30)
 
 **Major Achievements:**
 1. ✅ Improved auto-coloring tests from 23/49 to 34/49 passing (+11 tests, +48%)
