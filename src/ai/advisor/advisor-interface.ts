@@ -14,6 +14,17 @@ import { loadMusicTheoryKB } from '../knowledge/music-theory-loader';
 import { loadCompositionPatternsKB } from '../knowledge/composition-patterns-loader';
 import { loadBoardLayoutKB } from '../knowledge/board-layout-loader';
 import { createHarmonyExplorer, HarmonyExplorer } from '../harmony/harmony-explorer';
+import {
+  analyzeProject,
+  explainIssue,
+  type DetectedIssue,
+  type ProjectSnapshot,
+} from '../queries/workflow-queries';
+
+// Import canonical HostAction for reference (used by Prolog integration)
+// Note: This module uses AdvisorHostAction for UI-layer actions which has
+// a different structure than the Prolog wire format HostAction.
+// import type { HostAction as CanonicalHostAction } from '../theory/host-actions';
 
 // =============================================================================
 // Types
@@ -37,12 +48,19 @@ export interface AdvisorContext {
   readonly skillLevel?: string;
   /** Any custom context */
   readonly custom?: Record<string, unknown>;
+  /** Optional: snapshot for project analysis workflows */
+  readonly projectSnapshot?: ProjectSnapshot;
 }
 
 /**
- * An action that can be performed by the host.
+ * An action that can be performed by the host in response to advisor suggestions.
+ * 
+ * NOTE: This is a UI-layer action type used by the advisor interface.
+ * It differs from the canonical HostAction (from theory/host-actions.ts) which
+ * is used for Prolog wire communication. Consider migrating to use
+ * CanonicalHostAction in the future for consistency.
  */
-export interface HostAction {
+export interface AdvisorHostAction {
   /** Action type */
   readonly type: 'setParam' | 'callMethod' | 'navigate' | 'create';
   /** Target card/component ID */
@@ -52,6 +70,9 @@ export interface HostAction {
   /** Human-readable description */
   readonly description: string;
 }
+
+/** @deprecated Use AdvisorHostAction. Kept for backward compatibility. */
+export type HostAction = AdvisorHostAction;
 
 /**
  * Follow-up question suggestion.
@@ -766,7 +787,71 @@ export class AIAdvisor {
     question: string,
     context: AdvisorContext
   ): Promise<AdvisorAnswer> {
-    void question;
+    // N067/N069: Project analysis (issue list with Explain + one-click fix actions)
+    const snapshot =
+      context.projectSnapshot ??
+      ((context.custom as any)?.projectSnapshot as ProjectSnapshot | undefined);
+
+    if (
+      snapshot &&
+      /(analy[sz]e|analysis|health|issues?|what('s| is) wrong).*project/i.test(question)
+    ) {
+      const analysis = await analyzeProject(snapshot, this.adapter);
+      const issues = analysis.issues;
+
+      if (issues.length === 0) {
+        return {
+          text: 'No issues detected from the provided project snapshot.',
+          confidence: 80,
+          canAnswer: true,
+          source: 'project-analysis',
+        };
+      }
+
+      const maxIssues = 10;
+      const shown = issues.slice(0, maxIssues);
+
+      const lines = shown.map(
+        (i) => `- ${i.category}:${i.issueId} — ${i.remedy}`
+      );
+      const more = issues.length > shown.length ? `\n(+${issues.length - shown.length} more)` : '';
+
+      const actions: HostAction[] = [];
+      for (const issue of shown) {
+        const explanation = await explainIssue(issue, this.adapter);
+        actions.push({
+          type: 'callMethod',
+          target: 'project-analysis',
+          params: { method: 'explainIssue', issue, explanation },
+          description: `Explain ${issue.issueId}`,
+        });
+
+        const fix = this.getOneClickFixForIssue(issue);
+        if (fix) {
+          actions.push(fix);
+        } else {
+          actions.push({
+            type: 'callMethod',
+            target: 'project-analysis',
+            params: { method: 'applyFix', issue },
+            description: `Apply fix: ${issue.issueId}`,
+          });
+        }
+      }
+
+      return {
+        text: `Project analysis found ${issues.length} issue(s):\n${lines.join('\n')}${more}`,
+        confidence: 75,
+        canAnswer: true,
+        actions,
+        followUps: [
+          { question: 'Which issue should I tackle first?', category: 'clarify' },
+          { question: 'How can I prevent these issues?', category: 'expand' },
+        ],
+        source: 'project-analysis',
+      };
+    }
+
     const chords = context.chords ?? [];
     
     if (chords.length > 0) {
@@ -793,6 +878,49 @@ export class AIAdvisor {
       canAnswer: true,
       source: 'fallback'
     };
+  }
+
+  private getOneClickFixForIssue(issue: DetectedIssue): HostAction | null {
+    const key = `${issue.category}:${issue.issueId}`;
+    switch (key) {
+      case 'missing:no_bass':
+        return {
+          type: 'create',
+          target: 'session',
+          params: { entity: 'track', kind: 'bass', suggested: true },
+          description: 'Create a bass track',
+        };
+      case 'missing:no_drums':
+        return {
+          type: 'create',
+          target: 'session',
+          params: { entity: 'track', kind: 'drums', suggested: true },
+          description: 'Create a drum track',
+        };
+      case 'technical:clipping':
+        return {
+          type: 'setParam',
+          target: 'mixer',
+          params: { masterGainDb: -6 },
+          description: 'Reduce master gain to avoid clipping',
+        };
+      case 'technical:mud_buildup':
+        return {
+          type: 'callMethod',
+          target: 'effects',
+          params: { method: 'applyEQPreset', preset: 'reduce_mud_200_500' },
+          description: 'Apply an EQ preset to reduce 200–500Hz mud',
+        };
+      case 'structural:monotonic_energy':
+        return {
+          type: 'navigate',
+          target: 'timeline',
+          params: { panel: 'arrangement' },
+          description: 'Open arrangement view to add contrast',
+        };
+      default:
+        return null;
+    }
   }
   
   /**

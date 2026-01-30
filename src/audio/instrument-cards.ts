@@ -18,8 +18,8 @@ import { HybridInstrument, HybridMode, HybridConfig } from './hybrid-instrument'
 // CARD TYPES
 // ============================================================================
 
-/** Card state */
-export type CardState = 'idle' | 'active' | 'bypassed' | 'muted' | 'soloed';
+/** Audio module state - Change 253 */
+export type AudioModuleState = 'idle' | 'active' | 'bypassed' | 'muted' | 'soloed';
 
 /** MIDI routing mode */
 export type MIDIRoutingMode = 'through' | 'channel_filter' | 'transpose' | 'split' | 'layer';
@@ -27,15 +27,15 @@ export type MIDIRoutingMode = 'through' | 'channel_filter' | 'transpose' | 'spli
 /** Audio routing mode */
 export type AudioRoutingMode = 'stereo' | 'mono' | 'mid_side' | 'multiout';
 
-/** Card category */
-export type CardCategory = 'sampler' | 'wavetable' | 'hybrid' | 'effect' | 'midi' | 'utility';
+/** Audio module category - Change 252 */
+export type AudioModuleCategory = 'sampler' | 'wavetable' | 'hybrid' | 'effect' | 'midi' | 'utility';
 
-/** Base card interface */
-export interface Card {
+/** Base audio module card interface - Change 251 */
+export interface AudioModuleCard {
   id: string;
   name: string;
-  category: CardCategory;
-  state: CardState;
+  category: AudioModuleCategory;
+  state: AudioModuleState;
   
   // Lifecycle
   initialize(): Promise<void>;
@@ -49,13 +49,13 @@ export interface Card {
   processMIDI(data: Uint8Array, timestamp: number): void;
   
   // State
-  getState(): CardState;
-  saveState(): CardSnapshot;
-  restoreState(snapshot: CardSnapshot): void;
+  getState(): AudioModuleState;
+  saveState(): AudioModuleSnapshot;
+  restoreState(snapshot: AudioModuleSnapshot): void;
 }
 
-/** Card snapshot for undo/redo */
-export interface CardSnapshot {
+/** Audio module state snapshot for undo/redo - Change 253 */
+export interface AudioModuleSnapshot {
   id: string;
   timestamp: number;
   data: unknown;
@@ -73,7 +73,7 @@ export interface MIDIEvent {
 /** Deck slot */
 export interface DeckSlot {
   index: number;
-  card: Card | null;
+  card: AudioModuleCard | null;
   enabled: boolean;
   midiChannel: number;
   audioInputFrom: number | null;  // Slot index or null for deck input
@@ -827,11 +827,11 @@ export class StepSequencer {
 /**
  * Sampler instrument card
  */
-export class SamplerCard implements Card {
+export class SamplerCard implements AudioModuleCard {
   readonly id: string;
   readonly name: string;
-  readonly category: CardCategory = 'sampler';
-  state: CardState = 'idle';
+  readonly category: AudioModuleCategory = 'sampler';
+  state: AudioModuleState = 'idle';
   
   private instrument: Instrument | null = null;
   private arpeggiator: Arpeggiator;
@@ -890,7 +890,7 @@ export class SamplerCard implements Card {
     this.state = solo ? 'soloed' : 'active';
   }
   
-  getState(): CardState {
+  getState(): AudioModuleState {
     return this.state;
   }
   
@@ -1074,7 +1074,7 @@ export class SamplerCard implements Card {
   // STATE
   // ===========================================================================
   
-  saveState(): CardSnapshot {
+  saveState(): AudioModuleSnapshot {
     return {
       id: this.id,
       timestamp: Date.now(),
@@ -1093,7 +1093,7 @@ export class SamplerCard implements Card {
     };
   }
   
-  restoreState(snapshot: CardSnapshot): void {
+  restoreState(snapshot: AudioModuleSnapshot): void {
     const data = snapshot.data as any;
     this.midiRoutingMode = data.midiRoutingMode;
     this.midiChannel = data.midiChannel;
@@ -1116,7 +1116,7 @@ export class SamplerCard implements Card {
  * Wavetable instrument card
  */
 export class WavetableCard extends SamplerCard {
-  readonly category: CardCategory = 'wavetable';
+  override readonly category: AudioModuleCategory = 'wavetable';
   
   // Modulation routing
   private modMatrix: ModulationRouting[] = [];
@@ -1214,7 +1214,7 @@ export class WavetableCard extends SamplerCard {
     return this.macros[index] ?? null;
   }
   
-  saveState(): CardSnapshot {
+  override saveState(): AudioModuleSnapshot {
     const baseState = super.saveState();
     return {
       ...baseState,
@@ -1226,7 +1226,7 @@ export class WavetableCard extends SamplerCard {
     };
   }
   
-  restoreState(snapshot: CardSnapshot): void {
+  override restoreState(snapshot: AudioModuleSnapshot): void {
     super.restoreState(snapshot);
     const data = snapshot.data as any;
     this.modMatrix = data.modMatrix ?? [];
@@ -1244,7 +1244,7 @@ export class WavetableCard extends SamplerCard {
  * Hybrid instrument card (sampler + wavetable)
  */
 export class HybridCard extends WavetableCard {
-  readonly category: CardCategory = 'hybrid';
+  override readonly category: AudioModuleCategory = 'hybrid';
   
   private hybridInstrument: HybridInstrument | null = null;
   
@@ -1370,7 +1370,7 @@ export class Deck {
   /**
    * Add card to slot
    */
-  addCard(card: Card, slotIndex: number): boolean {
+  addCard(card: AudioModuleCard, slotIndex: number): boolean {
     const slot = this.slots[slotIndex];
     if (slotIndex < 0 || slotIndex >= this.maxSlots || !slot) return false;
     
@@ -1381,7 +1381,7 @@ export class Deck {
   /**
    * Remove card from slot
    */
-  removeCard(slotIndex: number): Card | null {
+  removeCard(slotIndex: number): AudioModuleCard | null {
     const slot = this.slots[slotIndex];
     if (slotIndex < 0 || slotIndex >= this.maxSlots || !slot) return null;
     
@@ -1393,14 +1393,14 @@ export class Deck {
   /**
    * Get card at slot
    */
-  getCard(slotIndex: number): Card | null {
+  getCard(slotIndex: number): AudioModuleCard | null {
     return this.slots[slotIndex]?.card ?? null;
   }
   
   /**
    * Get all cards
    */
-  getAllCards(): Card[] {
+  getAllCards(): AudioModuleCard[] {
     return this.slots
       .filter(slot => slot.card !== null)
       .map(slot => slot.card!);
@@ -1589,7 +1589,7 @@ export class Deck {
   saveState(): {
     id: string;
     name: string;
-    slots: Array<{ index: number; cardSnapshot: CardSnapshot | null; config: Omit<DeckSlot, 'card'> }>;
+    slots: Array<{ index: number; cardSnapshot: AudioModuleSnapshot | null; config: Omit<DeckSlot, 'card'> }>;
     masterGain: number;
     masterPan: number;
     tempo: number;

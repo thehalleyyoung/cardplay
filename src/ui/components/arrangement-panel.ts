@@ -16,7 +16,7 @@
 
 import type { Event } from '../../types/event';
 import type { Tick, TickDuration } from '../../types/primitives';
-import { asTick, asTickDuration } from '../../types/primitives';
+import { asTick, asTickDuration, PPQ } from '../../types/primitives';
 import type { Stream } from '../../streams';
 import type { SelectionStore } from '../../state/selection-state';
 
@@ -4362,7 +4362,7 @@ export async function addMarkersFromBeats(
   timeSignature: { numerator: number; denominator: number } = { numerator: 4, denominator: 4 },
   startTick: Tick = asTick(0)
 ): Promise<ArrangementPanelState> {
-  const ticksPerBeat = 480; // Standard MIDI resolution
+  const ticksPerBeat = PPQ; // Canonical PPQ
   const beatsPerBar = timeSignature.numerator;
   const ticksPerBar = ticksPerBeat * beatsPerBar;
   

@@ -1319,8 +1319,10 @@ export interface CardDefinition {
  * 
  * The event stream types allow cards to output/input typed schedulables
  * that are independent of any specific protocol.
+ * 
+ * Change 203: Renamed from PortType to VisualPortType to avoid conflict with canonical PortType.
  */
-export type PortType = 
+export type VisualPortType = 
   | 'audio' 
   | 'control' 
   | 'trigger'
@@ -1338,7 +1340,7 @@ export type PortType =
  */
 export interface PortDefinition {
   readonly name: string;
-  readonly type: PortType;
+  readonly type: VisualPortType;
   readonly label?: string;
   readonly description?: string;
   readonly optional?: boolean;
@@ -2043,7 +2045,7 @@ export function createCardCanvasRenderer(
 /**
  * Connection types and their visual styles.
  */
-export const CONNECTION_STYLES: Record<PortType, { color: string; width: number; style: 'solid' | 'dashed' | 'dotted' }> = {
+export const CONNECTION_STYLES: Record<VisualPortType, { color: string; width: number; style: 'solid' | 'dashed' | 'dotted' }> = {
   'audio': { color: '#4CAF50', width: 3, style: 'solid' },
   'Event<Note>': { color: '#2196F3', width: 2, style: 'solid' },
   'Event<CC>': { color: '#9C27B0', width: 2, style: 'solid' },

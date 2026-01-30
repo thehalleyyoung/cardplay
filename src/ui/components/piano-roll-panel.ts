@@ -12,7 +12,7 @@ import type { Event } from '../../types/event';
 import { generateEventId } from '../../types/event-id';
 import { EventKinds } from '../../types/event-kind';
 import type { Tick, TickDuration } from '../../types/primitives';
-import { asTick, asTickDuration } from '../../types/primitives';
+import { asTick, asTickDuration, PPQ } from '../../types/primitives';
 import type { Stream } from '../../streams';
 
 // ============================================================================
@@ -343,11 +343,11 @@ export const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A',
 /** White key indices in octave (0=C, 2=D, 4=E, 5=F, 7=G, 9=A, 11=B) */
 export const WHITE_KEYS = [0, 2, 4, 5, 7, 9, 11];
 
-/** Default snap grid (1/16 notes = 96 ticks for 384 PPQN) */
-export const DEFAULT_SNAP_TICKS = 96;
+/** Default snap grid (1/16 notes = 240 ticks for 960 PPQN) */
+export const DEFAULT_SNAP_TICKS = PPQ / 4;
 
-/** Default ticks per beat (384 PPQN standard) */
-export const DEFAULT_TICKS_PER_BEAT = 384;
+/** Default ticks per beat (canonical PPQ=960) */
+export const DEFAULT_TICKS_PER_BEAT = PPQ;
 
 /** Default beats per bar */
 export const DEFAULT_BEATS_PER_BAR = 4;

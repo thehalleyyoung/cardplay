@@ -12,6 +12,7 @@
 import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 import { loadMusicTheoryKB } from '../knowledge/music-theory-loader';
 import { loadCompositionPatternsKB } from '../knowledge/composition-patterns-loader';
+import { PPQ } from '../../types/primitives';
 
 // =============================================================================
 // Types
@@ -231,7 +232,7 @@ export class MelodyGenerator {
       density = 0.5,
       contour = 'random',
       maxInterval: optMaxInterval,
-      ticksPerBeat = 480,
+      ticksPerBeat = PPQ,
       phraseLength: _phraseLength = 4
     } = options;
     

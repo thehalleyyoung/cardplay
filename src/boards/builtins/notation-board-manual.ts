@@ -82,21 +82,24 @@ export const notationBoardManual: Board = {
       type: 'notation-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'score'
     },
     {
       id: 'instrument-browser-players',
       type: 'instruments-deck',
       cardLayout: 'stack',
       allowReordering: true,
-      allowDragOut: true
+      allowDragOut: true,
+      panelId: 'players'
     },
     {
       id: 'properties-panel',
       type: 'properties-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'properties'
     }
   ],
   

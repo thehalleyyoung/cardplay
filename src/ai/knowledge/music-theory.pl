@@ -141,6 +141,8 @@ scale(pentatonic_minor, [3, 2, 2, 3, 2]).
 scale(blues, [3, 2, 1, 1, 3, 2]).
 scale(chromatic, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]).
 scale(whole_tone, [2, 2, 2, 2, 2, 2]).
+scale(diminished, [2, 1, 2, 1, 2, 1, 2, 1]).  % Octatonic (half-whole pattern)
+scale(octatonic, [2, 1, 2, 1, 2, 1, 2, 1]).   % Alias for diminished
 
 %% L042: Modes
 scale(ionian, [2, 2, 1, 2, 2, 2, 1]).      % = major

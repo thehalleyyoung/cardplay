@@ -113,7 +113,8 @@ export const sessionGeneratorsBoard: Board = {
       type: 'session-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'session'
     },
     // G068: Generator deck (right panel)
     {
@@ -121,7 +122,8 @@ export const sessionGeneratorsBoard: Board = {
       type: 'generators-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'generator'
     },
     // G069: Mixer (bottom panel)
     {
@@ -129,7 +131,8 @@ export const sessionGeneratorsBoard: Board = {
       type: 'mixer-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'mixer'
     },
     // G070: Instrument browser (left panel)
     {
@@ -137,7 +140,8 @@ export const sessionGeneratorsBoard: Board = {
       type: 'instruments-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: true
+      allowDragOut: true,
+      panelId: 'browser'
     },
     // G071: Properties (right panel tab)
     {
@@ -145,7 +149,8 @@ export const sessionGeneratorsBoard: Board = {
       type: 'properties-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'generator'
     }
   ],
   

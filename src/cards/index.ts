@@ -793,7 +793,7 @@ export {
   
   // Card Definition
   type CardDefinition,
-  type PortType as VisualPortType,
+  type VisualPortType,
   type PortDefinition,
   type ParameterDefinition,
   type PresetDefinition,

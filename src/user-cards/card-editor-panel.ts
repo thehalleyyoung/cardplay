@@ -47,9 +47,12 @@ export type EditorTab =
   | 'console';           // Build output
 
 /**
- * Simple card definition (not from manifest).
+ * Simple card definition for the editor (not from manifest).
+ * 
+ * Change 269: Renamed from CardDefinition to EditorCardDefinition
+ * to avoid collision with canonical CardDefinition in card-visuals.ts.
  */
-export interface CardDefinition {
+export interface EditorCardDefinition {
   readonly id: string;
   readonly name: string;
   readonly description: string;
@@ -70,8 +73,8 @@ export interface CardDefinition {
  * Card editor state.
  */
 export interface CardEditorState {
-  /** Current card definition being edited */
-  readonly cardDef: CardDefinition;
+  /** Current card definition being edited - Change 270 */
+  readonly cardDef: EditorCardDefinition;
   /** CardScript source code */
   readonly code: string;
   /** Current layout mode */
@@ -119,7 +122,7 @@ export interface TestResult {
  * History entry for undo/redo.
  */
 export interface CardEditorHistoryEntry {
-  readonly cardDef: CardDefinition;
+  readonly cardDef: EditorCardDefinition;
   readonly code: string;
   readonly timestamp: number;
   readonly description: string;
@@ -285,7 +288,7 @@ export const CARD_TEMPLATES: readonly CardTemplate[] = Object.freeze([
 /**
  * Create default card definition.
  */
-export function createDefaultCardDefinition(): CardDefinition {
+export function createDefaultCardDefinition(): EditorCardDefinition {
   const template = CARD_TEMPLATES[0];
   if (!template) {
     throw new Error('No default template found');
@@ -312,7 +315,7 @@ export function createDefaultCardDefinition(): CardDefinition {
  * Create initial editor state.
  */
 export function createEditorState(
-  initialDef?: CardDefinition
+  initialDef?: EditorCardDefinition
 ): CardEditorState {
   const cardDef = initialDef ?? createDefaultCardDefinition();
   const template = CARD_TEMPLATES[0];
@@ -394,7 +397,7 @@ export function updateCode(
   }
   
   // Update card definition source
-  const cardDef: CardDefinition = Object.freeze({
+  const cardDef: EditorCardDefinition = Object.freeze({
     ...state.cardDef,
     source: code,
   });
@@ -425,12 +428,12 @@ export function updateCode(
 /**
  * Update card metadata.
  */
-export function updateMetadata<K extends keyof CardDefinition>(
+export function updateMetadata<K extends keyof EditorCardDefinition>(
   state: CardEditorState,
   field: K,
-  value: CardDefinition[K]
+  value: EditorCardDefinition[K]
 ): CardEditorState {
-  const cardDef: CardDefinition = Object.freeze({
+  const cardDef: EditorCardDefinition = Object.freeze({
     ...state.cardDef,
     [field]: value,
   });
@@ -493,7 +496,7 @@ export function loadTemplate(
     return state;
   }
   
-  const cardDef: CardDefinition = Object.freeze({
+  const cardDef: EditorCardDefinition = Object.freeze({
     ...state.cardDef,
     source: template.code,
     icon: template.icon ?? state.cardDef.icon,

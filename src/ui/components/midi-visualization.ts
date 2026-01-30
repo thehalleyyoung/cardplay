@@ -490,7 +490,7 @@ export class VelocityDisplay extends BaseMIDIVisualization {
     this.peakTimestamps = new Array(this.barCount).fill(0);
   }
   
-  noteOn(note: number, velocity: number, channel: number = 0): void {
+  override noteOn(note: number, velocity: number, channel: number = 0): void {
     super.noteOn(note, velocity, channel);
     
     // Map note to bar (simplified)
@@ -800,7 +800,7 @@ export class MIDIActivityIndicator extends BaseMIDIVisualization {
     this.pulseOnActivity = options.pulseOnActivity ?? true;
   }
   
-  noteOn(note: number, velocity: number, channel: number = 0): void {
+  override noteOn(note: number, velocity: number, channel: number = 0): void {
     super.noteOn(note, velocity, channel);
     
     this.pulseIntensity = 1;
@@ -808,7 +808,7 @@ export class MIDIActivityIndicator extends BaseMIDIVisualization {
     this.activeChannels.add(channel);
   }
   
-  noteOff(note: number, channel: number = 0): void {
+  override noteOff(note: number, channel: number = 0): void {
     super.noteOff(note, channel);
     
     // Check if channel still has notes
@@ -892,7 +892,7 @@ export class ChordDisplay extends BaseMIDIVisualization {
     super(options);
   }
   
-  noteOn(note: number, velocity: number, channel: number = 0): void {
+  override noteOn(note: number, velocity: number, channel: number = 0): void {
     super.noteOn(note, velocity, channel);
     
     this.currentNotes.push(note);
@@ -900,7 +900,7 @@ export class ChordDisplay extends BaseMIDIVisualization {
     this.detectChord();
   }
   
-  noteOff(note: number, channel: number = 0): void {
+  override noteOff(note: number, channel: number = 0): void {
     super.noteOff(note, channel);
     
     this.currentNotes = this.currentNotes.filter(n => n !== note);

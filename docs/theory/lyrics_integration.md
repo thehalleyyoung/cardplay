@@ -1,8 +1,36 @@
 # Lyrics Integration: Making Words/Lines/Verses First‑Class in CardPlay
 
+**Status:** aspirational
+**Canonical terms used:** Event, EventKind, EventStream, Board, BoardDeck, MusicSpec, MusicConstraint, HostAction, ControlLevel
+**Primary code references:** `cardplay/src/types/event.ts`, `cardplay/src/types/event-kind.ts`, `cardplay/src/state/event-store.ts`, `cardplay/src/boards/types.ts`, `cardplay/src/ai/theory/host-actions.ts`, `cardplay/src/ai/knowledge/music-spec.pl`, `cardplay/src/notation/layout.ts`
+**Analogy:** Lyrics are tokens/pieces; a Lyrics surface is a zone; Prolog is the referee suggesting moves.
+
 This document proposes the **simplest path** to make CardPlay “lyrics‑focused” in a way that works across boards (Ableton/session, Renoise/tracker, Dorico/notation, beginner boards) and integrates cleanly with the existing **events + cards + boards + Prolog AI** architecture.
 
+It must obey the canon rules in `to_fix.md` (and, as they are created, the authoritative docs under `cardplay/docs/canon/`).
+
 The core idea: **lyrics become structured entities with stable IDs + anchors**, and the AI pipeline learns to talk about them the same way it talks about chords, sections, and constraints—returning **HostActions** that either (a) modify lyric properties, or (b) apply musical changes *at the lyric‑anchored spans*.
+
+#### Declarative vs Imperative Contract
+- **Declarative layer:** lyrics facts/tags + `MusicSpec` constraints (what is desired / permitted).
+- **Imperative layer:** boards/decks mutate SSOT stores (event streams, clips, routing, UI state).
+- **Prolog’s role:** read facts, return *suggestions* as HostActions; it does not mutate host state.
+- **Apply loop:** user accepts (or board policy auto-applies) → host applies HostActions → state changes → facts/spec re-synced → new inference.
+
+#### Ontology Declaration
+- **Ontology pack(s):** lyrics domain (language tokens) + whichever music ontology pack(s) the project is using via `MusicSpec` (western/carnatic/etc.)
+- **Pitch representation:** n/a for lyrics; any pitch implications are delegated to the active music ontology
+- **Time representation:** ticks (PPQ=960) for anchors
+- **Assumptions:** lyrics are language-agnostic tokens; semantics are optional tags/features; “underlay” to notation is represented via note IDs
+- **KB files:** none yet (planned: `cardplay/src/ai/knowledge/lyrics.pl`)
+
+#### Extensibility Contract
+- **What can extend this:** builtin + user pack + project-local
+- **Extension surface:** new lyric tags/features, new Prolog rules, new HostAction terms/handlers, new UI surfaces/skins
+- **Registration/loader:** EventKind registry (`cardplay/src/types/event-kind.ts`), KB loader pattern (`cardplay/src/ai/knowledge/*-loader.ts`), pack manifests (`cardplay/src/user-cards/manifest.ts`)
+- **ID namespace rule:** tags/actions must be namespaced (`vendor:hook`, `user:assonance`, `lyrics:set_tag(...)`)
+- **Versioning:** lyric event payloads and KB packs must declare schema versions; unknown versions must degrade gracefully
+- **Failure mode:** missing/broken lyric extensions disable lyric-specific affordances but never break note editing/playback
 
 ---
 
@@ -37,8 +65,9 @@ Let a user:
    - Stores lyric “tokens” (word or syllable events) with stable IDs and verse/line structure.
 
 2) **A Lyrics Deck (UI)**
-   - Add a `lyrics-deck` deck type + factory (patterned after `harmony-deck` or `properties-deck` factories).
-   - For boards that want it, include it in the layout; for others, it can live in `properties-deck` as a tab first.
+   - **MVP (non-breaking):** implement a Lyrics surface inside an existing builtin deck type (usually `properties-deck`) so you don’t need to add a new `DeckType` member.
+   - **Later (optional):** add a dedicated `lyrics-deck` builtin deck type + factory *or* introduce a namespaced/custom deck-type mechanism. Until then, treat “Lyrics Deck” as a UI surface, not a `DeckType` string.
+   - For boards that want it, include it in the layout; for others, expose it as a tab/card in `properties-deck` first.
 
 3) **Anchors (the bridge to music)**
    - Each word/line/verse can be anchored to:
@@ -76,7 +105,7 @@ You want a stable hierarchy that is independent of board layout:
 Use the existing event system, but keep lyrics in their own stream initially to avoid breaking note-only assumptions:
 
 - `Event.kind = 'lyric'` (registerable via `cardplay/src/types/event-kind.ts`)
-- `Event.start/duration` used as the **anchor tick span** when available
+- `Event.start/duration` used as the **anchor tick span** when available (span = `start .. start+duration`)
 - `Event.payload` carries the structural identity:
 
 Example payload shape (TypeScript, conceptual):
@@ -360,6 +389,13 @@ The user never once touches “bar/beat”, but the implementation still uses ti
    - If you keep CardPlay “offline-first” and Prolog-centric, prefer Prolog for explainable heuristics.
    - If you later add LLM/NLP, keep it in TS and pass *tags/features* into Prolog; keep Prolog as the “reasoning + mapping” layer.
 
+4) **Suggestion vs auto-apply**
+   - Default: lyric-scoped HostActions are suggestions.
+   - Auto-apply is a board/policy decision (gated by `ControlLevel` + tool modes in `cardplay/src/boards/types.ts`) and must remain undoable and inspectable.
+
+5) **Namespacing is required for extension**
+   - Lyric tags, derived features, and HostAction terms must be namespaced to support “infinite extensibility” without polluting core vocab.
+
 ---
 
 ## 9) Repo touchpoints (for implementation)
@@ -372,6 +408,7 @@ The user never once touches “bar/beat”, but the implementation still uses ti
 - KB loading patterns: `cardplay/src/ai/knowledge/*-loader.ts`
 - HostAction parsing/execution surface: `cardplay/src/ai/theory/host-actions.ts`, `cardplay/src/ai/knowledge/music-spec.pl`
 - Existing “host-action as event” precedent: `cardplay/src/ui/drag-drop-payloads.ts`, `cardplay/src/ui/drop-handlers.ts`
+- Pack/extension entrypoints: `cardplay/src/user-cards/manifest.ts`, `cardplay/src/user-cards/pack.ts`
 
 ---
 
@@ -385,4 +422,3 @@ The simplest, most CardPlay-native path is:
 4) Make the system “semiotic” by letting users define **tag → aspect → action** mappings that Prolog respects.
 
 This gives you lyrics as first-class citizens without rewriting the app around text—and it fits the existing Prolog-assisted, board-centric workflow model.
-

@@ -16,6 +16,7 @@ import type {
   PortType,
 } from './card';
 import { PortTypes } from './card';
+import { validateId, isBuiltinId } from '../canon/id-validation';
 
 // ============================================================================
 // VERSION HANDLING
@@ -206,6 +207,22 @@ class CardRegistryImpl implements CardRegistry {
   }
   
   register<A, B>(card: Card<A, B>, dependencies: readonly string[] = []): void {
+    const cardId = card.meta.id;
+    
+    // Validate card ID format
+    const validation = validateId(cardId);
+    if (validation.valid === false) {
+      throw new Error(`Invalid card ID '${cardId}': ${validation.error}`);
+    }
+    
+    // Warn if custom card doesn't use namespaced ID
+    // (builtin cards are allowed to use non-namespaced IDs)
+    if (isBuiltinId(cardId) && card.meta.category === 'custom') {
+      console.warn(
+        `[CardRegistry] Custom card '${cardId}' should use a namespaced ID (e.g., 'my-pack:${cardId}')`
+      );
+    }
+    
     const entry: CardRegistryEntry<A, B> = {
       card,
       registeredAt: Date.now(),

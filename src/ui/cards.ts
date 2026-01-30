@@ -32,9 +32,12 @@ export type CardState = 'normal' | 'selected' | 'focused' | 'disabled' | 'error'
 export type PortDirection = 'input' | 'output';
 
 /**
- * Card port data type.
+ * Card surface port data type (UI layer).
+ * 
+ * Change 202: Renamed from PortType to UISurfacePortType to avoid conflict with canonical PortType.
+ * Maps to canonical port types from canon/port-types.ts.
  */
-export type PortType = 'audio' | 'midi' | 'control' | 'trigger' | 'data';
+export type UISurfacePortType = 'audio' | 'midi' | 'control' | 'trigger' | 'data';
 
 /**
  * Card surface configuration.
@@ -641,7 +644,7 @@ export interface CardPortConfig {
   /** Port direction */
   readonly direction: PortDirection;
   /** Port data type */
-  readonly type: PortType;
+  readonly type: UISurfacePortType;
   /** Whether port accepts multiple connections */
   readonly multiple: boolean;
   /** Port position (0-1, relative to card edge) */
@@ -655,7 +658,7 @@ export interface CardPortConfig {
 /**
  * Default port colors by type.
  */
-export const PORT_TYPE_COLORS: Record<PortType, string> = {
+export const PORT_TYPE_COLORS: Record<UISurfacePortType, string> = {
   audio: '#4CAF50',
   midi: '#2196F3',
   control: '#FF9800',

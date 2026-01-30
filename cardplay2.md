@@ -1,5 +1,15 @@
 # 15: The Event-Card Music System (standalone spec)
 
+**Status:** partial (canonical core model, some sections aspirational)  
+**Canonical terms used:** Event, EventStream, Card<A,B>, Stack, Container, Clip, MusicSpec, MusicConstraint, HostAction  
+**Primary code references:** `cardplay/src/types/*`, `cardplay/src/cards/*`, `cardplay/src/state/*`, `cardplay/src/ai/theory/*`  
+**Analogy:** The "master rulebook" defining how game pieces (cards), tokens (events), and zones (containers) work together.  
+**SSOT:** This doc is canonical for the core model, but must match code paths under `cardplay/src/`. When conflicts arise, follow `to_fix.md` + `cardplay/docs/canon/**` + `cardplay/src/**`.
+
+> **Note:** This repo has multiple Card/Deck/Stack systems. This spec defines the canonical *core* ones. See [Card Systems](./docs/canon/card-systems.md), [Deck Systems](./docs/canon/deck-systems.md), and [Stack Systems](./docs/canon/stack-systems.md) for the full disambiguation.
+
+---
+
 This document defines a unified music system that combines:
 - Ableton-like clips and scenes
 - Renoise-style trackers
@@ -25,7 +35,7 @@ This is a lightly revised copy of `cardplay.md` that focuses on small but high-l
 
 Conventions used throughout:
 - **Event contents are called `payload`**. If you see `props` in an example, read it as a legacy alias for `payload`.
-- **Time is `ticks` by default**: `start` and `duration` are integer ticks at a global PPQ unless a section explicitly says otherwise.
+- **Time is `ticks` by default**: `start` and `duration` are integer ticks at PPQ=960 (see `cardplay/src/types/primitives.ts`) unless a section explicitly says otherwise.
 - **Examples may omit bookkeeping fields** (`id`, `tags`, `meta`) when they are not the point of the example.
 - **Lanes are one concept with two uses**:
   - As **attached modulation** on an event (e.g., per-note expression envelopes).
@@ -1660,6 +1670,13 @@ Note how the old proliferated types (`HarmonyContext`, `PhraseSpec`, `NoteEvent`
 ---
 
 ## Part V) Cards and composition
+
+> **Noun Contract: Card**
+> - **Canonical meaning:** A typed transform `Card<A,B>` mapping input A to output B
+> - **Not this:** UI widgets, audio processor modules, or theory constraint cards
+> - **Canonical type:** `Card<A,B>` in `cardplay/src/cards/card.ts`
+> - **See also:** [Card Systems](./docs/canon/card-systems.md) for all card types in the codebase
+> - **Analogy:** A "rule card" or "spell" that transforms tokens
 
 ---
 
@@ -4484,6 +4501,13 @@ Example 20: Custom Notation System (user-defined glyphs)
 
 ## 5.3 Stacks and graphs
 
+> **Noun Contract: Stack**
+> - **Canonical meaning:** Serial/parallel composition of `Card<A,B>` transforms
+> - **Not this:** UI StackComponent (vertical list) or DeckCardLayout modes
+> - **Canonical type:** `Stack` in `cardplay/src/cards/stack.ts`
+> - **See also:** [Stack Systems](./docs/canon/stack-systems.md)
+> - **Analogy:** A "combo chain" of rule cards
+
 ### 5.3.1 Stacks
 Stacks are compositional groups with explicit semantics. They can be serial (pipeline) or parallel (layer), plus tabs or switch modes for view logic.
 
@@ -7104,11 +7128,15 @@ Motion is intentionally subtle and informative.
 
 ## Part XIII) Deck and workspace
 
+> **Clarification:** In the board-centric architecture, the **Board** is the main workspace; **BoardDeck** is a zone within it. The "deck as workspace" concept here describes the slot-grid view inside certain deck types.
+>
+> See [Deck Systems](./docs/canon/deck-systems.md) for the full disambiguation of deck concepts.
+
 ---
 
 ## 13.1 Deck and card layout
 
-The deck is the main workspace. Cards live in a grid. Cards can be:
+The deck (zone) is a workspace surface. Cards live in a grid. Cards can be:
 - stacked into serial or parallel groups
 - focused to fullscreen (double-click)
 - collapsed to minimal chips

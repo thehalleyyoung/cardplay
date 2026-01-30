@@ -1,0 +1,282 @@
+# GOFAI Goal Track B (Backend): Types, Planning, Execution, Extensibility, Evaluation
+
+Focus: CPL/type infrastructure, planner + cost model, execution/diff/undo, extension/plugin integration (cards/decks/boards/Prolog), and verification/performance/release discipline. Frontend semantics/UX work lives in Track A.
+
+This file is a bipartite split of `500_gofai_goal.md` so two workstreams can iterate in parallel. Step numbers match the original plan.
+
+---
+
+## Phase 0 — Charter, Invariants, and Non‑Negotiables (Steps 001–050)
+
+- [ ] Step 002 [Type] — Define “semantic safety invariants” (e.g., preserve constraints are executable checks; no silent ambiguity resolution) and treat them as first-class testable requirements.
+- [ ] Step 003 [Infra] — Decide and document the compilation pipeline stages (normalize → parse → semantics → pragmatics → typecheck → plan → execute → diff/explain).
+- [ ] Step 004 [Type] — Introduce a vocabulary policy: builtin meaning IDs un-namespaced; extension meaning IDs must be `namespace:*` (mirrors CardPlayId rules).
+- [ ] Step 006 [Infra] — Create a “GOFAI build matrix” mapping features to required tests (unit, golden NL→CPL, paraphrase invariance, safety diffs, UX interaction tests).
+- [ ] Step 007 [Type] — Define a stable “CPL schema versioning” strategy compatible with CardPlay canon serialization/versioning conventions.
+- [ ] Step 008 [Type] — Define an effect taxonomy for compiler outputs: `inspect` vs `propose` vs `mutate`, to forbid silent mutation in manual boards.
+- [ ] Step 010 [Infra] — Identify the minimal “project world API” needed by GOFAI (section markers, tracks/layers, card registry, selected range, undo stack).
+- [ ] Step 011 [Type] — Specify the difference between **goals**, **constraints**, and **preferences** (hard vs soft), with a stable typed model.
+- [ ] Step 016 [Infra] — Add a glossary of key terms (scope, referent, salience, presupposition, implicature, constraint) and require it in docs review.
+- [ ] Step 017 [Type] — Decide how “unknown-but-declared” extension semantics are represented (opaque namespaced nodes with schemas).
+- [ ] Step 020 [Infra][Eval] — Define success metrics: semantic reliability under paraphrase, constraint correctness, edit reversibility, workflow speed, user trust.
+- [ ] Step 022 [Infra] — Build a “risk register” (failure modes: wrong scope, wrong target, broken constraints, destructive edits) and map each to mitigation steps.
+- [ ] Step 023 [Type] — Define a “capability model” for the current environment: what can be edited (events vs routing vs DSP) depending on board policy.
+- [ ] Step 024 [Infra] — Establish a policy for deterministic output ordering (stable sorting for entities, stable tie-breakers for parsing/planning).
+- [ ] Step 025 [Infra] — Create a dedicated docs entrypoint for GOFAI (index + architecture + vocabulary + extension spec).
+- [ ] Step 027 [Infra] — Define a minimal “song fixture” format for tests (small project state snapshots that can be diffed deterministically).
+- [ ] Step 031 [Infra] — Decide on naming conventions and folder layout for GOFAI modules (canon, nl, semantics, pragmatics, planning, execution, ui).
+- [ ] Step 032 [Type] — Define “CPL as a public interface”: stable TS types + JSON schema; discourage leaking parse-tree internals.
+- [ ] Step 033 [Infra] — Define “compiler determinism rules” (no random choices; if multiple plans tie, show options).
+- [ ] Step 035 [Type] — Define “undo tokens” as linear resources: every `apply` yields a token that can be consumed by `undo` deterministically.
+- [ ] Step 045 [Type] — Define refinement constraints for axis values (e.g., width ∈ [0,1], BPM > 0), with validators.
+- [ ] Step 046 [Infra] — Establish a local-only telemetry plan (optional) to capture anonymized parse/clarification failures for iterative improvement.
+- [ ] Step 047 [Eval] — Decide on an evaluation harness that can replay a conversation against fixed fixtures and assert deterministic outputs.
+- [ ] Step 048 [Infra] — Define a “migration policy” for language behavior changes (how to handle old CPL in edit history after upgrades).
+- [ ] Step 050 [Infra] — Create a final checklist for “shipping offline compiler”: no network calls in runtime path; deterministic builds; audit logs.
+---
+
+## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)
+
+- [ ] Step 052 [Type] — Define `GofaiId` as a namespaced ID type that composes with `CardPlayId` rules; reject non-namespaced extension entries.
+- [ ] Step 053 [Infra] — Build a “canon check” script for GOFAI (like existing canon checks) that validates all vocab tables and IDs.
+- [ ] Step 061 [Type] — Create a single “unit system” type layer: `Bpm`, `Semitones`, `Bars`, `Beats`, `Ticks`, with conversion rules and refinements.
+- [ ] Step 062 [Infra] — Add a stable, human-readable ID pretty-printer and parser for all GOFAI entity references.
+- [ ] Step 063 [Type] — Define a “capability lattice” (e.g., production enabled, routing editable, AI allowed) to control which semantics can compile to execution.
+- [ ] Step 064 [Ext][Type] — Define extension namespaces as first-class provenance on lexeme senses, constraints, and opcodes.
+- [ ] Step 065 [Ext][Infra] — Add an extension registry conceptually mirroring BoardRegistry/CardRegistry, with register/unregister events.
+- [ ] Step 066 [Ext][Infra] — Define “auto-binding” rules: how card/board/deck metadata becomes baseline lexicon entries without custom code.
+- [ ] Step 067 [Ext][Type] — Specify a schema for pack-provided GOFAI annotations (synonyms, roles, param semantics, default scopes).
+- [ ] Step 068 [Sem] — Define the mapping between `MusicSpec` constraints and CPL constraints (lossless where possible).
+- [ ] Step 069 [Sem] — Add a “constraint catalog” that includes both builtins and namespaced extension constraints with schemas.
+- [ ] Step 070 [Type] — Define `ConstraintSchema` types (parametric) so unknown constraints remain typecheckable if declared.
+- [ ] Step 073 [Prag] — Add a “speech situation” model (speaker, addressee, time, focused tool) to support situation semantics-like reasoning.
+- [ ] Step 081 [Ext][Infra] — Integrate symbol table builder with CardRegistry and BoardRegistry listeners to auto-update referents when extensions load.
+- [ ] Step 082 [Ext][Infra] — Define how deck factories and deck types become referents (“open the waveform editor deck”), including namespaced deck types.
+- [ ] Step 083 [Type] — Define “UI-only actions” vs “project mutation actions” with distinct effect types (prevents conflating navigation with edits).
+- [ ] Step 086 [Sem] — Define a typed representation for “musical dimensions” that can host both perceptual axes and symbolic-theory axes.
+- [ ] Step 087 [Ext][Sem] — Define how an extension can add a new axis (e.g., “grit”) and map it to levers without editing core.
+- [ ] Step 088 [Ext][Type] — Define a schema for “axis → parameter bindings” (e.g., width → param stereoWidth on certain cards).
+- [ ] Step 089 [Sem] — Define the semantics of “only change X” as an explicit scope restriction plus a validation rule over diffs.
+- [ ] Step 090 [Infra] — Write an “ontology drift” lint that fails if docs and canon vocab disagree.
+- [ ] Step 091 [Type] — Define a typed “reference to historical edit package” to support “undo that”, “redo the chorus widening”.
+- [ ] Step 098 [Infra] — Add a “vocab coverage report” script: which cards/boards/decks have no language bindings or weak bindings.
+- [ ] Step 099 [Eval] — Add regression tests asserting entity bindings remain stable across refactors (ID-based, not display-name fragile).
+- [ ] Step 100 [Infra] — Define the “GOFAI docs SSOT rule”: canonical vocab lives in code; docs are generated or validated from that code.
+---
+
+## Phase 5 — Planning: Goals → Levers → Plans (Steps 251–300)
+
+- [ ] Step 251 [Type][Sem] — Define CPL-Plan as a sequence of typed opcodes with explicit scopes, preconditions, and postconditions.
+- [ ] Step 252 [Type] — Define plan opcodes for core musical edits (thin_texture, densify, raise_register, halftime, insert_break, etc.).
+- [ ] Step 253 [Sem] — Define lever mappings from perceptual axes to candidate opcodes (lift → register+voicing+density; intimacy → thin+close+reduce width).
+- [ ] Step 254 [Type] — Define a plan scoring model (goal satisfaction + edit cost + constraint risk) with deterministic tie-breakers.
+- [ ] Step 255 [Type] — Define a cost hierarchy aligned with user expectations (melody changes expensive; voicing changes cheap).
+- [ ] Step 256 [Sem] — Implement a constraint satisfaction layer: candidate plans must be validated against preserve/only-change constraints.
+- [ ] Step 257 [Sem] — Implement plan generation as bounded search over opcodes (depth limit, beam size) to keep runtime predictable offline.
+- [ ] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
+- [ ] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
+- [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
+- [ ] Step 261 [Sem][Type] — Implement a “plan skeleton” step that maps from CPL-Intent to a set of lever candidates with open parameters.
+- [ ] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
+- [ ] Step 263 [Sem] — Implement “plan legality” checks: ensure opcodes only touch allowed scope and do not mutate forbidden targets.
+- [ ] Step 264 [Sem] — Implement “plan explainability”: each opcode carries a reason string linked to the goal it serves.
+- [ ] Step 265 [Sem] — Implement “plan provenance”: preserve lexeme/rule origins through to plan steps for end-to-end explanations.
+- [ ] Step 266 [Sem][Infra] — Integrate Prolog for symbolic suggestions: query theory KB for chord substitutions, cadence options, mode inference.
+- [ ] Step 267 [Sem] — Define a typed Prolog query layer for GOFAI planning (wrap raw predicates; validate results).
+- [ ] Step 268 [Sem] — Define “theory-driven levers” that depend on analysis (e.g., tension increase via chromatic mediants if harmony permits).
+- [ ] Step 269 [Type] — Define an interface for “analysis facts” computed from project state (key estimate, chord map, density metrics).
+- [ ] Step 270 [Infra] — Add caching for analysis facts keyed by project version and scope to avoid recomputation per keystroke.
+- [ ] Step 271 [Sem] — Implement “constraints as filters”: constraints prune candidate levers early (if preserve melody exact, avoid reharmonize ops).
+- [ ] Step 272 [Sem] — Implement “soft constraints as weights”: preferences influence scoring but never violate hard constraints.
+- [ ] Step 273 [Sem] — Implement “capability-aware planning”: if production layer disabled, map “wider” to orchestration levers instead of DSP.
+- [ ] Step 274 [Sem][HCI] — Implement “ask vs act” planning: if satisfaction requires risky ops, produce a clarification/choice rather than auto-select.
+- [ ] Step 275 [Type] — Implement an “effect typing” rule: plans with mutation effects cannot be executed in `full-manual` without explicit confirmation.
+- [ ] Step 276 [Sem] — Add plan opcodes for musical structure edits: duplicate section, shorten/extend, insert pickup, add break/build/drop.
+- [ ] Step 277 [Sem] — Add plan opcodes for rhythm edits: swing adjustment, quantize strength, humanize timing, halftime/doubletime transforms.
+- [ ] Step 278 [Sem] — Add plan opcodes for harmony edits: revoice, add extensions, substitute chords under melody constraints, functional reharmonization.
+- [ ] Step 279 [Sem] — Add plan opcodes for melody edits: ornamentation, contour shaping, register shifts under range constraints (must be optional/high cost).
+- [ ] Step 280 [Sem] — Add plan opcodes for arrangement edits: add/remove layers, role redistribution, density shaping across sections.
+- [ ] Step 281 [Type] — Define a typed “plan execution preflight” that checks project world invariants and gathers required entity bindings.
+- [ ] Step 282 [Type] — Define a typed “plan postflight” that recomputes diffs and verifies constraints; if fail, rollback automatically.
+- [ ] Step 283 [Type] — Define a deterministic “plan-to-diff summary” mapping for UI (what changed by layer/section).
+- [ ] Step 284 [HCI] — Design a “plan preview timeline” that visually marks where edits apply (bar ranges highlighted).
+- [ ] Step 285 [HCI] — Design “confidence UI”: show confidence as “ready / needs clarification / risky” derived from hole count + cost.
+- [ ] Step 286 [Eval] — Build a planning golden suite: given CPL-Intent and a fixture, expected top plan(s) are stable and deterministic.
+- [ ] Step 287 [Eval] — Add constraint violation tests: planner must never output a plan that violates hard constraints in the fixture.
+- [ ] Step 288 [Eval] — Add least-change tests: given two satisfying plans, system picks lower cost unless user requests otherwise.
+- [ ] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
+- [ ] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
+- [ ] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
+- [ ] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
+- [ ] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
+- [ ] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
+- [ ] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.
+- [ ] Step 296 [Sem] — Add planning support for “multi-objective” requests (increase lift but decrease busyness) by choosing orthogonal levers.
+- [ ] Step 297 [Sem] — Add planning support for “keep X but change Y” by encoding X as hard constraint and planning only over Y levers.
+- [ ] Step 298 [Sem] — Add planning support for “only change drums” by restricting opcodes to selectors matching drums.
+- [ ] Step 299 [Sem] — Add planning support for “do it again but bigger” by taking prior plan and scaling amounts with constraints preserved.
+- [ ] Step 300 [Infra] — Add a plan serialization format (with schema + provenance) so plans can be saved, shared, and replayed.
+---
+
+## Phase 6 — Execution: Compile Plans to CardPlay Mutations with Diffs + Undo (Steps 301–350)
+
+- [ ] Step 301 [Type] — Define `EditPackage` as the atomic applied unit: contains CPL, plan, diff, provenance, undo token, and timestamps.
+- [ ] Step 302 [Type] — Define a transactional execution model: apply edits to a fork; validate constraints; commit or rollback.
+- [ ] Step 303 [Type] — Define an execution effect system: UI actions are separate from project mutations; planners produce proposals, executors apply.
+- [ ] Step 304 [Type] — Define a canonical diff model: event diffs, container diffs, card graph diffs, param diffs, each with stable ordering.
+- [ ] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
+- [ ] Step 306 [Infra] — Implement event-level edit primitives by composing existing `cardplay/src/events/operations.ts` functions where possible.
+- [ ] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
+- [ ] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).
+- [ ] Step 309 [Infra] — Implement plan opcode executors for structure edits (insert break, duplicate section) with marker updates.
+- [ ] Step 310 [Infra] — Implement plan opcode executors for card parameter edits (set_param) with type-safe param validation.
+- [ ] Step 311 [Type] — Introduce param schema validation for cards (enum/number/bool/object), so “set cutoff to 12k” can be validated or clarified.
+- [ ] Step 312 [Type] — Implement “unknown param” behavior: show similar params, ask user to choose, or refuse.
+- [ ] Step 313 [Type] — Implement “value coercion” rules with provenance: “12k” → 12000; “+3dB” → numeric; refuse unsafe coercions.
+- [ ] Step 314 [Type] — Implement “execution capability checks”: if a plan requires routing edits but policy forbids it, downgrade to preview-only.
+- [ ] Step 315 [Infra] — Implement “deterministic host action ordering” so repeated runs produce identical diffs.
+- [ ] Step 316 [Infra] — Implement automatic undo integration with CardPlay store: each `EditPackage` becomes one undo step (or a grouped transaction).
+- [ ] Step 317 [Infra] — Implement redo integration; ensure redo re-validates constraints if the world changed since original apply.
+- [ ] Step 318 [Type] — Implement “edit package addressability”: users can undo by package ID, by scope, or by turn index.
+- [ ] Step 319 [HCI] — Add UI for “undo preview”: show what will revert before actually undoing.
+- [ ] Step 320 [HCI] — Add UI for “reapply”: user can reapply a prior package to a new context if still valid.
+- [ ] Step 321 [Sem][Type] — Implement melody preservation checkers (exact pitch+onset equality; tolerances for “recognizable”).
+- [ ] Step 322 [Sem][Type] — Implement harmony preservation checkers (chord skeleton equality; functional equivalence; extension invariance).
+- [ ] Step 323 [Sem][Type] — Implement rhythm preservation checkers (grid-aligned onset sets; swing/humanize allowances).
+- [ ] Step 324 [Sem][Type] — Implement “only-change” checker: diff must touch only allowed selectors; report violations with highlighted events.
+- [ ] Step 325 [Sem][Type] — Implement “no-new-layers” checker: ensure no new tracks/cards are added unless allowed.
+- [ ] Step 326 [Infra] — Implement diff rendering helpers: convert low-level diffs into human summary sentences (“Chorus: hats density +20%”).
+- [ ] Step 327 [Infra] — Implement “reason traces”: for each diff item, link back to the plan opcode and the goal it served.
+- [ ] Step 328 [Infra] — Implement “explanation generator”: produce before/after summaries and satisfy-constraint reports.
+- [ ] Step 329 [HCI] — Add UI for diff visualization: per-section timeline overlay + per-layer change list + filter by kind.
+- [ ] Step 330 [HCI] — Add UI for “what changed and why” that is readable by collaborators (exportable report).
+- [ ] Step 331 [Ext][Type] — Define how extension opcodes compile: extensions return proposed `EditPackage` fragments but core executor applies them.
+- [ ] Step 332 [Ext][Type] — Enforce extension handler purity: forbid direct store mutation in extension code paths; require returning pure patch objects.
+- [ ] Step 333 [Ext][Type] — Define “unknown opcode” runtime behavior: cannot execute; must display and ask for handler selection or decline.
+- [ ] Step 334 [Type] — Implement “safe failure”: if execution fails mid-transaction, rollback and show a structured error with context and suggested fixes.
+- [ ] Step 335 [HCI] — Add UI for execution failures that shows exactly which precondition failed and offers remedial actions (“select a chorus first”).
+- [ ] Step 336 [Eval] — Build execution golden tests: given plan + fixture, applying yields exact diff snapshots and passes constraint checks.
+- [ ] Step 337 [Eval] — Add undo/redo roundtrip tests: apply → undo → redo yields identical state and identical diffs.
+- [ ] Step 338 [Eval] — Add property tests: applying a plan then applying its inverse yields original state (where inverse defined).
+- [ ] Step 339 [Eval] — Add fuzz tests for selector safety: random scopes must not escape their bounds or mutate outside allowed ranges.
+- [ ] Step 340 [Eval] — Add performance tests for apply+diff: stay within latency budgets for typical edits.
+- [ ] Step 341 [Type] — Add a “transaction log” type that records each micro-step for debugging without exposing internal mutable state.
+- [ ] Step 342 [Infra] — Add “preview apply” mode that applies to a cloned project state for visualization without affecting main undo stack.
+- [ ] Step 343 [HCI] — Add UI to toggle preview vs apply; preview should be the default when ambiguity/risks are high.
+- [ ] Step 344 [Type] — Add a stable “edit signature hash” for deduplicating identical plans and for caching.
+- [ ] Step 345 [Infra] — Add deterministic serialization of edit packages for shareability and audit.
+- [ ] Step 346 [Prag] — Integrate the dialogue state with applied edits: after apply, update salience and discourse referents to stabilize subsequent pronouns.
+- [ ] Step 347 [Prag] — Implement “undo affects discourse”: if user undoes an edit, update what “again” and “that change” refer to.
+- [ ] Step 348 [HCI] — Add UI affordances for referencing history (“undo the chorus lift change”) by clicking on a past turn.
+- [ ] Step 349 [Infra] — Add a bug-report export: include utterance, CPL, plan, diff, and provenance traces without including audio/IP data.
+- [ ] Step 350 [Infra] — Add a deterministic “replay runner” that can replay a conversation and applied edits from logs for regression debugging.
+---
+
+## Phase 8 — Infinite Extensibility: New Cards/Decks/Boards/Theories Plug In (Steps 401–450)
+
+- [ ] Step 401 [Ext][Type] — Define the GOFAI extension interface (register lexicon, bindings, planner hooks, Prolog modules) with strict namespacing rules.
+- [ ] Step 402 [Ext][Infra] — Implement an extension registry with register/unregister events and version negotiation.
+- [ ] Step 403 [Ext][Infra] — Implement auto-discovery: when a CardPlay pack loads, attempt to load its optional GOFAI extension module.
+- [ ] Step 404 [Ext][Type] — Define an extension trust model (trusted/untrusted) affecting whether execution hooks are enabled by default.
+- [ ] Step 405 [Ext][HCI] — Add UI for enabling/disabling extension execution capabilities with clear local-only security messaging.
+- [ ] Step 406 [Ext][NLP] — Implement dynamic lexicon updates: extensions can register new lexemes/synonyms without restarting the app.
+- [ ] Step 407 [Ext][NLP] — Implement dynamic grammar updates: extensions can register new constructions with rule IDs and required test artifacts.
+- [ ] Step 408 [Ext][Sem] — Implement namespaced semantic nodes: extension-provided meanings must carry `namespace:` and be preserved through CPL serialization.
+- [ ] Step 409 [Ext][Type] — Implement schema-declared constraints so unknown constraints are still typechecked/pretty-printed if declared by extension.
+- [ ] Step 410 [Ext][Type] — Implement namespaced opcodes and an opcode registry that binds opcode IDs to pure compilation handlers.
+- [ ] Step 411 [Ext][Infra] — Implement auto-binding for CardRegistry: any registered card becomes referable by name and ID (“add <card>”, “set <param>”).
+- [ ] Step 412 [Ext][Infra] — Implement auto-binding for BoardRegistry: boards become referable (“switch to <board>”) and searchable via stable matching.
+- [ ] Step 413 [Ext][Infra] — Implement auto-binding for deck types and deck instances (“open the mixer deck”, “move the GOFAI deck right”).
+- [ ] Step 414 [Ext][Prag] — Merge extension entities into the symbol table with provenance and stable precedence rules.
+- [ ] Step 415 [Ext][HCI] — Add UI labeling showing provenance (“from my-pack@1.2.0”) on lexeme meanings and plan steps.
+- [ ] Step 416 [Ext][Type] — Allow cards to provide GOFAI metadata: synonyms, role hints, param semantics, and axis bindings; validate schema.
+- [ ] Step 417 [Ext][Type] — Allow boards to provide GOFAI metadata: default scopes, workflow verbs, safe execution policies.
+- [ ] Step 418 [Ext][Type] — Allow decks to provide GOFAI metadata: what “the deck” refers to, common actions, and safe scopes.
+- [ ] Step 419 [Ext][Sem] — Implement axis-to-param binding declarations so “wider” can map to a specific card param when present.
+- [ ] Step 420 [Ext][Sem] — Implement fallback semantics when no binding exists: treat adjective as axis request and plan with non-extension levers.
+- [ ] Step 421 [Ext][Infra] — Define extension Prolog module registration: packs can ship `.pl` sources consulted into the PrologAdapter with stable module names.
+- [ ] Step 422 [Ext][Infra] — Define Prolog vocab export conventions (e.g., `gofai_vocab/3`) so the lexicon can ingest new theory terms.
+- [ ] Step 423 [Ext][NLP] — Implement lexicon ingestion from Prolog vocab exports with normalization and conflict resolution.
+- [ ] Step 424 [Ext][Sem] — Implement TS-side typed wrappers over extension Prolog predicates for planning and validation.
+- [ ] Step 425 [Ext][Eval] — Add tests ensuring extension Prolog load order cannot break core KB predicates; require namespaced module names.
+- [ ] Step 426 [Ext][Type] — Implement extension opcode handler purity checks: handlers return patch proposals; core executor applies and diffs.
+- [ ] Step 427 [Ext][Type] — Implement execution gating: extension opcodes cannot run in strict/manual contexts unless explicitly approved.
+- [ ] Step 428 [Ext][HCI] — Add “unknown opcode UI”: show plan step but disable apply; allow user to install/enable the required extension.
+- [ ] Step 429 [Ext][Infra] — Implement hot reload of extensions in dev mode: re-register lexicon/opcodes and invalidate parse/planning caches.
+- [ ] Step 430 [Ext][Infra] — Implement cache invalidation keyed by extension registry version and enabled namespaces.
+- [ ] Step 431 [Ext][Type] — Record extension namespace+version in every applied EditPackage for audit and reproducibility.
+- [ ] Step 432 [Ext][Type] — Implement migration strategy when extension versions change: preserve old CPL serialization and annotate compatibility status.
+- [ ] Step 433 [Ext][HCI] — Add UI to show “this plan depends on extension X”; clicking shows what it contributes and why it’s needed.
+- [ ] Step 434 [Ext][Eval] — Add a per-namespace paraphrase invariance harness: extensions must provide tests for new language mappings.
+- [ ] Step 435 [Ext][Eval] — Add a per-namespace golden diff harness: extension opcodes must be tested on fixtures with constraint checks.
+- [ ] Step 436 [Ext][Infra] — Build a “GOFAI language pack generator” that scaffolds bindings from a pack’s card metadata + params.
+- [ ] Step 437 [Ext][Infra] — Build a “lexeme coverage report” per pack that shows missing synonyms and missing axis bindings.
+- [ ] Step 438 [Ext][HCI] — Build a “pack vocabulary browser” UI that lets users search pack-specific commands and examples.
+- [ ] Step 439 [Ext][Type] — Enforce that all extension-added constraints/opcodes/axes are namespaced and documented; add a linter.
+- [ ] Step 440 [Ext][Infra] — Define a stable API boundary so GOFAI extensions can be authored without importing deep internal modules.
+- [ ] Step 441 [Ext][Prag] — Ensure pragmatic resolution accounts for extension entities: “that stutter card” should resolve to extension card instances.
+- [ ] Step 442 [Ext][Prag] — Ensure clarification questions can mention extension terms cleanly (“Do you mean my-pack:stutter or core:repeat?”).
+- [ ] Step 443 [Ext][Sem] — Allow extensions to contribute new discourse cues (“drop”, “build”, “lift”) with explicit mapping to plan skeletons.
+- [ ] Step 444 [Ext][Sem] — Allow extensions to contribute new musical object types (microtonal pitch sets, non-Western ornaments) via schemas and selectors.
+- [ ] Step 445 [Ext][Type] — Define how new object types interoperate with `Event<P>`: either new EventKind payloads or new tags/roles with adapters.
+- [ ] Step 446 [Ext][HCI] — Add UI for extension-contributed “clarification defaults” and let users override them globally.
+- [ ] Step 447 [Ext][HCI] — Add UI for extension safety warnings (e.g., “this opcode can add new tracks”) with explicit confirmation.
+- [ ] Step 448 [Ext][Eval] — Add security tests: untrusted extensions cannot execute mutations without explicit enabling; parsing remains allowed.
+- [ ] Step 449 [Ext][Infra] — Add a local “extension audit log” export: lists enabled namespaces, versions, and applied edits referencing them.
+- [ ] Step 450 [Ext][Infra] — Document a complete “ship a GOFAI-enabled pack” tutorial with a minimal end-to-end example.
+---
+
+## Phase 9 — Verification, Evaluation, Performance, and Release Discipline (Steps 451–500)
+
+- [ ] Step 451 [Eval] — Build a unified test runner: NL→CPL goldens, paraphrase invariance, planning goldens, execution diffs, undo/redo roundtrips.
+- [ ] Step 452 [Eval] — Add “golden stability” policy: changing a golden requires explicit rationale and review; automated diff of CPL/plan output required.
+- [ ] Step 453 [Eval] — Add fuzz testing for the full pipeline on synthetic utterances to catch crashes and unsafe defaults.
+- [ ] Step 454 [Eval] — Add property-based tests for invariants (constraints never violated; execution never touches out-of-scope entities).
+- [ ] Step 455 [Eval] — Add integration tests for multi-turn dialogues (DRT/QUD behaviors) with deterministic outcomes.
+- [ ] Step 456 [Eval][HCI] — Conduct expert review with musicians: validate that clarifications are musically meaningful and not “computer questions.”
+- [ ] Step 457 [Eval][HCI] — Run a “trust study”: measure how often users preview before apply and how often they accept defaults vs override.
+- [ ] Step 458 [Eval][HCI] — Run a “workflow speed study”: compare time and error rates vs manual editing for 10 common edit tasks.
+- [ ] Step 459 [Eval] — Create a benchmark suite for parsing/planning latency and memory footprint; set budgets for offline operation.
+- [ ] Step 460 [Eval] — Add regression benchmarks so performance does not degrade as lexicon/grammar grows toward 100K+ LOC.
+- [ ] Step 461 [Infra] — Implement aggressive caching: tokenization, parse forests, analysis facts, and plan candidates keyed by stable hashes.
+- [ ] Step 462 [Infra] — Implement incremental recomputation: editing one word shouldn’t recompute the entire plan; reuse prior artifacts when safe.
+- [ ] Step 463 [Infra] — Add determinism enforcement: prohibit Date.now() in semantics/planning; isolate timestamps to execution metadata only.
+- [ ] Step 464 [Infra] — Add “debug traces” that can be toggled without affecting determinism of core outputs.
+- [ ] Step 465 [Infra] — Add a “replay determinism” CI test: run the same utterance/fixture twice and assert byte-identical CPL/plan/diff serialization.
+- [ ] Step 466 [Infra] — Ensure the runtime has no network dependencies (bundle required knowledge bases; disable accidental fetches).
+- [ ] Step 467 [Infra] — Implement a packaging strategy for large lexicons/grammars (chunked loading, compression) while keeping offline guarantees.
+- [ ] Step 468 [Infra] — Add a “cold start” benchmark and optimize initial lexicon load times; show progress UI if needed.
+- [ ] Step 469 [Infra] — Add a “memory cap” strategy for parse forests (prune low-scoring parses; keep ambiguity visible via holes instead).
+- [ ] Step 470 [Infra] — Add robust error isolation: parse/plan errors must not corrupt project state; always fail closed.
+- [ ] Step 471 [Type] — Formalize the compiler interfaces in TS with strong typing and clear boundaries between layers (nl ↔ semantics ↔ pragmatics ↔ planning ↔ execution).
+- [ ] Step 472 [Type] — Add a “semantic compatibility test” that ensures CPL JSON schema changes require version bumps and migration functions.
+- [ ] Step 473 [Type] — Add a “planner opcode compatibility test”: opcodes must have handlers, docs entries, and tests (mirrors board factory validation spirit).
+- [ ] Step 474 [Type] — Add a “namespacing compliance test” for all extension contributions (lexemes, constraints, opcodes, prolog modules).
+- [ ] Step 475 [Type] — Add a “capability compliance test”: plans that require disallowed capabilities must never execute in restricted boards.
+- [ ] Step 476 [HCI] — Polish micro-interactions: fast feedback while typing, smooth transitions between CPL and diff views, no modal spam.
+- [ ] Step 477 [HCI] — Add “user control” improvements: allow pinning scope, pinning a referent, and preventing the system from re-binding it.
+- [ ] Step 478 [HCI] — Add “explainability polish”: the system can always answer “what changed?”, “why?”, and “what did you keep fixed?”.
+- [ ] Step 479 [HCI] — Add an “export CPL/plan” feature for advanced users to script and share deterministic edits.
+- [ ] Step 480 [HCI] — Add an “import plan” feature to replay an edit package on a compatible project with validation and preview.
+- [ ] Step 481 [Docs] — Write a full GOFAI user guide: scopes, constraints, clarifications, examples for each board persona.
+- [ ] Step 482 [Docs] — Write a full GOFAI developer guide: how to add lexemes, grammar rules, opcodes, and tests.
+- [ ] Step 483 [Docs][Ext] — Write a GOFAI extension spec: pack metadata, Prolog module conventions, namespacing, security, compatibility.
+- [ ] Step 484 [Docs][Theory] — Write a “semantics/pragmatics design note” describing which theories are implemented where (MRS, DRT, QUD, presupposition).
+- [ ] Step 485 [Docs] — Add a troubleshooting guide mapping common failures to fixes (e.g., “it” ambiguous → pin scope).
+- [ ] Step 486 [Release] — Define MVP scope: a constrained sublanguage that reliably edits structure/arrangement/groove with full preview+undo.
+- [ ] Step 487 [Release] — Define a staged rollout: parse+explain first, plan preview second, execution third, extension execution last.
+- [ ] Step 488 [Release] — Define a “strict studio mode” default for first release: never execute without explicit apply; always log diffs.
+- [ ] Step 489 [Release] — Define backward compatibility strategy for saved edit histories and preferences across versions.
+- [ ] Step 490 [Release] — Define “quality gates”: block release if paraphrase invariance, constraint correctness, or undo roundtrips regress.
+- [ ] Step 491 [Eval] — Create a public (or internal) benchmark corpus of music-edit utterances and fixtures for longitudinal progress tracking.
+- [ ] Step 492 [Eval] — Add an “adversarial” corpus: tricky scope, nested negation, multiple referents, and vague adjectives to stress pragmatics.
+- [ ] Step 493 [Eval] — Create a “domain expansion” corpus: non-Western theory terms, new pack cards, new boards to validate extensibility pipeline.
+- [ ] Step 494 [Eval] — Run “human eval” sessions where experts judge whether CPL matches intended meaning; compute disagreement and target reductions.
+- [ ] Step 495 [Eval] — Track “clarification load”: measure number of questions per successful edit; optimize without sacrificing safety.
+- [ ] Step 496 [Infra] — Implement a stable “version fingerprint” for the GOFAI compiler (lexicon+grammar+planner+KB) stored in edit packages.
+- [ ] Step 497 [Infra] — Add a compatibility checker: warn if a plan made under compiler version X is replayed under incompatible version Y.
+- [ ] Step 498 [Infra] — Add a “minimal reproduction builder”: given a failure, auto-generate a fixture and utterance that reproduces it.
+- [ ] Step 499 [Infra] — Add CI automation that runs a curated subset of goldens + perf checks on every change touching GOFAI modules.
+- [ ] Step 500 [Release] — Ship the first offline GOFAI Music+ loop: English → CPL → clarification → plan preview → apply → diff + undo, with extension auto-binding enabled.
+
+**Step count:** 250

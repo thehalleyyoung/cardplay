@@ -125,6 +125,7 @@ export const livePerformanceBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'session-center',
     },
     // I058: Arranger sections + energy controls (top)
     {
@@ -133,6 +134,7 @@ export const livePerformanceBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'arranger-strip',
     },
     // I059: Modular routing + modulation (right)
     {
@@ -141,6 +143,7 @@ export const livePerformanceBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'routing-panel',
     },
     // I060: Mixer with quick mute/solo (bottom)
     {
@@ -149,6 +152,7 @@ export const livePerformanceBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'mixer-panel',
     },
     // I061: Transport with tempo tap
     {
@@ -165,6 +169,7 @@ export const livePerformanceBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'routing-panel',
     },
   ],
 

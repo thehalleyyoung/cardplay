@@ -7,8 +7,9 @@
  * @module @cardplay/boards/registry
  */
 
-import type { Board, ControlLevel, BoardDifficulty } from './types';
+import type { Board, ControlLevel, BoardDifficulty, UserType } from './types';
 import { assertValidBoard } from './validate';
+import { getRecommendedBoardIds } from './recommendations';
 
 // ============================================================================
 // BOARD REGISTRY
@@ -185,6 +186,14 @@ export class BoardRegistry {
    */
   getByDifficulty(difficulty: BoardDifficulty): Board[] {
     return this.list().filter(b => b.difficulty === difficulty);
+  }
+  
+  /**
+   * Gets recommended boards for a user type.
+   */
+  getByUserType(userType: UserType): Board[] {
+    const ids = getRecommendedBoardIds(userType);
+    return ids.map(id => this.get(id)).filter((b): b is Board => b !== undefined);
   }
   
   /**

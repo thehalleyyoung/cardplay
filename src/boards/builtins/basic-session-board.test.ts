@@ -82,7 +82,7 @@ describe('Basic Session Board', () => {
   it('should have layout with session grid, mixer, and sidebars', () => {
     expect(basicSessionBoard.layout.type).toBe('dock');
     
-    const panelRoles = basicSessionBoard.panels.map(p => p.role);
+    const panelRoles = basicSessionBoard.layout.panels.map(p => p.role);
     expect(panelRoles).toContain('browser'); // instrument browser
     expect(panelRoles).toContain('composition'); // session grid
     expect(panelRoles).toContain('mixer');

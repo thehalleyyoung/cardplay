@@ -101,7 +101,8 @@ export const notationHarmonyBoard: Board = {
       type: 'notation-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'score'
     },
     // G098: Harmony display (left panel)
     {
@@ -109,7 +110,8 @@ export const notationHarmonyBoard: Board = {
       type: 'harmony-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'harmony'
     },
     // G099: Optional instrument browser (left panel tab)
     {
@@ -117,7 +119,8 @@ export const notationHarmonyBoard: Board = {
       type: 'instruments-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: true
+      allowDragOut: true,
+      panelId: 'harmony'
     },
     // G100: Properties (right panel)
     {
@@ -125,7 +128,8 @@ export const notationHarmonyBoard: Board = {
       type: 'properties-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'properties'
     }
   ],
   

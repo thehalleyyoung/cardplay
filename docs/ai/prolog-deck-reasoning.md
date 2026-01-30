@@ -1,5 +1,19 @@
 # Prolog AI: Reasoning About Cards, Decks, and Boards
-Assumes canonical model and terminology in `cardplay2.md` (repo root).
+
+**Status:** implemented  
+**Canonical terms used:** BoardDeck, Card, MusicSpec, HostAction, Prolog KB  
+**Primary code references:** `cardplay/src/ai/knowledge/board-layout.pl`, `cardplay/src/ai/engine/prolog-adapter.ts`  
+**Analogy:** The "referee" (Prolog) reasoning about which game pieces (cards) and zones (decks) to recommend.  
+**SSOT:** See [Declarative vs Imperative](../canon/declarative-vs-imperative.md) for the boundary contract.
+
+> **Important:** Prolog emits HostActions as suggestions. It does not directly mutate UI or project state. See [HostActions](../canon/host-actions.md).
+
+> **Noun Contracts:**
+> - **BoardDeck (zone):** UI zone in a panel — see [Deck Systems](../canon/deck-systems.md)
+> - **DeckTemplate (AI):** Recommended card combinations — see [Deck Systems](../canon/deck-systems.md)
+> - **Card:** Different meanings exist; this doc discusses recommendation, not `Card<A,B>` — see [Card Systems](../canon/card-systems.md)
+
+---
 
 CardPlay’s AI layer is **declarative**: we represent “what is true” about cards/decks/boards and the current project state as **facts**, then ask Prolog to derive **recommendations**, **validations**, and **explanations** as queries.
 

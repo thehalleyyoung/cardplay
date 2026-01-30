@@ -15,6 +15,9 @@
 import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 import { loadMusicTheoryKB } from '../knowledge/music-theory-loader';
 
+// Re-export CadenceType for consumers of this module
+export type { CadenceType } from '../theory/music-spec';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -63,13 +66,6 @@ export type IntervalName =
  * Harmonic function of a chord.
  */
 export type HarmonicFunction = 'tonic' | 'subdominant' | 'dominant';
-
-/**
- * Cadence types.
- */
-export type CadenceType = 
-  | 'authentic' | 'perfect_authentic' | 'imperfect_authentic'
-  | 'half' | 'plagal' | 'deceptive';
 
 /**
  * Chord identification result.

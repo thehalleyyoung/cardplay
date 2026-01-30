@@ -125,3 +125,18 @@ export {
   eventIdEquals,
   eventPositionEquals,
 } from './event';
+// Time Conversion
+export {
+  ticksToSeconds,
+  secondsToTicks,
+  tickDurationToSeconds,
+  secondsToTickDuration,
+  type MusicalTime,
+  type TimeSignature,
+  ticksToMusicalTime,
+  musicalTimeToTicks,
+  noteValueToTicks,
+  NOTE_DURATIONS,
+  dottedDuration,
+  tripletDuration,
+} from './time-conversion';

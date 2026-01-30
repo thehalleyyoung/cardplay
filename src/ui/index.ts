@@ -443,7 +443,7 @@ export {
   type CardStyle,
   type CardState,
   type PortDirection,
-  type PortType,
+  type UISurfacePortType,
   type CardSurfaceConfig,
   type CardSurfaceState,
   type ResizeHandle,

@@ -2,12 +2,14 @@
  * @fileoverview Connection Validation.
  * 
  * Validates routing connections between ports based on type compatibility.
+ * Uses canonical port compatibility matrix from canon/port-types.ts.
  * 
  * @module @cardplay/boards/gating/validate-connection
  */
 
 import type { PortType } from '../../cards/card';
 import { PortTypes } from '../../cards/card';
+import { getPortCompatibility, isCanonicalPortType } from '../../canon/port-types';
 
 /**
  * Result of connection validation.
@@ -49,7 +51,15 @@ export function validateConnection(
     return { allowed: true };
   }
   
-  // Check compatibility matrix
+  // Check canonical port compatibility first (for canonical types)
+  if (isCanonicalPortType(sourceType) && isCanonicalPortType(targetType)) {
+    const compat = getPortCompatibility(sourceType, targetType);
+    if (compat) {
+      return { allowed: true };
+    }
+  }
+  
+  // Fall back to legacy compatibility matrix for non-canonical types
   if (arePortTypesCompatible(sourceType, targetType)) {
     return { allowed: true };
   }

@@ -1,5 +1,16 @@
 # Cadence Types (Branch C): Beyond Common-Practice Harmony
+**Status:** implemented  
+**Canonical terms used:** CadenceType, MusicConstraint  
+**Primary code references:** `cardplay/src/ai/theory/music-spec.ts`, `cardplay/src/ai/knowledge/music-theory-computational.pl`  
+**Analogy:** Different "ending moves" for musical phrases across traditions.  
+**SSOT:** Canonical `CadenceType` values are in [Canonical IDs](../canon/ids.md#cadencetype).
 
+#### Ontology Declaration
+- **Ontology pack(s):** western-tonal (primary), galant, cinematic
+- **Pitch representation:** MIDI note / pitch class (12-TET)
+- **Assumptions:** Functional harmony vocabulary; non-Western closure concepts require namespaced custom constraints
+
+---
 In CardPlay, a “cadence” is shorthand for **phrase/section closure**. Branch C treats cadences as:
 - a **constraint** (what kind of ending a generator should aim for),
 - an **analysis result** (what kind of ending was detected),

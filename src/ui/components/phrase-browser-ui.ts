@@ -11,6 +11,7 @@ import type {
   PhraseRecord,
   PhraseQueryAdvanced,
 } from '../../cards/phrase-system';
+import { PPQ } from '../../types/primitives';
 
 // ============================================================================
 // TYPES
@@ -876,7 +877,7 @@ export function renderRhythmPreview(
   const timeRange = maxTime - minTime || 1;
   
   // Draw beat markers (assuming 4/4 time)
-  const ticksPerBeat = 480; // Standard MIDI ticks
+  const ticksPerBeat = PPQ; // Canonical PPQ
   const beats = Math.ceil(timeRange / ticksPerBeat);
   ctx.strokeStyle = '#475569';
   ctx.lineWidth = 1;

@@ -7,7 +7,7 @@
  * @module @cardplay/core/notation/musicxml
  */
 
-import { EventKinds, asEventId, asTick, asTickDuration } from '../types';
+import { EventKinds, asEventId, asTick, asTickDuration, PPQ } from '../types';
 import type { NoteEvent, MIDIPitch } from '../voices';
 import { createMIDIPitch } from '../voices';
 import type { KeySignature, TimeSignature, NoteName } from './types.js';
@@ -171,7 +171,7 @@ function formatMeasure(
   }
 ): string {
   const includeAttributes = measureNumber === 1;
-  const _divisions = 480;
+  const _divisions = PPQ;
   
   let xml = `    <measure number="${measureNumber}">`;
   
@@ -450,7 +450,7 @@ function quantizeEvent(
  */
 export function detectTimeSignature(
   events: ReadonlyArray<NoteEvent<MIDIPitch>>,
-  ppq: number = 480
+  ppq: number = PPQ
 ): TimeSignature {
   if (events.length === 0) {
     return { numerator: 4, denominator: 4 }; // Default

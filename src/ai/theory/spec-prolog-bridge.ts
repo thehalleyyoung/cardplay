@@ -459,9 +459,11 @@ export function prologConstraintTermToMusicConstraint(
 
   const hard = opts.hard;
   const weight = opts.weight;
-  const withMeta = <T extends MusicConstraint>(c: Omit<T, 'hard' | 'weight'>): T => {
-    if (hard) return { ...(c as T), hard };
-    return weight !== undefined ? ({ ...(c as T), hard, weight } as T) : ({ ...(c as T), hard } as T);
+  const withMeta = <T extends Omit<MusicConstraint, 'hard' | 'weight'>>(c: T): T & { hard: boolean; weight?: number } => {
+    if (weight !== undefined) {
+      return { ...c, hard, weight };
+    }
+    return { ...c, hard };
   };
 
   const functor = maybe.functor;
@@ -472,99 +474,101 @@ export function prologConstraintTermToMusicConstraint(
       const root = parseRoot(args[0]);
       const mode = parseMode(args[1]);
       if (!root || !mode) return null;
-      return withMeta({ type: 'key', root, mode });
+      return withMeta({ type: 'key' as const, root, mode });
     }
     case 'tempo': {
       const bpm = parseNumber(args[0]);
       if (bpm === undefined) return null;
-      return withMeta({ type: 'tempo', bpm });
+      return withMeta({ type: 'tempo' as const, bpm });
     }
     case 'meter': {
       const numerator = parseNumber(args[0]);
       const denominator = parseNumber(args[1]);
       if (numerator === undefined || denominator === undefined) return null;
-      return withMeta({ type: 'meter', numerator, denominator });
+      return withMeta({ type: 'meter' as const, numerator, denominator });
     }
     case 'tonality_model': {
       const model = parseTonalityModel(args[0]);
       if (!model) return null;
-      return withMeta({ type: 'tonality_model', model });
+      return withMeta({ type: 'tonality_model' as const, model });
     }
     case 'style': {
       const style = parseStyle(args[0]);
       if (!style) return null;
-      return withMeta({ type: 'style', style });
+      return withMeta({ type: 'style' as const, style });
     }
     case 'culture': {
       const culture = parseCulture(args[0]);
       if (!culture) return null;
-      return withMeta({ type: 'culture', culture });
+      return withMeta({ type: 'culture' as const, culture });
     }
     case 'schema': {
       const schema = typeof args[0] === 'string' ? (args[0] as GalantSchemaName) : undefined;
       if (!schema) return null;
-      return withMeta({ type: 'schema', schema });
+      return withMeta({ type: 'schema' as const, schema });
     }
     case 'raga': {
       const raga = typeof args[0] === 'string' ? (args[0] as RagaName) : undefined;
       if (!raga) return null;
-      return withMeta({ type: 'raga', raga });
+      return withMeta({ type: 'raga' as const, raga });
     }
     case 'tala': {
       const tala = typeof args[0] === 'string' ? (args[0] as TalaName) : undefined;
       if (!tala) return null;
       const jati = typeof args[1] === 'string' ? (args[1] as JatiType) : undefined;
-      return withMeta({ type: 'tala', tala, ...(jati ? { jati } : {}) });
+      const base = { type: 'tala' as const, tala };
+      return withMeta(jati ? { ...base, jati } : base);
     }
     case 'celtic_tune': {
       const tuneType = typeof args[0] === 'string' ? (args[0] as CelticTuneType) : undefined;
       if (!tuneType) return null;
-      return withMeta({ type: 'celtic_tune', tuneType });
+      return withMeta({ type: 'celtic_tune' as const, tuneType });
     }
     case 'chinese_mode': {
       const mode = typeof args[0] === 'string' ? (args[0] as ChineseModeName) : undefined;
       if (!mode) return null;
       const includeBian = args[1] === 'with_bian';
-      return withMeta({ type: 'chinese_mode', mode, ...(includeBian ? { includeBian } : {}) });
+      const base = { type: 'chinese_mode' as const, mode };
+      return withMeta(includeBian ? { ...base, includeBian } : base);
     }
     case 'film_mood': {
       const mood = typeof args[0] === 'string' ? (args[0] as FilmMood) : undefined;
       if (!mood) return null;
-      return withMeta({ type: 'film_mood', mood });
+      return withMeta({ type: 'film_mood' as const, mood });
     }
     case 'film_device': {
       const device = typeof args[0] === 'string' ? (args[0] as FilmDevice) : undefined;
       if (!device) return null;
-      return withMeta({ type: 'film_device', device });
+      return withMeta({ type: 'film_device' as const, device });
     }
     case 'phrase_density': {
       const density = typeof args[0] === 'string'
         ? (args[0] as 'sparse' | 'medium' | 'dense')
         : undefined;
       if (!density) return null;
-      return withMeta({ type: 'phrase_density', density });
+      return withMeta({ type: 'phrase_density' as const, density });
     }
     case 'contour': {
       const contour = typeof args[0] === 'string'
         ? (args[0] as 'ascending' | 'descending' | 'arch' | 'inverted_arch' | 'level')
         : undefined;
       if (!contour) return null;
-      return withMeta({ type: 'contour', contour });
+      return withMeta({ type: 'contour' as const, contour });
     }
     case 'grouping': {
       const sensitivity = parseNumber(args[0]);
       if (sensitivity === undefined) return null;
-      return withMeta({ type: 'grouping', sensitivity });
+      return withMeta({ type: 'grouping' as const, sensitivity });
     }
     case 'accent_model': {
       const model = typeof args[0] === 'string' ? (args[0] as AccentModel) : undefined;
       if (!model) return null;
-      return withMeta({ type: 'accent', model });
+      return withMeta({ type: 'accent' as const, model });
     }
     case 'gamaka_density': {
       const density = typeof args[0] === 'string' ? (args[0] as 'light' | 'medium' | 'heavy') : undefined;
       if (!density) return null;
-      return withMeta({ type: 'gamaka_density', density });
+      return withMeta({ type: 'gamaka_density' as const, density });
     }
     case 'ornament_budget': {
       const maxPerBeat = parseNumber(args[0]);
@@ -594,7 +598,8 @@ export function prologConstraintTermToMusicConstraint(
       const transformOp = typeof args[1] === 'string'
         ? (args[1] as 'augmentation' | 'diminution' | 'inversion' | 'retrograde' | 'reharmonize')
         : undefined;
-      return withMeta({ type: 'leitmotif', motifId, ...(transformOp ? { transformOp } : {}) } as const);
+      const base = { type: 'leitmotif' as const, motifId };
+      return withMeta(transformOp ? { ...base, transformOp } : base);
     }
     case 'drone': {
       const droneTones = Array.isArray(args[0]) ? args[0].filter((t): t is RootName => parseRoot(t) !== undefined) : [];
@@ -656,7 +661,13 @@ function parseConstraints(value: unknown): readonly MusicConstraint[] | undefine
         const hardOrSoft = compound.args[2];
         const weight = parseNumber(compound.args[3]);
         const hard = hardOrSoft === 'hard';
-        const c = prologConstraintTermToMusicConstraint(constraintTerm, { hard, ...(hard ? {} : { weight }) });
+        let meta: { readonly hard: boolean; readonly weight?: number };
+        if (hard) {
+          meta = { hard: true as const };
+        } else {
+          meta = weight !== undefined ? { hard: false as const, weight } : { hard: false as const };
+        }
+        const c = prologConstraintTermToMusicConstraint(constraintTerm, meta);
         if (c) out.push(c);
         continue;
       }

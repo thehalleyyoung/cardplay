@@ -18,7 +18,7 @@ import { getSharedEventStore } from '../../state/event-store';
 import { getClipRegistry } from '../../state/clip-registry';
 import { getBoardContextStore } from '../../boards/context/store';
 import { getUndoStack } from '../../state/undo-stack';
-import { asTick, asVelocity, asTickDuration } from '../../types/primitives';
+import { asTick, asVelocity, asTickDuration, PPQ } from '../../types/primitives';
 import { EventKinds } from '../../types/event-kind';
 import type { Event } from '../../types/event';
 import { generateEventId } from '../../types/event-id';
@@ -222,7 +222,7 @@ function createGeneratorCard(
   });
   
   const quantizeBtn = createButton('Quantize', 'tertiary', () => {
-    applyQuantize(96); // Quantize to 16th notes (PPQ=384 / 4 = 96)
+    applyQuantize(PPQ / 4); // Quantize to 16th notes (960 / 4 = 240 ticks)
   });
   
   postProcessActions.appendChild(humanizeBtn);
@@ -357,7 +357,7 @@ async function generatePattern(settings: GeneratorSettings, mode: 'replace' | 'n
       name: `${settings.type} ${Date.now()}`,
       streamId: targetStreamId,
       startTick: asTick(0),
-      duration: asTick(1536), // 4 measures at PPQ=384
+      duration: asTick(PPQ * 16), // 4 measures at PPQ=960 (4 beats * 4 measures)
       color: '#10b981' // Green for generated
     });
   }
@@ -413,7 +413,7 @@ function generateEvents(settings: GeneratorSettings, _baseId: number): Event<{ n
   
   // Simple generation logic
   // 4 measures, density events per measure
-  const ppq = 384; // Ticks per quarter note
+  const ppq = PPQ; // Canonical ticks per quarter note (960)
   const ticksPerMeasure = ppq * 4;
   const totalTicks = ticksPerMeasure * 4;
   const ticksBetweenEvents = Math.floor(ticksPerMeasure / density);

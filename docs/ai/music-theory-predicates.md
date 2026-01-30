@@ -480,8 +480,141 @@ suggest_next_chord(CurrentDegree, CurrentQuality, NextDegree, NextQuality).
 ```
 Suggests harmonically valid next chords based on functional progression.
 
+## Spectral Music Predicates (C14)
+
+### `harmonic_series/3`
+```prolog
+harmonic_series(Fundamental, NumPartials, PartialsList).
+```
+Generates the harmonic series for a given fundamental.
+
+### `spectral_centroid/2`
+```prolog
+spectral_centroid(Spectrum, Centroid).
+```
+Calculates the spectral centroid (brightness) of a spectrum.
+
+### `spectral_morphing/4`
+```prolog
+spectral_morphing(Spec1, Spec2, T, InterpolatedSpec).
+```
+Interpolates between two spectra at parameter T (0.0–1.0).
+
+### `grisey_spectral_harmony/3`
+```prolog
+grisey_spectral_harmony(Fundamental, SpectralChord, Voicing).
+```
+Generates spectral harmonies following Grisey's techniques.
+
+## Orchestration Predicates (C14)
+
+### `orchestral_weight/3`
+```prolog
+orchestral_weight(Instrumentation, Dynamics, WeightScore).
+```
+Calculates orchestral weight for a given instrumentation and dynamics.
+
+### `balance_check/3`
+```prolog
+balance_check(Voicing, Dynamics, BalanceIssues).
+```
+Checks orchestral balance and identifies masking issues.
+
+### `parsimonious_voice_leading/3`
+```prolog
+parsimonious_voice_leading(Chord1, Chord2, VoiceLeading).
+```
+Finds minimal voice-leading path between two chords (neo-Riemannian).
+
+## Film Scoring Predicates (C15)
+
+### `emotional_arc/3`
+```prolog
+emotional_arc(SceneTimeline, EmotionCurve, MusicPlan).
+```
+Maps a scene timeline to an emotional arc and generates a music plan.
+
+### `composer_style_match/3`
+```prolog
+composer_style_match(Cue, Composer, Similarity).
+```
+Matches a cue against known composer style profiles.
+
+### `leitmotif_definition/3`
+```prolog
+leitmotif_definition(MotifId, Character, MusicalMaterial).
+```
+Defines leitmotif associations for characters/themes.
+
+## World Music Predicates (C16)
+
+### `raga_database/5`
+```prolog
+raga_database(RagaName, Aroha, Avaroha, Vadi, Samvadi).
+```
+Full raga database with ascending/descending scales and important notes.
+
+### `maqam_definition/4`
+```prolog
+maqam_definition(MaqamName, Jins1, Jins2, Ghammaz).
+```
+Defines maqam structure with jins (tetrachord) components.
+
+### `clave_pattern/3`
+```prolog
+clave_pattern(ClaveName, Pattern, Style).
+```
+Latin music clave patterns (son, rumba, bossa).
+
+### `african_rhythm_timeline/3`
+```prolog
+african_rhythm_timeline(PatternName, Timeline, Tradition).
+```
+Sub-Saharan African bell patterns and timeline rhythms.
+
+## Popular Music Predicates (C17)
+
+### `rock_progression/3`
+```prolog
+rock_progression(ProgressionName, Numerals, Style).
+```
+Common rock chord progressions by style.
+
+### `pop_chord_progression/3`
+```prolog
+pop_chord_progression(Name, Numerals, Era).
+```
+Pop chord progressions catalogued by era.
+
+### `edm_arrangement/4`
+```prolog
+edm_arrangement(Intro, Build, Drop, Breakdown).
+```
+EDM arrangement structure patterns.
+
+## Fusion Predicates (C18)
+
+### `scale_compatibility/4`
+```prolog
+scale_compatibility(Scale1, Culture1, Scale2, Culture2, Compatibility).
+```
+Cross-cultural scale compatibility analysis.
+
+### `fusion_genre/4`
+```prolog
+fusion_genre(GenreName, Culture1, Culture2, Characteristics).
+```
+Defines fusion genres bridging two cultural traditions.
+
 ## See Also
 
+- [Computational Theory](./computational-theory.md) - GTTM, Spiral Array, DFT
+- [Galant Schemata](./galant-schemata.md) - Schema library
+- [Film Music](./film-music.md) - Film scoring predicates
+- [Carnatic](./carnatic.md) - Indian classical music
+- [Celtic](./celtic.md) - Celtic music theory
+- [Chinese](./chinese.md) - Chinese music theory
+- [Theory Decks](./theory-decks.md) - Deck templates
 - [Prolog Syntax](./prolog-syntax.md) - Syntax conventions
 - [Query Patterns](./query-patterns.md) - Common query patterns
 - [Prolog Engine Choice](./prolog-engine-choice.md) - Engine documentation

@@ -94,28 +94,32 @@ export const basicSessionBoard: Board = {
       type: 'session-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'session-grid'
     },
     {
       id: 'instrument-browser-sidebar',
       type: 'instruments-deck',
       cardLayout: 'stack',
       allowReordering: true,
-      allowDragOut: true
+      allowDragOut: true,
+      panelId: 'browser'
     },
     {
       id: 'mixer-bottom',
       type: 'mixer-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'mixer'
     },
     {
       id: 'properties-panel',
       type: 'properties-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'properties'
     }
   ],
   

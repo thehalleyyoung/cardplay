@@ -12,6 +12,7 @@
 import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 import { loadMusicTheoryKB } from '../knowledge/music-theory-loader';
 import { loadCompositionPatternsKB } from '../knowledge/composition-patterns-loader';
+import { PPQ } from '../../types/primitives';
 
 // =============================================================================
 // Types
@@ -312,7 +313,7 @@ export class ArpeggioGenerator {
       notesPerBeat = 4,
       overlap = 0,
       octaveRange = 1,
-      ticksPerBeat = 480,
+      ticksPerBeat = PPQ,
       velocityCurve = 'flat',
       includeExtensions = false
     } = options;

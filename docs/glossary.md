@@ -1,7 +1,12 @@
 # Glossary
-Assumes canonical model and terminology in `cardplay2.md` (repo root).
 
-These terms extend the canonical definitions in `cardplay2.md` (repo root). The parametric type system from cardplay2.md §2.0 is the source of truth.
+**Status:** implemented  
+**Canonical terms used:** All core nouns  
+**Primary code references:** `cardplay/src/types/*`, `cardplay/src/cards/*`, `cardplay/src/state/*`, `cardplay/src/boards/*`, `cardplay/src/ai/theory/*`  
+**Analogy:** The "game piece identification guide" for CardPlay.  
+**SSOT:** For detailed noun contracts, see [Canonical Nouns](./canon/nouns.md). This glossary provides quick definitions.
+
+> **Note:** This glossary extends the canonical definitions. When in doubt, defer to `cardplay/docs/canon/nouns.md` and the source code.
 
 ---
 
@@ -9,7 +14,11 @@ These terms extend the canonical definitions in `cardplay2.md` (repo root). The 
 
 ### Event\<P\>
 
-A time-stamped object in ticks with a `kind` and a typed `payload: P` (plus optional `id`/`meta`/`tags`). This is the atomic data unit of the system.
+#### Noun Contract: Event
+- **Canonical meaning:** A typed occurrence in tick-time: `{ kind, start, duration, payload }`
+- **Not this:** A UI element or DOM event
+- **Canonical type:** `Event<P>` in `cardplay/src/types/event.ts`
+- **SSOT store:** `SharedEventStore` in `cardplay/src/state/event-store.ts`
 
 ```ts
 type Event<P> = {
@@ -18,37 +27,127 @@ type Event<P> = {
   start: Tick;
   duration: TickDuration;
   payload: P;
-  // ...optional fields
 };
 ```
 
-### Stream\<E\>
+### Stream\<E\> / EventStream
 
-An ordered sequence of events: `E[]` where `E extends Event<any>`. The alias `EventStream<E>` is used in CardScript and manifests.
+#### Noun Contract: EventStream
+- **Canonical meaning:** Named ordered list of Events + metadata
+- **Not this:** A Track (which references streams)
+- **Canonical type:** `EventStreamRecord` in `cardplay/src/state/types.ts`
+- **SSOT store:** `SharedEventStore`
 
 ### Container\<K, E\>
 
-A named context owning a Stream of events. `K` is the container kind string (`"pattern"`, `"scene"`, `"clip"`, `"score"`, `"take"`, `"phrase"`). Container replaces proliferated types like Pattern, Scene, Clip, etc.
+A named context owning a Stream of events. `K` is the container kind (`"pattern"`, `"scene"`, `"clip"`, `"score"`, `"take"`, `"phrase"`).
 
-### Track\<K, A, B\>
+### Track
 
-A **bidirectional lens** (read/write pair) into a Container, NOT a separate store of events. Tracks project and update container contents—e.g., a note track, automation track, or chord track are all lenses on the same container. (See cardplay2.md §2.3)
+#### Noun Contract: Track
+- **Canonical meaning:** A channel/lane in arrangement or mixer referencing event streams
+- **Not this:** A bidirectional lens (spec concept not fully implemented)
+- **Canonical type:** Various `Track` interfaces (not yet unified)
+- **Note:** The lens concept from cardplay2.md §2.3 is aspirational
 
 ### Card\<A, B\>
 
-A typed morphism from input type A to output type B. Cards are the unit of composition; stacks compose cards via serial (∘) or parallel (⊗) operators.
+#### Noun Contract: Card
+- **Canonical meaning:** A typed transform `Card<A,B>` mapping input A to output B
+- **Not this:** A UI widget, audio processor, or theory card
+- **Canonical type:** `Card<A,B>` in `cardplay/src/cards/card.ts`
+- **See also:** [Card Systems](./canon/card-systems.md) for all card types
 
-### Rules\<E, C\>
+### Stack
 
-Parametric constraints over events of type E given context C. Replaces proliferated types like `MelodyRules`, `HarmonyRules`, `RagaConstraint`. (See cardplay2.md §2.0.6)
+#### Noun Contract: Stack
+- **Canonical meaning:** Serial/parallel composition of `Card<A,B>` transforms
+- **Not this:** UI StackComponent (vertical list) or layout mode
+- **Canonical type:** `Stack` in `cardplay/src/cards/stack.ts`
+- **See also:** [Stack Systems](./canon/stack-systems.md)
 
-### Lane\<T\>
+### Clip
 
-A temporal projection of values of type T (e.g., automation, modulation, expression). Replaces proliferated types like `AutomationLane`, `ModulationLane`, `ExpressionLane`. (See cardplay2.md §2.0.1)
+#### Noun Contract: Clip
+- **Canonical meaning:** Reference to an event stream + placement window (start, duration, loop)
+- **Not this:** The events themselves
+- **Canonical type:** `ClipRecord` in `cardplay/src/state/types.ts`
+- **SSOT store:** `ClipRegistry` in `cardplay/src/state/clip-registry.ts`
 
-### Voice\<P\>
+### Port / PortType
 
-A sounding entity parametric over pitch system P. Pitch systems include `MIDIPitch`, `MicrotonalPitch`, `JustPitch`, `SwaraPitch`. The `NotePayload` is an alias for `Voice<MIDIPitch>`. (See cardplay2.md §2.0.5)
+#### Noun Contract: Port
+- **Canonical meaning:** Connection point on a card with a typed port type
+- **Not this:** UI-only visual affordance
+- **Canonical type:** `PortType` in `cardplay/src/cards/card.ts`
+- **Builtin types:** `audio`, `midi`, `notes`, `control`, `trigger`, `gate`, `clock`, `transport`
+- **See also:** [Port Vocabulary](./canon/port-vocabulary.md)
+
+### MusicConstraint
+
+#### Noun Contract: MusicConstraint
+- **Canonical meaning:** Declarative rule in a MusicSpec (hard/soft, weight, typed)
+- **Not this:** UI state or layout preferences
+- **Canonical type:** `MusicConstraint` in `cardplay/src/ai/theory/music-spec.ts`
+
+### HostAction
+
+#### Noun Contract: HostAction
+- **Canonical meaning:** Structured imperative edit proposal from AI to host
+- **Not this:** Truth by itself—requires validation and application
+- **Canonical type:** `HostAction` in `cardplay/src/ai/theory/host-actions.ts`
+- **See also:** [HostActions](./canon/host-actions.md)
+
+### OntologyPack
+
+#### Noun Contract: OntologyPack
+- **Canonical meaning:** Coherent set of entities + assumptions + rules for a music theory tradition
+- **Not this:** "Just style"—ontologies define what entities exist
+- **Location:** Prolog files in `cardplay/src/ai/knowledge/*`
+
+### LyricToken
+
+#### Noun Contract: LyricToken
+- **Canonical meaning:** Text token in a lyric event stream with time anchors
+- **Not this:** "Notes with text"—lyrics are a separate event domain
+- **Canonical type:** Custom `EventKind` for lyrics
+
+### LyricAnchor
+
+#### Noun Contract: LyricAnchor
+- **Canonical meaning:** Reference tying lyric to musical time and/or notation
+- **Location:** Part of lyric event payload
+
+---
+
+## Board System Terms
+
+### Board
+
+#### Noun Contract: Board
+- **Canonical meaning:** Workflow environment with layout, decks, and policy
+- **Not this:** A document or mode toggle
+- **Canonical type:** `Board`, `BoardState` in `cardplay/src/boards/types.ts`
+
+### BoardDeck
+
+#### Noun Contract: Deck
+- **Canonical meaning:** Typed zone surface within a board panel
+- **Not this:** Main workspace, slot-grid adapter, or AI template
+- **Canonical type:** `BoardDeck` in `cardplay/src/boards/types.ts`
+- **See also:** [Deck Systems](./canon/deck-systems.md)
+
+### Panel
+
+Region on a board that contains decks.
+
+### ActiveContext
+
+Cross-board "current selection/cursor" state. See `cardplay/src/boards/context/types.ts`.
+
+### ControlLevel
+
+Board policy for AI involvement. Values: `full-manual`, `manual-with-hints`, `assisted`, `collaborative`, `directed`, `generative`. See [Canonical IDs](./canon/ids.md).
 
 ---
 
@@ -61,20 +160,31 @@ These are sugar over the parametric types (cardplay2.md §2.0.9):
 - **AutomationEvent**: `Event<AutomationPayload> & { kind: "automation" }`
 - **Pattern**: `Container<"pattern">`
 - **Scene**: `Container<"scene">`
-- **Clip**: `Container<"clip">`
 
 ---
 
 ## Application-Level Concepts
 
-### Stack
+### MusicSpec
 
-A graph-shaped arrangement of Card instances wired together. Stacks are compositions of cards.
+Declarative musical intent (culture, style, constraints) guiding AI tools. See `cardplay/src/ai/theory/music-spec.ts`.
+
+### RoutingGraph
+
+Nodes + edges describing audio/MIDI/modulation signal flow. See `cardplay/src/state/routing-graph.ts`.
+
+### CardPack
+
+Expansion bundle shipping new cards, boards, themes, KB rules.
+
+### Theme
+
+Purely visual customization (colors, skins, fonts).
 
 ### Protocol
 
-A compatibility layer for ports. Protocols define how one port type can connect to another, optionally through adapters. (See cardplay2.md §2.9)
+Compatibility layer for ports defining how types connect.
 
 ### Mixer Channel
 
-Audio routing and mixing (gain, pan, sends, FX). **Not** the same as `Track<K,A,B>` which is a lens. Mixer channels are stored in `project.session.tracks` and `project.session.mixer`.
+Audio routing and mixing (gain, pan, sends, FX). **Not** a `Track`.

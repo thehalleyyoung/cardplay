@@ -12,6 +12,7 @@
 import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 import { loadMusicTheoryKB } from '../knowledge/music-theory-loader';
 import { loadCompositionPatternsKB } from '../knowledge/composition-patterns-loader';
+import { PPQ } from '../../types/primitives';
 
 // =============================================================================
 // Types
@@ -231,7 +232,7 @@ export class ChordGenerator {
       genre = 'pop',
       length = 4,
       seed,
-      ticksPerBeat = 480,
+      ticksPerBeat = PPQ,
       beatsPerChord = 4,
       allowBorrowed = false,
       useExtensions = false,
@@ -582,7 +583,7 @@ function numeralToChord(numeral: string, key: KeyContext): { root: string; quali
   // Parse numeral: uppercase = major, lowercase = minor, ° = diminished
   const isMinor = numeral === numeral.toLowerCase() && !numeral.includes('°');
   const isDiminished = numeral.includes('°');
-  const isMajorQuality = numeral === numeral.toUpperCase() && !isDiminished;
+  // const isMajorQuality = numeral === numeral.toUpperCase() && !isDiminished;
   
   // Extract degree number (I=0, ii=1, iii=2, IV=3, V=4, vi=5, vii=6)
   const degreeMap: Record<string, number> = {

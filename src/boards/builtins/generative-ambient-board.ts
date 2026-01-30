@@ -114,7 +114,8 @@ export const generativeAmbientBoard: Board = {
       type: 'generators-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'generator'
     },
     // H059: Mixer (bottom - balance evolving layers)
     {
@@ -122,7 +123,8 @@ export const generativeAmbientBoard: Board = {
       type: 'mixer-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'mixer'
     },
     // H060: Timeline (right - capture best moments)
     {
@@ -130,7 +132,8 @@ export const generativeAmbientBoard: Board = {
       type: 'arrangement-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'timeline'
     },
     // H061: Properties (left - global constraints)
     {
@@ -138,7 +141,8 @@ export const generativeAmbientBoard: Board = {
       type: 'properties-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'properties'
     }
   ],
   

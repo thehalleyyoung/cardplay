@@ -11,10 +11,15 @@
  * Templates are "suggestions" — users can customize after creation.
  * The Prolog KB can recommend templates via recommend_template/3.
  *
+ * ID Convention:
+ * - Builtin templates use 'template:name' format (canonical)
+ * - Custom/extension templates must use 'namespace:name' format
+ *
  * @module @cardplay/ai/theory/deck-templates
  */
 
 import type { CultureTag, StyleTag, MusicSpec } from './music-spec';
+import { validateId, isNamespacedId } from '../../canon/id-validation';
 
 // ============================================================================
 // DECK TEMPLATE TYPES
@@ -348,6 +353,120 @@ export const FILM_BOARD_TEMPLATE: DeckTemplate = {
 };
 
 // ============================================================================
+// C640 — CARNATIC BOARD TEMPLATE
+// ============================================================================
+
+export const CARNATIC_BOARD_TEMPLATE: DeckTemplate = {
+  id: 'template:carnatic_board',
+  displayName: 'Carnatic Board',
+  description: 'Carnatic music workspace: tracker with tala grid, drone, mridangam patterns, phrase generator',
+  category: 'tracker',
+  boardTypes: ['tracker', 'notation'],
+  cultures: ['carnatic'],
+  styles: ['classical', 'custom', 'custom'],
+  cardIds: [
+    'theory:carnatic_raga_tala',
+    'theory:drone',
+    'theory:mridangam_pattern',
+    'theory:korvai_generator',
+    'theory:constraint_pack',
+  ],
+  slots: [
+    { position: 0, label: 'Raga/Tala', cardId: 'theory:carnatic_raga_tala', required: true },
+    { position: 1, label: 'Drone', cardId: 'theory:drone', required: true },
+    { position: 2, label: 'Mridangam', cardId: 'theory:mridangam_pattern', required: false },
+    { position: 3, label: 'Korvai', cardId: 'theory:korvai_generator', required: false },
+    { position: 4, label: 'Presets', cardId: 'theory:constraint_pack', required: false },
+  ],
+  priority: 80,
+};
+
+// ============================================================================
+// C788 — CELTIC BOARD TEMPLATE
+// ============================================================================
+
+export const CELTIC_BOARD_TEMPLATE: DeckTemplate = {
+  id: 'template:celtic_board',
+  displayName: 'Celtic Board',
+  description: 'Celtic/Irish music workspace: tune type, ornament generator, bodhran, drone',
+  category: 'tracker',
+  boardTypes: ['tracker', 'notation'],
+  cultures: ['celtic'],
+  styles: ['custom', 'custom', 'custom'],
+  cardIds: [
+    'theory:celtic_tune',
+    'theory:ornament_generator',
+    'theory:bodhran',
+    'theory:drone',
+    'theory:constraint_pack',
+  ],
+  slots: [
+    { position: 0, label: 'Tune Type', cardId: 'theory:celtic_tune', required: true },
+    { position: 1, label: 'Ornaments', cardId: 'theory:ornament_generator', required: false },
+    { position: 2, label: 'Bodhrán', cardId: 'theory:bodhran', required: false },
+    { position: 3, label: 'Drone', cardId: 'theory:drone', required: false },
+    { position: 4, label: 'Presets', cardId: 'theory:constraint_pack', required: false },
+  ],
+  priority: 75,
+};
+
+// ============================================================================
+// C888 — CHINESE BOARD TEMPLATE
+// ============================================================================
+
+export const CHINESE_BOARD_TEMPLATE: DeckTemplate = {
+  id: 'template:chinese_board',
+  displayName: 'Chinese Board',
+  description: 'Chinese traditional music workspace: mode, heterophony, guzheng, erhu ornaments',
+  category: 'tracker',
+  boardTypes: ['tracker', 'notation'],
+  cultures: ['chinese'],
+  styles: ['custom', 'classical', 'custom'],
+  cardIds: [
+    'theory:chinese_mode',
+    'theory:heterophony',
+    'theory:guzheng_gliss',
+    'theory:erhu_ornament',
+    'theory:constraint_pack',
+  ],
+  slots: [
+    { position: 0, label: 'Mode', cardId: 'theory:chinese_mode', required: true },
+    { position: 1, label: 'Heterophony', cardId: 'theory:heterophony', required: false },
+    { position: 2, label: 'Guzheng', cardId: 'theory:guzheng_gliss', required: false },
+    { position: 3, label: 'Erhu', cardId: 'theory:erhu_ornament', required: false },
+    { position: 4, label: 'Presets', cardId: 'theory:constraint_pack', required: false },
+  ],
+  priority: 75,
+};
+
+// ============================================================================
+// C1195 — LCC BOARD TEMPLATE
+// ============================================================================
+
+export const LCC_BOARD_TEMPLATE: DeckTemplate = {
+  id: 'template:lcc_board',
+  displayName: 'Lydian Chromatic Board',
+  description: 'George Russell\'s LCC workspace: Lydian theory, gravity-based harmony, jazz voicings',
+  category: 'harmony',
+  boardTypes: ['arranger', 'notation'],
+  cultures: ['western', 'hybrid'],
+  styles: ['jazz', 'custom', 'custom'],
+  cardIds: [
+    'theory:lydian_chromatic',
+    'theory:tonality_model',
+    'theory:constraint_pack',
+    'theory:schema',
+  ],
+  slots: [
+    { position: 0, label: 'Lydian Chromatic', cardId: 'theory:lydian_chromatic', required: true },
+    { position: 1, label: 'Tonality Model', cardId: 'theory:tonality_model', required: false },
+    { position: 2, label: 'Schema', cardId: 'theory:schema', required: false },
+    { position: 3, label: 'Presets', cardId: 'theory:constraint_pack', required: false },
+  ],
+  priority: 70,
+};
+
+// ============================================================================
 // TEMPLATE REGISTRY
 // ============================================================================
 
@@ -366,6 +485,10 @@ export const DECK_TEMPLATES: readonly DeckTemplate[] = [
   WORLD_MUSIC_DECK_TEMPLATE,
   GALANT_BOARD_TEMPLATE,
   FILM_BOARD_TEMPLATE,
+  CARNATIC_BOARD_TEMPLATE,
+  CELTIC_BOARD_TEMPLATE,
+  CHINESE_BOARD_TEMPLATE,
+  LCC_BOARD_TEMPLATE,
 ];
 
 /**
@@ -425,6 +548,54 @@ export function recommendTemplate(
     .sort((a, b) => b.score - a.score);
 
   return candidates[0]?.template;
+}
+
+// ============================================================================
+// TEMPLATE ID VALIDATION
+// ============================================================================
+
+/**
+ * Validate a deck template's ID.
+ * 
+ * - Builtin templates (from this module) are allowed to use 'template:name' format
+ * - Custom/extension templates must use proper namespaced IDs like 'my-pack:name'
+ * 
+ * @param templateId - The template ID to validate
+ * @param isBuiltin - Whether this is a builtin template (default false)
+ * @returns Validation result
+ */
+export function validateTemplateId(
+  templateId: string,
+  isBuiltin = false
+): { valid: true } | { valid: false; error: string } {
+  // Check basic format
+  const result = validateId(templateId);
+  if (result.valid === false) {
+    return result;
+  }
+  
+  // Builtin templates can use template: prefix
+  if (templateId.startsWith('template:') && isBuiltin) {
+    return { valid: true };
+  }
+  
+  // Non-builtin templates must use namespaced IDs (not template: prefix)
+  if (!isBuiltin && !isNamespacedId(templateId)) {
+    return {
+      valid: false,
+      error: `Custom template must use namespaced ID (e.g., 'my-pack:${templateId}')`,
+    };
+  }
+  
+  // Non-builtin templates cannot use reserved template: prefix
+  if (!isBuiltin && templateId.startsWith('template:')) {
+    return {
+      valid: false,
+      error: `Custom templates cannot use 'template:' prefix. Use 'your-namespace:name' instead.`,
+    };
+  }
+  
+  return { valid: true };
 }
 
 // ============================================================================

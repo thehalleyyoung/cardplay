@@ -86,6 +86,7 @@ export const trackerPhrasesBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'main',
     },
     {
       id: 'phrase-library-sidebar',
@@ -93,6 +94,7 @@ export const trackerPhrasesBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: false,
+      panelId: 'sidebar',
     },
     {
       id: 'instrument-browser-sidebar',
@@ -100,6 +102,7 @@ export const trackerPhrasesBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: false,
+      panelId: 'sidebar',
     },
     {
       id: 'properties-main',
@@ -107,6 +110,7 @@ export const trackerPhrasesBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'properties',
     },
   ],
   

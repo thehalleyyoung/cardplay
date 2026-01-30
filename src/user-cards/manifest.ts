@@ -7,8 +7,15 @@
  * - Version migration
  * - Dependency resolution
  * 
+ * ID Validation:
+ * - Pack names use the manifest name as namespace
+ * - Cards in the pack should use the pack namespace (e.g., 'my-pack:my-card')
+ * - Builtin IDs (no colon) are reserved for CardPlay core
+ * 
  * @module @cardplay/user-cards/manifest
  */
+
+import { isNamespacedId, isBuiltinId, validateId } from '../canon/id-validation';
 
 // ============================================================================
 // MANIFEST SCHEMA
@@ -427,10 +434,34 @@ export function validateManifest(manifest: unknown): ValidationResult {
     if (!Array.isArray(m.cards)) {
       addError('cards', 'cards must be an array');
     } else {
+      const packNamespace = typeof m.name === 'string' ? m.name.toLowerCase() : '';
+      
       for (let i = 0; i < m.cards.length; i++) {
         const card = m.cards[i] as Record<string, unknown>;
         if (!card.id || typeof card.id !== 'string') {
           addError(`cards[${i}].id`, 'card id is required and must be a string');
+        } else {
+          // Validate card ID format
+          const idResult = validateId(card.id);
+          if (idResult.valid === false) {
+            addError(`cards[${i}].id`, idResult.error);
+          } else if (isBuiltinId(card.id)) {
+            // User pack cards must use namespaced IDs
+            addWarning(
+              `cards[${i}].id`,
+              `Card ID '${card.id}' should be namespaced (e.g., '${packNamespace}:${card.id}')`
+            );
+          } else if (isNamespacedId(card.id)) {
+            // Check if namespace matches pack name
+            const colonIdx = card.id.indexOf(':');
+            const namespace = card.id.slice(0, colonIdx);
+            if (namespace !== packNamespace && packNamespace) {
+              addWarning(
+                `cards[${i}].id`,
+                `Card namespace '${namespace}' differs from pack name '${packNamespace}'`
+              );
+            }
+          }
         }
         if (!card.file || typeof card.file !== 'string') {
           addError(`cards[${i}].file`, 'card file is required and must be a string');

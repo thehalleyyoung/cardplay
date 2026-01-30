@@ -157,6 +157,53 @@ export interface BoardLayout {
 // ============================================================================
 
 /**
+ * Unique symbol for branding deck instance IDs.
+ * @internal
+ */
+declare const __deckIdBrand: unique symbol;
+
+/**
+ * Deck instance ID (distinct from DeckType).
+ * 
+ * DeckId identifies a specific deck instance within a board.
+ * DeckType identifies the kind of deck.
+ * 
+ * @example
+ * // A board may have multiple decks of the same type:
+ * const deck1: BoardDeck = { id: 'main-pattern' as DeckId, type: 'pattern-deck', ... };
+ * const deck2: BoardDeck = { id: 'alt-pattern' as DeckId, type: 'pattern-deck', ... };
+ */
+export type DeckId = string & { readonly [__deckIdBrand]?: never };
+
+/**
+ * Create a DeckId from a string.
+ */
+export function asDeckId(id: string): DeckId {
+  return id as DeckId;
+}
+
+/**
+ * Unique symbol for branding panel IDs.
+ * @internal
+ */
+declare const __panelIdBrand: unique symbol;
+
+/**
+ * Panel ID for referencing panels in board layouts.
+ * 
+ * @example
+ * const panelId: PanelId = 'main-editor' as PanelId;
+ */
+export type PanelId = string & { readonly [__panelIdBrand]?: never };
+
+/**
+ * Create a PanelId from a string.
+ */
+export function asPanelId(id: string): PanelId {
+  return id as PanelId;
+}
+
+/**
  * Deck types available in boards.
  */
 export type DeckType =
@@ -194,19 +241,29 @@ export type DeckCardLayout =
   | 'stack'      // Stacked cards (one visible at a time)
   | 'tabs'       // Tabbed interface
   | 'split'      // Split view (multiple visible)
-  | 'floating';  // Floating cards
+  | 'floating'   // Floating cards
+  | 'grid';      // Grid layout using DeckLayoutAdapter (slot-grid runtime)
 
 /**
  * Deck definition within a board.
  */
 export interface BoardDeck {
-  readonly id: string;
+  /** Unique deck instance ID */
+  readonly id: DeckId;
+  /** The type of deck */
   readonly type: DeckType;
+  /** Layout style for cards within this deck */
   readonly cardLayout: DeckCardLayout;
+  /** Which panel this deck belongs to */
+  readonly panelId?: PanelId;
+  /** Whether cards can be reordered */
   readonly allowReordering: boolean;
+  /** Whether cards can be dragged out */
   readonly allowDragOut: boolean;
-  readonly controlLevelOverride?: ControlLevel;  // Per-deck control level
-  readonly initialCardIds?: readonly string[];    // Default cards to show
+  /** Per-deck control level override */
+  readonly controlLevelOverride?: ControlLevel;
+  /** Default cards to show */
+  readonly initialCardIds?: readonly string[];
 }
 
 // ============================================================================
@@ -321,7 +378,12 @@ export interface Board {
   
   // Layout
   readonly layout: BoardLayout;
-  readonly panels: readonly PanelDefinition[];
+  /**
+   * @deprecated Use `layout.panels` instead. This property is kept for
+   * backwards compatibility but will be removed in a future version.
+   * See Change 119 in to_fix_repo_plan_500.md
+   */
+  readonly panels?: readonly PanelDefinition[];
   readonly decks: readonly BoardDeck[];
   
   // Tools configuration
@@ -424,3 +486,22 @@ export type UserType =
   | 'sound-designer'
   | 'ai-explorer'
   | 'beginner';
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Get panels from a board, preferring layout.panels over deprecated panels property.
+ * 
+ * @param board - Board to get panels from
+ * @returns The board's panel definitions
+ */
+export function getBoardPanels(board: Board): readonly PanelDefinition[] {
+  // Prefer layout.panels (canonical location)
+  if (board.layout.panels.length > 0) {
+    return board.layout.panels;
+  }
+  // Fall back to deprecated top-level panels property
+  return board.panels ?? [];
+}

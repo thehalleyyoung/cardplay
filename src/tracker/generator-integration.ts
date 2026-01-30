@@ -28,6 +28,7 @@ import {
 } from './types';
 import { FX } from './effects';
 import { PhraseStore, getPhraseStore, Phrase, PhrasePlayMode, PhraseKeyMode } from './phrases';
+import { PPQ } from '../types/primitives';
 
 // =============================================================================
 // GENERATOR TYPES
@@ -719,11 +720,16 @@ export function generateSchemaSkeletonRows(
     
     const midiNote = scaleDegreeToMidi(degree, config.rootNote, config.octave);
     
-    // Note on row
-    const noteOnRow = noteCell(
+    // Note on row - convert NoteCell to TrackerRow
+    const noteOnCell = noteCell(
       midiNote as MidiNote,
+      undefined, // instrument
       config.velocity as Velocity
     );
+    const noteOnRow: TrackerRow = {
+      note: noteOnCell,
+      effects: [],
+    };
     rows.push(noteOnRow);
     
     // Empty rows for duration
@@ -733,7 +739,7 @@ export function generateSchemaSkeletonRows(
   }
   
   // Add note off at end
-  rows.push(noteOffCell());
+  rows.push({ note: noteOffCell(), effects: [] });
   
   return rows;
 }
@@ -765,7 +771,7 @@ export const schemaSkeletonGenerator: GeneratorDefinition = {
                     skeleton.soprano;
     
     const rootNote = ctx.rootNote ?? 60;
-    const ticksPerBeat = 480;
+    const ticksPerBeat = PPQ;
     const events: GeneratorEvent[] = [];
     
     for (let i = 0; i < degrees.length; i++) {
@@ -919,13 +925,14 @@ export function generateTalaGridMarkers(config: TalaGridConfig): TalaGridMarker[
           markerType = 'akshara';
         }
         
-        markers.push({
+        const markerBase: TalaGridMarker = {
           row: currentRow,
           type: markerType,
           cycleNumber: cycle + 1,
           aksharaNumber: aksharaInCycle + 1,
-          label,
-        });
+        };
+        
+        markers.push(label !== undefined ? { ...markerBase, label } : markerBase);
         
         // Add subdivision markers
         for (let sub = 1; sub < rowsPerAkshara; sub++) {

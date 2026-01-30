@@ -45,6 +45,7 @@ export interface BoardState {
 
 /**
  * Persisted layout state for a board.
+ * B128: Includes per-panel tab order and active tab IDs.
  */
 export interface LayoutState {
   /** Panel sizes (panel ID → size in pixels) */
@@ -52,6 +53,12 @@ export interface LayoutState {
   
   /** Collapsed panels */
   collapsedPanels: readonly string[];
+  
+  /** B128: Per-panel tab order (panel ID → ordered deck IDs) */
+  panelTabOrder?: Record<string, readonly string[]>;
+  
+  /** B128: Per-panel active tab (panel ID → active deck ID) */
+  panelActiveTab?: Record<string, string>;
   
   /** Custom layout tree (if modified from default) */
   customTree?: unknown;  // JSON-serializable layout tree
@@ -170,10 +177,13 @@ export const DEFAULT_BOARD_STATE: BoardState = {
 
 /**
  * Default layout state.
+ * B128: Includes per-panel tab order and active tabs.
  */
 export const DEFAULT_LAYOUT_STATE: LayoutState = {
   panelSizes: {},
   collapsedPanels: [],
+  panelTabOrder: {},
+  panelActiveTab: {},
 };
 
 /**

@@ -81,6 +81,7 @@ export const basicTrackerBoard: Board = {
     {
       id: 'pattern-editor-main',
       type: 'pattern-deck',
+      panelId: 'main',
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false
@@ -88,6 +89,7 @@ export const basicTrackerBoard: Board = {
     {
       id: 'instrument-browser-sidebar',
       type: 'instruments-deck',
+      panelId: 'sidebar',
       cardLayout: 'stack',
       allowReordering: true,
       allowDragOut: true
@@ -95,6 +97,7 @@ export const basicTrackerBoard: Board = {
     {
       id: 'dsp-chain-sidebar',
       type: 'dsp-chain',
+      panelId: 'sidebar',
       cardLayout: 'stack',
       allowReordering: true,
       allowDragOut: false
@@ -102,6 +105,7 @@ export const basicTrackerBoard: Board = {
     {
       id: 'properties-inspector',
       type: 'properties-deck',
+      panelId: 'inspector',
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false

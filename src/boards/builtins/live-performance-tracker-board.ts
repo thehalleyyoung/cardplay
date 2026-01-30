@@ -104,6 +104,7 @@ export const livePerformanceTrackerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'launcher',
     },
     // Mixer strip (right — level, mute/solo only)
     {
@@ -112,6 +113,7 @@ export const livePerformanceTrackerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'mixer',
     },
     // DSP / effects rack (bottom — macro knobs for live tweaking)
     {
@@ -120,6 +122,7 @@ export const livePerformanceTrackerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: true,
       allowDragOut: false,
+      panelId: 'effects',
     },
     // Transport (top — play/stop/tempo/scene buttons)
     {
@@ -128,6 +131,7 @@ export const livePerformanceTrackerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'transport-bar',
     },
   ],
 

@@ -9,6 +9,7 @@
  * - Deprecation tracking
  * - Breaking change detection
  * - Test result caching
+ * - Strict type utilities (assertNever, branded types)
  */
 
 export * from './fuzz-testing';
@@ -18,3 +19,4 @@ export * from './quality-score';
 export * from './deprecation';
 export * from './breaking-changes';
 export * from './test-cache';
+export * from './strict-types';

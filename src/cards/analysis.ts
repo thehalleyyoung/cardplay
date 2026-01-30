@@ -16,6 +16,8 @@
  * @module @cardplay/core/cards/analysis
  */
 
+import { PPQ } from '../types/primitives';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -1539,7 +1541,7 @@ export function measureDuration(
   tempo: number,
   timeSignature: [number, number] = [4, 4]
 ): DurationMeasurement {
-  const ticksPerBeat = 480; // Standard PPQN
+  const ticksPerBeat = PPQ; // Canonical PPQ from primitives
   const totalBeats = totalTicks / ticksPerBeat;
   const totalSeconds = (totalBeats * 60) / tempo;
   const beatsPerBar = timeSignature[0];

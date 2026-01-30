@@ -9,7 +9,7 @@
  * @module @cardplay/boards/decks/audio-deck-adapter
  */
 
-import { DeckLayoutAdapter, type DeckState, asDeckId } from '../../ui/deck-layout';
+import { DeckLayoutAdapter, type DeckState, asSlotGridDeckId } from '../../ui/deck-layout';
 import type { ActiveContext } from '../context/types';
 import type { BoardDeck } from '../types';
 
@@ -41,7 +41,7 @@ export class AudioDeckAdapter {
     } = {}
   ) {
     // Convert board deck ID to DeckId
-    const deckId = asDeckId(deckDef.id);
+    const deckId = asSlotGridDeckId(deckDef.id);
 
     // Initialize underlying DeckLayoutAdapter
     const adapterOptions: {

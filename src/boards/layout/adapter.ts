@@ -13,7 +13,6 @@ import type {
   BoardLayoutRuntime,
   DockNodeRuntime,
   PanelRuntime,
-  SplitNodeRuntime,
 } from './runtime-types';
 
 // ============================================================================
@@ -61,58 +60,69 @@ export function createDefaultLayoutRuntime(board: Board): BoardLayoutRuntime {
 
 /**
  * Creates a simple dock tree from layout panels.
- * (MVP: left-center-right split)
+ * 
+ * B121: Handles top/bottom panels and multiple panels per side.
+ * Panels are ordered according to their position in layout.panels.
  */
 function createSimpleDockTree(
   layout: BoardLayout,
   panels: Map<string, PanelRuntime>
 ): DockNodeRuntime {
+  // Group panels by position, preserving order from layout.panels
+  const topPanels = layout.panels.filter(p => p.position === 'top');
+  const bottomPanels = layout.panels.filter(p => p.position === 'bottom');
   const leftPanels = layout.panels.filter(p => p.position === 'left');
   const rightPanels = layout.panels.filter(p => p.position === 'right');
   const centerPanels = layout.panels.filter(p => p.position === 'center');
 
-  // For MVP, create a simple 3-column layout: left | center | right
-
-  const children: DockNodeRuntime[] = [];
-
-  // Add left panels
-  if (leftPanels.length > 0) {
-    const leftPanel = panels.get(leftPanels[0]!.id);
-    if (leftPanel) {
-      children.push(leftPanel);
+  // Helper to create a vertical stack of panels
+  const createStack = (panelDefs: typeof layout.panels): DockNodeRuntime | null => {
+    const children: DockNodeRuntime[] = [];
+    for (const def of panelDefs) {
+      const panel = panels.get(def.id);
+      if (panel) {
+        children.push(panel);
+      }
     }
-  }
+    if (children.length === 0) return null;
+    if (children.length === 1) return children[0]!;
+    return {
+      type: 'split-vertical' as const,
+      children,
+      ratio: 1 / children.length,
+    };
+  };
 
-  // Add center panels
-  if (centerPanels.length > 0) {
-    const centerPanel = panels.get(centerPanels[0]!.id);
-    if (centerPanel) {
-      children.push(centerPanel);
-    }
-  }
-
-  // Add right panels
-  if (rightPanels.length > 0) {
-    const rightPanel = panels.get(rightPanels[0]!.id);
-    if (rightPanel) {
-      children.push(rightPanel);
-    }
-  }
-
-  // If only one child, return it directly
-  if (children.length === 1) {
-    return children[0]!;
-  }
-
-  // If no children, return a default center panel
-  if (children.length === 0) {
-    // Find or create a default panel
+  // Build main horizontal row: left | center | right
+  const horizontalChildren: DockNodeRuntime[] = [];
+  
+  // Left panel stack
+  const leftStack = createStack(leftPanels);
+  if (leftStack) horizontalChildren.push(leftStack);
+  
+  // Center panel stack (always include at least one)
+  const centerStack = createStack(centerPanels);
+  if (centerStack) {
+    horizontalChildren.push(centerStack);
+  } else {
+    // If no center panels, create a placeholder
     const defaultPanel = panels.values().next().value;
     if (defaultPanel) {
-      return defaultPanel;
+      horizontalChildren.push(defaultPanel);
     }
-    // Last resort: create a minimal panel
-    return {
+  }
+  
+  // Right panel stack
+  const rightStack = createStack(rightPanels);
+  if (rightStack) horizontalChildren.push(rightStack);
+
+  // Create horizontal split for left/center/right
+  let mainRow: DockNodeRuntime;
+  if (horizontalChildren.length === 1) {
+    mainRow = horizontalChildren[0]!;
+  } else if (horizontalChildren.length === 0) {
+    // Fallback: create minimal panel
+    mainRow = {
       id: 'default',
       position: 'center',
       size: '100%',
@@ -123,16 +133,38 @@ function createSimpleDockTree(
       scrollLeft: 0,
       visible: true,
     };
+  } else {
+    mainRow = {
+      type: 'split-horizontal' as const,
+      children: horizontalChildren,
+      ratio: 0.5,
+    };
   }
 
-  // Create horizontal split
-  const root: SplitNodeRuntime = {
-    type: 'split-horizontal',
-    children,
+  // B121: Handle top/bottom panels by wrapping main row in vertical splits
+  const verticalChildren: DockNodeRuntime[] = [];
+  
+  // Top panels
+  const topStack = createStack(topPanels);
+  if (topStack) verticalChildren.push(topStack);
+  
+  // Main content (left | center | right)
+  verticalChildren.push(mainRow);
+  
+  // Bottom panels
+  const bottomStack = createStack(bottomPanels);
+  if (bottomStack) verticalChildren.push(bottomStack);
+
+  // Wrap in vertical split if top or bottom panels exist
+  if (verticalChildren.length === 1) {
+    return verticalChildren[0]!;
+  }
+
+  return {
+    type: 'split-vertical',
+    children: verticalChildren,
     ratio: 0.5,
   };
-
-  return root;
 }
 
 // ============================================================================

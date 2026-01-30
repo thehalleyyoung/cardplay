@@ -41,17 +41,17 @@ describe('Tracker + Harmony Board (G001-G030)', () => {
 
   describe('Layout & Decks (G006-G010)', () => {
     it('G006: defines layout with harmony helper, pattern editor, and properties', () => {
-      expect(trackerHarmonyBoard.panels.length).toBeGreaterThanOrEqual(3);
+      expect(trackerHarmonyBoard.layout.panels.length).toBeGreaterThanOrEqual(3);
       
-      const harmonyPanel = trackerHarmonyBoard.panels.find(p => p.id === 'harmony');
+      const harmonyPanel = trackerHarmonyBoard.layout.panels.find(p => p.id === 'harmony');
       expect(harmonyPanel).toBeDefined();
       expect(harmonyPanel?.position).toBe('left');
       
-      const patternPanel = trackerHarmonyBoard.panels.find(p => p.id === 'pattern');
+      const patternPanel = trackerHarmonyBoard.layout.panels.find(p => p.id === 'pattern');
       expect(patternPanel).toBeDefined();
       expect(patternPanel?.position).toBe('center');
       
-      const inspectorPanel = trackerHarmonyBoard.panels.find(p => p.id === 'inspector');
+      const inspectorPanel = trackerHarmonyBoard.layout.panels.find(p => p.id === 'inspector');
       expect(inspectorPanel).toBeDefined();
       expect(inspectorPanel?.position).toBe('right');
     });
@@ -194,7 +194,7 @@ describe('Tracker + Harmony Board (G001-G030)', () => {
       expect(trackerHarmonyBoard.controlLevel).toBeTruthy();
       expect(trackerHarmonyBoard.primaryView).toBeTruthy();
       expect(trackerHarmonyBoard.decks.length).toBeGreaterThan(0);
-      expect(trackerHarmonyBoard.panels.length).toBeGreaterThan(0);
+      expect(trackerHarmonyBoard.layout.panels.length).toBeGreaterThan(0);
     });
 
     it('has valid deck types that could map to factories', () => {

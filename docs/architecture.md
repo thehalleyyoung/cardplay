@@ -1,9 +1,20 @@
 # Architecture
-Assumes canonical model and terminology in `cardplay2.md` (repo root).
+
+**Status:** partial (describes intended architecture; some paths are legacy aliases)  
+**Canonical terms used:** Event, Card, Stack, Container, Board, BoardDeck  
+**Primary code references:** `cardplay/src/types/*`, `cardplay/src/cards/*`, `cardplay/src/state/*`, `cardplay/src/boards/*`  
+**Analogy:** The "game board infrastructure" describing how layers fit together.  
+**SSOT:** For actual module paths, see [Module Map](./canon/module-map.md). Paths below may be legacy aliases.
+
+---
 
 Cardplay is split into a few layers:
 
-## `src/core/`
+## Types and Core Logic
+
+**Actual location:** `cardplay/src/types/`, `cardplay/src/cards/`, `cardplay/src/containers/`
+
+> **Legacy alias:** Docs may refer to `src/core/` — this path does not exist. See [Module Map](./canon/module-map.md).
 
 Pure domain logic and data structures:
 
@@ -13,15 +24,19 @@ Pure domain logic and data structures:
 
 This layer should remain deterministic and testable without the DOM or WebAudio.
 
-## `src/registry/`
+## Registries
+
+**Actual location:** Distributed across `cardplay/src/cards/registry.ts`, `cardplay/src/boards/registry.ts`, etc.
+
+> **Legacy alias:** Docs may refer to `src/registry/` — this path does not exist. See [Module Map](./canon/module-map.md).
 
 Registries and validators:
 
-- Port types and protocol compatibility
-- Adapters and conversion rules
-- Card definitions and builtins
+- Port types and protocol compatibility (`cardplay/src/cards/card.ts`)
+- Adapters and conversion rules (`cardplay/src/cards/adapter.ts`)
+- Card definitions and builtins (`cardplay/src/cards/registry.ts`)
 
-## `src/runtime/`
+## Runtime
 
 Graph execution:
 

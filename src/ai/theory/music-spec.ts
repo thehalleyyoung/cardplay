@@ -14,6 +14,24 @@
  * @module @cardplay/ai/theory/music-spec
  */
 
+// Re-export canonical constraint types from SSOT
+export {
+  BUILTIN_CONSTRAINT_TYPES,
+  KEY_CONSTRAINT_TYPES,
+  METER_CONSTRAINT_TYPES,
+  HARMONY_CONSTRAINT_TYPES,
+  MELODY_CONSTRAINT_TYPES,
+  STYLE_CONSTRAINT_TYPES,
+  CARNATIC_CONSTRAINT_TYPES,
+  CELTIC_CONSTRAINT_TYPES,
+  CHINESE_CONSTRAINT_TYPES,
+  FILM_CONSTRAINT_TYPES,
+  isBuiltinConstraintType,
+  isValidConstraintType,
+  getConstraintCategory,
+  type BuiltinConstraintType,
+} from '../../canon/constraint-types';
+
 // ============================================================================
 // CANONICAL NAMING (C007-C011)
 // ============================================================================
@@ -496,6 +514,128 @@ export interface ConstraintSceneArc extends ConstraintBase {
   readonly arcType: 'rising_action' | 'tension_release' | 'slow_burn' | 'bookend' | 'stinger';
 }
 
+// ============================================================================
+// C1174/C1175: LCC CONSTRAINTS
+// ============================================================================
+
+/** LCC tonal gravity constraint */
+export interface ConstraintLCCGravity extends ConstraintBase {
+  readonly type: 'lcc_gravity';
+  readonly gravityLevel: 'vertical' | 'horizontal' | 'supra_vertical';
+}
+
+/** LCC parent scale enforcement */
+export interface ConstraintLCCParentScale extends ConstraintBase {
+  readonly type: 'lcc_parent_scale';
+  readonly scaleName: 'lydian' | 'lydian_augmented' | 'lydian_diminished' | 'lydian_b7'
+    | 'auxiliary_augmented' | 'auxiliary_diminished' | 'auxiliary_diminished_blues';
+}
+
+// ============================================================================
+// C1541/C1542/C1543: ORCHESTRATION TYPES
+// ============================================================================
+
+/** Orchestration algorithm constraint */
+export interface ConstraintOrchestrationAlgorithm extends ConstraintBase {
+  readonly type: 'orchestration_algorithm';
+  readonly algorithm: 'greedy' | 'beam' | 'genetic' | 'constraint';
+}
+
+/** Timbre matching tolerance constraint */
+export interface ConstraintTimbreMatching extends ConstraintBase {
+  readonly type: 'timbre_matching';
+  readonly tolerance: 'strict' | 'moderate' | 'loose';
+}
+
+/** C1543: Orchestration solution type */
+export interface OrchestrationSolution {
+  readonly assignments: ReadonlyArray<{
+    readonly voice: string;
+    readonly instrument: InstrumentFamily;
+    readonly register: RegisterModel;
+    readonly dynamics: string;
+  }>;
+  readonly fitness: number;
+  readonly explanation: readonly string[];
+}
+
+// ============================================================================
+// C1814/C1815/C1817: EAST ASIAN TYPES
+// ============================================================================
+
+/** C1814: East Asian tradition enum */
+export type EastAsianTradition = 'chinese' | 'japanese' | 'korean';
+
+/** C1815: Chinese regional style enum */
+export type ChineseRegionalStyle = 'cantonese' | 'beijing' | 'jiangnan' | 'sichuan';
+
+/** East Asian tradition constraint */
+export interface ConstraintEastAsianTradition extends ConstraintBase {
+  readonly type: 'east_asian_tradition';
+  readonly tradition: EastAsianTradition;
+}
+
+/** Chinese regional style constraint */
+export interface ConstraintChineseRegional extends ConstraintBase {
+  readonly type: 'chinese_regional';
+  readonly region: ChineseRegionalStyle;
+}
+
+/** C1817: East Asian scale type */
+export interface EastAsianScale {
+  readonly name: string;
+  readonly pitches: readonly number[];
+  readonly ornaments: readonly OrnamentType[];
+  readonly context: EastAsianTradition;
+  readonly region?: ChineseRegionalStyle;
+}
+
+// ============================================================================
+// C1411/C1412: JAZZ VOCABULARY CONSTRAINTS
+// ============================================================================
+
+/** C1411: Jazz vocabulary level */
+export type JazzVocabularyLevel = 'beginner' | 'intermediate' | 'advanced';
+
+/** C1412: Jazz style era */
+export type JazzStyleEra = 'swing' | 'bebop' | 'cool' | 'modal' | 'fusion' | 'contemporary';
+
+/** Jazz vocabulary level constraint */
+export interface ConstraintJazzVocabularyLevel extends ConstraintBase {
+  readonly type: 'jazz_vocabulary_level';
+  readonly level: JazzVocabularyLevel;
+}
+
+/** Jazz style era constraint */
+export interface ConstraintJazzStyleEra extends ConstraintBase {
+  readonly type: 'jazz_style_era';
+  readonly era: JazzStyleEra;
+}
+
+// ============================================================================
+// C1816: JAPANESE GENRE
+// ============================================================================
+
+/** C1816: Japanese genre constraint */
+export type JapaneseGenre = 'gagaku' | 'hogaku' | 'minyo';
+
+export interface ConstraintJapaneseGenre extends ConstraintBase {
+  readonly type: 'japanese_genre';
+  readonly genre: JapaneseGenre;
+}
+
+// ============================================================================
+// C1880: LATIN STYLE
+// ============================================================================
+
+/** C1880: Latin style constraint */
+export type LatinStyle = 'salsa' | 'son' | 'mambo' | 'cha_cha' | 'bossa' | 'samba' | 'tango';
+
+export interface ConstraintLatinStyle extends ConstraintBase {
+  readonly type: 'latin_style';
+  readonly latinStyle: LatinStyle;
+}
+
 /**
  * C052: Discriminated union of all constraint types.
  */
@@ -530,6 +670,16 @@ export type MusicConstraint =
   | ConstraintMaxInterval
   | ConstraintArrangerStyle
   | ConstraintSceneArc
+  | ConstraintLCCGravity
+  | ConstraintLCCParentScale
+  | ConstraintOrchestrationAlgorithm
+  | ConstraintTimbreMatching
+  | ConstraintEastAsianTradition
+  | ConstraintChineseRegional
+  | ConstraintJazzVocabularyLevel
+  | ConstraintJazzStyleEra
+  | ConstraintJapaneseGenre
+  | ConstraintLatinStyle
   | ConstraintCustom;
 
 /**
@@ -1175,14 +1325,22 @@ export function createSnapshot(
   description?: string,
   projectId?: string
 ): SpecSnapshot {
-  return {
+  const snapshot: SpecSnapshot = {
     id: `snapshot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     name,
     timestamp: new Date().toISOString(),
     spec: { ...spec, constraints: [...spec.constraints] }, // Deep copy
-    description: description ?? undefined,
-    projectId: projectId ?? undefined,
   };
+  
+  // Conditionally add optional properties
+  if (description !== undefined) {
+    return { ...snapshot, description };
+  }
+  if (projectId !== undefined) {
+    return { ...snapshot, projectId };
+  }
+  
+  return snapshot;
 }
 
 /**

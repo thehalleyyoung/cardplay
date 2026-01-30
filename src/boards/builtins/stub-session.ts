@@ -74,6 +74,7 @@ export const basicSessionBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'main',
     },
     {
       id: 'instrument-browser-sidebar',
@@ -81,6 +82,7 @@ export const basicSessionBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: false,
+      panelId: 'sidebar',
     },
     {
       id: 'mixer-main',
@@ -88,6 +90,7 @@ export const basicSessionBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'mixer',
     },
     {
       id: 'properties-main',
@@ -95,6 +98,7 @@ export const basicSessionBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'properties',
     },
   ],
   

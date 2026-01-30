@@ -79,7 +79,7 @@ describe('Basic Sampler Board', () => {
   it('should have layout with sample pool, timeline, and properties', () => {
     expect(basicSamplerBoard.layout.type).toBe('dock');
     
-    const panelRoles = basicSamplerBoard.panels.map(p => p.role);
+    const panelRoles = basicSamplerBoard.layout.panels.map(p => p.role);
     expect(panelRoles).toContain('browser'); // sample pool
     expect(panelRoles).toContain('composition'); // timeline
     expect(panelRoles).toContain('properties');

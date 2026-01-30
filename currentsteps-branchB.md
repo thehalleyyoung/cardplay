@@ -887,8 +887,8 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [x] N060 Add tests: project analysis identifies real issues. *(3 tests in workflow-queries.test.ts: health metrics, missing elements, aggregated issues)*
 - [x] N061 Add tests: improvement suggestions are actionable. *(1 test in workflow-queries.test.ts: aggregated issues span categories)*
 - [x] N062 Add tests: explanations are clear and helpful. *(2 tests: overused + structural issues in workflow-queries.test.ts)*
-- [ ] N067 Add "Explain" button per issue showing Prolog reasoning.
-- [ ] N069 Add tests: one-click fixes work correctly.
+- [x] N067 Add "Explain" button per issue showing Prolog reasoning. *(Done — advisor emits per-issue "Explain" action buttons with embedded explainIssue() output for project analysis questions; see `src/ai/advisor/advisor-interface.ts`)*
+- [x] N069 Add tests: one-click fixes work correctly. *(Done — advisor-interface test asserts per-issue Explain actions and a one-click clipping fix action; see `src/ai/advisor/advisor-interface.test.ts`)*
 - [x] N070 Define `style_consistency_check/2` checking genre coherence. *(4 check types)*
 - [x] N071 Define `harmony_coherence_check/2` checking chord relationships. *(5 check types)*
 - [x] N072 Define `rhythm_consistency_check/2` checking rhythmic patterns. *(4 check types)*
@@ -995,7 +995,7 @@ The roadmap is organized into **logical phases** that build upon each other:
 - [ ] N180 Add performance tests for all query types.
 - [x] N181 Add memory tests for KB lifecycle. *(Done — unloadKB(user-prefs) test in `src/ai/engine/lifecycle-perf.test.ts` asserts dynamic facts are retracted, including learned pattern facts)*
 - [x] N182 Add end-to-end tests for AI workflows. *(Done — `src/ai/e2e/ai-workflows.e2e.test.ts` exercises workflow planning, routing validation, project analysis, and learning sync on a single adapter)*
-- [ ] N183 Add regression tests for fixed bugs.
+- [x] N183 Add regression tests for fixed bugs. *(Done — `src/ai/regression/ai-bug-regressions.test.ts` covers per-adapter KB loader state, updateable learned-pattern sync, and isKBLoaded adapter regression)*
 - [ ] N184 Run full test suite in CI.
 - [ ] N185 Ensure 100% pass rate before release.
 - [x] N186 Create AI feature documentation index. *(Done — `docs/ai/index.md` + VitePress sidebar entry)*

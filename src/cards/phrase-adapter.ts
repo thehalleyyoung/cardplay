@@ -30,6 +30,22 @@ export type AdaptationMode =
   | 'rhythm-only';   // Keep rhythm, regenerate pitches
 
 /**
+ * Gamaka ornament attached to a note (Carnatic music).
+ */
+export interface GamakaOrnament {
+  /** Gamaka type */
+  readonly type: 'kampita' | 'jaru' | 'sphurita' | 'nokku' | 'odukkal' | 'orikkai' | 'pratyahata' | 'ullasita' | 'andolita' | 'plain';
+  /** Pitch bend depth in cents (for kampita, jaru, etc.) */
+  readonly bendDepth?: number;
+  /** Number of oscillations (for kampita) */
+  readonly oscillations?: number;
+  /** Target pitch for slides (jaru) */
+  readonly targetPitch?: number;
+  /** Duration fraction of the gamaka */
+  readonly durationFraction?: number;
+}
+
+/**
  * Adaptation options for fine-tuning.
  */
 export interface AdaptationOptions {
@@ -47,6 +63,8 @@ export interface AdaptationOptions {
   readonly preservePassingTones: boolean;
   /** Voice leading smoothness weight (0-1) */
   readonly voiceLeadingWeight: number;
+  /** Preserve gamaka ornaments when adapting Carnatic phrases */
+  readonly preserveGamakas: boolean;
 }
 
 /**
@@ -59,6 +77,7 @@ export const DEFAULT_ADAPTATION_OPTIONS: AdaptationOptions = {
   velocityScale: 1.0,
   preservePassingTones: true,
   voiceLeadingWeight: 0.5,
+  preserveGamakas: true,
 };
 
 /**
@@ -890,4 +909,101 @@ export function generatePhraseVariation(
     default:
       return notes;
   }
+}
+// ============================================================================
+// GAMAKA PRESERVATION
+// ============================================================================
+
+/**
+ * Extended note input with optional gamaka ornament.
+ */
+export interface ScoreNoteWithGamaka extends ScoreNoteInput {
+  /** Gamaka ornament attached to this note */
+  readonly gamaka?: GamakaOrnament;
+}
+
+/**
+ * Extract gamaka information from a note.
+ * Gamakas are stored in note metadata or extensions.
+ */
+export function extractGamaka(note: ScoreNoteInput): GamakaOrnament | undefined {
+  const extended = note as ScoreNoteWithGamaka;
+  return extended.gamaka;
+}
+
+/**
+ * Attach a gamaka ornament to a note.
+ */
+export function withGamaka(
+  note: ScoreNoteInput,
+  gamaka: GamakaOrnament
+): ScoreNoteWithGamaka {
+  return { ...note, gamaka };
+}
+
+/**
+ * Adapt a gamaka ornament when transposing.
+ * Adjusts target pitches for slides while preserving ornament shape.
+ */
+export function adaptGamaka(
+  gamaka: GamakaOrnament,
+  semitoneShift: number
+): GamakaOrnament {
+  if (gamaka.targetPitch !== undefined) {
+    return {
+      ...gamaka,
+      targetPitch: gamaka.targetPitch + semitoneShift,
+    };
+  }
+  return gamaka;
+}
+
+/**
+ * Preserve gamakas when adapting a phrase.
+ * Maps gamakas from source notes to adapted notes.
+ */
+export function preserveGamakasInPhrase(
+  originalNotes: readonly ScoreNoteInput[],
+  adaptedNotes: readonly ScoreNoteInput[],
+  semitoneShift: number = 0
+): readonly ScoreNoteWithGamaka[] {
+  // Build map from original note IDs to gamakas
+  const gamakaMap = new Map<string, GamakaOrnament>();
+  for (const note of originalNotes) {
+    const gamaka = extractGamaka(note);
+    if (gamaka) {
+      gamakaMap.set(note.id, gamaka);
+    }
+  }
+  
+  // Apply gamakas to adapted notes
+  return adaptedNotes.map((note, index) => {
+    // Try to find gamaka by ID mapping (adapted notes have _adapted suffix)
+    const originalId = note.id.replace(/_adapted$|_trans$|_ct$|_sd$|_vl$|_ro$/, '');
+    const gamaka = gamakaMap.get(originalId);
+    
+    if (gamaka) {
+      return withGamaka(note, adaptGamaka(gamaka, semitoneShift));
+    }
+    
+    // Fall back to index-based matching if IDs don't align
+    if (index < originalNotes.length) {
+      const originalNote = originalNotes[index];
+      if (originalNote) {
+        const originalGamaka = extractGamaka(originalNote);
+        if (originalGamaka) {
+          return withGamaka(note, adaptGamaka(originalGamaka, semitoneShift));
+        }
+      }
+    }
+    
+    return note as ScoreNoteWithGamaka;
+  });
+}
+
+/**
+ * Check if a phrase contains Carnatic gamakas.
+ */
+export function hasGamakas(notes: readonly ScoreNoteInput[]): boolean {
+  return notes.some(note => extractGamaka(note) !== undefined);
 }

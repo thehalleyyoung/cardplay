@@ -21,6 +21,10 @@ export type PortType = string & { readonly __portType?: unique symbol };
 
 /**
  * Built-in port types.
+ * 
+ * Change 067: Updated to match canon port vocabulary (docs/canon/port-vocabulary.md)
+ * - Added: gate, clock, transport
+ * - Legacy types (number, string, boolean, any, stream, container, pattern) should be namespaced
  */
 export const PortTypes = {
   /** Audio signal */
@@ -31,21 +35,29 @@ export const PortTypes = {
   NOTES: 'notes' as PortType,
   /** Control signal */
   CONTROL: 'control' as PortType,
-  /** Trigger/gate */
+  /** Trigger signal */
   TRIGGER: 'trigger' as PortType,
-  /** Numeric value */
+  /** Gate signal */
+  GATE: 'gate' as PortType,
+  /** Clock signal */
+  CLOCK: 'clock' as PortType,
+  /** Transport control */
+  TRANSPORT: 'transport' as PortType,
+  
+  // Legacy types - use with caution, prefer namespaced equivalents
+  /** @deprecated Use data:number instead */
   NUMBER: 'number' as PortType,
-  /** String value */
+  /** @deprecated Use data:string instead */
   STRING: 'string' as PortType,
-  /** Boolean value */
+  /** @deprecated Use data:boolean instead */
   BOOLEAN: 'boolean' as PortType,
-  /** Any type */
+  /** @deprecated Use data:any instead */
   ANY: 'any' as PortType,
-  /** Stream of events */
+  /** @deprecated Use data:stream instead */
   STREAM: 'stream' as PortType,
-  /** Container */
+  /** @deprecated Use data:container instead */
   CONTAINER: 'container' as PortType,
-  /** Pattern */
+  /** @deprecated Use data:pattern instead */
   PATTERN: 'pattern' as PortType,
 } as const;
 
@@ -64,8 +76,19 @@ export interface PortTypeEntry {
 
 /**
  * Registers a custom port type.
+ * Custom port types must use namespaced IDs (e.g., 'my-pack:custom-type').
  */
 export function registerPortType(entry: PortTypeEntry): void {
+  // Check if this is a builtin port type
+  const isBuiltin = Object.values(PortTypes).includes(entry.type);
+  
+  // If not builtin, enforce namespacing
+  if (!isBuiltin && !entry.type.includes(':')) {
+    throw new Error(
+      `Custom port type '${entry.type}' must use a namespaced ID (e.g., 'my-pack:${entry.type}')`
+    );
+  }
+  
   portTypeRegistry.set(entry.type, entry);
 }
 
@@ -83,13 +106,17 @@ const builtInPortTypes: PortTypeEntry[] = [
   { type: PortTypes.NOTES, name: 'Notes', color: '#9C27B0' },
   { type: PortTypes.CONTROL, name: 'Control', color: '#FF9800' },
   { type: PortTypes.TRIGGER, name: 'Trigger', color: '#F44336' },
-  { type: PortTypes.NUMBER, name: 'Number', color: '#607D8B' },
-  { type: PortTypes.STRING, name: 'String', color: '#795548' },
-  { type: PortTypes.BOOLEAN, name: 'Boolean', color: '#E91E63' },
-  { type: PortTypes.ANY, name: 'Any', color: '#9E9E9E' },
-  { type: PortTypes.STREAM, name: 'Stream', color: '#00BCD4' },
-  { type: PortTypes.CONTAINER, name: 'Container', color: '#CDDC39' },
-  { type: PortTypes.PATTERN, name: 'Pattern', color: '#FF5722' },
+  { type: PortTypes.GATE, name: 'Gate', color: '#E53935' },
+  { type: PortTypes.CLOCK, name: 'Clock', color: '#00ACC1' },
+  { type: PortTypes.TRANSPORT, name: 'Transport', color: '#039BE5' },
+  // Legacy types
+  { type: PortTypes.NUMBER, name: 'Number (legacy)', color: '#607D8B' },
+  { type: PortTypes.STRING, name: 'String (legacy)', color: '#795548' },
+  { type: PortTypes.BOOLEAN, name: 'Boolean (legacy)', color: '#E91E63' },
+  { type: PortTypes.ANY, name: 'Any (legacy)', color: '#9E9E9E' },
+  { type: PortTypes.STREAM, name: 'Stream (legacy)', color: '#00BCD4' },
+  { type: PortTypes.CONTAINER, name: 'Container (legacy)', color: '#CDDC39' },
+  { type: PortTypes.PATTERN, name: 'Pattern (legacy)', color: '#FF5722' },
 ];
 
 for (const entry of builtInPortTypes) {

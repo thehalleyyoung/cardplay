@@ -115,7 +115,8 @@ export const aiArrangerBoard: Board = {
       type: 'arranger-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'arranger'
     },
     // H009: Clip session (center - launching arranged parts)
     {
@@ -123,7 +124,8 @@ export const aiArrangerBoard: Board = {
       type: 'session-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'session'
     },
     // H010: Generator (right - on-demand variations and fills)
     {
@@ -131,7 +133,8 @@ export const aiArrangerBoard: Board = {
       type: 'generators-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'generator'
     },
     // H011: Mixer (bottom - balancing generated parts)
     {
@@ -139,7 +142,8 @@ export const aiArrangerBoard: Board = {
       type: 'mixer-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'mixer'
     },
     // H012: Properties (tab - per-part generation settings)
     {
@@ -147,7 +151,8 @@ export const aiArrangerBoard: Board = {
       type: 'properties-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'generator'
     }
   ],
   

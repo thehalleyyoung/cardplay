@@ -97,6 +97,7 @@ export const trackerPhrasesBoard: Board = {
     {
       id: 'phrase-library',
       type: 'phrases-deck',
+      panelId: 'library',
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: false
@@ -105,6 +106,7 @@ export const trackerPhrasesBoard: Board = {
     {
       id: 'instruments',
       type: 'instruments-deck',
+      panelId: 'library',
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: true
@@ -113,6 +115,7 @@ export const trackerPhrasesBoard: Board = {
     {
       id: 'pattern-editor',
       type: 'pattern-deck',
+      panelId: 'pattern',
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false
@@ -121,6 +124,7 @@ export const trackerPhrasesBoard: Board = {
     {
       id: 'properties',
       type: 'properties-deck',
+      panelId: 'inspector',
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false

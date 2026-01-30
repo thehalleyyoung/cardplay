@@ -23,6 +23,7 @@ import {
   createEnumParameter,
   createBoolParameter,
 } from './parameters';
+import { PPQ } from '../types/primitives';
 
 // ============================================================================
 // SONG PART / SCENE INTEGRATION
@@ -21428,7 +21429,7 @@ export function applyAnticipation(
   }
   
   // Anticipate by the specified amount (in beats, convert to ticks)
-  const ticksPerBeat = 480; // Standard PPQ
+  const ticksPerBeat = PPQ; // Canonical PPQ from primitives
   const anticipationTicks = config.amount * ticksPerBeat;
   
   return Math.max(0, originalTick - anticipationTicks);
@@ -22089,7 +22090,7 @@ export const SCHEMA_ACCOMPANIMENT_PATTERNS: readonly SchemaAccompanimentPattern[
       { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
     ],
     chordRhythm: [0, 1, 2, 3],
-    styles: ['pop', 'classical', 'baroque'],
+    styles: [], // TODO: Map style names to actual ArrangerStyle objects
   },
   // Monte (ascending sequence)
   {
@@ -22103,7 +22104,7 @@ export const SCHEMA_ACCOMPANIMENT_PATTERNS: readonly SchemaAccompanimentPattern[
       { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
     ],
     chordRhythm: [0, 1, 2, 3],
-    styles: ['classical', 'baroque'],
+    styles: [], // TODO: Map style names to actual ArrangerStyle objects
   },
   // Prinner (descending 6-5 sequence)
   {
@@ -22117,7 +22118,7 @@ export const SCHEMA_ACCOMPANIMENT_PATTERNS: readonly SchemaAccompanimentPattern[
       { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
     ],
     chordRhythm: [0, 1, 2, 3],
-    styles: ['classical', 'baroque'],
+    styles: [], // TODO: Map style names to actual ArrangerStyle objects
   },
   // Fonte (modulating sequence)
   {
@@ -22131,7 +22132,7 @@ export const SCHEMA_ACCOMPANIMENT_PATTERNS: readonly SchemaAccompanimentPattern[
       { intervals: [0, 4, 7], spread: 'close', inversion: 0 },
     ],
     chordRhythm: [0, 1, 2, 3],
-    styles: ['classical', 'baroque'],
+    styles: [], // TODO: Map style names to actual ArrangerStyle objects
   },
 ];
 
@@ -22576,8 +22577,7 @@ export function generateCarnaticVoiceAssignments(
  */
 export function generateCarnaticDronePattern(
   config: CarnaticEnsembleConfig,
-  rootNote: number,
-  durationTicks: number
+  rootNote: number
 ): { notes: readonly number[]; velocities: readonly number[] } {
   const notes: number[] = [];
   const velocities: number[] = [];
@@ -22598,7 +22598,6 @@ export function generateCarnaticDronePattern(
  */
 export function generateMridangamPattern(
   tala: string,
-  jati: number,
   density: number
 ): { beats: readonly number[]; strokes: readonly string[] } {
   // Simplified mridangam patterns - each stroke type has a characteristic sound

@@ -7,12 +7,12 @@
  * @module @cardplay/boards/personas/tracker-user-enhancements
  */
 
-import type { EventStreamId, UndoActionType } from '../../state/types';
+import type { EventStreamId, EventId } from '../../state/types';
 import { getSharedEventStore } from '../../state/event-store';
 import { asEventId } from '../../types/event-id';
 import { EventKinds } from '../../types/event-kind';
 import { getUndoStack } from '../../state/undo-stack';
-import { asTick } from '../../types/primitives';
+import { asTick, asTickDuration } from '../../types/primitives';
 
 // ============================================================================
 // TYPES
@@ -78,7 +78,7 @@ export function clonePattern(streamId: EventStreamId): EventStreamId | null {
 
   // Record undo action
   getUndoStack().push({
-    type: 'stream_clone' as UndoActionType,
+    type: 'stream-create',
     description: `Clone pattern ${stream.name}`,
     undo: () => {
       // Would delete the cloned stream
@@ -110,16 +110,15 @@ export function doubleLength(streamId: EventStreamId): void {
   // Clone events shifted by pattern length
   const duplicatedEvents = stream.events.map((event) => ({
     ...event,
-    id: `${event.id}-doubled-${Date.now()}`,
-    start: event.start + maxEnd,
+    id: `${event.id}-doubled-${Date.now()}` as EventId,
+    start: asTick(event.start + maxEnd),
   }));
 
-  const oldEvents = [...stream.events];
   store.addEvents(streamId, duplicatedEvents);
 
   // Record undo action
   getUndoStack().push({
-    type: UndoActionType.PATTERN_TRANSFORM,
+    type: 'events-add',
     description: 'Double pattern length',
     undo: () => {
       const newEventIds = duplicatedEvents.map((e) => e.id);
@@ -157,7 +156,7 @@ export function halveLength(streamId: EventStreamId): void {
 
     // Record undo action
     getUndoStack().push({
-      type: UndoActionType.PATTERN_TRANSFORM,
+      type: 'events-remove',
       description: 'Halve pattern length',
       undo: () => {
         store.addEvents(streamId, secondHalfEvents);
@@ -194,7 +193,7 @@ export function transformPattern(
   if (options.reverse) {
     newEvents = newEvents.map((event) => ({
       ...event,
-      start: maxEnd - event.start - event.duration,
+      start: asTick(maxEnd - event.start - event.duration),
     }));
   }
 
@@ -202,20 +201,24 @@ export function transformPattern(
     // Find pitch center
     const pitches = newEvents
       .filter((e) => e.kind === EventKinds.NOTE)
-      .map((e) => e.payload.note ?? 60);
+      .map((e) => {
+        const payload = e.payload as { note?: number };
+        return payload.note ?? 60;
+      });
     const minPitch = Math.min(...pitches);
     const maxPitch = Math.max(...pitches);
     const centerPitch = (minPitch + maxPitch) / 2;
 
     newEvents = newEvents.map((event) => {
       if (event.kind !== EventKinds.NOTE) return event;
-      const pitch = event.payload.note ?? 60;
+      const payload = event.payload as { note?: number; [key: string]: unknown };
+      const pitch = payload.note ?? 60;
       const distance = pitch - centerPitch;
       const invertedPitch = Math.round(centerPitch - distance);
       return {
         ...event,
         payload: {
-          ...event.payload,
+          ...payload,
           note: Math.max(0, Math.min(127, invertedPitch)),
         },
       };
@@ -226,15 +229,15 @@ export function transformPattern(
     const rotateAmount = options.rotate;
     newEvents = newEvents.map((event) => ({
       ...event,
-      start: (event.start + rotateAmount + maxEnd) % maxEnd,
+      start: asTick((event.start + rotateAmount + maxEnd) % maxEnd),
     }));
   }
 
   if (options.timeStretch && options.timeStretch !== 1) {
     newEvents = newEvents.map((event) => ({
       ...event,
-      start: Math.round(event.start * options.timeStretch!),
-      duration: Math.round(event.duration * options.timeStretch!),
+      start: asTick(Math.round(event.start * options.timeStretch!)),
+      duration: asTickDuration(Math.round(event.duration * options.timeStretch!)),
     }));
   }
 
@@ -245,7 +248,7 @@ export function transformPattern(
 
   // Record undo action
   getUndoStack().push({
-    type: 'pattern-transform',
+    type: 'events-modify',
     description: 'Transform pattern',
     undo: () => {
       const newIds = newEvents.map((e) => e.id);

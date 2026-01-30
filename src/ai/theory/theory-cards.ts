@@ -17,8 +17,8 @@
 import type {
   MusicConstraint,
   MusicSpec,
-  // RootName,
-  // ModeName,
+  RootName,
+  ModeName,
   TonalityModel,
   StyleTag,
   CultureTag,
@@ -38,7 +38,7 @@ import type {
   // Explainable,
 } from './music-spec';
 
-import { withConstraints, withoutConstraintType } from './music-spec';
+import { withConstraints, withoutConstraintType, withCulture, withStyle } from './music-spec';
 
 // ============================================================================
 // THEORY CARD PROTOCOL
@@ -604,6 +604,17 @@ export const CARNATIC_RAGA_TALA_CARD: TheoryCardDef = {
       weight: 0.6,
       description: 'How densely to apply gamakas (oscillations/bends)',
     },
+    {
+      id: 'eduppu',
+      label: 'Eduppu (starting beat)',
+      type: 'enum',
+      enumValues: ['sama', 'vishama', 'atita', 'anagata'],
+      defaultValue: 'sama',
+      constraintType: 'tala', // Eduppu is part of tala/rhythm system
+      hard: false,
+      weight: 0.7,
+      description: 'Starting beat position: sama=on sam, vishama=offbeat, atita=after sam, anagata=before sam',
+    },
   ],
   extractConstraints(state: TheoryCardState): MusicConstraint[] {
     const constraints: MusicConstraint[] = [];
@@ -622,6 +633,11 @@ export const CARNATIC_RAGA_TALA_CARD: TheoryCardDef = {
     const density = getParam<'light' | 'medium' | 'heavy'>(state, 'gamakaDensity');
     if (density) {
       constraints.push({ type: 'gamaka_density', hard: false, weight: 0.6, density });
+    }
+    const eduppu = getParam<'sama' | 'vishama' | 'atita' | 'anagata'>(state, 'eduppu');
+    if (eduppu && eduppu !== 'sama') {
+      // Store eduppu as metadata rather than constraint (no standard eduppu constraint type)
+      // It would be handled in the actual generation logic
     }
     // Auto-add culture constraint
     constraints.push({ type: 'culture', hard: true, culture: 'carnatic' });
@@ -1883,9 +1899,9 @@ export const SCHEMA_BROWSER_CARD: TheoryCardDef = {
     },
   ],
   extractConstraints(state: TheoryCardState): MusicConstraint[] {
-    const schema = getParam<GalantSchemaName>(state, 'selectedSchema');
+    const schema = getParam<GalantSchemaName | 'none'>(state, 'selectedSchema');
     if (schema && schema !== 'none') {
-      return [{ type: 'schema', hard: false, weight: 0.7, schema }];
+      return [{ type: 'schema', hard: false, weight: 0.7, schema: schema as GalantSchemaName }];
     }
     return [];
   },
@@ -2189,7 +2205,8 @@ export const SCHEMA_CONSTRAINT_CARD: TheoryCardDef = {
       'continuations_only': 'prinner',
       'cadentials_only': 'cadential_64',
     };
-    const actualSchema = schemaMap[schema] ?? (schema as GalantSchemaName);
+    const mappedSchema = schemaMap[schema as keyof typeof schemaMap];
+    const actualSchema: GalantSchemaName = mappedSchema !== undefined ? mappedSchema : (schema as GalantSchemaName);
     return [{ type: 'schema', hard, weight: hard ? 1.0 : 0.8, schema: actualSchema }];
   },
   applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
@@ -2197,6 +2214,1169 @@ export const SCHEMA_CONSTRAINT_CARD: TheoryCardDef = {
     if (constraints.length === 0) return spec;
     return withConstraints(withoutConstraintType(spec, 'schema'), ...constraints);
   },
+};
+
+// ============================================================================
+// C1162 — PARENT SCALE CARD (chord → parent scale lookup)
+// ============================================================================
+
+/**
+ * C1162: ParentScaleCard — given a chord, look up its parent Lydian scale(s).
+ * Based on George Russell's concept that every chord implies a parent scale.
+ */
+export const PARENT_SCALE_CARD: TheoryCardDef = {
+  cardId: 'theory:parent_scale',
+  displayName: 'Parent Scale',
+  description: 'Chord → parent Lydian scale lookup with alternatives',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'chordRoot',
+      label: 'Chord Root',
+      type: 'enum',
+      enumValues: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'],
+      defaultValue: 'C',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.6,
+      description: 'Root of the chord to analyze',
+    },
+    {
+      id: 'chordQuality',
+      label: 'Chord Quality',
+      type: 'enum',
+      enumValues: ['major7', 'minor7', 'dominant7', 'half_diminished7', 'diminished7', 'augmented', 'sus4', 'minor_major7'],
+      defaultValue: 'major7',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Quality of the chord to find parent scale for',
+    },
+    {
+      id: 'showAlternatives',
+      label: 'Show Alternatives',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'Show alternative parent scales (not just primary)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const quality = getParam<string>(state, 'chordQuality');
+    // Map chord quality to its primary parent Lydian scale
+    const parentScaleMap: Record<string, ModeName> = {
+      'major7': 'lydian',        // Cmaj7 → C Lydian
+      'dominant7': 'mixolydian', // C7 → C Lydian b7
+      'minor7': 'dorian',       // Cm7 → C Dorian (parent = Bb Lydian)
+      'half_diminished7': 'locrian', // Cm7b5 → C Locrian
+      'diminished7': 'octatonic',
+      'augmented': 'whole_tone',
+      'sus4': 'mixolydian',
+      'minor_major7': 'melodic_minor',
+    };
+    const mode = parentScaleMap[quality ?? 'major7'] ?? 'lydian';
+    const rootStr = getParam<string>(state, 'chordRoot') ?? 'C';
+    const keyMap: Record<string, RootName> = {
+      'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+      'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+    };
+    return [{ type: 'key', hard: false, weight: 0.7, root: keyMap[rootStr] ?? 'c', mode }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(spec, 'key'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C1164 — CHORD-SCALE UNITY CARD
+// ============================================================================
+
+/**
+ * C1164: ChordScaleUnityCard — shows chord and scale as a unified entity.
+ * In LCC, a chord IS its parent scale; this card makes that unity visible.
+ */
+export const CHORD_SCALE_UNITY_CARD: TheoryCardDef = {
+  cardId: 'theory:chord_scale_unity',
+  displayName: 'Chord-Scale Unity',
+  description: 'View chord and scale as one unified entity (LCC principle)',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'unityRoot',
+      label: 'Root',
+      type: 'enum',
+      enumValues: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'],
+      defaultValue: 'C',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.7,
+      description: 'Root of the chord-scale entity',
+    },
+    {
+      id: 'unityScale',
+      label: 'Scale Type',
+      type: 'enum',
+      enumValues: ['lydian', 'lydian_augmented', 'lydian_diminished', 'lydian_b7', 'auxiliary_augmented', 'auxiliary_diminished'],
+      defaultValue: 'lydian',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.6,
+      description: 'Scale type in the Lydian Chromatic order',
+    },
+    {
+      id: 'voicingType',
+      label: 'Voicing',
+      type: 'enum',
+      enumValues: ['close', 'open', 'quartal', 'cluster'],
+      defaultValue: 'close',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'How to voice the chord portion of the unity',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const scaleType = getParam<string>(state, 'unityScale') ?? 'lydian';
+    const rootStr = getParam<string>(state, 'unityRoot') ?? 'C';
+    const keyMap: Record<string, RootName> = {
+      'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+      'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+    };
+    const modeMap: Record<string, ModeName> = {
+      'lydian': 'lydian', 'lydian_augmented': 'lydian', 'lydian_diminished': 'lydian',
+      'lydian_b7': 'mixolydian', 'auxiliary_augmented': 'whole_tone', 'auxiliary_diminished': 'octatonic',
+    };
+    return [
+      { type: 'key', hard: false, weight: 0.7, root: keyMap[rootStr] ?? 'c', mode: modeMap[scaleType] ?? 'lydian' },
+      { type: 'style', hard: false, weight: 0.4, style: 'jazz' },
+    ];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withStyle(withoutConstraintType(spec, 'key'), 'jazz'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C1165 — UPPER STRUCTURE CARD
+// ============================================================================
+
+/**
+ * C1165: UpperStructureCard — polychord voicing builder.
+ * Upper structure triads overlay a basic chord to create tensions.
+ */
+export const UPPER_STRUCTURE_CARD: TheoryCardDef = {
+  cardId: 'theory:upper_structure',
+  displayName: 'Upper Structure',
+  description: 'Polychord voicing builder: overlay triads for rich tensions',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'baseChordRoot',
+      label: 'Base Root',
+      type: 'enum',
+      enumValues: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'],
+      defaultValue: 'C',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.6,
+      description: 'Root of the base chord (typically dominant 7th)',
+    },
+    {
+      id: 'baseQuality',
+      label: 'Base Quality',
+      type: 'enum',
+      enumValues: ['dominant7', 'minor7', 'major7'],
+      defaultValue: 'dominant7',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.4,
+      description: 'Quality of the base chord',
+    },
+    {
+      id: 'upperTriad',
+      label: 'Upper Triad',
+      type: 'enum',
+      enumValues: ['II_major', 'bIII_major', 'bV_major', 'bVI_major', 'VI_major', 'bII_major'],
+      defaultValue: 'II_major',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Upper structure triad (relative to base root)',
+    },
+    {
+      id: 'spread',
+      label: 'Spread',
+      type: 'enum',
+      enumValues: ['compact', 'spread', 'wide'],
+      defaultValue: 'spread',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.2,
+      description: 'How widely spaced the upper structure voicing should be',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const rootStr = getParam<string>(state, 'baseChordRoot') ?? 'C';
+    const keyMap: Record<string, RootName> = {
+      'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+      'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+    };
+    return [
+      { type: 'key', hard: false, weight: 0.6, root: keyMap[rootStr] ?? 'c', mode: 'mixolydian' },
+      { type: 'style', hard: false, weight: 0.5, style: 'jazz' },
+    ];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withStyle(spec, 'jazz'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C1163 — TONAL GRAVITY VISUALIZER CARD
+// ============================================================================
+
+/**
+ * C1163: TonalGravityVisualizerCard — circular display of pitch gravity.
+ * Uses LCC tonal gravity to show consonance/dissonance relationships
+ * around the circle of fifths in Lydian Chromatic order.
+ */
+export const TONAL_GRAVITY_VISUALIZER_CARD: TheoryCardDef = {
+  cardId: 'theory:tonal_gravity_visualizer',
+  displayName: 'Tonal Gravity',
+  description: 'Visualize tonal gravity on a circular display (LCC-based)',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'tonic',
+      label: 'Tonic',
+      type: 'enum',
+      enumValues: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'],
+      defaultValue: 'C',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.8,
+      description: 'Center tonic for gravity visualization',
+    },
+    {
+      id: 'displayMode',
+      label: 'Display',
+      type: 'enum',
+      enumValues: ['circle_of_fifths', 'chromatic_order', 'lydian_order'],
+      defaultValue: 'lydian_order',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.2,
+      description: 'Pitch ordering on the circular display',
+    },
+    {
+      id: 'gravityType',
+      label: 'Gravity',
+      type: 'enum',
+      enumValues: ['vertical', 'horizontal', 'supra_vertical'],
+      defaultValue: 'vertical',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'Type of tonal gravity to display',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const rootStr = getParam<string>(state, 'tonic') ?? 'C';
+    const keyMap: Record<string, RootName> = {
+      'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+      'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+    };
+    return [
+      { type: 'key', hard: false, weight: 0.8, root: keyMap[rootStr] ?? 'c', mode: 'lydian' },
+    ];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(spec, ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C1342 — REHARMONIZATION CARD
+// ============================================================================
+
+/**
+ * C1342: ReharmonizationCard — technique picker for chord reharmonization.
+ * Supports tritone subs, Coltrane changes, modal interchange, and more.
+ */
+export const REHARMONIZATION_CARD: TheoryCardDef = {
+  cardId: 'theory:reharmonization',
+  displayName: 'Reharmonization',
+  description: 'Chord reharmonization technique picker and preview',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'technique',
+      label: 'Technique',
+      type: 'enum',
+      enumValues: ['tritone_sub', 'coltrane_changes', 'modal_interchange', 'chromatic_mediant', 'backdoor', 'deceptive'],
+      defaultValue: 'tritone_sub',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.7,
+      description: 'Reharmonization technique to apply',
+    },
+    {
+      id: 'preserveGuideTones',
+      label: 'Preserve Guides',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'style',
+      hard: false,
+      weight: 0.6,
+      description: 'Ensure 3rd and 7th are preserved across substitution',
+    },
+    {
+      id: 'melodyCheck',
+      label: 'Melody Check',
+      type: 'boolean',
+      defaultValue: true,
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Reject reharmonizations that clash with melody',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.7, style: 'jazz' }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C1343 — TRITONE SUB CARD
+// ============================================================================
+
+/**
+ * C1343: TritoneSubCard — one-click tritone substitution insertion.
+ */
+export const TRITONE_SUB_CARD: TheoryCardDef = {
+  cardId: 'theory:tritone_sub',
+  displayName: 'Tritone Sub',
+  description: 'One-click tritone substitution: replaces V7 with bII7',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'targetChord',
+      label: 'Target',
+      type: 'enum',
+      enumValues: ['V7', 'II7', 'VI7', 'III7', 'all_dominants'],
+      defaultValue: 'V7',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.8,
+      description: 'Which dominant chord(s) to apply tritone sub to',
+    },
+    {
+      id: 'approachType',
+      label: 'Approach',
+      type: 'enum',
+      enumValues: ['direct', 'chromatic_approach', 'diminished_passing'],
+      defaultValue: 'direct',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.4,
+      description: 'How to approach the tritone sub chord',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.8, style: 'jazz' }];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(_state));
+  },
+};
+
+// ============================================================================
+// C1344 — COLTRANE CHANGES CARD
+// ============================================================================
+
+/**
+ * C1344: ColtraneChangesCard — cycle substitution builder.
+ * Based on John Coltrane's "Giant Steps" harmonic approach.
+ */
+export const COLTRANE_CHANGES_CARD: TheoryCardDef = {
+  cardId: 'theory:coltrane_changes',
+  displayName: 'Coltrane Changes',
+  description: 'Cycle substitution builder: major-third axis movement',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'axisType',
+      label: 'Axis',
+      type: 'enum',
+      enumValues: ['major_third', 'minor_third', 'augmented'],
+      defaultValue: 'major_third',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.7,
+      description: 'Interval cycle for substitution (major 3rd = Giant Steps)',
+    },
+    {
+      id: 'density',
+      label: 'Density',
+      type: 'enum',
+      enumValues: ['sparse', 'standard', 'dense'],
+      defaultValue: 'standard',
+      constraintType: 'harmonic_rhythm',
+      hard: false,
+      weight: 0.5,
+      description: 'How many substitution chords per original chord',
+    },
+    {
+      id: 'startingKey',
+      label: 'Starting Key',
+      type: 'enum',
+      enumValues: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'],
+      defaultValue: 'C',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.6,
+      description: 'Starting key for the Coltrane cycle',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const rootStr = getParam<string>(state, 'startingKey') ?? 'C';
+    const keyMap: Record<string, RootName> = {
+      'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+      'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+    };
+    return [
+      { type: 'key', hard: false, weight: 0.6, root: keyMap[rootStr] ?? 'c', mode: 'major' },
+      { type: 'style', hard: false, weight: 0.7, style: 'jazz' },
+    ];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C1391 — BEBOP SCALE CARD
+// ============================================================================
+
+/**
+ * C1391: BebopScaleCard — adds chromatic passing tone to 7-note scales.
+ */
+export const BEBOP_SCALE_CARD: TheoryCardDef = {
+  cardId: 'theory:bebop_scale',
+  displayName: 'Bebop Scale',
+  description: 'Bebop scale types: adds passing tone for strong-beat chord tones',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'bebopType',
+      label: 'Type',
+      type: 'enum',
+      enumValues: ['dominant', 'major', 'dorian', 'melodic_minor'],
+      defaultValue: 'dominant',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.7,
+      description: 'Bebop scale type (determines passing tone placement)',
+    },
+    {
+      id: 'bebopRoot',
+      label: 'Root',
+      type: 'enum',
+      enumValues: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'],
+      defaultValue: 'C',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.6,
+      description: 'Root note of the bebop scale',
+    },
+    {
+      id: 'practiceMode',
+      label: 'Practice',
+      type: 'enum',
+      enumValues: ['ascending', 'descending', 'patterns', 'enclosures'],
+      defaultValue: 'ascending',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'Practice mode for bebop scale exercises',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const rootStr = getParam<string>(state, 'bebopRoot') ?? 'C';
+    const keyMap: Record<string, RootName> = {
+      'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+      'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+    };
+    const bebopType = getParam<string>(state, 'bebopType') ?? 'dominant';
+    const modeMap: Record<string, ModeName> = {
+      'dominant': 'mixolydian', 'major': 'ionian', 'dorian': 'dorian', 'melodic_minor': 'melodic_minor',
+    };
+    return [
+      { type: 'key', hard: false, weight: 0.7, root: keyMap[rootStr] ?? 'c', mode: modeMap[bebopType] ?? 'mixolydian' },
+      { type: 'style', hard: false, weight: 0.6, style: 'jazz' },
+    ];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withStyle(withoutConstraintType(spec, 'key'), 'jazz'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C1392 — ENCLOSURE CARD
+// ============================================================================
+
+/**
+ * C1392: EnclosureCard — chromatic enclosure pattern generator.
+ */
+export const ENCLOSURE_CARD: TheoryCardDef = {
+  cardId: 'theory:enclosure',
+  displayName: 'Enclosure',
+  description: 'Chromatic enclosure patterns: approach target notes from above and below',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'enclosureType',
+      label: 'Type',
+      type: 'enum',
+      enumValues: ['chromatic', 'diatonic', 'double_chromatic', 'delayed'],
+      defaultValue: 'chromatic',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.6,
+      description: 'Enclosure approach type',
+    },
+    {
+      id: 'targetNotes',
+      label: 'Targets',
+      type: 'enum',
+      enumValues: ['chord_tones', 'guide_tones', 'tensions', 'all_scale'],
+      defaultValue: 'chord_tones',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Which notes to target with enclosures',
+    },
+    {
+      id: 'rhythmicPlacement',
+      label: 'Placement',
+      type: 'enum',
+      enumValues: ['on_beat', 'off_beat', 'anticipation'],
+      defaultValue: 'on_beat',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.4,
+      description: 'Where the target note lands rhythmically',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.6, style: 'jazz' }];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(_state));
+  },
+};
+
+// ============================================================================
+// C1393 — DIGITAL PATTERN CARD
+// ============================================================================
+
+/**
+ * C1393: DigitalPatternCard — "1235", "1357" style bebop digital patterns.
+ */
+export const DIGITAL_PATTERN_CARD: TheoryCardDef = {
+  cardId: 'theory:digital_pattern',
+  displayName: 'Digital Pattern',
+  description: 'Bebop digital patterns (1235, 1357) over chord changes',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'pattern',
+      label: 'Pattern',
+      type: 'enum',
+      enumValues: ['1235', '1357', '3579', '5713', '7135', 'custom'],
+      defaultValue: '1235',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.6,
+      description: 'Scale degree pattern to apply over each chord',
+    },
+    {
+      id: 'direction',
+      label: 'Direction',
+      type: 'enum',
+      enumValues: ['ascending', 'descending', 'alternating', 'random'],
+      defaultValue: 'ascending',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'Directional tendency for the pattern sequence',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.6, style: 'jazz' }];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(_state));
+  },
+};
+
+// ============================================================================
+// C1394 — GUIDE TONE CARD
+// ============================================================================
+
+/**
+ * C1394: GuideToneCard — guide tone line generator for smooth voice leading.
+ */
+export const GUIDE_TONE_CARD: TheoryCardDef = {
+  cardId: 'theory:guide_tone',
+  displayName: 'Guide Tone',
+  description: 'Guide tone line generator: 3rds and 7ths connected by step',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'voiceCount',
+      label: 'Voices',
+      type: 'enum',
+      enumValues: ['1', '2'],
+      defaultValue: '2',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Number of guide tone voices (1 = 3rds only, 2 = 3rds + 7ths)',
+    },
+    {
+      id: 'connectionType',
+      label: 'Connection',
+      type: 'enum',
+      enumValues: ['step', 'common_tone', 'chromatic'],
+      defaultValue: 'step',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.6,
+      description: 'How guide tones connect between chords',
+    },
+    {
+      id: 'embellishment',
+      label: 'Embellish',
+      type: 'enum',
+      enumValues: ['none', 'passing', 'neighbor', 'enclosure'],
+      defaultValue: 'none',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'Embellishment type between guide tones',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.6, style: 'jazz' }];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(_state));
+  },
+};
+
+// ============================================================================
+// C1395 — LICK LIBRARY CARD
+// ============================================================================
+
+/**
+ * C1395: LickLibraryCard — browse, search, and insert jazz vocabulary.
+ */
+export const LICK_LIBRARY_CARD: TheoryCardDef = {
+  cardId: 'theory:lick_library',
+  displayName: 'Lick Library',
+  description: 'Browse and insert jazz vocabulary: ii-V-I licks, turnarounds, tags',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'lickCategory',
+      label: 'Category',
+      type: 'enum',
+      enumValues: ['ii_V_I', 'turnaround', 'blues', 'rhythm_changes', 'minor_ii_V', 'modal'],
+      defaultValue: 'ii_V_I',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Category of jazz vocabulary to browse',
+    },
+    {
+      id: 'difficulty',
+      label: 'Difficulty',
+      type: 'enum',
+      enumValues: ['beginner', 'intermediate', 'advanced'],
+      defaultValue: 'intermediate',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.3,
+      description: 'Difficulty level of the vocabulary',
+    },
+    {
+      id: 'transposeToKey',
+      label: 'Transpose To',
+      type: 'enum',
+      enumValues: ['original', 'C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'G', 'D', 'A', 'E', 'B'],
+      defaultValue: 'original',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.4,
+      description: 'Transpose lick to this key (or keep original)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [
+      { type: 'style', hard: false, weight: 0.5, style: 'jazz' },
+    ];
+    const key = getParam<string>(state, 'transposeToKey');
+    if (key && key !== 'original') {
+      const keyMap: Record<string, RootName> = {
+        'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+        'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+      };
+      constraints.push({ type: 'key', hard: false, weight: 0.4, root: keyMap[key] ?? 'c', mode: 'major' });
+    }
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C735 — SET BUILDER CARD (Celtic tune set management)
+// ============================================================================
+
+/**
+ * C735: SetBuilderCard — chain multiple Celtic tunes into sets with
+ * compatible keys, modes, and tempos.
+ */
+// ============================================================================
+// C1396 — MOTIF DEVELOPER CARD
+// ============================================================================
+
+/**
+ * C936: FillBuilderCard — drum fills, melodic fills, risers.
+ * Wraps generate_fill/4 Prolog predicate.
+ */
+export const FILL_BUILDER_CARD: TheoryCardDef = {
+  cardId: 'theory:fill_builder',
+  displayName: 'Fill Builder',
+  description: 'Generate drum fills, melodic fills, and risers for transitions',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'fillType',
+      label: 'Type',
+      type: 'enum',
+      enumValues: ['drum_fill', 'melodic_fill', 'riser_fill'],
+      defaultValue: 'drum_fill',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.6,
+      description: 'Type of fill to generate',
+    },
+    {
+      id: 'intensity',
+      label: 'Intensity',
+      type: 'enum',
+      enumValues: ['subtle', 'moderate', 'intense', 'dramatic'],
+      defaultValue: 'moderate',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Fill intensity level',
+    },
+    {
+      id: 'duration',
+      label: 'Duration',
+      type: 'enum',
+      enumValues: ['1_beat', '2_beats', '1_bar', '2_bars'],
+      defaultValue: '1_bar',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.4,
+      description: 'Duration of the fill',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.5, style: 'pop' }];
+  },
+  applyToSpec(_state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(spec, ...this.extractConstraints(_state));
+  },
+};
+
+// ============================================================================
+// C1396 — MOTIF DEVELOPER CARD
+// ============================================================================
+
+/**
+ * C1396: MotifDeveloperCard — input motif, select technique, generate variations.
+ */
+export const MOTIF_DEVELOPER_CARD: TheoryCardDef = {
+  cardId: 'theory:motif_developer',
+  displayName: 'Motif Developer',
+  description: 'Develop motifs using classical and jazz techniques',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'technique',
+      label: 'Technique',
+      type: 'enum',
+      enumValues: ['augmentation', 'diminution', 'inversion', 'retrograde', 'sequence', 'fragmentation', 'extension'],
+      defaultValue: 'sequence',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.6,
+      description: 'Motivic development technique to apply',
+    },
+    {
+      id: 'intervalPreservation',
+      label: 'Interval Pres.',
+      type: 'enum',
+      enumValues: ['exact', 'tonal', 'free'],
+      defaultValue: 'tonal',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'How strictly to preserve intervals during transformation',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.5, style: 'jazz' }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(spec, ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C1397 — OUTSIDE CARD
+// ============================================================================
+
+/**
+ * C1397: OutsideCard — controlled tension using outside playing.
+ */
+export const OUTSIDE_CARD: TheoryCardDef = {
+  cardId: 'theory:outside',
+  displayName: 'Outside Playing',
+  description: 'Control chromatic tension: side-slipping, superimposition, bitonal',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'outsideTechnique',
+      label: 'Technique',
+      type: 'enum',
+      enumValues: ['side_slip', 'superimposition', 'bitonal', 'triad_pair', 'hexatonic'],
+      defaultValue: 'side_slip',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.7,
+      description: 'Type of outside technique',
+    },
+    {
+      id: 'tensionLevel',
+      label: 'Tension',
+      type: 'enum',
+      enumValues: ['mild', 'moderate', 'extreme'],
+      defaultValue: 'moderate',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'How far outside to go',
+    },
+    {
+      id: 'resolutionStrategy',
+      label: 'Resolution',
+      type: 'enum',
+      enumValues: ['immediate', 'delayed', 'gradual', 'none'],
+      defaultValue: 'delayed',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.4,
+      description: 'How the outside passage resolves back inside',
+    },
+  ],
+  extractConstraints(_state: TheoryCardState): MusicConstraint[] {
+    return [{ type: 'style', hard: false, weight: 0.7, style: 'jazz' }];
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(withStyle(spec, 'jazz'), ...this.extractConstraints(state));
+  },
+};
+
+// ============================================================================
+// C735 — SET BUILDER CARD (Celtic tune set management)
+// ============================================================================
+
+export const SET_BUILDER_CARD: TheoryCardDef = {
+  cardId: 'theory:set_builder',
+  displayName: 'Set Builder',
+  description: 'Chain tunes into sets with compatible keys, modes, and tempos',
+  category: 'world',
+  cultures: ['celtic', 'hybrid'],
+  params: [
+    {
+      id: 'setSize',
+      label: 'Set size',
+      type: 'number',
+      defaultValue: 3,
+      constraintType: 'celtic_tune',
+      hard: false,
+      weight: 0.5,
+      description: 'Number of tunes in the set (typically 2-4)',
+    },
+    {
+      id: 'keyStrategy',
+      label: 'Key strategy',
+      type: 'enum',
+      enumValues: ['same_key', 'related_keys', 'any_key'],
+      defaultValue: 'related_keys',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.7,
+      description: 'How to select keys for tunes in the set',
+    },
+    {
+      id: 'tempoGradient',
+      label: 'Tempo gradient',
+      type: 'enum',
+      enumValues: ['steady', 'gradual_increase', 'gradual_decrease'],
+      defaultValue: 'gradual_increase',
+      constraintType: 'tempo',
+      hard: false,
+      weight: 0.4,
+      description: 'How tempo changes across tunes in the set',
+    },
+    {
+      id: 'tuneTypeConsistency',
+      label: 'Tune type',
+      type: 'enum',
+      enumValues: ['same_type', 'mixed'],
+      defaultValue: 'same_type',
+      constraintType: 'celtic_tune',
+      hard: false,
+      weight: 0.6,
+      description: 'Whether all tunes should be the same type (e.g., all reels)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const tuneTypeConsistency = getParam<string>(state, 'tuneTypeConsistency');
+    if (tuneTypeConsistency === 'same_type') {
+      constraints.push({
+        type: 'celtic_tune',
+        tuneType: 'reel',
+        hard: false,
+        weight: 0.6,
+      });
+    }
+    constraints.push({
+      type: 'culture',
+      culture: 'celtic',
+      hard: false,
+      weight: 0.8,
+    });
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withCulture(spec, 'celtic'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+// ============================================================================
+// C1161 — LYDIAN CHROMATIC CARD
+// ============================================================================
+
+/**
+ * Lydian Chromatic Concept card.
+ * Based on George Russell's Lydian Chromatic Concept of Tonal Organization.
+ */
+export const LYDIAN_CHROMATIC_CARD: TheoryCardDef = {
+  cardId: 'theory:lydian_chromatic',
+  displayName: 'Lydian Chromatic',
+  description: 'George Russell\'s Lydian Chromatic Concept: tonal gravity, parent scales, chord-scale relationships',
+  category: 'theory',
+  cultures: ['western', 'hybrid'],
+  params: [
+    {
+      id: 'lydianTonic',
+      label: 'Lydian Tonic',
+      type: 'enum',
+      enumValues: ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'],
+      defaultValue: 'C',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.8,
+      description: 'The Lydian tonic (primary consonance center)',
+    },
+    {
+      id: 'principalScale',
+      label: 'Principal Scale',
+      type: 'enum',
+      enumValues: [
+        'lydian',
+        'lydian_augmented',
+        'lydian_diminished',
+        'lydian_b7',
+        'auxiliary_augmented',
+        'auxiliary_diminished',
+        'auxiliary_diminished_blues',
+      ],
+      defaultValue: 'lydian',
+      constraintType: 'key',
+      hard: false,
+      weight: 0.7,
+      description: 'Principal scale in the Lydian Chromatic order',
+    },
+    {
+      id: 'gravityMode',
+      label: 'Gravity Mode',
+      type: 'enum',
+      enumValues: ['vertical', 'horizontal', 'supra_vertical'],
+      defaultValue: 'vertical',
+      constraintType: 'style',
+      hard: false,
+      weight: 0.5,
+      description: 'Vertical (static), horizontal (motion), supra-vertical (advanced)',
+    },
+  ],
+  extractConstraints(state: TheoryCardState): MusicConstraint[] {
+    const constraints: MusicConstraint[] = [];
+    const tonic = getParam<string>(state, 'lydianTonic');
+    if (tonic) {
+      const keyMap: Record<string, RootName> = {
+        'C': 'c', 'Db': 'dflat', 'D': 'd', 'Eb': 'eflat', 'E': 'e', 'F': 'f',
+        'Gb': 'gflat', 'G': 'g', 'Ab': 'aflat', 'A': 'a', 'Bb': 'bflat', 'B': 'b'
+      };
+      const keyRoot = keyMap[tonic] ?? 'c';
+      constraints.push({ type: 'key', hard: false, weight: 0.8, root: keyRoot, mode: 'lydian' });
+    }
+    const scale = getParam<string>(state, 'principalScale');
+    if (scale) {
+      const scaleMap: Record<string, ModeName> = {
+        'lydian': 'lydian',
+        'lydian_augmented': 'lydian',
+        'lydian_diminished': 'lydian',
+        'lydian_b7': 'mixolydian',
+        'auxiliary_augmented': 'whole_tone',
+        'auxiliary_diminished': 'octatonic',
+        'auxiliary_diminished_blues': 'blues',
+      };
+      const modeName = scaleMap[scale] ?? 'lydian';
+      constraints.push({
+        type: 'key',
+        hard: false,
+        weight: 0.7,
+        root: (getParam<string>(state, 'lydianTonic')?.toLowerCase() as RootName | undefined) ?? 'c',
+        mode: modeName
+      });
+    }
+    return constraints;
+  },
+  applyToSpec(state: TheoryCardState, spec: MusicSpec): MusicSpec {
+    return withConstraints(
+      withoutConstraintType(spec, 'key'),
+      ...this.extractConstraints(state)
+    );
+  },
+};
+
+/**
+ * LCC scale definitions for phrase generation
+ */
+export const LCC_SCALES: Record<string, readonly number[]> = {
+  'lydian': [0, 2, 4, 6, 7, 9, 11],
+  'lydian_augmented': [0, 2, 4, 6, 8, 9, 11],
+  'lydian_diminished': [0, 2, 3, 6, 7, 9, 11],
+  'lydian_b7': [0, 2, 4, 6, 7, 9, 10],
+  'auxiliary_augmented': [0, 2, 4, 6, 8, 10],
+  'auxiliary_diminished': [0, 2, 3, 5, 6, 8, 9, 11],
+  'auxiliary_diminished_blues': [0, 2, 3, 4, 6, 7, 9, 10, 11],
+};
+
+/**
+ * Get LCC scale intervals
+ */
+export function getLCCScaleIntervals(scaleName: string): readonly number[] {
+  return LCC_SCALES[scaleName] ?? LCC_SCALES['lydian']!;
+}
+
+/**
+ * Calculate tonal gravity level for a note relative to Lydian tonic.
+ * Lower values = higher consonance (closer to the tonic in the Lydian Chromatic order).
+ */
+export function calculateTonalGravity(note: number, lydianTonic: number): number {
+  const interval = ((note - lydianTonic) % 12 + 12) % 12;
+  const gravityOrder: Record<number, number> = {
+    0: 0, 7: 1, 2: 2, 9: 3, 4: 4, 11: 5, 6: 6,
+    1: 7, 8: 8, 3: 9, 10: 10, 5: 11,
+  };
+  return gravityOrder[interval] ?? 12;
+}
+
+/**
+ * Bebop scale definitions — 8-note scales adding a chromatic passing tone.
+ */
+export const BEBOP_SCALES: Record<string, readonly number[]> = {
+  'dominant': [0, 2, 4, 5, 7, 9, 10, 11],       // Mixolydian + natural 7
+  'major': [0, 2, 4, 5, 7, 8, 9, 11],            // Ionian + #5
+  'dorian': [0, 2, 3, 4, 5, 7, 9, 10],           // Dorian + natural 3
+  'melodic_minor': [0, 2, 3, 5, 7, 8, 9, 11],    // Mel. minor + b6
+};
+
+/**
+ * Get bebop scale intervals
+ */
+export function getBebopScaleIntervals(bebopType: string): readonly number[] {
+  return BEBOP_SCALES[bebopType] ?? BEBOP_SCALES['dominant']!;
+}
+
+/**
+ * Upper structure triad intervals relative to chord root.
+ * Each maps to the tensions it creates over a dominant 7th.
+ */
+export const UPPER_STRUCTURE_TRIADS: Record<string, { intervals: readonly number[]; tensions: string }> = {
+  'II_major': { intervals: [2, 6, 9], tensions: '9, #11, 13' },
+  'bIII_major': { intervals: [3, 7, 10], tensions: '#9, 5, b7' },
+  'bV_major': { intervals: [6, 10, 1], tensions: '#11, b7, b9' },
+  'bVI_major': { intervals: [8, 0, 3], tensions: '#5, root, #9' },
+  'VI_major': { intervals: [9, 1, 4], tensions: '13, b9, 3' },
+  'bII_major': { intervals: [1, 5, 8], tensions: 'b9, 4, #5' },
 };
 
 // ============================================================================
@@ -2245,6 +3425,30 @@ export const THEORY_CARDS: readonly TheoryCardDef[] = [
   SCHEMA_TO_MELODY_CARD,
   SCHEMA_VARIATION_CARD,
   SCHEMA_CONSTRAINT_CARD,
+  // Celtic set builder (C735)
+  SET_BUILDER_CARD,
+  // LCC cards (C1161-C1165)
+  LYDIAN_CHROMATIC_CARD,
+  PARENT_SCALE_CARD,
+  CHORD_SCALE_UNITY_CARD,
+  UPPER_STRUCTURE_CARD,
+  // Tonal gravity visualizer (C1163)
+  TONAL_GRAVITY_VISUALIZER_CARD,
+  // Jazz reharmonization cards (C1342-C1344)
+  REHARMONIZATION_CARD,
+  TRITONE_SUB_CARD,
+  COLTRANE_CHANGES_CARD,
+  // Jazz improv cards (C1391-C1395)
+  BEBOP_SCALE_CARD,
+  ENCLOSURE_CARD,
+  DIGITAL_PATTERN_CARD,
+  GUIDE_TONE_CARD,
+  LICK_LIBRARY_CARD,
+  // Fill builder (C936)
+  FILL_BUILDER_CARD,
+  // Jazz advanced cards (C1396-C1397)
+  MOTIF_DEVELOPER_CARD,
+  OUTSIDE_CARD,
 ];
 
 /**
@@ -2288,4 +3492,132 @@ export function extractAllConstraints(
   cards: ReadonlyArray<{ def: TheoryCardDef; state: TheoryCardState }>
 ): MusicConstraint[] {
   return cards.flatMap(({ def, state }) => def.extractConstraints(state));
+}
+
+// ============================================================================
+// CONFLICT DETECTION (C469)
+// ============================================================================
+
+/**
+ * Constraint conflict info
+ */
+export interface ConstraintConflict {
+  /** First constraint type */
+  readonly constraint1: string;
+  /** Second constraint type */
+  readonly constraint2: string;
+  /** Conflict reason */
+  readonly reason: string;
+  /** Severity */
+  readonly severity: 'warning' | 'error';
+}
+
+/**
+ * Card conflict badge info for UI
+ */
+export interface CardConflictBadge {
+  /** Card ID that has conflict */
+  readonly cardId: string;
+  /** Conflicts with which other cards */
+  readonly conflictsWith: readonly string[];
+  /** Conflict details */
+  readonly conflicts: readonly ConstraintConflict[];
+  /** Badge type */
+  readonly badgeType: 'warning' | 'error';
+  /** Tooltip text */
+  readonly tooltip: string;
+}
+
+/**
+ * Known constraint type conflicts
+ */
+const CONSTRAINT_CONFLICTS: readonly { type1: string; type2: string; reason: string }[] = [
+  { type1: 'film_device', type2: 'schema', reason: 'Film device may override schema voice leading' },
+  { type1: 'raga', type2: 'key', reason: 'Raga defines its own scale; key constraint is redundant' },
+  { type1: 'raga', type2: 'scale', reason: 'Raga defines aroha/avaroha; external scale conflicts' },
+  { type1: 'chinese_mode', type2: 'key', reason: 'Chinese mode implies pentatonic scale' },
+  { type1: 'celtic_tune', type2: 'meter_accent', reason: 'Celtic tune type defines its own metric accents' },
+  { type1: 'tala', type2: 'meter', reason: 'Tala defines cycle structure; meter constraint is redundant' },
+  { type1: 'film_mood', type2: 'raga', reason: 'Film mood implies Western harmony; conflicts with raga' },
+  { type1: 'schema', type2: 'raga', reason: 'Galant schemata assume Western tonality; conflicts with raga' },
+];
+
+/**
+ * Detect conflicts between constraints from multiple cards.
+ * 
+ * This is the C469 integration: show "conflict" badge on cards when constraints incompatible.
+ */
+export function detectConstraintConflicts(
+  cards: ReadonlyArray<{ def: TheoryCardDef; state: TheoryCardState }>
+): CardConflictBadge[] {
+  const badges: CardConflictBadge[] = [];
+  const cardConstraints: Map<string, { cardId: string; constraints: MusicConstraint[] }> = new Map();
+  
+  // Collect constraints by card
+  for (const { def, state } of cards) {
+    const constraints = def.extractConstraints(state);
+    if (constraints.length > 0) {
+      cardConstraints.set(def.cardId, { cardId: def.cardId, constraints });
+    }
+  }
+  
+  // Check each pair of cards for conflicts
+  const cardIds = Array.from(cardConstraints.keys());
+  
+  for (let i = 0; i < cardIds.length; i++) {
+    const cardId1 = cardIds[i]!;
+    const { constraints: constraints1 } = cardConstraints.get(cardId1)!;
+    const conflicts: ConstraintConflict[] = [];
+    const conflictsWith: string[] = [];
+    
+    for (let j = i + 1; j < cardIds.length; j++) {
+      const cardId2 = cardIds[j]!;
+      const { constraints: constraints2 } = cardConstraints.get(cardId2)!;
+      
+      // Check for constraint type conflicts
+      for (const c1 of constraints1) {
+        for (const c2 of constraints2) {
+          const conflict = CONSTRAINT_CONFLICTS.find(
+            cf => (cf.type1 === c1.type && cf.type2 === c2.type) ||
+                  (cf.type1 === c2.type && cf.type2 === c1.type)
+          );
+          
+          if (conflict) {
+            conflicts.push({
+              constraint1: c1.type,
+              constraint2: c2.type,
+              reason: conflict.reason,
+              severity: 'warning',
+            });
+            if (!conflictsWith.includes(cardId2)) {
+              conflictsWith.push(cardId2);
+            }
+          }
+        }
+      }
+    }
+    
+    if (conflicts.length > 0) {
+      badges.push({
+        cardId: cardId1,
+        conflictsWith,
+        conflicts,
+        badgeType: conflicts.some(c => c.severity === 'error') ? 'error' : 'warning',
+        tooltip: `Conflicts with: ${conflictsWith.join(', ')}`,
+      });
+    }
+  }
+  
+  return badges;
+}
+
+/**
+ * Get conflict badge for a specific card
+ */
+export function getCardConflictBadge(
+  cardId: string,
+  allCards: ReadonlyArray<{ def: TheoryCardDef; state: TheoryCardState }>
+): CardConflictBadge | undefined {
+  const allBadges = detectConstraintConflicts(allCards);
+  return allBadges.find(b => b.cardId === cardId);
 }

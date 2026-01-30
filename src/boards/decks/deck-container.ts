@@ -32,6 +32,7 @@ export interface DeckContainerOptions {
  * Creates a deck container element.
  *
  * E003-E010: Support tabs, stack, split, floating layouts.
+ * B125: Renders deck into its declared panel via panelId.
  */
 export class DeckContainer {
   private element: HTMLElement;
@@ -45,6 +46,11 @@ export class DeckContainer {
     this.element.className = 'deck-container';
     this.element.setAttribute('data-deck-id', options.deck.id);
     this.element.setAttribute('data-deck-type', options.deck.type);
+    
+    // B125: Add panel ID for targeting the correct panel
+    if (options.deck.panelId) {
+      this.element.setAttribute('data-panel-id', options.deck.panelId);
+    }
 
     // Create header
     this.headerElement = this.createHeader();
@@ -187,8 +193,15 @@ export class DeckContainer {
 
   private moveDeckToPanel(panel: 'left' | 'right' | 'bottom'): void {
     console.log(`Moving deck ${this.options.deck.id} to ${panel} panel`);
-    // This would be implemented by the board host
+    // B125: This would update the deck's panelId and trigger a layout refresh
     // For now, just log the action
+  }
+
+  /**
+   * B125: Get the target panel ID for this deck.
+   */
+  getTargetPanelId(): string | undefined {
+    return this.options.deck.panelId;
   }
 
   private resetDeckState(): void {
@@ -230,6 +243,9 @@ export class DeckContainer {
         break;
       case 'floating':
         this.renderFloatingLayout();
+        break;
+      case 'grid':
+        this.renderGridLayout();
         break;
       default:
         this.renderDefaultLayout();
@@ -322,6 +338,42 @@ export class DeckContainer {
     // Mount if needed
     if (this.options.instance.mount) {
       this.options.instance.mount(floatingContainer);
+    }
+  }
+
+  /**
+   * B127: Renders deck in a grid layout.
+   * Uses DeckLayoutAdapter-backed UI for grid arrangement.
+   */
+  private renderGridLayout(): void {
+    const gridContainer = document.createElement('div');
+    gridContainer.className = 'deck-grid';
+    gridContainer.style.display = 'grid';
+    gridContainer.style.gridTemplateColumns = 'repeat(auto-fill, minmax(200px, 1fr))';
+    gridContainer.style.gap = '8px';
+    gridContainer.style.padding = '8px';
+    gridContainer.style.height = '100%';
+    gridContainer.style.overflow = 'auto';
+    this.bodyElement.appendChild(gridContainer);
+
+    // Render deck instance as a grid item
+    const gridItem = document.createElement('div');
+    gridItem.className = 'deck-grid-item';
+    gridItem.style.minHeight = '150px';
+    gridItem.style.background = 'var(--card-bg, #2a2a2a)';
+    gridItem.style.borderRadius = '4px';
+    gridItem.style.overflow = 'hidden';
+    gridContainer.appendChild(gridItem);
+
+    // Render deck instance
+    const rendered = this.options.instance.render();
+    if (rendered) {
+      gridItem.appendChild(rendered);
+    }
+
+    // Mount if needed
+    if (this.options.instance.mount) {
+      this.options.instance.mount(gridItem);
     }
   }
 

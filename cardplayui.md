@@ -1,5 +1,13 @@
 # CardPlay UI Specification: Board-Centric Architecture
 
+**Status:** partial (canonical UI/board model, some sections aspirational)  
+**Canonical terms used:** Board, BoardDeck, Panel, DeckType, ControlLevel, ActiveContext, MusicSpec, HostAction  
+**Primary code references:** `cardplay/src/boards/*`, `cardplay/src/ui/*`, `cardplay/src/ai/theory/*`  
+**Analogy:** The "game board manual" explaining how different board variants, zones (decks), and control levels work.  
+**SSOT:** This doc is canonical for UI/board model, but must match `cardplay/src/boards/*`. When conflicts arise, follow `to_fix.md` + `cardplay/docs/canon/**` + `cardplay/src/**`.
+
+> See [Canonical IDs](./docs/canon/ids.md) for `ControlLevel` and `DeckType` values. See [Nouns](./docs/canon/nouns.md) for term definitions.
+
 > **CardPlay puts you in the driver's seat—at whatever level of control you want. Choose boards that are fully manual, AI-assisted, or anywhere in between. The same project can use a traditional Notation Board for melody and an AI Arranger Board for accompaniment.**
 
 ---
@@ -1250,11 +1258,20 @@ Choose an **Assisted Board** when:
 
 ## Part V: Generative Boards (AI-Driven)
 
+> **Declarative vs Imperative Contract (DECL-IMP-CONTRACT/1):**
+> - **Declarative layer:** `MusicSpec` + `MusicConstraint` are declarative facts describing desired music
+> - **Imperative layer:** Boards/decks mutate project state (events, clips, routing)
+> - **Prolog's role:** Reads facts, returns *suggestions* as HostActions; does not mutate host state
+> - **Apply loop:** User accepts (or board policy auto-applies) → host applies HostActions → state changes
+> - **Auto-apply gating:** Controlled by `ControlLevel`; must be undoable and visible in history
+>
+> See [Declarative vs Imperative](./docs/canon/declarative-vs-imperative.md) for details.
+
 ### 5.1 Philosophy
 
 > **"I set the direction. AI creates the content. I curate and refine."**
 
-Generative boards shift the balance toward AI and algorithms. You provide high-level direction—style, energy, mood—and the system generates content. You're still in charge, but you're directing rather than writing.
+Generative boards shift the balance toward AI and algorithms. You provide high-level direction—style, energy, mood—and the system generates content via HostActions that you can accept, modify, or reject. You're still in charge, but you're directing rather than writing.
 
 ### 5.2 AI Arranger Board
 
@@ -1612,47 +1629,58 @@ interface BoardSwitcher {
 
 ## Part VII: Deck and Stack System
 
+> **Noun Contracts:**
+> - **BoardDeck (zone):** A typed zone surface within a board panel. See [Deck Systems](./docs/canon/deck-systems.md).
+> - **Stack (UI):** In this context, "stack" refers to the UI layout/tab behavior, not `Stack` (composition) from `cardplay/src/cards/stack.ts`.
+
 ### 7.1 What Are Decks?
 
-A **Deck** is a collection of related cards that can be placed in a panel:
+A **BoardDeck** is a zone that can contain cards, placed in a panel:
 
 ```typescript
-interface Deck {
+// From cardplay/src/boards/types.ts
+interface BoardDeck {
   id: string;
-  name: string;
   type: DeckType;
-  
-  // Cards in this deck
-  cards: Card[];
-  
-  // Deck behavior
-  cardLayout: 'stack' | 'tabs' | 'split' | 'floating';
-  allowReordering: boolean;
-  allowDragOut: boolean;
-  
-  // Control level (inherits from or overrides board)
-  controlLevel?: ControlLevel;
+  panelId: string;
+  cardLayout: DeckCardLayout;
 }
 
+type DeckCardLayout = 'stack' | 'tabs' | 'split' | 'floating' | 'grid';
+
+// Canonical DeckType values (see cardplay/docs/canon/ids.md)
 type DeckType = 
-  | 'pattern-editor'      // Tracker grid
-  | 'notation-score'      // Staff notation
-  | 'clip-session'        // Clip launcher
-  | 'instrument-browser'  // Instrument list
-  | 'phrase-library'      // Phrase browser
-  | 'generator'           // AI/algorithmic generators
-  | 'arranger'            // Arranger controls
-  | 'mixer'               // Channel strips
+  | 'pattern-deck'        // Tracker grid
+  | 'notation-deck'       // Staff notation
+  | 'session-deck'        // Clip launcher
+  | 'instruments-deck'    // Instrument list
+  | 'phrases-deck'        // Phrase browser
+  | 'generators-deck'     // AI/algorithmic generators
+  | 'arranger-deck'       // Arranger controls
+  | 'mixer-deck'          // Channel strips
   | 'dsp-chain'           // Effect chain
-  | 'modular'             // Modular routing
-  | 'properties'          // Inspector/properties
-  | 'timeline'            // Arrangement timeline
-  | 'custom';             // User-defined
+  | 'routing-deck'        // Modular routing
+  | 'properties-deck'     // Inspector/properties
+  | 'arrangement-deck'    // Arrangement timeline
+  // ... and more (see canon/ids.md)
 ```
 
-### 7.2 Stack Behavior
+#### Legacy Aliases (doc-only)
+- `pattern-editor` → `pattern-deck`
+- `notation-score` → `notation-deck`
+- `clip-session` → `session-deck`
+- `instrument-browser` → `instruments-deck`
+- `phrase-library` → `phrases-deck`
+- `generator` → `generators-deck`
+- `arranger` → `arranger-deck`
+- `mixer` → `mixer-deck`
+- `modular` → `routing-deck`
+- `properties` → `properties-deck`
+- `timeline` → `arrangement-deck`
 
-Cards within a deck stack and can be switched:
+### 7.2 Stack Behavior (UI Layout)
+
+Cards within a deck can be arranged in tabs and switched. This is **UI layout**, not composition semantics:
 
 ```
 ┌────────────────────────────────────┐

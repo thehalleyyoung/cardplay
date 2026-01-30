@@ -7,7 +7,69 @@
  * @module @cardplay/boards/context/types
  */
 
-import type { ViewType } from '../types';
+import type { ViewType, DeckId } from '../types';
+
+// ============================================================================
+// B129: CONTEXT ID TYPES (Canon Naming Conventions)
+// ============================================================================
+
+/**
+ * Unique symbol for branding BoardContextId.
+ * @internal
+ */
+declare const __boardContextIdBrand: unique symbol;
+
+/**
+ * Unique symbol for branding SpecContextId.
+ * @internal
+ */
+declare const __specContextIdBrand: unique symbol;
+
+/**
+ * B129: Board-level context identifier.
+ * Used to namespace context state by board.
+ */
+export type BoardContextId = string & { readonly __brand?: typeof __boardContextIdBrand };
+
+/**
+ * B129: Spec-level context identifier.
+ * Used for music specification context within a board.
+ */
+export type SpecContextId = string & { readonly __brand?: typeof __specContextIdBrand };
+
+/**
+ * B129: Create a board context ID from a board ID.
+ */
+export function createBoardContextId(boardId: string): BoardContextId {
+  return `board:${boardId}` as BoardContextId;
+}
+
+/**
+ * B129: Create a spec context ID from board and deck.
+ */
+export function createSpecContextId(boardId: string, deckId: DeckId): SpecContextId {
+  return `spec:${boardId}:${deckId}` as SpecContextId;
+}
+
+/**
+ * B129: Parse a context ID to extract its components.
+ */
+export function parseContextId(id: BoardContextId | SpecContextId): {
+  type: 'board' | 'spec';
+  boardId: string;
+  deckId?: string;
+} | null {
+  if (id.startsWith('board:')) {
+    return { type: 'board', boardId: id.slice(6) };
+  }
+  if (id.startsWith('spec:')) {
+    const parts = id.slice(5).split(':');
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return { type: 'spec', boardId: parts[0], deckId: parts[1] };
+    }
+  }
+  return null;
+}
 
 // ============================================================================
 // ACTIVE CONTEXT

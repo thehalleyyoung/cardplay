@@ -10,6 +10,7 @@
 
 import type { DeckFactory } from './factory-types';
 import type { DeckType, Board } from '../types';
+import { normalizeDeckType } from '../../canon/legacy-aliases';
 
 // ============================================================================
 // FACTORY REGISTRY
@@ -19,54 +20,62 @@ import type { DeckType, Board } from '../types';
  * Registry for deck factories.
  *
  * B103-B105: Factory registration and retrieval.
+ * Change 153: Map keyed by DeckType (canonical).
  */
 export class DeckFactoryRegistry {
-  private factories = new Map<string, DeckFactory>();
+  private factories = new Map<DeckType, DeckFactory>();
 
   /**
    * Registers a deck factory.
    *
    * B104: Implement registerFactory with duplicate guards.
+   * Canonicalizes deck type via normalizeDeckType.
    *
-   * @param deckType Deck type
+   * @param deckType Deck type (may be legacy or canonical)
    * @param factory Factory implementation
    */
   registerFactory(deckType: DeckType, factory: DeckFactory): void {
-    if (this.factories.has(deckType)) {
-      console.warn(`Deck factory for "${deckType}" already registered, replacing`);
+    const canonicalType = normalizeDeckType(deckType);
+    
+    if (this.factories.has(canonicalType)) {
+      console.warn(`Deck factory for "${canonicalType}" already registered, replacing`);
     }
 
-    if (factory.deckType !== deckType) {
+    if (normalizeDeckType(factory.deckType) !== canonicalType) {
       throw new Error(
-        `Factory deckType "${factory.deckType}" does not match registration key "${deckType}"`
+        `Factory deckType "${factory.deckType}" does not match registration key "${deckType}" (canonical: "${canonicalType}")`
       );
     }
 
-    this.factories.set(deckType, factory);
+    this.factories.set(canonicalType, factory);
   }
 
   /**
    * Gets a deck factory.
    *
    * B105: Implement getFactory.
+   * Canonicalizes deck type via normalizeDeckType.
    *
-   * @param deckType Deck type
+   * @param deckType Deck type (may be legacy or canonical)
    * @returns Factory or undefined
    */
   getFactory(deckType: DeckType): DeckFactory | undefined {
-    return this.factories.get(deckType);
+    const canonicalType = normalizeDeckType(deckType);
+    return this.factories.get(canonicalType);
   }
 
   /**
    * Checks if a factory is registered.
    *
    * B105: Implement hasFactory.
+   * Canonicalizes deck type via normalizeDeckType.
    *
-   * @param deckType Deck type
+   * @param deckType Deck type (may be legacy or canonical)
    * @returns true if factory is registered
    */
   hasFactory(deckType: DeckType): boolean {
-    return this.factories.has(deckType);
+    const canonicalType = normalizeDeckType(deckType);
+    return this.factories.has(canonicalType);
   }
 
   /**
@@ -78,9 +87,11 @@ export class DeckFactoryRegistry {
 
   /**
    * Unregisters a deck factory (for testing).
+   * Canonicalizes deck type via normalizeDeckType.
    */
   unregisterFactory(deckType: DeckType): void {
-    this.factories.delete(deckType);
+    const canonicalType = normalizeDeckType(deckType);
+    this.factories.delete(canonicalType);
   }
 
   /**

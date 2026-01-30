@@ -1,0 +1,282 @@
+# GOFAI Goal Track A (Frontend): Deep NLP + Semantics/Pragmatics + HCI
+
+Focus: English parsing, deep semantic composition, pragmatic/discourse resolution, clarification UX, CPL inspection and user-facing trust surfaces. Backend execution details live in Track B.
+
+This file is a bipartite split of `500_gofai_goal.md` so two workstreams can iterate in parallel. Step numbers match the original plan.
+
+---
+
+## Phase 0 — Charter, Invariants, and Non‑Negotiables (Steps 001–050)
+
+- [ ] Step 001 [Infra][HCI] — Write a one-page “GOFAI Music+ product contract” (offline, deterministic, inspectable, undoable) and publish it as a repo doc with explicit non-goals.
+- [ ] Step 005 [HCI] — Define user-facing trust primitives: **preview**, **diff**, **why**, **undo**, and **scope highlighting** are mandatory in UX.
+- [ ] Step 009 [HCI] — Decide the default interaction loop: parse → show CPL → ask clarifications if needed → show plan/diff → user applies.
+- [ ] Step 012 [NLP][Prag] — Specify a formal ambiguity policy: allow underspecified meaning (holes) and require explicit resolution before execution.
+- [ ] Step 013 [NLP][Sem] — Choose a core semantic representation strategy: typed lambda calculus + event semantics + degree semantics, with MRS-like underspecification for scope.
+- [ ] Step 014 [Prag] — Choose a discourse model strategy: DRT/SDRT-style discourse referents + rhetorical relations for “and/but/then/after”.
+- [ ] Step 015 [Prag][HCI] — Define the “clarification question” contract (QUD-style): every question must (a) name the ambiguity, (b) offer defaults, (c) show impact.
+- [ ] Step 018 [HCI] — Define “error shapes” for UI: parse error, unresolved reference, unsatisfied constraint, unsafe plan, missing capability.
+- [ ] Step 019 [Infra] — Commit to “no magic”: any default (e.g., what “darker” means) must be inspectable and user-configurable.
+- [ ] Step 021 [HCI] — Write 10 canonical user scenarios spanning studio editing, education, live performance, and IP-sensitive workflows.
+- [ ] Step 026 [Type] — Decide on a “semantic provenance” mechanism: every CPL node retains spans + lexeme IDs + rule IDs that created it.
+- [ ] Step 028 [Eval] — Create a seed dataset: 200 English instructions with expected CPL (covering scope, constraints, comparatives, anaphora, negation).
+- [ ] Step 029 [Eval] — Create paraphrase sets for 50 of those instructions (≥5 paraphrases each) to enforce semantic invariance.
+- [ ] Step 030 [Eval][Prag] — Create an “ambiguity suite” of utterances that must trigger clarification (not allowed to auto-resolve).
+- [ ] Step 034 [HCI] — Define “preview-first UX”: user can inspect plan/diff at every step; auto-apply only in explicitly allowed contexts.
+- [ ] Step 036 [Prag] — Specify how UI selection participates in pragmatics (deictic “this”, “here”, “these notes”), including fallbacks when selection is empty.
+- [ ] Step 037 [Sem] — Specify how contrastive constructions map (“do X but keep Y”, “do X without Y”) including constraint precedence rules.
+- [ ] Step 038 [Sem][Prag] — Specify the semantics of “again”, “still”, “also”, “too” as presupposition triggers in edit dialogue.
+- [ ] Step 039 [Prag] — Specify an implicature/default model (Gricean/QUD): what “keep tempo steady” implies absent explicit BPM changes.
+- [ ] Step 040 [Infra] — Define a change-control rule: new lexemes/grammar rules require golden tests and ambiguity analysis notes.
+- [ ] Step 041 [Type] — Decide how musical “entities” are typed: section, range, track/layer, card, param, event selector, deck, board.
+- [ ] Step 042 [Infra] — Create a “canonical axis catalog” for perceptual axes (energy, lift, brightness, width, intimacy, tension, groove tightness).
+- [ ] Step 043 [Sem] — Define degree semantics for comparatives (“more lift”, “less busy”) using axis values and monotonic lever mappings.
+- [ ] Step 044 [HCI] — Define UI affordances for degrees: sliders, discrete “tiny/small/moderate/large”, and explicit numeric overrides.
+- [ ] Step 049 [HCI] — Define “user preference profiles” for vague words (dark = timbre vs harmony vs register) and how UI edits those profiles.
+---
+
+## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)
+
+- [ ] Step 051 [Type][Infra] — Create a GOFAI canon layer: a single SSOT module exporting lexeme IDs, axis IDs, opcode IDs, and normalization rules.
+- [ ] Step 054 [Type] — Define `EntityRef` types (SectionRef, RangeRef, LayerRef, CardRef, ParamRef, DeckRef, BoardRef) with branded IDs.
+- [ ] Step 055 [Type] — Define `EventSelector` as a typed predicate language over `Event<P>` (kind, tags, role, pitch range, time range).
+- [ ] Step 056 [Infra] — Implement a project “symbol table builder” that indexes sections, tracks/layers, cards, decks, and boards by IDs and display names.
+- [ ] Step 057 [Prag][Type] — Add salience tracking to symbol tables (last-focused section, last-edited layer, current selection) for reference resolution.
+- [ ] Step 058 [NLP][Sem] — Define a canonical section vocabulary: intro/verse/chorus/bridge/outro + numbered variants + user-defined labels.
+- [ ] Step 059 [NLP][Sem] — Define a canonical layer vocabulary: drums/kick/snare/hats/bass/pad/lead/vocal + role mappings.
+- [ ] Step 060 [NLP][Sem] — Define a canonical time vocabulary: bars/beats/ticks, relative phrases (“two bars before”), and timepoint references (“at bar 49”).
+- [ ] Step 071 [Infra] — Document the “entity binding precedence”: selection > explicit reference > salience > defaults; add tests for resolution order.
+- [ ] Step 072 [Prag] — Encode deictic resolution rules (“this section”, “these notes”) and require a UI selection context for them.
+- [ ] Step 074 [Sem] — Specify how event-level references surface in language (“the last note”, “the downbeats”, “every other bar”).
+- [ ] Step 075 [HCI] — Add UI copy guidelines for showing entity bindings (“‘that chorus’ → Chorus 2 (bars 49–65)”).
+- [ ] Step 076 [Infra] — Create a canonical “domain noun inventory” (bars, hook, motif, voicing, groove, drop, build) with definitions and examples.  Note that it should include nouns from as many music theories and traditions as possible.
+- [ ] Step 077 [Sem] — Define a “musical object ontology” that distinguishes structure, harmony, rhythm, timbre/production, performance.  Note that it should include ontological objects from as many music theories and traditions as possible.
+- [ ] Step 078 [Type] — Define typed “targets” for preserve-only-change constraints (preserve melody exact vs functional harmony vs recognizable hook), again aiming for wide scope.
+- [ ] Step 079 [Prag] — Define a model of “shared plans” (plan recognition) for repeated edits (“do it again but bigger”).
+- [ ] Step 080 [Infra] — Implement a canonical registry of “default interpretations” with user-overridable mappings and versioned provenance.
+- [ ] Step 084 [HCI] — Define how the UI exposes the current focus stack (board → deck → selection) as an explicit context panel.
+- [ ] Step 085 [Infra] — Add deterministic fuzzy matching rules for resolving names (same algorithm everywhere; stable tie-breakers; explainable matches).
+- [ ] Step 092 [Prag] — Specify how temporal adverbs (“now”, “then”) interact with dialogue state to choose edit targets.
+- [ ] Step 093 [Prag] — Specify how demonstratives (“that”, “those”) choose referents using salience, recency, and UI focus.
+- [ ] Step 094 [Sem] — Define the semantics of coordination and sequencing (“do X and then Y”) as ordered plan composition.
+- [ ] Step 095 [Sem] — Define the semantics of “instead” and “rather than” as plan replacement with explicit rollback.
+- [ ] Step 096 [HCI] — Design a “binding inspector” UI panel that shows resolved referents and why they were chosen.
+- [ ] Step 097 [HCI] — Design a “vocabulary browser” UI that lists known terms and their meanings, including extension namespaces.
+---
+
+## Phase 2 — Parsing Frontend: Tokenization, Morphology, and Grammar (Steps 101–150)
+
+- [ ] Step 101 [NLP] — Implement a span-preserving tokenizer that retains original substrings for quoting, highlighting, and provenance.
+- [ ] Step 102 [NLP] — Implement a normalizer that canonicalizes whitespace, punctuation, unicode quotes, hyphenation, and common unit spellings.
+- [ ] Step 103 [NLP] — Implement morphological normalization (lemmatization-lite) for core verbs/adjectives (tighten/tighter/tightening).
+- [ ] Step 104 [NLP] — Add a robust number parser (words + digits) supporting “two”, “a couple”, “half”, and numeric ranges.
+- [ ] Step 105 [NLP] — Implement unit parsing (“96 BPM”, “+7 semitones”, “two bars”), returning typed units.
+- [ ] Step 106 [NLP][Infra] — Choose and implement a deterministic parsing engine (Earley/GLR + scoring, or PEG + diagnostics) and document tradeoffs.
+- [ ] Step 107 [NLP] — Add a parse forest representation to preserve ambiguity instead of losing it to early decisions.
+- [ ] Step 108 [NLP][Prag] — Implement a scoring model for parse selection that prefers explicit scopes and safer interpretations.
+- [ ] Step 109 [NLP] — Implement parse diagnostics (“why this parse won”) to support developer debugging and user-facing explanations.
+- [ ] Step 110 [NLP] — Implement incremental parsing hooks for “parse while typing” with caching keyed by token spans.
+- [ ] Step 111 [NLP][Sem] — Add a grammar for imperatives (“make”, “add”, “remove”, “keep”, “switch”) with typed verb frames.
+- [ ] Step 112 [NLP][Sem] — Add a grammar for comparatives and degree modifiers (“more”, “less”, “slightly”, “a lot”).
+- [ ] Step 113 [NLP][Sem] — Add a grammar for coordination (“X and Y”, “X but Y”, “X then Y”) preserving rhetorical structure cues.
+- [ ] Step 114 [NLP][Sem] — Add a grammar for negation and exclusion (“don’t”, “no”, “without”, “except”) with explicit scope.
+- [ ] Step 115 [NLP] — Add a grammar for time expressions (“for 8 bars”, “before the last chorus”, “in verse 2”) that builds typed ranges.
+- [ ] Step 116 [NLP][Prag] — Add a grammar for reference expressions (pronouns, demonstratives, “same as before”) that produce unresolved referents.
+- [ ] Step 117 [NLP][Sem] — Add a grammar for quantification (“all choruses”, “every other bar”, “each verse”) producing selection predicates.
+- [ ] Step 118 [NLP][Sem] — Add a grammar for modality and permission (“try”, “maybe”, “if possible”) producing soft constraints or alternative plans.
+- [ ] Step 119 [NLP][Sem] — Add a grammar for questions (“what chords are in the chorus?”, “why did you change that?”) mapping to inspect/explain acts.
+- [ ] Step 120 [NLP][Sem] — Add a grammar for explicit user-defined names (“the ‘glass pad’ track”) supporting quoted referents.
+- [ ] Step 121 [NLP][Sem] — Add lexeme classes for musical roles (melody, bassline, hook, accompaniment) with selectional restrictions.
+- [ ] Step 122 [NLP][Sem] — Add lexeme classes for musical objects (chords, voicings, rhythm, groove, density, register) with semantic mappings.
+- [ ] Step 123 [NLP][Sem] — Add lexeme classes for production terms (width, brightness, punch) that map either to arrangement levers or DSP levers.
+- [ ] Step 124 [NLP] — Add a grammar for “edit locality” (“just”, “only”, “at least”) to bias cost model and scope.
+- [ ] Step 125 [NLP][Sem] — Add a grammar for “preservation” (“keep the chords”, “don’t change the melody”) generating explicit CPL preserve constraints.
+- [ ] Step 126 [NLP] — Add a robust “unknown token” strategy that preserves unknown terms as candidate entity names rather than failing parsing.
+- [ ] Step 127 [NLP][Ext] — Add a mechanism for extensions to register additional lexemes and lexical variants into the parser at runtime.
+- [ ] Step 128 [NLP][Ext] — Add a mechanism for extensions to register new grammar rules with rule IDs, priorities, and required tests.
+- [ ] Step 129 [NLP][Infra] — Add a grammar regression harness that can snapshot parse forests and detect unintended ambiguity explosions.
+- [ ] Step 130 [NLP][HCI] — Add a user-facing “I didn’t understand” error formatter that pinpoints spans and suggests known terms.
+- [ ] Step 131 [Sem] — Implement argument structure constraints: ensure verbs like “widen” modify width-like targets, not arbitrary nouns (selectional restrictions).
+- [ ] Step 132 [Sem] — Implement type-directed disambiguation (bidirectional typing): use expected CPL node types to prune parse candidates.
+- [ ] Step 133 [Sem] — Implement compositional semantics hooks per grammar rule to produce intermediate meaning (CPL holes allowed).
+- [ ] Step 134 [Sem] — Implement “construction grammar” style templates for music-specific phrasings (“make it hit harder”, “bring it in earlier”).
+- [ ] Step 135 [Sem] — Implement degree semantics for vague adjectives (“warmer”, “darker”) as axis changes with candidate interpretations.
+- [ ] Step 136 [Sem] — Implement event semantics for actions (“add”, “remove”, “change”) to uniformly represent edit events and their arguments.
+- [ ] Step 137 [Sem] — Implement generalized quantifier semantics for “all/some/most” when needed for selectors (“all choruses”).
+- [ ] Step 138 [Sem] — Implement a representation for scope ambiguity (MRS-style) when quantifiers, negation, and “only” interact.
+- [ ] Step 139 [Prag] — Implement a “pragmatic bias” layer that pushes ambiguous parses into clarification rather than unsafe execution.
+- [ ] Step 140 [Infra] — Add developer tooling to visualize parse forest + semantic composition for a given utterance.
+- [ ] Step 141 [Eval] — Add golden tests for 100 core utterances ensuring stable tokenization and parse outputs.
+- [ ] Step 142 [Eval] — Add paraphrase invariance tests at the parse+semantics boundary (paraphrases should yield the same CPL-Intent or same holes).
+- [ ] Step 143 [Eval] — Add fuzz tests for tokenizer and unit parsing (random punctuation, unicode, spacing) to ensure robustness.
+- [ ] Step 144 [Eval] — Add ambiguity tests ensuring known ambiguous utterances do not collapse to a single meaning without clarification.
+- [ ] Step 145 [Eval] — Add performance tests for parsing latency under incremental typing (budget targets per input length).
+- [ ] Step 146 [HCI] — Define a “typing UX” spec: parse status indicator, suggestions dropdown, and how/when to interrupt with clarification.
+- [ ] Step 147 [HCI] — Define an error recovery UX: user can edit the utterance, accept suggested rephrasing, or choose from interpreted candidates.
+- [ ] Step 148 [HCI] — Add UI copy templates for clarification questions (“By ‘darker’ do you mean timbre, harmony, register, or texture?”).
+- [ ] Step 149 [HCI] — Add a rule that every clarification UI must show a default and “why this matters” in one line.
+- [ ] Step 150 [Infra] — Establish a “grammar authorship workflow” (PR checklist: add lexeme, add grammar rule, add golden tests, add docs entry).
+---
+
+## Phase 3 — Deep Semantics: From Syntax to CPL (Steps 151–200)
+
+- [ ] Step 151 [Type][Sem] — Define the CPL AST family as three layers: CPL-Intent, CPL-Plan, CPL-Host, each with versioned JSON encoding.
+- [ ] Step 152 [Type][Sem] — Define `CPLHole` nodes explicitly (unknown axis sense, unknown referent, unknown amount, unknown scope) with candidate sets.
+- [ ] Step 153 [Type][Sem] — Define `SpeechAct` types (change, inspect, explain, undo/redo, propose) and make them the root of CPL-Intent.
+- [ ] Step 154 [Sem] — Encode neo-Davidsonian event semantics for edits: edit actions are events with thematic roles (agent=user, patient=target).
+- [ ] Step 155 [Sem] — Encode degree semantics for axes and comparatives; represent “more” as an ordering constraint on an axis variable.
+- [ ] Step 156 [Sem] — Add a Montague-style compositional pipeline: parse rules attach lambda terms that assemble into CPL-Intent skeletons.
+- [ ] Step 157 [Sem] — Add FrameNet/Frame semantics integration: verb frames (“tighten”, “widen”, “simplify”) map to axis/levers + selectional restrictions.
+- [ ] Step 158 [Sem] — Add a typed representation for “musical goals” distinct from “actions”: goals are desiderata over axes and structures.
+- [ ] Step 159 [Sem] — Add a typed representation for “constraints” that can be checked against diffs (preserve melody exact, keep chords functional).
+- [ ] Step 160 [Sem] — Add a typed representation for “preferences” (least-change, no-new-layers) as weighted soft constraints.
+- [ ] Step 161 [Sem] — Implement contrast semantics for “but” (SDRT cue): represent as goal+constraint pairing with discourse relation `Contrast`.
+- [ ] Step 162 [Sem] — Implement sequencing semantics for “then/after/before” as plan composition constraints (order in CPL-Plan).
+- [ ] Step 163 [Sem] — Implement “only” semantics: a focus-sensitive operator that restricts the allowed change targets.
+- [ ] Step 164 [Sem] — Implement “still” and “again” semantics as presuppositions about prior states/edits (ties into edit history).
+- [ ] Step 165 [Sem] — Implement “keep X the same” as `preserve(X, exact)` by default, with optional relaxation to functional/recognizable modes.
+- [ ] Step 166 [Sem][Type] — Define `PreservationMode` = exact | functional | recognizable, and specify validation checks for each (pitch equality vs contour fingerprint).
+- [ ] Step 167 [Sem] — Add motif identity semantics: define motif fingerprints (interval/rhythm) and “recognizable” thresholds.
+- [ ] Step 168 [Sem] — Add harmony identity semantics: define chord skeleton vs extensions vs substitutions; map “keep chords” to an explicit tier.
+- [ ] Step 169 [Sem] — Add rhythm identity semantics: define “keep rhythm” as onset grid equality or tolerance-based equivalence.
+- [ ] Step 170 [Sem] — Add arrangement identity semantics: define “keep instrumentation” vs “keep roles” vs “keep layers” as distinct constraints.
+- [ ] Step 171 [Sem][Type] — Implement “semantic typing” for scopes: section scopes accept section refs; bar-range scopes accept typed ranges; selectors accept predicates.
+- [ ] Step 172 [Sem][Type] — Implement “semantic typing” for targets: axis modifiers must attach to axes or to entities with known axis bindings.
+- [ ] Step 173 [Sem] — Implement semantics for “make it feel X” as mapping from affective adjectives to axis bundles + candidate levers (explicitly namespaced).
+- [ ] Step 174 [Sem] — Implement semantics for “hit harder”/“more punch” as mapping to impact axis + candidate levers (density, transients, dynamics).
+- [ ] Step 175 [Sem] — Implement semantics for “more hopeful” as mapping to tension/release + brightness + register (with explicit constraints interaction).
+- [ ] Step 176 [Sem] — Build a “meaning provenance graph” that can explain which words mapped to which CPL nodes and why.
+- [ ] Step 177 [Sem] — Implement MRS-like underspecification for scope ambiguities; keep an explicit set of constraints instead of choosing prematurely.
+- [ ] Step 178 [Sem] — Implement a scope resolution phase that either (a) resolves safely by rules or (b) produces a clarification question.
+- [ ] Step 179 [Sem] — Implement typed ellipsis templates (“same but bigger”, “do that again”) as transformations over prior CPL/plan nodes.
+- [ ] Step 180 [Sem] — Implement typed metonymy handling for music talk (“the chorus” can mean section events, harmony, or arrangement) as a hole with candidates.
+- [ ] Step 181 [Type] — Define a “CPL well-formedness checker” that rejects missing required fields and unknown tags/opcodes/axes.
+- [ ] Step 182 [Type] — Define a “CPL effect checker” that ensures `inspect` requests cannot compile to mutation actions.
+- [ ] Step 183 [Type] — Define a “CPL capability checker” that blocks compilation requiring disabled capabilities (e.g., production edits on non-production boards).
+- [ ] Step 184 [Type] — Add refinement validations for numeric fields (BPM, semitones, amount) with consistent error messages.
+- [ ] Step 185 [Type] — Implement bidirectional typechecking between grammar semantics and CPL AST types (catch lexeme mapping errors early).
+- [ ] Step 186 [NLP][Sem] — Add support for quoted programmatic references (“the track called ‘Glass Pad’”) and ensure they bind deterministically.
+- [ ] Step 187 [NLP][Sem] — Add support for adjectival stacks (“brighter and wider and less busy”) as conjunction of goals with shared scope.
+- [ ] Step 188 [NLP][Sem] — Add support for nested scopes (“in the chorus, on the drums, only for two bars”) producing compositional scope nodes.
+- [ ] Step 189 [NLP][Sem] — Add support for numeric qualifiers (“raise it 2 semitones”, “reduce density by 20%”) with typed units.
+- [ ] Step 190 [NLP][Sem] — Add support for range expressions (“bars 33–40”, “last 2 bars”) with inclusive/exclusive rules documented.
+- [ ] Step 191 [Eval] — Add golden tests for CPL-Intent construction for 200 utterances with explicit expected holes where ambiguity exists.
+- [ ] Step 192 [Eval] — Add “semantic diff” tests: ensure changes to lexicon mappings don’t silently change CPL outputs without updating goldens.
+- [ ] Step 193 [Eval] — Add “scope safety” tests: utterances with scoping must always bind to the same range given the same fixture.
+- [ ] Step 194 [Eval] — Add “operator interaction” tests for negation/only/quantifiers, ensuring MRS underspecification behaves predictably.
+- [ ] Step 195 [Eval] — Add tests ensuring presupposition triggers create expected “requires prior referent” holes when history lacks support.
+- [ ] Step 196 [HCI] — Define a CPL viewer UX: collapsible tree, colored tags (goal/constraint/scope), and clickable spans back to original text.
+- [ ] Step 197 [HCI] — Add an “ambiguity UI” pattern: show candidate meanings side-by-side with consequences; allow default selection.
+- [ ] Step 198 [HCI] — Add a “semantic provenance UI” pattern: hover on CPL node to show source words + rule IDs in developer mode.
+- [ ] Step 199 [HCI] — Add a “user vocabulary learning” UX: when user clarifies “dark means timbre”, offer to save as preference.
+- [ ] Step 200 [HCI] — Add a “teach mode” option: the system can explain the semantics in musical terms (education workflow).
+---
+
+## Phase 4 — Deep Pragmatics + Dialogue: Context, Anaphora, Presupposition, QUD (Steps 201–250)
+
+- [ ] Step 201 [Prag] — Define a dialogue state model that stores: last focused scope, salient entities, last CPL, last plan, last diff, user prefs.
+- [ ] Step 202 [Prag] — Implement DRT-style discourse referents for entities (sections, layers, cards, motifs) that persist across turns.
+- [ ] Step 203 [Prag] — Implement anaphora resolution rules for “it/that/this/there” using salience + UI focus + recency weighting.
+- [ ] Step 204 [Prag] — Implement definite description resolution (“the chorus”, “the bridge”) with ambiguity to clarification when multiple matches exist.
+- [ ] Step 205 [Prag] — Implement demonstrative resolution tied to UI selection (“these notes”) with fallback to last selection.
+- [ ] Step 206 [Prag] — Implement presupposition checking/accommodation for “again”, “still”, “back”, “return”, “keep”, and “continue”.
+- [ ] Step 207 [Prag] — Implement conversational implicature defaults: “make it tighter” defaults to microtiming and density levers unless user overrides.
+- [ ] Step 208 [Prag] — Implement QUD stack tracking: interpret utterances relative to the current question under discussion to decide what “it” refers to.
+- [ ] Step 209 [Prag] — Implement clarification generation as QUD refinement: questions should reduce candidate set cardinality maximally.
+- [ ] Step 210 [Prag] — Implement “accept defaults” and “override” dialogue moves (“yes”, “no, I meant harmony”) as edits to holes.
+- [ ] Step 211 [Prag] — Implement ellipsis resolution (“same but bigger”) by referencing the last plan step or last edit package as antecedent.
+- [ ] Step 212 [Prag] — Implement modal subordination-like behavior for “if possible” (store conditional intent and prefer satisfying it).
+- [ ] Step 213 [Prag] — Implement a “common ground” model: track what has been mutually established (selected chorus = Chorus 2) to stabilize references.
+- [ ] Step 214 [Prag] — Implement discourse relations (SDRT) for “but/so/then/also” to shape plan ordering and constraint emphasis.
+- [ ] Step 215 [Prag] — Implement repair moves: user can say “no, not that chorus” and the system rebinds referent without losing other meaning.
+- [ ] Step 216 [Prag] — Implement temporal deixis: interpret “earlier/later” relative to (a) song form or (b) bar microtiming as an explicit ambiguity.
+- [ ] Step 217 [Prag] — Implement scale of granularity: interpret “earlier” as section-level vs beat-level depending on context (default to safer clarification).
+- [ ] Step 218 [Prag] — Implement “topic continuity”: if user is working on chorus, “make it wider” inherits chorus scope unless contradicted.
+- [ ] Step 219 [Prag] — Implement “focus semantics”: contrastive stress (if captured) or textual cues (“NOT the chords”) prioritize certain constraints.
+- [ ] Step 220 [Prag] — Implement “reference by description”: “the noisy synth” resolves via metadata/tags; if multiple, ask a disambiguating question.
+- [ ] Step 221 [Prag][Type] — Typecheck pragmatic bindings: references must resolve to entities compatible with their semantic roles or become holes.
+- [ ] Step 222 [Prag][Type] — Define a structured “clarification object” type: question text, options, default, effect on CPL, and safety notes.
+- [ ] Step 223 [Prag] — Implement a “clarification minimality” principle: ask only what’s needed to execute safely, not what’s needed to be perfect.
+- [ ] Step 224 [Prag] — Implement a “clarification batching” strategy: combine related ambiguities into one UI step when possible.
+- [ ] Step 225 [Prag] — Implement user preference learning: persist mapping preferences for vague terms and apply them with provenance (“using your default”).
+- [ ] Step 226 [Sem][Prag] — Model speech acts explicitly: distinguish requests, suggestions, questions, meta-questions (“why”), and commands to undo.
+- [ ] Step 227 [Prag] — Implement politeness/hedging handling (“could you maybe”) as lowering confidence, not changing the semantic act type.
+- [ ] Step 228 [Prag] — Implement “intention recognition” for multi-turn editing: recognize that user is optimizing a section and keep stable scope.
+- [ ] Step 229 [Prag] — Implement “plan confirmation” moves: user says “yes, do that” to commit and execute; nothing executes before that.
+- [ ] Step 230 [Prag] — Implement “counterfactual exploration”: user says “what if we…” to produce alternative plans without mutation.
+- [ ] Step 231 [HCI] — Add UI for “clarification cards”: each ambiguity is a small card with radio options and a default explanation.
+- [ ] Step 232 [HCI] — Add UI for “context strip”: shows current focus (board/deck/section/range/layer) and how pronouns will resolve.
+- [ ] Step 233 [HCI] — Add UI for “conversation memory”: show last N turns with CPL and diffs; allow bookmarking.
+- [ ] Step 234 [HCI] — Add UI for “undo target selection”: user can undo last, undo specific package, or undo by scope (chorus only).
+- [ ] Step 235 [HCI] — Add UI for “preference tuning”: user can set “dark means…” via a simple toggle matrix.
+- [ ] Step 236 [Eval] — Create a dialogue fixture suite: multi-turn conversations with expected referent bindings and clarifications.
+- [ ] Step 237 [Eval] — Add tests for anaphora correctness across turns (it/that/again) using DRT-style referents.
+- [ ] Step 238 [Eval] — Add tests for presupposition handling: “again” must fail/clarify if no antecedent edit exists.
+- [ ] Step 239 [Eval] — Add tests for QUD behavior: clarification questions should reduce ambiguity and not introduce new ambiguities.
+- [ ] Step 240 [Eval] — Add regression tests for “repair moves” (“no, I meant…”) preserving all other semantics.
+- [ ] Step 241 [Sem][Prag] — Integrate discourse-level constraints: “but keep the melody” should become a high-priority hard constraint by default.
+- [ ] Step 242 [Sem][Prag] — Implement “accommodation policies” for underspecified requests: propose defaults but require explicit acknowledgement before execution.
+- [ ] Step 243 [Prag] — Implement “safety-first deference”: if a binding would cause large changes, prefer asking a question over executing.
+- [ ] Step 244 [Prag] — Implement “confidence” as an internal measure derived from ambiguity/hole count, not as a probabilistic model.
+- [ ] Step 245 [Prag] — Implement “explainable resolution”: every resolved pronoun must have a user-readable reason (“most recent focus: Chorus 2”).
+- [ ] Step 246 [HCI] — Add “why this question?” affordance on clarification UI that shows the competing meanings and their edits.
+- [ ] Step 247 [HCI] — Add a “safe preview mode” for ambiguous requests: show two candidate diffs without applying either.
+- [ ] Step 248 [HCI] — Add a “commit button” that is disabled until all hard ambiguities are resolved (holes that affect execution).
+- [ ] Step 249 [HCI] — Add “developer mode” toggles to display discourse referents and salience scores for debugging.
+- [ ] Step 250 [Infra] — Define an internal “pragmatics trace” format that records binding decisions for reproducibility and bug reports.
+---
+
+## Phase 7 — HCI: The GOFAI Deck, Clarifications, Trust, and Flow (Steps 351–400)
+
+- [ ] Step 351 [HCI] — Implement a GOFAI deck UI with three panes: English input, CPL viewer, Plan/Diff preview, aligned with CardPlay deck patterns.
+- [ ] Step 352 [HCI] — Add inline scope visualization: hovering “chorus” highlights the bound section in the timeline and editors.
+- [ ] Step 353 [HCI] — Add inline entity chips: resolved referents appear as chips (“Chorus 2”, “Drums track”) that can be clicked to change binding.
+- [ ] Step 354 [HCI] — Add “apply” gating UI: disabled until required clarifications resolved and plan preflight passes.
+- [ ] Step 355 [HCI] — Add a “quick actions” bar: undo, redo, explain, compare plans, export report.
+- [ ] Step 356 [HCI] — Implement a dedicated clarification modal that supports QUD-style options with defaults and consequences.
+- [ ] Step 357 [HCI] — Provide an “ask fewer questions” toggle that allows the user to set stronger defaults (with safety warnings).
+- [ ] Step 358 [HCI] — Provide a “strict mode” toggle for studios: always clarify ambiguous terms; never auto-default.
+- [ ] Step 359 [HCI] — Implement keyboard-first workflows: enter command, navigate clarifications, apply, undo, all without mouse.
+- [ ] Step 360 [HCI] — Implement accessibility semantics (ARIA labels, focus management, screen reader-friendly diff summaries).
+- [ ] Step 361 [HCI] — Add a “plan comparison” UI: show two candidate plans with side-by-side diff summaries and lever explanations.
+- [ ] Step 362 [HCI] — Add a “lever editing” UI: user can tweak plan parameters (amounts, ranges) before apply and revalidate.
+- [ ] Step 363 [HCI] — Add a “scope editing” UI: user can expand/narrow scope via timeline brushing; CPL updates live.
+- [ ] Step 364 [HCI] — Add “safety badges” (safe/medium/risky) derived from cost model + constraint risk; show why in tooltip.
+- [ ] Step 365 [HCI] — Add “explanation mode” where the tool narrates musical reasoning (“Raised register to increase lift”).
+- [ ] Step 366 [HCI] — Integrate the GOFAI deck into board gating: only visible in boards whose tool config allows it; otherwise parse-only in a minimal panel.
+- [ ] Step 367 [HCI] — Add a “board recommendation” action: if a request requires tools not available, suggest switching boards rather than failing.
+- [ ] Step 368 [HCI] — Add UI for “capability mismatches” (e.g., production edits requested but production tools disabled): show alternatives.
+- [ ] Step 369 [HCI] — Add UI for “inspect requests” (show chords, show density): results display in a structured viewer, not chat text.
+- [ ] Step 370 [HCI] — Add “bookmarking” and “naming” of edit packages (“Chorus lift v3”), and allow quick revert to bookmarks.
+- [ ] Step 371 [HCI] — Implement a “confidence timeline”: show how confidence changes as the user clarifies and refines.
+- [ ] Step 372 [HCI] — Implement “show me what you understood” as a dedicated action that displays CPL and bindings even before planning.
+- [ ] Step 373 [HCI] — Implement “teach me” explanations: the system can explain chord functions, groove changes, and why a plan increases tension.
+- [ ] Step 374 [HCI] — Implement “collaboration export”: generate a shareable markdown/JSON report of edits without including sensitive assets.
+- [ ] Step 375 [HCI] — Implement “undo/redo UX parity”: undo and redo should show the same diff previews as apply.
+- [ ] Step 376 [HCI] — Implement error affordances: parse errors highlight spans; unsatisfied constraints show counterexamples; missing referents show binding suggestions.
+- [ ] Step 377 [HCI] — Implement “safe degrade”: when a request is too broad, the UI offers narrower scopes or proposes inspection first.
+- [ ] Step 378 [HCI] — Implement “user intent editing”: allow directly editing CPL nodes (advanced mode) while preserving provenance of manual edits.
+- [ ] Step 379 [HCI] — Implement “developer inspector mode”: show parse forest, MRS constraints, discourse referents, plan scoring details.
+- [ ] Step 380 [HCI] — Implement “profile UX”: per-user defaults for vague terms and safety level; allow exporting/importing profiles.
+- [ ] Step 381 [HCI] — Add a “vocabulary hinting” UX: as user types, suggest known axes/entities (“lift”, “chorus 2”, “hats”).
+- [ ] Step 382 [HCI] — Add “did you mean…” corrections for unknown terms based on lexicon and symbol tables.
+- [ ] Step 383 [HCI] — Add “inline plan preview” for simple requests (single lever), showing immediate diff proposals.
+- [ ] Step 384 [HCI] — Add “plan staging”: user can queue multiple edits and apply as a single package, with combined diff.
+- [ ] Step 385 [HCI] — Add “guard rails” for destructive edits: large structural changes require extra confirmation UI.
+- [ ] Step 386 [Eval][HCI] — Run formative usability tests on the clarification UI with musicians; measure confusion points and iterate.
+- [ ] Step 387 [Eval][HCI] — Measure time-to-completion for common edits vs manual DAW-like operations; track deltas.
+- [ ] Step 388 [Eval][HCI] — Measure “trust metrics”: frequency of undo, frequency of plan preview usage, and user-reported confidence.
+- [ ] Step 389 [Eval][HCI] — Run A/B tests (local) for different explanation formats (lever-based vs narrative) and measure comprehension.
+- [ ] Step 390 [Eval][HCI] — Validate accessibility with keyboard-only and screen reader testing; add tests for focus traps.
+- [ ] Step 391 [HCI] — Implement onboarding: guided tutorial that teaches scopes, constraints, and how clarifications work.
+- [ ] Step 392 [HCI] — Implement tooltips and inline examples for common commands (“cut drums for two bars before last chorus”).
+- [ ] Step 393 [HCI] — Implement “command templates” as chips that insert structured phrases (reduces parse errors).
+- [ ] Step 394 [HCI] — Implement “status bar” showing current parse state (ok / ambiguous / needs entity / needs capability).
+- [ ] Step 395 [HCI] — Implement “power user shortcuts” (jump to CPL view, jump to diff view, jump to bindings inspector).
+- [ ] Step 396 [HCI] — Implement “progressive disclosure”: novices see simplified CPL; experts can expand into full typed structure.
+- [ ] Step 397 [HCI] — Implement “explain constraints” UI: show exactly which constraint checks were run and their outcomes.
+- [ ] Step 398 [HCI] — Implement “plan safety summary” UI: small table listing touched scopes/layers/cards and preserved invariants.
+- [ ] Step 399 [HCI] — Implement “offline reassurance” UI: show that no network is used and assets remain local.
+- [ ] Step 400 [Infra] — Add UX instrumentation (local, optional) to capture parse failures and clarification frequency for iterative improvement.
+
+**Step count:** 250

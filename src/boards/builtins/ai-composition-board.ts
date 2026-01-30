@@ -101,7 +101,8 @@ export const aiCompositionBoard: Board = {
       type: 'ai-advisor-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'composer'
     },
     // H034: Notation score (center - edit AI draft)
     {
@@ -109,7 +110,8 @@ export const aiCompositionBoard: Board = {
       type: 'notation-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'notation'
     },
     // H035: Pattern editor (tabbed alternative)
     {
@@ -117,7 +119,8 @@ export const aiCompositionBoard: Board = {
       type: 'pattern-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'notation'
     },
     // H036: Timeline (bottom - arrange generated clips)
     {
@@ -125,7 +128,8 @@ export const aiCompositionBoard: Board = {
       type: 'arrangement-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'timeline'
     },
     // Properties for constraints
     {
@@ -133,7 +137,8 @@ export const aiCompositionBoard: Board = {
       type: 'properties-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'composer'
     }
   ],
   

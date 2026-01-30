@@ -18,6 +18,7 @@ import {
   type PersonaId,
 } from '../knowledge/persona-loader';
 import { loadAdaptationKB } from '../knowledge/adaptation-loader';
+import { type FeatureId, normalizeFeatureId } from '../../canon';
 
 // =============================================================================
 // Shared Types
@@ -3303,19 +3304,25 @@ export async function adaptSuggestions(
  * Queries `should_disclose/2` which compares the feature's minimum
  * required level against the user's level via `skill_level_order`.
  *
- * @param feature - The feature identifier (must match a `progressive_disclosure_rule` fact).
+ * @param feature - The feature identifier (FeatureId, distinct from DeckId).
  * @param skillLevel - The user's current skill level.
  * @returns `true` if the feature should be shown.
  */
 export async function decideFeatureVisibility(
-  feature: string,
+  feature: FeatureId | string,
   skillLevel: SkillLevel,
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<boolean> {
   await loadAdaptationKB(adapter);
 
+  // Normalize to canonical FeatureId format
+  const normalizedFeature = normalizeFeatureId(feature);
+  
+  // Extract the feature name for Prolog query (strip 'feature:' prefix if present)
+  const prologFeature = normalizedFeature.replace(/^feature:[a-z]+:/, '');
+
   const result = await adapter.querySingle(
-    `should_disclose(${feature}, ${skillLevel})`
+    `should_disclose(${prologFeature}, ${skillLevel})`
   );
   return result !== null;
 }
@@ -3324,17 +3331,19 @@ export async function decideFeatureVisibility(
  * N128: Get all features visible at a given skill level.
  *
  * Returns the list of features that `should_disclose/2` succeeds for.
+ * @returns Array of FeatureIds (canonical format).
  */
 export async function getVisibleFeatures(
   skillLevel: SkillLevel,
   adapter: PrologAdapter = getPrologAdapter()
-): Promise<string[]> {
+): Promise<FeatureId[]> {
   await loadAdaptationKB(adapter);
 
   const results = await adapter.queryAll(
     `should_disclose(Feature, ${skillLevel})`
   );
-  return results.map((r) => String(r.Feature));
+  // Normalize results to canonical FeatureId format
+  return results.map((r) => normalizeFeatureId(String(r.Feature)));
 }
 
 // =============================================================================
@@ -3392,7 +3401,7 @@ export function isAdvancedFeaturesOverrideActive(): boolean {
  * Otherwise delegates to the standard `decideFeatureVisibility`.
  */
 export async function decideFeatureVisibilityWithOverride(
-  feature: string,
+  feature: FeatureId | string,
   skillLevel: SkillLevel,
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<boolean> {
@@ -3404,18 +3413,19 @@ export async function decideFeatureVisibilityWithOverride(
  * N130: Get all visible features, respecting the override toggle.
  *
  * When the override is active, returns ALL features defined in the KB.
+ * @returns Array of FeatureIds (canonical format).
  */
 export async function getVisibleFeaturesWithOverride(
   skillLevel: SkillLevel,
   adapter: PrologAdapter = getPrologAdapter()
-): Promise<string[]> {
+): Promise<FeatureId[]> {
   if (advancedFeaturesOverride) {
     // Return all features, regardless of level
     await loadAdaptationKB(adapter);
     const results = await adapter.queryAll(
       'feature_complexity(Feature, _)'
     );
-    return results.map((r) => String(r.Feature));
+    return results.map((r) => normalizeFeatureId(String(r.Feature)));
   }
   return getVisibleFeatures(skillLevel, adapter);
 }

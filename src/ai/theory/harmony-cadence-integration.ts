@@ -6,10 +6,15 @@
  * - Cadence markers in tracker (C254)
  * - Cadence-triggered fills in arranger (C255)
  * 
+ * Uses canonical CadenceType from music-spec.ts to ensure consistency.
+ * 
  * @module @cardplay/ai/theory/harmony-cadence-integration
  */
 
-import type { RootName, ChordQuality } from './music-spec';
+import type { RootName, ChordQuality, CadenceType } from './music-spec';
+
+// Re-export CadenceType for consumers of this module
+export type { CadenceType } from './music-spec';
 
 // ============================================================================
 // C249: HARMONY EXPLORER PIVOT CHORD INTEGRATION
@@ -179,17 +184,11 @@ export function generateModulationPlan(
 // C254: TRACKER CADENCE MARKERS
 // ============================================================================
 
-/**
- * Types of cadences.
- */
-export type CadenceType =
-  | 'perfect_authentic'
-  | 'imperfect_authentic'
-  | 'half'
-  | 'plagal'
-  | 'deceptive'
-  | 'phrygian'
-  | 'evaded';
+// CadenceType is imported from music-spec.ts for consistency.
+// This module uses the canonical cadence type vocabulary:
+//   'perfect_authentic' | 'imperfect_authentic' | 'half'
+//   | 'plagal' | 'deceptive' | 'authentic'
+// Note: 'phrygian_half' and 'evaded' from music-spec are also valid.
 
 /**
  * A cadence detected in the music.
@@ -247,44 +246,42 @@ export function cadenceToMarker(
   cadence: DetectedCadence,
   ticksPerRow: number
 ): CadenceMarker {
-  const labels: Record<CadenceType, string> = {
+  // Use Partial since not all CadenceType values may be used in UI
+  const labels: Partial<Record<CadenceType, string>> = {
+    'authentic': 'AC',
     'perfect_authentic': 'PAC',
     'imperfect_authentic': 'IAC',
     'half': 'HC',
     'plagal': 'PC',
     'deceptive': 'DC',
-    'phrygian': 'PHR',
-    'evaded': 'EV',
   };
   
-  const colors: Record<CadenceType, string> = {
+  const colors: Partial<Record<CadenceType, string>> = {
+    'authentic': '#10B981',
     'perfect_authentic': '#10B981', // Green - strong
     'imperfect_authentic': '#3B82F6', // Blue
     'half': '#F59E0B', // Yellow - tension
     'plagal': '#8B5CF6', // Purple
     'deceptive': '#EF4444', // Red - surprise
-    'phrygian': '#6366F1', // Indigo
-    'evaded': '#9CA3AF', // Gray
   };
   
-  const icons: Record<CadenceType, string> = {
+  const icons: Partial<Record<CadenceType, string>> = {
+    'authentic': '🎵',
     'perfect_authentic': '🎵',
     'imperfect_authentic': '🎶',
     'half': '⏸️',
     'plagal': '✨',
     'deceptive': '❗',
-    'phrygian': '🎼',
-    'evaded': '➰',
   };
   
   return {
     tickPosition: cadence.tickPosition,
     row: Math.floor(cadence.tickPosition / ticksPerRow),
     type: cadence.type,
-    label: labels[cadence.type],
-    color: colors[cadence.type],
-    icon: icons[cadence.type],
-    tooltip: `${labels[cadence.type]}: ${cadence.chords.join(' → ')} (${cadence.confidence}% confidence)`,
+    label: labels[cadence.type] ?? cadence.type.toUpperCase(),
+    color: colors[cadence.type] ?? '#9CA3AF',
+    icon: icons[cadence.type] ?? '🎼',
+    tooltip: `${labels[cadence.type] ?? cadence.type}: ${cadence.chords.join(' → ')} (${cadence.confidence}% confidence)`,
   };
 }
 

@@ -8,13 +8,13 @@
  */
 
 import type { CardMeta } from '../../cards/card';
-import type { CardCategory } from '../../audio/instrument-cards';
+import type { AudioModuleCategory } from '../../audio/instrument-cards';
 import { type BoardCardKind } from './card-kinds';
 
 /**
  * Maps instrument card category to CardMeta category.
  */
-function mapInstrumentCategory(category: CardCategory): CardMeta['category'] {
+function mapInstrumentCategory(category: AudioModuleCategory): CardMeta['category'] {
   switch (category) {
     case 'sampler':
     case 'wavetable':
@@ -37,7 +37,7 @@ function mapInstrumentCategory(category: CardCategory): CardMeta['category'] {
  * Effect cards are also manual (user applies them).
  * MIDI/utility cards are manual helpers.
  */
-export function getInstrumentCardKind(_category: CardCategory): BoardCardKind {
+export function getInstrumentCardKind(_category: AudioModuleCategory): BoardCardKind {
   // All instrument cards are manual control
   return 'manual';
 }
@@ -65,7 +65,7 @@ export function getInstrumentCardKind(_category: CardCategory): BoardCardKind {
 export function instrumentToCardMeta(
   id: string,
   name: string,
-  category: CardCategory,
+  category: AudioModuleCategory,
   description?: string,
   tags?: readonly string[]
 ): CardMeta {
@@ -106,7 +106,7 @@ export function instrumentToCardMeta(
  */
 export function isInstrumentAllowed(
   _board: { controlLevel: string },
-  _category: CardCategory
+  _category: AudioModuleCategory
 ): boolean {
   // All instruments are manual, which is always allowed
   return true;
@@ -124,7 +124,7 @@ export function isInstrumentAllowed(
  * // ['sampler', 'instrument', 'manual', 'playable']
  * ```
  */
-export function getInstrumentTags(category: CardCategory): string[] {
+export function getInstrumentTags(category: AudioModuleCategory): string[] {
   const baseTags = [category, 'instrument', 'manual'];
   
   switch (category) {

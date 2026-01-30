@@ -476,7 +476,7 @@ export function convertTime(
     talaLength?: number; // aksharas per cycle
   }
 ): number {
-  const { tempo, ticksPerBeat = TICKS_PER_BEAT, beatsPerBar = 4, talaLength = 8 } = context;
+  const { tempo, ticksPerBeat = TICKS_PER_BEAT, beatsPerBar = 4 } = context;
   
   // Convert to beats first
   let beats: number;

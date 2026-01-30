@@ -130,6 +130,23 @@ export class ModalRoot {
     modal.element.setAttribute('role', 'dialog');
     modal.element.setAttribute('aria-modal', 'true');
     modal.element.style.zIndex = String(1000 + this.modalStack.length);
+    
+    // J051: Enhanced ARIA labeling
+    // Add aria-labelledby if modal has a title element
+    const titleElement = modal.element.querySelector('[data-modal-title], .modal__title, h2, h1');
+    if (titleElement && !modal.element.hasAttribute('aria-labelledby')) {
+      const titleId = titleElement.id || `modal-title-${modal.id}`;
+      titleElement.id = titleId;
+      modal.element.setAttribute('aria-labelledby', titleId);
+    }
+    
+    // Add aria-describedby if modal has a description element
+    const descElement = modal.element.querySelector('[data-modal-description], .modal__description');
+    if (descElement && !modal.element.hasAttribute('aria-describedby')) {
+      const descId = descElement.id || `modal-desc-${modal.id}`;
+      descElement.id = descId;
+      modal.element.setAttribute('aria-describedby', descId);
+    }
 
     this.container.appendChild(modal.element);
     this.updateVisibility();

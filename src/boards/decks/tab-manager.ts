@@ -4,11 +4,14 @@
  * Manages multiple tabs within a deck for multi-context workflows.
  * Enables pattern editors to have multiple patterns open, notation decks
  * to have multiple scores, etc.
+ * 
+ * B126: Treats deck IDs as stable tab IDs and uses DeckCardLayout semantics.
  *
  * @module @cardplay/boards/decks/tab-manager
  */
 
 import type { DeckRuntimeState } from './runtime-types';
+import type { DeckId, DeckCardLayout } from '../types';
 
 // ============================================================================
 // TYPES
@@ -16,9 +19,11 @@ import type { DeckRuntimeState } from './runtime-types';
 
 /**
  * A tab within a deck.
+ * 
+ * B126: Tab ID is derived from deck ID for stability.
  */
 export interface DeckTab {
-  /** Unique tab ID */
+  /** Unique tab ID (typically derived from DeckId) */
   id: string;
   /** Display label */
   label: string;
@@ -32,6 +37,8 @@ export interface DeckTab {
   icon?: string;
   /** Whether tab is closable */
   closable: boolean;
+  /** Associated deck ID (B126) */
+  deckId?: DeckId;
 }
 
 /**
@@ -44,6 +51,8 @@ export interface DeckTabState {
   tabs: DeckTab[];
   /** Maximum tabs allowed (0 = unlimited) */
   maxTabs: number;
+  /** B126: Layout mode for this deck's tabs */
+  layoutMode?: DeckCardLayout;
 }
 
 // ============================================================================
@@ -335,4 +344,84 @@ export function switchToTabByShortcut(
   if (!tab) return state;
 
   return setActiveTab(state, tab.id);
+}
+
+// ============================================================================
+// B126: DECK ID & LAYOUT INTEGRATION
+// ============================================================================
+
+/**
+ * Creates a tab from a deck ID.
+ * B126: Deck IDs serve as stable tab IDs.
+ */
+export function createTabFromDeckId(
+  deckId: DeckId,
+  label: string,
+  contentId: string,
+  contentType: string
+): DeckTab {
+  return {
+    id: deckId,
+    label,
+    contentId,
+    contentType,
+    dirty: false,
+    closable: false, // Deck tabs are typically not closable
+    deckId,
+  };
+}
+
+/**
+ * Creates tab state with a specific layout mode.
+ * B126: DeckCardLayout semantics determine tab behavior.
+ */
+export function createTabStateWithLayout(
+  layoutMode: DeckCardLayout,
+  maxTabs: number = 0
+): DeckTabState {
+  return {
+    activeTabId: null,
+    tabs: [],
+    maxTabs,
+    layoutMode,
+  };
+}
+
+/**
+ * Determines if tabs should be visible based on layout mode.
+ * B126: Some layouts (stack, split) don't show tab bar.
+ */
+export function shouldShowTabBar(layoutMode: DeckCardLayout): boolean {
+  switch (layoutMode) {
+    case 'tabs':
+      return true;
+    case 'stack':
+    case 'split':
+    case 'floating':
+    case 'grid':
+      return false;
+    default:
+      return true; // Default to showing tabs
+  }
+}
+
+/**
+ * Get layout mode description for UI.
+ * B126: DeckCardLayout semantics.
+ */
+export function getLayoutDescription(layoutMode: DeckCardLayout): string {
+  switch (layoutMode) {
+    case 'tabs':
+      return 'Tabbed view - switch between decks using tabs';
+    case 'stack':
+      return 'Stacked view - decks layered vertically';
+    case 'split':
+      return 'Split view - decks side by side';
+    case 'floating':
+      return 'Floating view - deck in movable window';
+    case 'grid':
+      return 'Grid view - decks in a grid layout';
+    default:
+      return 'Default layout';
+  }
 }

@@ -107,8 +107,19 @@ export function asEventKind(value: string): EventKind {
 
 /**
  * Registers a custom event kind.
+ * Custom event kinds must use namespaced IDs (e.g., 'my-pack:custom-event').
  */
 export function registerEventKind(entry: EventKindEntry): void {
+  // Check if this is a builtin event kind
+  const isBuiltin = Object.values(EventKinds).includes(entry.kind);
+  
+  // If not builtin, enforce namespacing
+  if (!isBuiltin && !entry.kind.includes(':')) {
+    throw new Error(
+      `Custom event kind '${entry.kind}' must use a namespaced ID (e.g., 'my-pack:${entry.kind}')`
+    );
+  }
+  
   kindRegistry.set(entry.kind, entry);
 }
 

@@ -95,28 +95,32 @@ export const basicSamplerBoard: Board = {
       type: 'samples-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: true
+      allowDragOut: true,
+      panelId: 'sample-pool'
     },
     {
       id: 'timeline-arrangement',
       type: 'arrangement-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'arrangement'
     },
     {
       id: 'dsp-chain-effects',
       type: 'dsp-chain',
       cardLayout: 'stack',
       allowReordering: true,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'waveform'
     },
     {
       id: 'properties-panel',
       type: 'properties-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'properties'
     }
   ],
   

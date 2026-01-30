@@ -59,3 +59,36 @@ For KB changes, add at least:
 
 Use `createPrologAdapter({ enableCache: false })` for deterministic tests where helpful.
 
+## 6) KB Contribution Guide (C970)
+
+### Adding New Musical Data Safely
+
+When contributing new ragas, maqamat, scales, rhythms, or other cultural data:
+
+1. **Research**: Use authoritative sources (Sambamoorthy for Carnatic, Touma for Arabic, etc.)
+2. **Namespace**: Place new data in the appropriate `.pl` module (e.g., `music-theory-indian.pl`)
+3. **Facts first**: Add as Prolog facts, not derived rules. This keeps the KB declarative
+4. **Types**: Add corresponding TypeScript types in `music-spec.ts` with `ConstraintBase` extension
+5. **Wrappers**: Add async query wrappers in `spec-queries.ts` with Prolog bridge + TS fallback
+6. **Tests**: Add both unit tests (predicate loads) and integration tests (workflow pipeline)
+7. **Syntax check**: Run `checkPrologSyntax()` on any new `.pl` code
+8. **Feature flag**: Gate experimental features behind `TheoryFeatureFlags`
+
+### Data Format Guidelines
+
+```prolog
+% Good: explicit, grounded facts
+raga_database(mayamalavagowla, [s,r1,g1,m1,p,d1,n1], [n1,d1,p,m1,g1,r1,s], r1, p).
+
+% Bad: overly abstract rules without grounding
+raga(X) :- some_complex_derivation(X).
+```
+
+### Testing Checklist
+
+- [ ] New predicates load without errors
+- [ ] No predicate name conflicts with existing KB
+- [ ] TypeScript wrapper handles Prolog-unavailable fallback
+- [ ] Fuzz test: random inputs don't crash
+- [ ] Integration test: new data works with existing workflows
+

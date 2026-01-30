@@ -1920,6 +1920,68 @@ spec_lint_check(Warning, info) :-
     'Trailer builds typically use dense percussion; sparse is unusual', []).
 
 %% ============================================================================
+%% FILM/SCHEMA CONFLICT WARNINGS (C467)
+%% ============================================================================
+
+%% Lint: film pack conflicts with explicit schema constraints
+spec_lint_check(Warning, warning) :-
+  spec_constraint(current, film_device(Device), _, _),
+  spec_constraint(current, schema(Schema), _, _),
+  film_schema_conflict(Device, Schema),
+  format(atom(Warning),
+    'Film device "~w" may conflict with schema "~w"; consider removing one',
+    [Device, Schema]).
+
+%% Film-schema conflict rules
+film_schema_conflict(planing, Schema) :-
+  member(Schema, [romanesca, prinner, monte, fonte]).
+film_schema_conflict(whole_tone_wash, Schema) :-
+  member(Schema, [romanesca, prinner, 'do-re-mi', 'sol-fa-mi']).
+film_schema_conflict(octatonic_action, Schema) :-
+  member(Schema, [prinner, quiescenza]).
+film_schema_conflict(cluster_tension, _). % Clusters conflict with most schemata
+
+%% ============================================================================
+%% RAGA 12-TET WARNINGS (C645, C646)
+%% ============================================================================
+
+%% Lint: raga implies microtonal pitches not representable in 12-TET
+spec_lint_check(Warning, warning) :-
+  spec_constraint(current, raga(Raga), _, _),
+  raga_requires_shruti(Raga),
+  \+ shruti_enabled(current),
+  format(atom(Warning),
+    'Raga "~w" uses microtonal intervals not available in 12-TET; consider enabling shruti offsets',
+    [Raga]).
+
+%% Ragas that particularly need shruti (microtonal) representation
+raga_requires_shruti(todi).
+raga_requires_shruti(bhairavi).
+raga_requires_shruti(kambhoji).
+raga_requires_shruti(begada).
+raga_requires_shruti(sahana).
+
+%% Check if shruti mode is enabled
+shruti_enabled(Spec) :-
+  spec_constraint(Spec, shruti_mode(enabled), _, _).
+
+%% Lint: approximate 12-TET mapping loses nuance
+spec_lint_check(Warning, info) :-
+  spec_constraint(current, raga(Raga), _, _),
+  \+ raga_12tet_safe(Raga),
+  format(atom(Warning),
+    'Raga "~w" 12-TET mapping is approximate; some swaras may sound out of tune',
+    [Raga]).
+
+%% Ragas that work reasonably well in 12-TET
+raga_12tet_safe(mohanam).
+raga_12tet_safe(hamsadhwani).
+raga_12tet_safe(shankarabharanam).
+raga_12tet_safe(kalyani).
+raga_12tet_safe(hindolam).
+raga_12tet_safe(abhogi).
+
+%% ============================================================================
 %% NEW THEORY CARD CONSTRAINT PLUMBING (extensions to C100)
 %% ============================================================================
 
@@ -2253,4 +2315,344 @@ recommend_defaults(Spec, Defaults, Reasons) :-
   apply_style_defaults(Style, StyleDefaults),
   Defaults = StyleDefaults,
   Reasons = [because('Defaults based on style setting')].
+
+% ============================================================================
+% C795: recommend_chinese_mode_for_spec/5
+% Recommend a Chinese pentatonic mode based on MusicSpec context.
+% ============================================================================
+
+%% recommend_chinese_mode_for_spec(+Spec, -Mode, -BianTones, -Confidence, -Reasons)
+recommend_chinese_mode_for_spec(Spec, Mode, BianTones, Confidence, Reasons) :-
+  spec_culture(Spec, chinese),
+  chinese_pentatonic_mode(Mode, _PCs),
+  ( spec_key(Spec, _Root, KeyMode) ->
+    chinese_mode_for_western_mode(KeyMode, Mode, ModeConf),
+    Confidence is ModeConf
+  ; Confidence is 70
+  ),
+  Confidence > 50,
+  ( bian_tone(Mode, Tone, _Weight) ->
+    findall(T, bian_tone(Mode, T, _), BianTones)
+  ; BianTones = []
+  ),
+  Reasons = [because('Mode recommended based on spec culture and key context')].
+
+%% Fallback: if culture is not chinese, still offer modes with lower confidence
+recommend_chinese_mode_for_spec(_Spec, Mode, BianTones, 50, Reasons) :-
+  chinese_pentatonic_mode(Mode, _PCs),
+  ( bian_tone(Mode, _, _) ->
+    findall(T, bian_tone(Mode, T, _), BianTones)
+  ; BianTones = []
+  ),
+  Reasons = [because('Default mode (no Chinese culture in spec)')].
+
+%% Map western modes to Chinese pentatonic modes
+chinese_mode_for_western_mode(major, gong, 85).
+chinese_mode_for_western_mode(ionian, gong, 85).
+chinese_mode_for_western_mode(dorian, shang, 80).
+chinese_mode_for_western_mode(phrygian, jiao, 75).
+chinese_mode_for_western_mode(mixolydian, zhi, 80).
+chinese_mode_for_western_mode(aeolian, yu, 80).
+chinese_mode_for_western_mode(minor, yu, 80).
+chinese_mode_for_western_mode(_, gong, 60).  %% default fallback
+
+%% ============================================================================
+%% LYDIAN CHROMATIC CONCEPT (C1131, C1174, C1175, C1197)
+%% ============================================================================
+
+%% C1131: LCC chord types and their parent Lydian scales
+%% lcc_chord_parent(ChordQuality, ParentScale, Confidence)
+lcc_chord_parent(maj7, lydian, 95).
+lcc_chord_parent(maj7_sharp11, lydian, 100).
+lcc_chord_parent(dom7, lydian_b7, 90).
+lcc_chord_parent(dom7_sharp11, lydian_b7, 95).
+lcc_chord_parent(min7, lydian_diminished, 85).
+lcc_chord_parent(min_maj7, lydian_diminished, 90).
+lcc_chord_parent(half_dim7, auxiliary_diminished, 80).
+lcc_chord_parent(dim7, auxiliary_diminished, 85).
+lcc_chord_parent(aug, lydian_augmented, 90).
+lcc_chord_parent(aug_maj7, lydian_augmented, 95).
+lcc_chord_parent(sus4, lydian_b7, 70).
+lcc_chord_parent(dom7_alt, auxiliary_diminished_blues, 85).
+
+%% LCC principal scale pitch class sets (relative to Lydian tonic)
+lcc_scale_pcs(lydian, [0, 2, 4, 6, 7, 9, 11]).
+lcc_scale_pcs(lydian_augmented, [0, 2, 4, 6, 8, 9, 11]).
+lcc_scale_pcs(lydian_diminished, [0, 2, 3, 6, 7, 9, 11]).
+lcc_scale_pcs(lydian_b7, [0, 2, 4, 6, 7, 9, 10]).
+lcc_scale_pcs(auxiliary_augmented, [0, 2, 4, 6, 8, 10]).
+lcc_scale_pcs(auxiliary_diminished, [0, 2, 3, 5, 6, 8, 9, 11]).
+lcc_scale_pcs(auxiliary_diminished_blues, [0, 2, 3, 4, 6, 7, 9, 10, 11]).
+
+%% C1174: Tonal gravity constraint
+%% constraint_lcc_gravity(Level) -- vertical, horizontal, supra_vertical
+constraint_lcc_gravity(vertical).
+constraint_lcc_gravity(horizontal).
+constraint_lcc_gravity(supra_vertical).
+
+%% Gravity level ordering (higher = more complex)
+lcc_gravity_order(vertical, 1).
+lcc_gravity_order(horizontal, 2).
+lcc_gravity_order(supra_vertical, 3).
+
+%% C1175: Parent scale enforcement constraint
+%% constraint_lcc_parent_scale(ScaleName) -- enforces a particular parent scale
+constraint_lcc_parent_scale(ScaleName) :-
+  lcc_scale_pcs(ScaleName, _).
+
+%% Lydian Chromatic order: interval -> gravity level (0 = most consonant)
+%% Based on Russell's ascending fifths from the Lydian tonic
+lcc_interval_gravity(0, 0).   %% unison
+lcc_interval_gravity(7, 1).   %% P5
+lcc_interval_gravity(2, 2).   %% M2
+lcc_interval_gravity(9, 3).   %% M6
+lcc_interval_gravity(4, 4).   %% M3
+lcc_interval_gravity(11, 5).  %% M7
+lcc_interval_gravity(6, 6).   %% #4 (Lydian tone)
+lcc_interval_gravity(1, 7).   %% m2
+lcc_interval_gravity(8, 8).   %% m6
+lcc_interval_gravity(3, 9).   %% m3
+lcc_interval_gravity(10, 10). %% m7
+lcc_interval_gravity(5, 11).  %% P4 (least consonant from Lydian perspective)
+
+%% Calculate tonal gravity of a note relative to Lydian tonic
+lcc_tonal_gravity(Note, LydianTonic, GravityLevel) :-
+  Interval is ((Note - LydianTonic) mod 12 + 12) mod 12,
+  lcc_interval_gravity(Interval, GravityLevel).
+
+%% C1197: Conflict between LCC and traditional functional harmony
+spec_conflict(lcc_gravity, tonality_model, 'LCC tonal gravity conflicts with traditional key-profile models') :-
+  true.
+
+spec_conflict(lcc_parent_scale, schema, 'LCC parent scale may override galant schema voice leading') :-
+  true.
+
+%% Chord-scale recommendation using LCC
+%% lcc_recommend_scale(ChordQuality, Root, Scale, PCs, Confidence)
+lcc_recommend_scale(ChordQuality, Root, Scale, TransposedPCs, Confidence) :-
+  lcc_chord_parent(ChordQuality, Scale, Confidence),
+  lcc_scale_pcs(Scale, PCs),
+  transpose_pcs(PCs, Root, TransposedPCs).
+
+%% Helper: transpose pitch class set
+transpose_pcs([], _, []).
+transpose_pcs([PC|Rest], Root, [TPC|TRest]) :-
+  TPC is (PC + Root) mod 12,
+  transpose_pcs(Rest, Root, TRest).
+
+%% ============================================================================
+%% JAZZ REHARMONIZATION (C1342-C1344)
+%% ============================================================================
+
+%% Tritone substitution: replace V7 with bII7
+%% tritone_sub(OrigRoot, SubRoot)
+tritone_sub(Root, SubRoot) :-
+  SubRoot is (Root + 6) mod 12.
+
+%% Guide tones are preserved across tritone sub (3rd <-> 7th)
+tritone_sub_guide_tones(Root, Third, Seventh) :-
+  Third is (Root + 4) mod 12,
+  Seventh is (Root + 10) mod 12.
+
+%% Coltrane changes: major-third cycle
+%% coltrane_axis(StartRoot, Axis, KeyCenters)
+coltrane_axis(Root, major_third, [Root, K2, K3]) :-
+  K2 is (Root + 4) mod 12,
+  K3 is (Root + 8) mod 12.
+coltrane_axis(Root, minor_third, [Root, K2, K3, K4]) :-
+  K2 is (Root + 3) mod 12,
+  K3 is (Root + 6) mod 12,
+  K4 is (Root + 9) mod 12.
+coltrane_axis(Root, augmented, [Root, K2, K3]) :-
+  K2 is (Root + 4) mod 12,
+  K3 is (Root + 8) mod 12.
+
+%% Modal interchange: borrow chord from parallel mode
+%% modal_interchange_chord(SourceMode, Degree, Quality)
+modal_interchange_chord(minor, 4, minor7).
+modal_interchange_chord(minor, 6, major).     %% bVI
+modal_interchange_chord(minor, 7, dominant7). %% bVII7
+modal_interchange_chord(minor, 2, half_dim7). %% ii half-dim
+modal_interchange_chord(dorian, 4, dominant7). %% IV7
+
+%% Chromatic mediant relationship
+chromatic_mediant(Root, MedRoot, Direction) :-
+  (Direction = upper, MedRoot is (Root + 4) mod 12) ;
+  (Direction = lower, MedRoot is (Root + 8) mod 12) ;
+  (Direction = upper_minor, MedRoot is (Root + 3) mod 12) ;
+  (Direction = lower_minor, MedRoot is (Root + 9) mod 12).
+
+%% ============================================================================
+%% JAZZ IMPROVISATION (C1391-C1395)
+%% ============================================================================
+
+%% Bebop scale definitions (8-note scales)
+%% bebop_scale(Type, Intervals)
+bebop_scale(dominant, [0, 2, 4, 5, 7, 9, 10, 11]).
+bebop_scale(major, [0, 2, 4, 5, 7, 8, 9, 11]).
+bebop_scale(dorian, [0, 2, 3, 4, 5, 7, 9, 10]).
+bebop_scale(melodic_minor, [0, 2, 3, 5, 7, 8, 9, 11]).
+
+%% Enclosure patterns
+%% enclosure(Type, ApproachIntervals) - intervals relative to target
+enclosure(chromatic, [-1, 1]).     %% half step below, half step above
+enclosure(diatonic, [-2, 2]).      %% whole step below, whole step above
+enclosure(double_chromatic, [-1, 1, -2]).  %% extended approach
+enclosure(delayed, [2, -1, 1]).    %% delayed resolution
+
+%% Digital patterns (scale degree sequences)
+digital_pattern('1235', [1, 2, 3, 5]).
+digital_pattern('1357', [1, 3, 5, 7]).
+digital_pattern('3579', [3, 5, 7, 9]).
+digital_pattern('5713', [5, 7, 1, 3]).
+digital_pattern('7135', [7, 1, 3, 5]).
+
+%% Guide tone connection types
+guide_tone_connection(step, 'Move by step (half or whole)').
+guide_tone_connection(common_tone, 'Hold common tone between chords').
+guide_tone_connection(chromatic, 'Connect by chromatic motion').
+
+%% Upper structure triads over dominant 7th
+%% upper_structure(Name, IntervalFromRoot, Tensions)
+upper_structure('II', 2, [9, sharp_11, 13]).
+upper_structure('bIII', 3, [sharp_9, 5, flat_7]).
+upper_structure('bV', 6, [sharp_11, flat_7, flat_9]).
+upper_structure('bVI', 8, [sharp_5, root, sharp_9]).
+upper_structure('VI', 9, [13, flat_9, 3]).
+upper_structure('bII', 1, [flat_9, 4, sharp_5]).
+
+%% ============================================================================
+%% CHORD-SCALE PAIRINGS (C1133-C1136)
+%% ============================================================================
+
+%% C1133: Major family chord-scale pairings
+%% chord_scale_pairing(ChordQuality, ScaleName, AvoidNotes, Confidence)
+chord_scale_pairing(maj7, lydian, [4], 95).          %% Lydian (avoid natural 4 as strong avoid)
+chord_scale_pairing(maj7, ionian, [], 85).            %% Ionian (no avoid, but less "bright")
+chord_scale_pairing(maj7, lydian_augmented, [4], 80). %% Lydian augmented
+chord_scale_pairing(major6, lydian, [4], 90).         %% Maj6 → Lydian
+chord_scale_pairing(major6, ionian, [], 85).          %% Maj6 → Ionian
+chord_scale_pairing(add9, lydian, [4], 85).           %% Add9 → Lydian
+chord_scale_pairing(add9, ionian, [], 80).
+
+%% C1134: Minor family chord-scale pairings
+chord_scale_pairing(min7, dorian, [], 90).            %% Dorian (no avoids, bright minor)
+chord_scale_pairing(min7, aeolian, [6], 80).          %% Aeolian (b6 can clash)
+chord_scale_pairing(min7, phrygian, [2], 70).         %% Phrygian (b2 = avoid)
+chord_scale_pairing(min_maj7, melodic_minor, [], 90). %% MinMaj7 → melodic minor
+chord_scale_pairing(min_maj7, harmonic_minor, [], 85).
+chord_scale_pairing(min6, dorian, [], 90).            %% Min6 → Dorian (natural 6)
+chord_scale_pairing(min9, dorian, [], 90).
+chord_scale_pairing(min11, dorian, [], 85).
+chord_scale_pairing(min11, aeolian, [], 80).
+
+%% C1135: Dominant family chord-scale pairings
+chord_scale_pairing(dom7, mixolydian, [4], 85).       %% Mixolydian (natural 4 = avoid)
+chord_scale_pairing(dom7, lydian_b7, [], 90).         %% Lydian dominant (no avoid)
+chord_scale_pairing(dom7, altered, [], 85).           %% Altered scale for V7alt
+chord_scale_pairing(dom7_sharp11, lydian_b7, [], 95). %% Best match
+chord_scale_pairing(dom7_alt, altered, [], 95).       %% 7alt → altered scale
+chord_scale_pairing(dom7_alt, diminished_wholetone, [], 90).
+chord_scale_pairing(dom7_sus4, mixolydian, [], 85).   %% Sus4 → Mixolydian
+chord_scale_pairing(dom9, mixolydian, [4], 85).
+chord_scale_pairing(dom13, lydian_b7, [], 90).
+
+%% C1136: Diminished family chord-scale pairings
+chord_scale_pairing(half_dim7, locrian, [], 80).       %% Locrian (standard)
+chord_scale_pairing(half_dim7, locrian_sharp2, [], 90). %% Locrian #2 (preferred in jazz)
+chord_scale_pairing(dim7, diminished_hw, [], 90).      %% Half-whole diminished
+chord_scale_pairing(dim7, diminished_wh, [], 85).      %% Whole-half diminished (passing)
+chord_scale_pairing(aug, whole_tone, [], 90).           %% Augmented → whole tone
+chord_scale_pairing(aug, lydian_augmented, [], 85).
+
+%% C1138: Avoid notes — notes that create unwanted dissonance
+%% avoid_note(ChordQuality, ScaleName, Degree, Reason)
+avoid_note(maj7, ionian, 4, 'Natural 4 forms b9 against major 3rd').
+avoid_note(maj7, lydian, 4, 'Natural 4 replaces #4; destroys Lydian character').
+avoid_note(dom7, mixolydian, 4, 'Natural 4 forms b9 against major 3rd').
+avoid_note(min7, phrygian, 2, 'b2 forms minor 9th against root').
+avoid_note(min7, aeolian, 6, 'b6 can clash in melodic contexts').
+
+%% ============================================================================
+%% JAZZ VOICING TEMPLATES (C1216, C1218, C1220, C1222)
+%% ============================================================================
+
+%% C1216: Kenny Barron voicing — minor 9th structures
+%% voicing_template(Name, ChordQuality, Intervals, Style)
+voicing_template(kenny_barron_minor9, min9, [0, 3, 10, 14, 17], 'Kenny Barron minor 9th stack').
+voicing_template(kenny_barron_sus, dom7_sus4, [0, 5, 10, 14, 19], 'Kenny Barron sus voicing').
+
+%% C1218: Bill Evans voicing — rootless with pedal
+voicing_template(bill_evans_rootless_a, maj7, [4, 7, 11, 14], 'Bill Evans rootless Type A (from 3rd)').
+voicing_template(bill_evans_rootless_b, maj7, [11, 14, 16, 19], 'Bill Evans rootless Type B (from 7th)').
+voicing_template(bill_evans_rootless_a, min7, [3, 7, 10, 14], 'Bill Evans rootless minor Type A').
+voicing_template(bill_evans_rootless_b, min7, [10, 14, 15, 19], 'Bill Evans rootless minor Type B').
+voicing_template(bill_evans_rootless_a, dom7, [4, 7, 10, 14], 'Bill Evans rootless dom Type A').
+voicing_template(bill_evans_rootless_b, dom7, [10, 14, 16, 19], 'Bill Evans rootless dom Type B').
+
+%% C1220: Herbie Hancock voicing — cluster + quartal hybrid
+voicing_template(herbie_cluster, dom7_sharp11, [0, 4, 6, 10, 14], 'Herbie Hancock cluster voicing').
+voicing_template(herbie_quartal, min7, [0, 5, 10, 15, 19], 'Herbie Hancock quartal stack').
+voicing_template(herbie_so_what, min7, [0, 5, 10, 15, 16], 'Herbie Hancock So What voicing').
+
+%% C1222: Stride piano voicing templates
+voicing_template(stride_basic, maj7, [0, 7, 12, 16, 19], 'Basic stride (root-5th, then chord)').
+voicing_template(stride_tenths, maj7, [0, 16, 19, 24, 28], 'Stride with 10ths').
+voicing_template(stride_walking, dom7, [0, 7, 10, 16, 19], 'Walking stride pattern').
+
+%% ============================================================================
+%% REHARMONIZATION TECHNIQUES (C1324, C1328, C1332, C1336)
+%% ============================================================================
+
+%% C1324: Tadd Dameron turnaround
+%% turnaround(Name, Degrees, Description)
+turnaround(tadd_dameron, [1, 'bVI7', 'bVII7', 1], 'Tadd Dameron turnaround: I - bVI7 - bVII7 - I').
+turnaround(standard, [1, 6, 2, 5], 'Standard turnaround: I - vi - ii - V').
+turnaround(bird_blues, [1, 'bIII7', 'bVI7', 'bII7'], 'Bird blues turnaround').
+turnaround(lady_bird, [1, 'bIII_maj7', 'bVI_maj7', 'bII_maj7'], 'Tadd Dameron Lady Bird').
+turnaround(coltrane, [1, 'bVI_maj7', 'bIII_maj7', 'bVII_maj7'], 'Coltrane turnaround cycle').
+
+%% C1328: Constant structure reharmonization
+%% constant_structure(Direction, IntervalSteps, Quality)
+constant_structure(ascending, [0, 1, 2, 3], dom7).       %% Chromatic ascending dom7s
+constant_structure(ascending, [0, 2, 4, 6], maj7).       %% Whole-tone ascending maj7s
+constant_structure(descending, [0, -1, -2, -3], min7).   %% Chromatic descending min7s
+constant_structure(ascending, [0, 3, 6, 9], dim7).       %% Minor 3rd cycle dim7s
+
+%% C1332: Pedal point reharmonization
+%% pedal_reharmonization(PedalType, UpperChords, Description)
+pedal_reharmonization(tonic, [maj7, dom7_sharp11, min9, dom7_sus4], 'Tonic pedal with color chords').
+pedal_reharmonization(dominant, [dom7, dom7_alt, dom7_sharp11, dom7_sus4], 'Dominant pedal builds tension').
+pedal_reharmonization(chromatic_bass, [maj7, 'bVII_maj7', 'VI_min7', 'bVI_maj7'], 'Descending chromatic bass pedal').
+
+%% C1336: Chord substitution strength scoring
+%% sub_strength(OrigQuality, SubQuality, Strength, Reason)
+sub_strength(dom7, dom7, 100, 'Identity').
+sub_strength(dom7, tritone_sub, 90, 'Tritone sub: shared guide tones').
+sub_strength(dom7, dim7, 75, 'Diminished approach: 3 common tones').
+sub_strength(dom7, related_ii, 85, 'Related ii (backdoor): smooth voice leading').
+sub_strength(dom7, aug, 60, 'Augmented triad sub: shared root + raised 5').
+sub_strength(min7, min7, 100, 'Identity').
+sub_strength(min7, dom7, 70, 'Minor to dominant: different function').
+sub_strength(maj7, maj7, 100, 'Identity').
+sub_strength(maj7, min7_relative, 80, 'Relative minor: 3 shared tones').
+sub_strength(maj7, chromatic_mediant, 65, 'Chromatic mediant: surprising but smooth').
+
+%% ============================================================================
+%% KALPANA SWARA GENERATION (C1735)
+%% ============================================================================
+
+%% generate_kalpana_swara(Raga, Tala, Duration, Swaras, Phrases)
+%% Generates improvised melodic passages in a given raga/tala
+generate_kalpana_swara(Raga, _Tala, _Duration, Swaras, Phrases) :-
+  raga_aroha(Raga, Aroha),
+  raga_avaroha(Raga, Avaroha),
+  append(Aroha, Avaroha, AllSwaras),
+  Swaras = AllSwaras,
+  Phrases = [ascending, descending].
+
+%% Fallback for unknown ragas
+generate_kalpana_swara(_Raga, _Tala, _Duration, Swaras, Phrases) :-
+  Swaras = [sa, ri, ga, ma, pa, dha, ni, sa_high, ni, dha, pa, ma, ga, ri, sa],
+  Phrases = [ascending_octave, descending_octave].
 

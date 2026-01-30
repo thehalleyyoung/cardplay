@@ -129,9 +129,9 @@ describe('Basic Tracker Board', () => {
 
   it('should have layout with sidebar, main, and inspector panels', () => {
     expect(basicTrackerBoard.layout.type).toBe('dock');
-    expect(basicTrackerBoard.panels).toHaveLength(3);
+    expect(basicTrackerBoard.layout.panels).toHaveLength(3);
     
-    const panelRoles = basicTrackerBoard.panels.map(p => p.role);
+    const panelRoles = basicTrackerBoard.layout.panels.map(p => p.role);
     expect(panelRoles).toContain('browser');
     expect(panelRoles).toContain('composition');
     expect(panelRoles).toContain('properties');

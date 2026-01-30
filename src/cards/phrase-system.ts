@@ -5215,3 +5215,268 @@ export function generatePhraseWithRagaConstraint(
     includePakads: options.includePakads ?? true,
   });
 }
+
+// ============================================================================
+// CELTIC ORNAMENTATION INTEGRATION (C692)
+// ============================================================================
+
+/**
+ * Celtic ornament type
+ */
+export type CelticOrnament = 
+  | 'cut'       // Grace note above
+  | 'strike'    // Grace note below
+  | 'roll'      // Quick ornament pattern
+  | 'cran'      // Traditional pipe ornament
+  | 'treble'    // Triple ornament
+  | 'slide';    // Slide up to note
+
+/**
+ * Celtic ornament placement rule
+ */
+export interface CelticOrnamentRule {
+  readonly ornament: CelticOrnament;
+  /** Scale degree positions where this ornament applies */
+  readonly onDegrees: readonly number[];
+  /** Probability of applying (0-1) */
+  readonly probability: number;
+  /** Duration of ornament relative to note */
+  readonly durationRatio: number;
+}
+
+/**
+ * Predefined Celtic ornamentation rules by tune type
+ */
+export const CELTIC_ORNAMENT_RULES: Record<string, readonly CelticOrnamentRule[]> = {
+  'jig': [
+    { ornament: 'cut', onDegrees: [0, 2, 4], probability: 0.3, durationRatio: 0.1 },
+    { ornament: 'roll', onDegrees: [0, 4], probability: 0.2, durationRatio: 0.25 },
+  ],
+  'reel': [
+    { ornament: 'cut', onDegrees: [0, 2, 4, 5], probability: 0.4, durationRatio: 0.08 },
+    { ornament: 'treble', onDegrees: [0, 4], probability: 0.15, durationRatio: 0.3 },
+  ],
+  'hornpipe': [
+    { ornament: 'cut', onDegrees: [0, 2, 4], probability: 0.3, durationRatio: 0.1 },
+    { ornament: 'slide', onDegrees: [2, 5], probability: 0.2, durationRatio: 0.15 },
+  ],
+  'air': [
+    { ornament: 'slide', onDegrees: [0, 2, 4, 5], probability: 0.5, durationRatio: 0.2 },
+    { ornament: 'roll', onDegrees: [0], probability: 0.3, durationRatio: 0.3 },
+  ],
+};
+
+/**
+ * Apply Celtic ornamentation to phrase.
+ * 
+ * This is the C692 integration: phrase generator can emit Celtic ornamentation under constraints.
+ */
+export function applyCelticOrnamentation(
+  phrase: DecoupledPhrase,
+  tuneType: string,
+  intensity: number = 0.5
+): DecoupledPhrase {
+  const rules = CELTIC_ORNAMENT_RULES[tuneType.toLowerCase()];
+  if (!rules || !phrase.rhythm) return phrase;
+  
+  // Add ornamentation metadata to steps
+  const steps = phrase.rhythm.steps.map((step) => {
+    // Select ornament based on rules and probability
+    const applicableRules = rules.filter(rule => 
+      Math.random() < rule.probability * intensity
+    );
+    
+    if (applicableRules.length > 0) {
+      const selectedRule = applicableRules[Math.floor(Math.random() * applicableRules.length)]!;
+      return {
+        ...step,
+        // Store ornament info (would be rendered by output stage)
+        articulation: `celtic_${selectedRule.ornament}` as any,
+      };
+    }
+    return step;
+  });
+  
+  return {
+    ...phrase,
+    rhythm: {
+      ...phrase.rhythm,
+      steps,
+    },
+  };
+}
+
+/**
+ * Generate Celtic phrase with ornamentation
+ */
+export function generateCelticPhrase(
+  context: PhraseArrangerContext,
+  lineType: LineType,
+  tuneType: string,
+  ornamentIntensity: number = 0.5
+): DecoupledPhrase {
+  const basePhrase = generatePhraseFromArranger(context, lineType);
+  return applyCelticOrnamentation(basePhrase, tuneType, ornamentIntensity);
+}
+
+// ============================================================================
+// PENTATONIC MELODY WITH BIAN TONES (C793)
+// ============================================================================
+
+/**
+ * Chinese pentatonic mode definition
+ */
+export interface ChinesePentatonicMode {
+  readonly name: string;
+  readonly displayName: string;
+  /** Core pentatonic degrees */
+  readonly coreDegrees: readonly number[];
+  /** Bian (passing) tones - used sparingly for color */
+  readonly bianTones: readonly number[];
+  /** Characteristic mood/affect */
+  readonly affect: string;
+}
+
+/**
+ * Predefined Chinese pentatonic modes
+ */
+export const CHINESE_MODES: readonly ChinesePentatonicMode[] = [
+  {
+    name: 'gong',
+    displayName: 'Gong (宫)',
+    coreDegrees: [0, 2, 4, 7, 9], // 1 2 3 5 6 (major pentatonic)
+    bianTones: [5, 11], // 4 and 7 as passing tones
+    affect: 'majestic',
+  },
+  {
+    name: 'shang',
+    displayName: 'Shang (商)',
+    coreDegrees: [0, 2, 5, 7, 10], // 1 2 4 5 b7
+    bianTones: [4, 11],
+    affect: 'melancholy',
+  },
+  {
+    name: 'jiao',
+    displayName: 'Jiao (角)',
+    coreDegrees: [0, 3, 5, 8, 10], // 1 b3 4 b6 b7
+    bianTones: [2, 7],
+    affect: 'gentle',
+  },
+  {
+    name: 'zhi',
+    displayName: 'Zhi (徵)',
+    coreDegrees: [0, 2, 5, 7, 9], // 1 2 4 5 6
+    bianTones: [4, 11],
+    affect: 'bright',
+  },
+  {
+    name: 'yu',
+    displayName: 'Yu (羽)',
+    coreDegrees: [0, 3, 5, 7, 10], // 1 b3 4 5 b7 (minor pentatonic)
+    bianTones: [2, 9],
+    affect: 'plaintive',
+  },
+];
+
+/**
+ * Get Chinese mode by name
+ */
+export function getChineseMode(modeName: string): ChinesePentatonicMode | undefined {
+  return CHINESE_MODES.find(m => m.name.toLowerCase() === modeName.toLowerCase());
+}
+
+/**
+ * Chinese melody constraint
+ */
+export interface ChineseMelodyConstraint {
+  readonly mode: ChinesePentatonicMode;
+  /** Probability of using bian tones (0-1) */
+  readonly bianProbability: number;
+  /** Whether to emphasize register (high=yang, low=yin) */
+  readonly registerEmphasis: 'high' | 'low' | 'balanced';
+}
+
+/**
+ * Apply Chinese pentatonic constraint to phrase.
+ * 
+ * This is the C793 integration: phrase generator can emit pentatonic melodies with bian tones.
+ */
+export function applyChinesePentatonicConstraint(
+  phrase: DecoupledPhrase,
+  constraint: ChineseMelodyConstraint
+): DecoupledPhrase {
+  const { mode, bianProbability, registerEmphasis } = constraint;
+  
+  // Build allowed degrees including bian tones with probability
+  const allowedDegrees = [...mode.coreDegrees];
+  for (const bian of mode.bianTones) {
+    if (Math.random() < bianProbability) {
+      allowedDegrees.push(bian);
+    }
+  }
+  allowedDegrees.sort((a, b) => a - b);
+  
+  // Modify shape for register emphasis
+  let modifiedShape = phrase.shape;
+  if (phrase.shape) {
+    const points = phrase.shape.points.map(pt => {
+      let value = pt.value;
+      
+      switch (registerEmphasis) {
+        case 'high':
+          value = 0.5 + value * 0.5; // Upper half
+          break;
+        case 'low':
+          value = value * 0.5; // Lower half
+          break;
+        // 'balanced' - no change
+      }
+      
+      // Quantize to allowed degrees
+      const degreeIndex = Math.floor(value * (allowedDegrees.length - 1));
+      const selectedDegree = allowedDegrees[degreeIndex] ?? 0;
+      
+      return {
+        ...pt,
+        value: selectedDegree / 12, // Normalize
+      };
+    });
+    
+    modifiedShape = {
+      ...phrase.shape,
+      points,
+      id: `${phrase.shape.id}-chinese-${mode.name}`,
+    };
+  }
+  
+  return {
+    ...phrase,
+    shape: modifiedShape,
+  };
+}
+
+/**
+ * Generate Chinese pentatonic phrase
+ */
+export function generateChinesePentatonicPhrase(
+  context: PhraseArrangerContext,
+  lineType: LineType,
+  modeName: string,
+  options: {
+    bianProbability?: number;
+    registerEmphasis?: 'high' | 'low' | 'balanced';
+  } = {}
+): DecoupledPhrase {
+  const mode = getChineseMode(modeName);
+  if (!mode) {
+    return generatePhraseFromArranger(context, lineType);
+  }
+  
+  const basePhrase = generatePhraseFromArranger(context, lineType);
+  
+  return applyChinesePentatonicConstraint(basePhrase, {
+    mode,
+    bianProbability: options.bianProbability ?? 0.1,
+    registerEmphasis: options.registerEmphasis ?? 'balanced',
+  });
+}

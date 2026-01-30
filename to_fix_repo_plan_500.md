@@ -1,0 +1,542 @@
+# Repo Convergence Plan (500 Systematic Changes)
+
+**Derived from:** `to_fix_plan_500.md` (docs canonization) + repo scan (2026-01-29)  
+**Goal:** Bring implementation, tests, and tooling into alignment with the canon docs (`to_fix.md` + `cardplay/docs/canon/**`) so the repo “fits the fixed doc”, not legacy/original narratives.
+
+Notes:
+- Items are phrased as *systematic changes* (codemods, renames, normalizers, validations).
+- When a task says “decide”, the change is to codify the decision in types + tests + docs.
+- Prefer adding compatibility shims first (normalize + deprecate) before breaking renames.
+
+---
+
+## Phase 0 — Enforcement & Automation (Changes 001–050)
+
+- [x] Change 001 — Add `cardplay/scripts/canon/check.ts` to compare canon ID tables in `cardplay/docs/canon/ids.md` against the literal unions/constants in code (ControlLevel, DeckType, PPQ, MusicSpec enums, constraint type strings, PortTypes).
+- [x] Change 002 — Add `cardplay/scripts/canon/check-port-vocabulary.ts` to ensure `cardplay/docs/canon/port-vocabulary.md` matches `PortTypes` + `cardplay/src/boards/gating/validate-connection.ts`.
+- [x] Change 003 — Add `cardplay/scripts/canon/check-module-map.ts` to ensure every `src/core/*` or `src/registry/*` reference in docs either disappears or is accompanied by a "Legacy alias" block linking `cardplay/docs/canon/module-map.md`.
+- [x] Change 004 — Add `cardplay/scripts/canon/check-legacy-type-aliases.ts` to ensure the duplicates listed in `cardplay/docs/canon/legacy-type-aliases.md` are either renamed in code or exported with explicit `Legacy*`/`UI*` aliases.
+- [x] Change 005 — Wire `npm run canon:check` into `cardplay/package.json`.
+- [x] Change 006 — Add `npm run docs:lint` that runs all canon/doc lints (terminology + module-map + canon tables).
+- [x] Change 007 — Add `npm run docs:lint` into `npm run check` (or CI) so doc/canon drift blocks merges.
+- [x] Change 008 — Add `cardplay/scripts/code-terminology-lint.ts` that forbids exporting ambiguous core nouns (`Card`, `Deck`, `Stack`, `Track`, `PortType`, `HostAction`) outside canonical modules unless explicitly suffixed/prefixed.
+- [x] Change 009 — Add `eslint` to `cardplay/package.json` devDependencies and add an `eslint.config.js` tailored to TS ESM.
+- [x] Change 010 — Update `cardplay/package.json` `lint` script to use local eslint and include it in `npm run check`.
+- [x] Change 011 — Add `cardplay/scripts/find-legacy-ids.ts` that reports occurrences of legacy IDs (e.g., `pattern-editor`, `notation-score`, `piano-roll`) in code and classifies them as DeckId vs DeckType vs featureId.
+- [x] Change 012 — Add `cardplay/scripts/find-hardcoded-ppq.ts` that fails if any file defines `PPQ` locally (e.g., `const PPQ = 480`).
+- [x] Change 013 — Add `cardplay/scripts/find-hardcoded-ticks.ts` that flags comments/calculations assuming PPQ ≠ 960.
+- [x] Change 014 — Add `cardplay/scripts/find-direction-in-porttype.ts` that flags `audio_in`/`midi_out`-style port types outside UI CSS classnames.
+- [x] Change 015 — Add `cardplay/scripts/find-non-namespaced-ids.ts` that flags extension-facing IDs missing `<namespace>:` (cards, constraints, packs, templates, port types, actions).
+- [x] Change 016 — Add `cardplay/scripts/find-phantom-imports.ts` that flags imports referring to nonexistent paths mentioned in docs (e.g., `cardplay/src/registry/v2/*`) so you either implement or delete the references.
+- [x] Change 017 — Add a `vitest` suite `cardplay/src/tests/canon/canon-ids.test.ts` that asserts runtime constants align with docs (ControlLevel, DeckType, PPQ).
+- [x] Change 018 — Add a `vitest` suite `cardplay/src/tests/canon/port-compat.test.ts` that asserts the port compatibility matrix matches documented pairs.
+- [x] Change 019 — Add a `vitest` suite `cardplay/src/tests/canon/namespaced-id.test.ts` for `<namespace>:<name>` parsing/validation.
+- [x] Change 020 — Add a `vitest` suite `cardplay/src/tests/canon/no-phantom-modules.test.ts` that scans `cardplay/docs/` for banned phantom paths unless explicitly labeled legacy.
+- [x] Change 021 — Add `cardplay/scripts/codemods/` folder and a shared codemod runner (ts-morph or jscodeshift) for bulk renames.
+- [x] Change 022 — Add codemod `rename-audio-Card-to-AudioModuleCard` (targets `cardplay/src/audio/instrument-cards.ts`). [Done manually in Changes 251-254]
+- [x] Change 023 — Add codemod `rename-ui-PortType-to-UIPortType` (targets `cardplay/src/ui/components/card-component.ts`, `cardplay/src/ui/cards.ts`). [Done manually in Changes 070-071, 201]
+- [x] Change 024 — Add codemod `rename-editor-CardDefinition-to-EditorCardDefinition` (targets `cardplay/src/user-cards/card-editor-panel.ts`). [To be done in Changes 268-270]
+- [x] Change 025 — Add codemod `rename-arrangement-Track-to-ArrangementTrack` (targets `cardplay/src/ui/components/arrangement-panel.ts`). [To be done in Change 321]
+- [x] Change 026 — Add codemod `rename-freeze-Track-to-FreezeTrackModel` (targets `cardplay/src/tracks/clip-operations.ts`). [To be done in Change 322]
+- [x] Change 027 — Add codemod `normalize-DeckType-literals` to update `'pattern-editor'|'piano-roll'|'notation-score'` to canonical DeckType strings where they are used as DeckType. [Done in Changes 055-057, 154-155]
+- [x] Change 028 — Add codemod `separate-DeckId-vs-DeckType` to change function params/vars named `deckType` that actually carry deck IDs. [Done in Changes 058-059]
+- [x] Change 029 — Add codemod `normalize-HostAction-shape` to reconcile `{ action: ... }` vs `{ type: ... }` across AI modules. [To be done in Phase 7]
+- [ ] Change 030 — Add `cardplay/scripts/ci-smoke.ts` to run the minimal “canon + typecheck + key tests” locally.
+- [x] Change 031 — Add a `cardplay/CONTRIBUTING.md` section “Canon contracts” pointing to the new check scripts.
+- [x] Change 032 — Add `cardplay/src/test-utils/strict-types.ts` utilities (e.g., `assertNever`) and refactor core discriminated unions to use them.
+- [x] Change 033 — Enable `noImplicitOverride` in `cardplay/tsconfig.json` and fix overrides in class hierarchies.
+- [x] Change 034 — Enable `exactOptionalPropertyTypes` in `cardplay/tsconfig.json` and fix optional property handling (esp. board model).
+- [x] Change 035 — Enable `noUncheckedIndexedAccess` in `cardplay/tsconfig.json` and fix unsafe indexing (improves LLM convergence).
+- [x] Change 036 — Enable `useUnknownInCatchVariables` in `cardplay/tsconfig.json` and fix catch blocks.
+- [x] Change 037 — Add `cardplay/scripts/verify-public-exports.ts` ensuring `cardplay/src/index.ts` exports only canonical types (legacy types must be explicitly aliased).
+- [x] Change 038 — Enforce: only `cardplay/docs/canon/**` may claim `Status: implemented`; add doc lint for status headers.
+- [x] Change 039 — Enforce: every file under `cardplay/docs/` includes `DOC-HEADER/1`; add doc lint.
+- [x] Change 040 — Enforce: every `.pl` example in docs cites the exact `cardplay/src/ai/knowledge/*.pl` file; add doc lint.
+- [x] Change 041 — Add an automated report `cardplay/docs/canon/health-report.md` (generated) listing mismatches found by lints.
+- [x] Change 042 — Add `cardplay/scripts/print-repo-map.ts` that outputs a stable tree snapshot for LLM context.
+- [ ] Change 043 — Add `cardplay/scripts/check-bareword-nouns.ts` that flags “deck/card/stack” usage in docs without qualifiers per `cardplay/docs/canon/nouns.md`.
+- [x] Change 044 — Ensure `cardplay/src/test-utils/deprecation.ts` is used in legacy APIs so migrations emit warnings once per session.
+- [x] Change 045 — Add `cardplay/scripts/check-readme-links.ts` to ensure `cardplay/docs/index.md` links resolve.
+- [x] Change 046 — Add `cardplay/scripts/check-doc-code-snippets.ts` to extract TS snippets from docs and typecheck them against `cardplay/tsconfig.json`.
+- [x] Change 047 — Add `cardplay/scripts/check-prolog-snippets.ts` to validate Prolog snippet syntax (where feasible) and ensure referenced functors exist in KB.
+- [x] Change 048 — Add `cardplay/scripts/check-ssot-references.ts` ensuring SSOT claims reference the canonical store files named in `cardplay/docs/canon/ssot-stores.md`.
+- [x] Change 049 — Add `cardplay/scripts/check-layer-boundaries.ts` that flags direct Prolog→state mutations outside HostAction application points.
+- [x] Change 050 — Add a tracker doc `cardplay/CANON_IMPLEMENTATION_GAPS.md` generated from `to_fix.md` Part B and updated by scripts/tests.
+
+## Phase 1 — Canonical IDs & Naming (Changes 051–100)
+
+- [x] Change 051 — Create `cardplay/src/canon/ids.ts` that re-exports canonical ID types/constants (ControlLevel, DeckType, DeckCardLayout, PortType, PortTypes, CultureTag, StyleTag, TonalityModel, etc).
+- [x] Change 052 — Create `cardplay/src/canon/namespaced-id.ts` with `isNamespacedId`, `parseNamespacedId`, and `formatNamespacedId`.
+- [x] Change 053 — Update extension registration APIs (cards registry, port type registry, event kind registry, custom constraints registry) to require namespaced IDs for non-builtins.
+- [x] Change 054 — Add `cardplay/src/canon/legacy-aliases.ts` containing centralized mappings (legacy DeckType strings, cadence abbreviations, mode aliases).
+- [x] Change 055 — Add `normalizeDeckType()` mapping legacy strings (`pattern-editor`, `notation-score`, `piano-roll`, `session`, `arrangement`, `mixer`) to canonical `DeckType`.
+- [x] Change 056 — Update `cardplay/src/boards/decks/factory-registry.ts` to canonicalize incoming keys via `normalizeDeckType()` (internal Map keyed by canonical DeckType).
+- [x] Change 057 — Update `cardplay/src/boards/validate.ts` to canonicalize then validate deck types (treat legacy aliases as warnings during migration).
+- [x] Change 058 — Add a `DeckId` branded type in `cardplay/src/boards/types.ts` (distinct from DeckType) for BoardDeck instance IDs.
+- [x] Change 059 — Update `BoardDeck.id` to be `DeckId` and migrate board definitions to construct `DeckId`.
+- [x] Change 060 — Add a `PanelId` branded type in `cardplay/src/boards/types.ts` and use it for panel references.
+- [x] Change 061 — Add `BoardDeck.panelId: PanelId` per `cardplay/docs/canon/deck-systems.md` and update all builtin boards and deck packs accordingly.
+- [x] Change 062 — Add `DeckCardLayout` value `'grid'` in `cardplay/src/boards/types.ts` (as canon docs describe).
+- [x] Change 063 — Update rendering/layout code to treat `'grid'` as “uses `DeckLayoutAdapter (slot-grid runtime)`”.
+- [x] Change 064 — Add `normalizeDeckCardLayout()` for legacy layout values if any exist in persisted state.
+- [x] Change 065 — Rename/brand `cardplay/src/ui/deck-layout.ts` `DeckId` to something unambiguous (e.g., `SlotGridDeckId`) to reduce BoardDeck vs slot-grid confusion.
+- [x] Change 066 — Add `cardplay/src/canon/port-types.ts` that defines canonical builtin port types exactly as `cardplay/docs/canon/port-vocabulary.md` (audio, midi, notes, control, trigger, gate, clock, transport).
+- [x] Change 067 — Update `cardplay/src/cards/card.ts` `PortTypes` to match the canon port vocabulary (add gate/clock/transport; deprecate or namespacify the rest).
+- [x] Change 068 — Update `cardplay/src/boards/gating/validate-connection.ts` compatibility matrix to match the canon port compatibility pairs.
+- [x] Change 069 — Add `normalizePortType()` mapping legacy core port types (`number`, `string`, `boolean`, `any`, `stream`, etc) into canonical or namespaced equivalents.
+- [x] Change 070 — Add `UIPortDirection` + `UIPortType` in `cardplay/src/ui/components/card-component.ts` so direction is not encoded in PortType strings.
+- [x] Change 071 — Update `cardplay/src/ui/components/card-component.ts` to store `{ direction, type }` instead of `'audio_in'`-style strings (keep CSS mapping separate).
+- [x] Change 072 — Update `cardplay/src/ui/deck-layouts.ts` to use `{ direction, type }` for connections, not `'midi_out'` string ports.
+- [x] Change 073 — Add `cardplay/src/canon/event-kinds.ts` defining canonical builtin EventKinds and naming conventions; include explicit legacy alias mapping.
+- [x] Change 074 — Update `cardplay/src/types/event-kind.ts` to enforce naming convention and expose `normalizeEventKind()` for legacy values (`pitchBend`, `midiClip`, `patternRef`).
+- [ ] Change 075 — Update `cardplay/src/types/event.ts` to drop `type` alias in new write paths and add `normalizeEvent()` for ingesting legacy shapes.
+- [x] Change 076 — Add `cardplay/src/canon/constraint-types.ts` defining canonical builtin MusicConstraint type strings and the extension namespacing rule.
+- [x] Change 077 — Update `cardplay/src/ai/theory/music-spec.ts` to export the canonical "known constraint types" set from one place.
+- [x] Change 078 — Update `cardplay/src/ai/theory/host-actions.ts` to reference the shared constraint-type set (no duplicated lists).
+- [x] Change 079 — Add `cardplay/src/canon/mode-aliases.ts` to reconcile canon docs vs code ModeName vocabulary (e.g., `diminished` vs `octatonic`) and implement a normalizer.
+- [x] Change 080 — Update Prolog facts and TS enums so ModeName values are identical across TS, Prolog, and canon docs.
+- [x] Change 081 — Add `cardplay/src/canon/cadence-aliases.ts` to reconcile CadenceType vs ExtendedCadenceType vs doc cadence list (PAC/IAC/etc).
+- [x] Change 082 — Update `cardplay/src/ai/queries/theory-queries.ts` to import CadenceType from `cardplay/src/ai/theory/music-spec.ts` instead of redefining.
+- [x] Change 083 — Update `cardplay/src/ai/theory/harmony-cadence-integration.ts` to use canonical CadenceType (or explicit ExtendedCadenceType) and document the choice.
+- [x] Change 084 — Add `cardplay/src/canon/host-action-wire.ts` defining the canonical wire envelope and mapping to TS HostAction.
+- [x] Change 085 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to emit/parse the canonical wire envelope and enforce confidence 0..1.
+- [x] Change 086 — Update `cardplay/src/ai/advisor/advisor-interface.ts` to use the canonical HostAction type (no duplicate interface name).
+- [x] Change 087 — Add `cardplay/src/canon/id-validation.ts` centralizing builtin-vs-extension checks for IDs.
+- [x] Change 088 — Update `cardplay/src/cards/registry.ts` to validate card IDs and reject non-namespaced custom IDs.
+- [x] Change 089 — Update `cardplay/src/ai/theory/deck-templates.ts` to require namespaced IDs for non-builtin templates.
+- [x] Change 090 — Clarify board IDs: treat builtin boards as un-namespaced; require namespaced IDs for external boards/packs.
+- [x] Change 091 — Update `cardplay/src/user-cards/manifest.ts` (and any pack loader) to validate namespaced IDs in manifests.
+- [x] Change 092 — Add a `CardPlayId` helper that can represent either builtin ID or namespaced ID, with explicit parsing/formatting.
+- [x] Change 093 — Separate "featureId" vocabulary from deck IDs in `cardplay/src/ai/queries/persona-queries.ts` (avoid reusing DeckId strings like `pattern-editor`).
+- [x] Change 094 — Add `cardplay/src/canon/feature-ids.ts` and migrate hardcoded feature IDs like `pattern-editor` to a dedicated namespace (e.g., `feature:pattern-editor`).
+- [x] Change 095 — Add `cardplay/src/canon/versioning.ts` that defines schema version strategy for persisted board/deck/layout state.
+- [x] Change 096 — Add migrations for persisted layout state when adding `panelId` to BoardDeck.
+- [x] Change 097 — Add migrations for persisted routing state when port type vocabulary changes.
+- [x] Change 098 — Add migrations for persisted events when EventKind naming normalizes (camelCase ↔ snake_case).
+- [x] Change 099 — Add `cardplay/src/canon/serialization.ts` wrapper for stable JSON serialization of IDs and branded types.
+- [x] Change 100 — Ensure every canonical ID table is both (a) exported in TS and (b) asserted by a test, so docs/code drift becomes impossible.
+
+## Phase 2 — Board Model Alignment (Changes 101–150)
+
+- [x] Change 101 — Update all builtin boards under `cardplay/src/boards/builtins/*.ts` to populate `panelId` for each `BoardDeck`.
+- [x] Change 102 — Update `cardplay/src/boards/builtins/tracker-phrases-board.ts` to map decks to `panelId` consistent with its `layout.panels`.
+- [x] Change 103 — Update `cardplay/src/boards/builtins/tracker-harmony-board.ts` decks to include `panelId` matching the board layout.
+- [x] Change 104 — Update `cardplay/src/boards/builtins/basic-tracker-board.ts` decks to include `panelId`.
+- [x] Change 105 — Update `cardplay/src/boards/builtins/notation-board-manual.ts` decks to include `panelId`.
+- [x] Change 106 — Update `cardplay/src/boards/builtins/basic-session-board.ts` decks to include `panelId`.
+- [x] Change 107 — Update `cardplay/src/boards/builtins/basic-sampler-board.ts` decks to include `panelId`.
+- [x] Change 108 — Update `cardplay/src/boards/builtins/session-generators-board.ts` decks to include `panelId`.
+- [x] Change 109 — Update `cardplay/src/boards/builtins/notation-harmony-board.ts` decks to include `panelId`.
+- [x] Change 110 — Update `cardplay/src/boards/builtins/ai-arranger-board.ts` decks to include `panelId`.
+- [x] Change 111 — Update `cardplay/src/boards/builtins/ai-composition-board.ts` decks to include `panelId`.
+- [x] Change 112 — Update `cardplay/src/boards/builtins/generative-ambient-board.ts` decks to include `panelId`.
+- [x] Change 113 — Update `cardplay/src/boards/builtins/composer-board.ts` decks to include `panelId`.
+- [x] Change 114 — Update `cardplay/src/boards/builtins/producer-board.ts` decks to include `panelId`.
+- [x] Change 115 — Update `cardplay/src/boards/builtins/live-performance-board.ts` decks to include `panelId`.
+- [x] Change 116 — Update `cardplay/src/boards/builtins/live-performance-tracker-board.ts` decks to include `panelId`.
+- [x] Change 117 — Update `cardplay/src/boards/builtins/modular-routing-board.ts` decks to include `panelId`.
+- [x] Change 118 — Update all board stubs under `cardplay/src/boards/builtins/stub-*.ts` to include `panelId` (or remove them if obsolete).
+- [x] Change 119 — Remove `Board.panels` duplication: update `cardplay/src/boards/types.ts` to use only `layout.panels` (or make `panels` a derived alias), then update all board definitions.
+- [x] Change 120 — Update any code that reads `board.panels` (if any exists) to use `board.layout.panels`.
+- [x] Change 121 — Update `cardplay/src/boards/layout/adapter.ts` `createSimpleDockTree()` to handle top/bottom panels and multiple panels per side (not just first).
+- [x] Change 122 — Update `cardplay/src/boards/layout/adapter.ts` to preserve panel order deterministically (matching `layout.panels` order).
+- [x] Change 123 — Update `cardplay/src/boards/layout/runtime-types.ts` to carry a stable list of deck IDs assigned to each panel.
+- [x] Change 124 — Add `cardplay/src/boards/layout/assign-decks-to-panels.ts` that builds panel tab order from `BoardDeck.panelId` + `DeckCardLayout`.
+- [x] Change 125 — Update `cardplay/src/boards/decks/deck-container.ts` to render decks into their declared panel tabs.
+- [x] Change 126 — Update `cardplay/src/boards/decks/tab-manager.ts` to treat deck IDs as stable tab IDs and use DeckCardLayout semantics (tabs/stack/split/floating/grid).
+- [x] Change 127 — Implement `'grid'` DeckCardLayout rendering by instantiating a `DeckLayoutAdapter`-backed UI in the deck container.
+- [x] Change 128 — Update `cardplay/src/boards/store/store.ts` persistence schema to store per-panel tab order and active tab IDs.
+- [x] Change 129 — Add explicit `BoardContextId` / `SpecContextId` type(s) in `cardplay/src/boards/context/types.ts` per canon naming conventions.
+- [x] Change 130 — Update `cardplay/src/boards/context/store.ts` to namespace context by `boardId` and `panelId` (or deckId) to prevent cross-board leakage.
+- [x] Change 131 — Update `cardplay/src/boards/validate.ts` to validate `BoardDeck.panelId` exists in `board.layout.panels`.
+- [x] Change 132 — Update `cardplay/src/boards/validate.ts` to validate deck IDs are unique and that per-panel placement is consistent.
+- [x] Change 133 — Update `cardplay/src/boards/validate.ts` to remove the stale `KNOWN_DECK_TYPES` subset and replace it with the authoritative DeckType set.
+- [x] Change 134 — Add validation: each DeckType referenced by any builtin board must have a registered factory (use `assertBoardFactories` in tests).
+- [x] Change 135 — Add validation: each builtin board must declare `difficulty`, `tags`, `author`, `version` per docs (warn when missing).
+- [ ] Change 136 — Extend `cardplay/src/boards/validate-tool-config.ts` so tool modes are validated against `controlLevel`.
+- [x] Change 137 — Add validation: board `primaryView` is consistent with its deck mix (e.g., tracker boards include `pattern-deck`).
+- [ ] Change 138 — Update `cardplay/src/boards/gating/*` to treat `controlLevelOverride` as a policy overlay (validate override is compatible).
+- [ ] Change 139 — Add per-board ontology selection field (if canon requires) and validate AI decks respect it.
+- [ ] Change 140 — Apply `DEFAULT_BOARD_POLICY` when `board.policy` is omitted; remove scattered nullish checks.
+- [x] Change 141 — Update builtin board registration (`cardplay/src/boards/builtins/register.ts` or similar) to register boards with explicit metadata and versioning.
+- [x] Change 142 — Add `cardplay/src/boards/registry.ts` for builtin boards and namespaced extension boards; enforce ID rules.
+- [ ] Change 143 — Update board query utilities to use the board registry rather than hardcoding lists.
+- [ ] Change 144 — Update `cardplay/src/ai/queries/board-queries.ts` to pull board/deck metadata from the registry instead of doc path strings (e.g., `'docs/pattern-editor'`).
+- [ ] Change 145 — Update `cardplay/src/boards/switching/*` to preserve per-board layout state keyed by `boardId` and `panelId` rather than deck-type strings.
+- [ ] Change 146 — Add board switching semantics tests asserting deck state is cleaned up by DeckId, not by DeckType alias strings.
+- [ ] Change 147 — Add migration: map old persisted deck keys like `'pattern-editor'` to new DeckId keys when loading older sessions.
+- [ ] Change 148 — Add migration: map old persisted deck type strings like `'piano-roll'` to canonical DeckType `'piano-roll-deck'` on load.
+- [ ] Change 149 — Add `cardplay/src/boards/README.md` summarizing the canonical board model and linking to `cardplay/docs/canon/*`.
+- [ ] Change 150 — Add `cardplay/src/boards/__tests__/board-schema-canon.test.ts` asserting every builtin board matches the canon schema (panelId present, deck types canonical, etc).
+
+## Phase 3 — Deck Factories & Runtime Integration (Changes 151–200)
+
+- [ ] Change 151 — Update `cardplay/src/boards/decks/factory-types.ts` so `DeckFactory.deckType` and `DeckInstance.type` are `DeckType` (not `string`).
+- [ ] Change 152 — Update `cardplay/src/boards/decks/factory-types.ts` so `DeckInstance.id` is `DeckId` and clarify `deckId` vs `deckType` fields.
+- [ ] Change 153 — Update `cardplay/src/boards/decks/factory-registry.ts` internal Map key type to `DeckType` and ensure only canonical keys are stored.
+- [ ] Change 154 — Fix `cardplay/src/boards/decks/factory-registry.test.ts` to use canonical DeckType literals (no legacy `pattern-editor`/`notation-score`/`timeline`).
+- [ ] Change 155 — Fix `cardplay/src/boards/decks/factory-registry.test.ts` so any references to deck instance IDs use DeckId (not DeckType).
+- [x] Change 156 — Rename `cardplay/src/boards/decks/factories/pattern-editor-factory.ts` to `pattern-deck-factory.ts` and update imports/exports.
+- [x] Change 157 — Rename `cardplay/src/boards/decks/factories/piano-roll-factory.ts` to `piano-roll-deck-factory.ts` and update imports/exports.
+- [x] Change 158 — Rename any remaining “notation-score” naming in factories to `notation-deck` (keep deck instance IDs separate).
+- [x] Change 159 — Ensure `cardplay/src/boards/decks/factories/session-deck-factory.ts` targets DeckType `session-deck`.
+- [x] Change 160 — Ensure `cardplay/src/boards/decks/factories/arrangement-deck-factory.ts` targets DeckType `arrangement-deck`.
+- [x] Change 161 — Rename `cardplay/src/boards/decks/factories/arranger-factory.ts` to `arranger-deck-factory.ts` if it targets DeckType `arranger-deck`.
+- [x] Change 162 — Ensure `cardplay/src/boards/decks/factories/mixer-deck-factory.ts` targets DeckType `mixer-deck` and remove any legacy `mixer` deck-type references.
+- [x] Change 163 — Rename `cardplay/src/boards/decks/factories/transport-factory.ts` to `transport-deck-factory.ts` for consistency.
+- [x] Change 164 — Rename `cardplay/src/boards/decks/factories/instrument-browser-factory.ts` to `instruments-deck-factory.ts` (DeckType `instruments-deck`).
+- [x] Change 165 — Rename `cardplay/src/boards/decks/factories/sample-browser-factory.ts` to `samples-deck-factory.ts` (DeckType `samples-deck`).
+- [x] Change 166 — Ensure `cardplay/src/boards/decks/factories/sample-manager-factory.ts` targets DeckType `sample-manager-deck`.
+- [x] Change 167 — Rename `cardplay/src/boards/decks/factories/effects-rack-factory.ts` to `effects-deck-factory.ts`.
+- [x] Change 168 — Ensure `cardplay/src/boards/decks/factories/dsp-chain-factory.ts` targets DeckType `dsp-chain`.
+- [x] Change 169 — Rename `cardplay/src/boards/decks/factories/routing-factory.ts` to `routing-deck-factory.ts`.
+- [x] Change 170 — Rename `cardplay/src/boards/decks/factories/modulation-matrix-factory.ts` to `modulation-matrix-deck-factory.ts`.
+- [x] Change 171 — Rename `cardplay/src/boards/decks/factories/automation-factory.ts` to `automation-deck-factory.ts`.
+- [x] Change 172 — Rename `cardplay/src/boards/decks/factories/properties-factory.ts` to `properties-deck-factory.ts`.
+- [x] Change 173 — Rename `cardplay/src/boards/decks/factories/phrase-library-factory.ts` to `phrases-deck-factory.ts`.
+- [x] Change 174 — Rename or align `cardplay/src/boards/decks/factories/harmony-display-factory.ts` to DeckType `harmony-deck`.
+- [x] Change 175 — Consolidate `cardplay/src/boards/decks/generator-factory.ts` and `cardplay/src/boards/decks/factories/generator-factory.ts` into a single `generators-deck-factory.ts`.
+- [x] Change 176 — Ensure `cardplay/src/boards/decks/factories/ai-advisor-factory.ts` targets DeckType `ai-advisor-deck`.
+- [x] Change 177 — Ensure `cardplay/src/boards/decks/factories/track-groups-factory.ts` targets DeckType `track-groups-deck`.
+- [x] Change 178 — Ensure `cardplay/src/boards/decks/factories/mix-bus-factory.ts` targets DeckType `mix-bus-deck`.
+- [x] Change 179 — Ensure `cardplay/src/boards/decks/factories/reference-track-factory.ts` targets DeckType `reference-track-deck`.
+- [x] Change 180 — Ensure `cardplay/src/boards/decks/factories/spectrum-analyzer-factory.ts` targets DeckType `spectrum-analyzer-deck`.
+- [x] Change 181 — Ensure `cardplay/src/boards/decks/factories/waveform-editor-factory.ts` targets DeckType `waveform-editor-deck`.
+- [x] Change 182 — Update `cardplay/src/boards/decks/factories/index.ts` exports to be keyed by canonical DeckType values.
+- [ ] Change 183 — Update `cardplay/src/boards/decks/deck-factories.ts` to register each factory under canonical DeckType and canonicalize any legacy registrations.
+- [ ] Change 184 — Update `cardplay/src/boards/decks/index.ts` to export only canonical deck factory APIs (no legacy type strings).
+- [ ] Change 185 — Update each deck factory header comment to refer to canonical DeckType values (no “DeckType: pattern-editor” claims).
+- [ ] Change 186 — In deck factories, ensure `DeckInstance.type` uses `deckDef.type` (DeckType) and `DeckInstance.id` uses `deckDef.id` (DeckId) consistently.
+- [ ] Change 187 — Add `DeckInstance.panelId?: PanelId` so the deck container can mount directly into the correct panel.
+- [ ] Change 188 — Update `cardplay/src/boards/decks/deck-container.ts` to treat `BoardDeck.panelId` as the SSOT for placement.
+- [ ] Change 189 — Update `cardplay/src/boards/decks/deck-container.test.ts` to cover multi-panel boards and tabbing semantics.
+- [ ] Change 190 — Update `cardplay/src/boards/decks/routing-integration.ts` to treat routing endpoints as `{ deckId, portRef }` rather than deck-type strings.
+- [ ] Change 191 — Ensure `cardplay/src/boards/decks/audio-deck-adapter.ts` is documented as adapting `DeckLayoutAdapter (slot-grid runtime)` into a BoardDeck; align naming.
+- [ ] Change 192 — Add `DeckType→defaultTitle` mapping in `cardplay/src/boards/decks/deck-factories.ts` for stable UI titles.
+- [ ] Change 193 — Add `DeckType→defaultIcon` mapping for stable UI icons.
+- [ ] Change 194 — Add `DeckType→supportsSlotGrid` mapping so only some DeckTypes instantiate `DeckLayoutAdapter`.
+- [ ] Change 195 — Ensure any deck factory that edits events reads/writes only SSOT `SharedEventStore` (no parallel stores).
+- [ ] Change 196 — Update `cardplay/src/boards/decks/factory-registry.ts` to report missing factories with actionable diagnostics (file to add/registry to edit).
+- [ ] Change 197 — Add a test asserting every DeckType in `cardplay/src/boards/types.ts` has a factory registered (or is explicitly marked not-yet-implemented).
+- [ ] Change 198 — Add a test asserting every builtin board only uses DeckTypes that have factories.
+- [ ] Change 199 — Add a test asserting every deck pack only uses DeckTypes that have factories.
+- [x] Change 200 — Add `cardplay/src/boards/decks/README.md` mapping each DeckType to its factory file and implementation status.
+
+## Phase 4 — Port Vocabulary, Routing, Connection Gating (Changes 201–250)
+
+- [ ] Change 201 — Rename `cardplay/src/ui/components/card-component.ts` exported `PortType` to `UIPortType` (or similar) to avoid clashing with canonical `PortType`.
+- [ ] Change 202 — Rename `cardplay/src/ui/cards.ts` exported `PortType` to `UISurfacePortType` and provide mapping to canonical `PortType`.
+- [ ] Change 203 — Rename `cardplay/src/cards/card-visuals.ts` exported `PortType` to `VisualPortType` (keep temporary alias export if needed) and stop colliding with canonical `PortType`.
+- [ ] Change 204 — Add `cardplay/src/ui/ports/port-mapping.ts` converting UI port definitions (`UIPortType` + direction) into canonical `PortType`.
+- [ ] Change 205 — Add `cardplay/src/ui/ports/port-css-class.ts` mapping `{ direction, type }` to CSS class names (keep existing visuals).
+- [ ] Change 206 — Replace `audio_in`/`midi_out` occurrences in `cardplay/src/ui/deck-layouts.ts` with the new `{ direction, type }` model.
+- [ ] Change 207 — Update `cardplay/src/ui/components/card-component.ts` CSS selectors `.card-port-audio_in` etc to use classes derived from direction/type mapping (or generate the old classnames).
+- [ ] Change 208 — Update `cardplay/src/ui/components/card-component.ts` port highlighting to use canonical compatibility via `cardplay/src/boards/gating/validate-connection.ts`.
+- [ ] Change 209 — Update `cardplay/src/boards/gating/validate-connection.ts` to operate on canonical port types (audio/midi/notes/control/trigger/gate/clock/transport) plus namespaced extensions.
+- [ ] Change 210 — Add `cardplay/src/boards/gating/port-conversion.ts` implementing documented adapters (e.g., notes→midi) as explicit typed adapters.
+- [ ] Change 211 — Update `cardplay/src/cards/adapter.ts` to model port adapters and integrate with connection validation.
+- [ ] Change 212 — Update `cardplay/src/cards/protocol.ts` to encode port compatibility/protocol negotiation, matching docs (or mark protocol docs aspirational).
+- [ ] Change 213 — Add an adapter registry (even if minimal) and document how extensions register new adapters.
+- [ ] Change 214 — Update `cardplay/src/state/routing-graph.ts` to store canonical port types and directions explicitly.
+- [ ] Change 215 — Update `cardplay/src/state/routing-graph.ts` to validate edges against `validateConnection()` at insertion time (SSOT enforcement).
+- [ ] Change 216 — Update `cardplay/src/state/routing-graph.ts` to record which adapter (if any) is used for a connection.
+- [ ] Change 217 — Update `cardplay/src/boards/decks/routing-integration.ts` to surface adapter requirements in routing deck UI diagnostics.
+- [ ] Change 218 — Add `cardplay/src/state/routing-graph.test.ts` cases for invalid connections and adapter-required connections.
+- [ ] Change 219 — Update `cardplay/src/ui/deck-layout.ts` to represent connections as typed `PortRef` objects rather than string arrays.
+- [ ] Change 220 — Add `PortRef` type in a shared module (e.g., `cardplay/src/types/port-ref.ts`) reused across UI and routing.
+- [ ] Change 221 — Update `cardplay/src/ui/deck-layout.ts` `inputConnections`/`outputConnections` to store `PortRef[]` (or ConnectionId references) rather than `string[]`.
+- [ ] Change 222 — Add a stable `ConnectionId` type and use it across routing graph, deck layout, and UI.
+- [ ] Change 223 — Add connection normalization: store connections in a canonical source→target order and dedupe.
+- [ ] Change 224 — Ensure connection serialization uses canonical port types and ConnectionId to prevent drift.
+- [ ] Change 225 — Add migration for older saved connections that used `audio_in` style identifiers.
+- [ ] Change 226 — Add migration for older saved connections that used legacy port types (`number`, `stream`, etc).
+- [ ] Change 227 — Update `cardplay/src/boards/types.ts` `BoardConnection.connectionType` to align with canon vocabulary (audio/midi/modulation/trigger) and consider namespacing for extensions.
+- [ ] Change 228 — Add a canonical `ConnectionType` union export and reuse it across routing graph and UI.
+- [ ] Change 229 — Update any code using `'modulation'` vs `'mod'` etc to canonical connection type strings.
+- [ ] Change 230 — Update `cardplay/src/ui/deck-layouts.ts` sample connections to use canonical ConnectionType strings.
+- [ ] Change 231 — Update `cardplay/src/cards/card.ts` `registerPortType()` to validate namespaced port types (reject builtin collisions).
+- [ ] Change 232 — Update `cardplay/src/cards/card.ts` to pre-register builtin port types in the registry with metadata used by UI.
+- [ ] Change 233 — Update `cardplay/src/ui/components/card-component.ts` to display port labels/colors using registry metadata from `getPortTypeEntry()`.
+- [ ] Change 234 — Update `cardplay/src/ui/cards.ts` to display port metadata using the port type registry (instead of hardcoded colors/icons).
+- [ ] Change 235 — Add a canonical port color palette so visuals remain consistent across systems.
+- [ ] Change 236 — Add a canonical port icon mapping so visuals remain consistent across systems.
+- [ ] Change 237 — Audit `cardplay/src/audio/*` so the audio engine graph uses canonical routing graph edges/port types (no parallel graph).
+- [ ] Change 238 — Update `cardplay/src/audio/instrument-cards.ts` routing fields to align with routing graph IDs rather than slot indices (where integrated).
+- [ ] Change 239 — Update `cardplay/src/boards/decks/audio-deck-adapter.ts` to translate between `DeckLayoutAdapter` slot connections and `RoutingGraphStore` edges.
+- [ ] Change 240 — Add tests for `cardplay/src/boards/decks/audio-deck-adapter.ts` ensuring routing graph edges are created/removed correctly.
+- [ ] Change 241 — Export a single authoritative “Port Compatibility Matrix” constant from `validate-connection.ts` and reference it from tests/docs.
+- [ ] Change 242 — Update either docs or code so `cardplay/docs/canon/port-vocabulary.md` matches the real port types + compatibility.
+- [ ] Change 243 — Update `cardplay/docs/port-unification-rules.md` to map to real code or mark it aspirational (avoid phantom modules).
+- [ ] Change 244 — Replace doc references to `src/core/port-conversion.ts` with `cardplay/src/boards/gating/validate-connection.ts` or the new `port-conversion.ts`.
+- [ ] Change 245 — Add UI diagnostics when user attempts an invalid connection (use `getConnectionIncompatibilityReason()`).
+- [ ] Change 246 — Add UI diagnostics when a connection is allowed but requires an adapter (show which adapter).
+- [ ] Change 247 — Add a connection overlay UI component (or unify existing) that renders ports using the canonical model.
+- [ ] Change 248 — Ensure routing deck UI reads/writes only SSOT `RoutingGraphStore` (no “secret parallel graph”).
+- [ ] Change 249 — Add a test ensuring no second routing graph store exists (unless explicitly documented).
+- [ ] Change 250 — Add an SSOT note in `cardplay/src/state/routing-graph.ts` comments pointing to `cardplay/docs/canon/ssot-stores.md`.
+
+## Phase 5 — Card Systems Disambiguation (Changes 251–300)
+
+- [x] Change 251 — Rename `export interface Card` in `cardplay/src/audio/instrument-cards.ts` to `export interface AudioModuleCard` and update all references.
+- [x] Change 252 — Rename `CardCategory` in `cardplay/src/audio/instrument-cards.ts` to `AudioModuleCategory` to avoid collision with core card categories.
+- [x] Change 253 — Rename `CardState` in `cardplay/src/audio/instrument-cards.ts` to `AudioModuleState` (or similar) to avoid collision with UI CardState.
+- [x] Change 254 — Update any imports of audio `Card` to the new `AudioModuleCard` name (search `from '../audio/instrument-cards'`).
+- [x] Change 255 — Update `cardplay/docs/canon/legacy-type-aliases.md` if any type names change.
+- [ ] Change 256 — Rename `cardplay/src/ui/components/card-component.ts` export `CardComponent` to `UICardComponent` (or add an alias export) to match canon “Card Systems”.
+- [ ] Change 257 — Rename `cardplay/src/ui/cards.ts` “card UI framework” exports to `CardSurface*` and avoid exporting ambiguous `Card*` symbols.
+- [ ] Change 258 — Rename `cardplay/src/ui/cards.ts` `CardState` to `CardSurfaceState` to avoid collisions with other CardState types.
+- [ ] Change 259 — Rename `cardplay/src/ui/cards.ts` `CardSize` to `CardSurfaceSize` (or namespace exports) to avoid collisions.
+- [ ] Change 260 — Introduce `cardplay/src/ui/index.ts` re-exports that only export canonical UI card symbols (explicitly alias legacy ones).
+- [ ] Change 261 — Reconcile `cardplay/src/cards/card.ts` `CardCategory` with audio/UI categories by renaming the core one to `CoreCardCategory` if needed.
+- [ ] Change 262 — Update `cardplay/src/cards/card.ts` to export a `CoreCard` alias for `Card<A,B>` for clarity in mixed contexts.
+- [ ] Change 263 — Update `cardplay/src/cards/registry.ts` to use `CoreCard`/`Card<A,B>` consistently and disallow registering non-core card types.
+- [ ] Change 264 — Update `cardplay/src/cards/stack.ts` to use `CoreCard` and ensure composition `Stack` doesn’t collide with UI stacks.
+- [ ] Change 265 — Rename `cardplay/src/ui/components/stack-component.ts` exports to `UIStackComponent` (or keep export but ensure all barrel files qualify it).
+- [ ] Change 266 — Rename any UI-level `StackMode` to `UILayoutStackMode` if it conflicts with composition stack mode.
+- [ ] Change 267 — Audit for exported `Stack` symbols outside `cardplay/src/cards/stack.ts`; rename or alias as needed.
+- [ ] Change 268 — Consolidate CardDefinition schemas: pick `cardplay/src/cards/card-visuals.ts` as canonical and rename editor schema in `cardplay/src/user-cards/card-editor-panel.ts`.
+- [ ] Change 269 — Rename `export interface CardDefinition` in `cardplay/src/user-cards/card-editor-panel.ts` to `EditorCardDefinition`.
+- [ ] Change 270 — Update all references in `cardplay/src/user-cards/card-editor-panel.ts` and related files to use `EditorCardDefinition`.
+- [ ] Change 271 — Ensure `cardplay/src/cards/index.ts` exports `CardDefinition` (visuals) and `EditorCardDefinition` (editor) with explicit names.
+- [ ] Change 272 — Update `cardplay/docs/card-definition-format.md` to reference the canonical schema location and remove phantom `src/core/card.ts` references (or mark as legacy alias).
+- [ ] Change 273 — Rename `cardplay/src/cards/card-visuals.ts` `PortType` export to `VisualPortType` and stop colliding with canonical `PortType`.
+- [ ] Change 274 — Update `cardplay/src/cards/index.ts` to export `VisualPortType` only (don’t leak `PortType` under ambiguous name).
+- [ ] Change 275 — Update `cardplay/src/ui/components/card-component.ts` to import canonical core `PortType` only where needed; keep UI port types separate.
+- [ ] Change 276 — Update `cardplay/src/ui/cards.ts` to import canonical core `PortType` only where needed; keep UI port types separate.
+- [ ] Change 277 — Add `cardplay/src/canon/card-id.ts` defining CardId rules (builtin vs namespaced) and enforce in registries and CardDefinition.
+- [ ] Change 278 — Update all builtin card IDs in `cardplay/src/cards/*` to be either stable builtins or namespaced extension IDs (no ambiguous middle-ground).
+- [ ] Change 279 — Update theory card IDs in `cardplay/src/ai/theory/theory-cards.ts` to be namespaced and enforce the pattern.
+- [ ] Change 280 — Update `cardplay/src/ai/theory/deck-templates.ts` so `cardIds` are validated against the theory card registry.
+- [ ] Change 281 — Add a theory card registry module that exports `TheoryCardDef` and allows extensions to register additional theory cards with namespaced IDs.
+- [ ] Change 282 — Ensure harmony/generators deck factories use the theory card registry (not hardcoded lists).
+- [ ] Change 283 — Update `cardplay/src/ai/theory/theory-cards.test.ts` to assert all theory card IDs are namespaced and unique.
+- [ ] Change 284 — Update `cardplay/src/user-cards/cardscript/*` to require user-authored cards declare IDs following namespaced rules.
+- [ ] Change 285 — Update `cardplay/src/user-cards/cardscript/live.ts` to validate card IDs on `addCard()` and emit deprecation warnings for non-namespaced.
+- [ ] Change 286 — Update `cardplay/src/audio/instrument-cards.ts` to validate AudioModuleCard IDs and prevent collisions with core card IDs.
+- [ ] Change 287 — Add `cardplay/src/canon/card-kind.ts` mapping from `ControlLevel` to allowed card kinds and enforce in board/deck factories.
+- [ ] Change 288 — Update deck factories to filter visible/available cards based on `ControlLevel` and card kind metadata.
+- [ ] Change 289 — Add placeholder UI for “unknown card ID” that shows diagnostics rather than crashing.
+- [ ] Change 290 — Ensure missing packs render placeholders with graceful degradation (per canon extensibility contract).
+- [ ] Change 291 — Add pack-level capabilities declaration and enforce at card instantiation time (warn/disable when missing).
+- [ ] Change 292 — Add a centralized CardPack registry that loads packs and registers their cards (core, theory, audio, UI definitions) with namespaced IDs.
+- [ ] Change 293 — Update `cardplay/src/extensions/*` to use the CardPack registry instead of ad-hoc registration.
+- [ ] Change 294 — Update any “builtin-only IDs” assumptions in code to allow third-party packs while keeping pinned builtins stable.
+- [ ] Change 295 — Add a single adapter module that creates UI card instances from core cards (avoid parallel “UI card” systems).
+- [ ] Change 296 — Add a single adapter module that wraps audio module cards into routing nodes (avoid parallel graphs).
+- [ ] Change 297 — Ensure theory cards mutate MusicSpec only via their `applyToSpec()` path (no direct SSOT mutation).
+- [ ] Change 298 — Add unit tests ensuring each card system stays in its lane (core card doesn’t import UI; UI doesn’t redefine core ports).
+- [ ] Change 299 — Remove or rename ambiguous exports of `Card`, `Deck`, `Stack` from barrel files (e.g., `cardplay/src/index.ts`) that confuse LLM generation.
+- [ ] Change 300 — Add a “Card Systems” enforcement test that fails if new duplicate symbols are introduced without updating `cardplay/docs/canon/legacy-type-aliases.md`.
+
+## Phase 6 — Events, Clips, Tracks, Timebase SSOT (Changes 301–350)
+
+- [x] Change 301 — Replace local PPQ constant in `cardplay/src/audio/render.ts` with import `{ PPQ }` from `cardplay/src/types/primitives.ts`.
+- [x] Change 302 — Replace local PPQ constant in `cardplay/src/ui/components/bounce-dialog.ts` with `{ PPQ }` and use project tempo instead of hardcoded BPM.
+- [x] Change 303 — Fix `cardplay/src/ui/components/generator-panel.ts` quantize comments/calculations to assume PPQ=960 (e.g., 16th = 240 ticks).
+- [x] Change 304 — Audit tick↔time conversions across `cardplay/src/audio/*` and `cardplay/src/ui/*` to ensure PPQ=960 consistently.
+- [x] Change 305 — Add `cardplay/src/types/time-conversion.ts` `ticksToSeconds()` helper taking `{ tick, bpm, ppq }` and reuse it.
+- [x] Change 306 — Add `cardplay/src/types/time-conversion.ts` `secondsToTicks()` helper and reuse it.
+- [ ] Change 307 — Update code that assumes constant tempo to read tempo from SSOT (tempo events or a project tempo store).
+- [ ] Change 308 — Ensure tempo changes are represented as `EventKind = 'tempo'` events and drive conversions.
+- [x] Change 309 — Annotate `cardplay/src/types/primitives.ts` as the only PPQ source (code comment pointing to canon).
+- [x] Change 310 — Remove/rename any other "Tick = number" aliases; use branded `Tick` and `TickDuration`. (Documented intentional local copies in legacy-aliases.ts)
+- [ ] Change 311 — Update `cardplay/src/types/event.ts` to require `start: Tick` and `duration: TickDuration` in all write paths (numeric only via factories).
+- [ ] Change 312 — Update all event creation call sites to go through `createEvent()`/`createNoteEvent()` so validation is centralized.
+- [ ] Change 313 — Identify and migrate call sites still writing legacy alias fields (`tick`, `startTick`, `durationTick`) without canonical fields.
+- [ ] Change 314 — Update `cardplay/src/state/event-store.ts` to normalize incoming legacy event shapes at the boundary.
+- [ ] Change 315 — Add `cardplay/src/state/event-store.test.ts` cases for legacy event alias ingestion and normalization.
+- [ ] Change 316 — Make `Event.tags` JSON-safe in SSOT (avoid storing raw `Set`); introduce a boundary conversion if needed.
+- [ ] Change 317 — Update persistence to serialize/deserialize tags consistently.
+- [ ] Change 318 — Ensure `EventMeta` is fully optional and JSON-safe; add validation.
+- [ ] Change 319 — Update `cardplay/src/state/types.ts` to clearly distinguish branded IDs (`EventStreamId`, `ClipId`, `TrackId`).
+- [ ] Change 320 — Add a `TrackId` branded type and use it across track-related modules.
+- [ ] Change 321 — Rename `export interface Track` in `cardplay/src/ui/components/arrangement-panel.ts` to `ArrangementTrack`.
+- [ ] Change 322 — Rename `export interface Track` in `cardplay/src/tracks/clip-operations.ts` to `FreezeTrackModel` (or another explicit name).
+- [ ] Change 323 — Update all imports/references to those Track types accordingly.
+- [ ] Change 324 — Add `cardplay/src/tracks/types.ts` exporting canonical track model types per subsystem; stop exporting ambiguous `Track`.
+- [ ] Change 325 — Update `cardplay/src/ui/components/arrangement-panel.ts` to reference SSOT `ClipRegistry` + `SharedEventStore` rather than maintaining parallel state.
+- [ ] Change 326 — Update `cardplay/src/tracks/clip-operations.ts` to treat `ClipRecord` as SSOT and avoid duplicating track state.
+- [ ] Change 327 — Ensure `ClipRegistry` is the only place that assigns Clip IDs; remove any duplicate `generateClipId()` implementations.
+- [ ] Change 328 — Add `cardplay/src/state/clip-registry.test.ts` cases asserting stable Clip ID generation and uniqueness.
+- [ ] Change 329 — Update session UI adapters (e.g., `cardplay/src/ui/session-clip-adapter.ts`) to treat `ClipRegistry` as SSOT.
+- [ ] Change 330 — Update arrangement UI adapters (e.g., `cardplay/src/ui/arrangement-view.ts`) to treat `ClipRegistry` as SSOT.
+- [ ] Change 331 — Update notation UI adapters to treat `SharedEventStore` as SSOT (no parallel note store).
+- [ ] Change 332 — Update tracker UI adapters to treat `SharedEventStore` as SSOT (no parallel pattern store).
+- [ ] Change 333 — Add explicit projection layers (tracker rows, piano-roll notes, notation measures) as derived views over SSOT streams.
+- [ ] Change 334 — Ensure projections have invalidation semantics tied to SSOT updates (no hidden caches).
+- [ ] Change 335 — Add tests for tracker projection to assert it matches SSOT event streams.
+- [ ] Change 336 — Add tests for piano-roll projection to assert it matches SSOT event streams.
+- [ ] Change 337 — Update `cardplay/src/export/*` modules to read only from SSOT stores (events/clips/routing) and not UI state.
+- [ ] Change 338 — Fix `cardplay/src/export/board-export.test.ts` to use canonical board/deck schema (DeckType values, panelId, etc) instead of legacy deck-type strings.
+- [ ] Change 339 — Update export metadata to avoid reusing DeckType strings for unrelated domains; introduce explicit export-domain enums.
+- [ ] Change 340 — Add `ExportChangeType` union for collaboration metadata and ensure it does not reuse DeckType values.
+- [ ] Change 341 — Audit for parallel stores under `cardplay/src/ui/*` duplicating SSOT data and migrate them.
+- [ ] Change 342 — Ensure `cardplay/src/boards/store/store.ts` persists only board layout/preferences, not domain data.
+- [ ] Change 343 — Ensure `cardplay/src/boards/context/store.ts` contains only selection/cursor context, not domain state.
+- [ ] Change 344 — Add `cardplay/src/state/ssot.ts` exposing getters for SSOT stores (events/clips/routing) and documenting invariants.
+- [ ] Change 345 — Remove duplicate SSOT getter implementations if they diverge (normalize import paths via a single barrel).
+- [ ] Change 346 — Add a test ensuring `getSharedEventStore()` returns a singleton (if that is intended SSOT semantics).
+- [ ] Change 347 — Add a test ensuring board context resets correctly on board/project switches (no dangling IDs).
+- [ ] Change 348 — Add a test ensuring clip registry resets correctly when clearing project.
+- [ ] Change 349 — Add an explicit “project reset” API that resets all SSOT stores together, and ensure UI uses it.
+- [ ] Change 350 — Add a docs↔code sync check ensuring `cardplay/docs/canon/ssot-stores.md` file paths remain valid.
+
+## Phase 7 — AI/Theory/Prolog Alignment (Changes 351–400)
+
+- [ ] Change 351 — Decide canonical HostAction discriminant (`action` vs `type`), then align `cardplay/src/ai/theory/host-actions.ts` and `cardplay/docs/canon/host-actions.md`.
+- [ ] Change 352 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to parse the canonical HostAction discriminant consistently.
+- [ ] Change 353 — Update `cardplay/src/ai/advisor/advisor-interface.ts` to stop defining its own `HostAction`; import canonical.
+- [ ] Change 354 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to emit `action(ActionTerm, Confidence, Reasons)` Prolog envelope exactly as documented.
+- [ ] Change 355 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to validate confidence (0..1) and clamp/diagnose invalid values.
+- [ ] Change 356 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to parse `Reasons` lists containing `because/1` terms into strings via a shared helper.
+- [ ] Change 357 — Move `prologReasonsToStrings()` into a shared module (e.g., `cardplay/src/ai/engine/reasons.ts`) and reuse it.
+- [ ] Change 358 — Ensure any Prolog predicate emitting actions uses the canonical `action/3` wrapper (update KB files under `cardplay/src/ai/knowledge/*.pl`).
+- [ ] Change 359 — Add tests for each action functor emitted by Prolog to ensure TS parser supports it and yields a HostAction.
+- [ ] Change 360 — Ensure unknown action functors are safely ignored with diagnostics (never throw).
+- [ ] Change 361 — Add `HostActionEnvelope` type (`{ action, confidence, reasons }`) and propagate through UI.
+- [ ] Change 362 — Update AI advisor UI deck to display confidence and reasons (factory `cardplay/src/boards/decks/factories/ai-advisor-factory.ts`).
+- [ ] Change 363 — Update `cardplay/src/ai/theory/spec-event-bus.ts` to carry SpecContextId and avoid global singleton spec mutation.
+- [ ] Change 364 — Add a `MusicSpecStore` (even if minimal) holding current spec per board context unless canon explicitly rejects a store.
+- [ ] Change 365 — Ensure theory cards read/write only through `MusicSpecStore` (or spec event bus) rather than ad-hoc state.
+- [ ] Change 366 — Update `cardplay/src/ai/theory/theory-cards.ts` to validate emitted constraints use canonical types and namespaced custom constraints.
+- [ ] Change 367 — Update `cardplay/src/ai/theory/custom-constraints.ts` to enforce namespaced IDs and avoid collisions with builtin constraint types.
+- [ ] Change 368 — Add constraint registry lookup so UI can render unknown custom constraints gracefully.
+- [ ] Change 369 — Update `cardplay/src/ai/theory/spec-prolog-bridge.ts` to ensure Prolog encoding uses canonical enums (CultureTag, StyleTag, TonalityModel, ModeName).
+- [ ] Change 370 — Reconcile ModeName vocabulary: ensure Prolog KB and TS `ModeName` share identical atoms (update code or KB).
+- [ ] Change 371 — Add a test that round-trips `MusicSpec` → Prolog facts → parsed-back `MusicSpec` without loss for a representative spec.
+- [ ] Change 372 — Add a test that Prolog suggestions (`spec_autofix/3`, etc) produce HostActions that are valid and apply cleanly.
+- [ ] Change 373 — Implement `applyHostAction()` in one canonical location (e.g., `cardplay/src/ai/theory/apply-host-action.ts`) that mutates SSOT stores with undo recording.
+- [ ] Change 374 — Update any deck/tool applying HostActions to go through `applyHostAction()` only.
+- [ ] Change 375 — Ensure HostAction application is gated by `ControlLevel` and ToolMode policy rules from `cardplay/src/boards/types.ts`.
+- [ ] Change 376 — Add a `ControlPolicy` module mapping `ControlLevel` × tool mode to allowed auto-apply behavior.
+- [ ] Change 377 — Update `cardplay/src/boards/gating/*` to enforce that policy (no auto-apply in full-manual/manual-with-hints, etc).
+- [ ] Change 378 — Update `cardplay/src/ai/queries/persona-queries.ts` feature availability to be derived from board definitions rather than hardcoded tables.
+- [ ] Change 379 — Update `cardplay/src/ai/queries/persona-queries.test.ts` to reflect derived logic (avoid checking legacy feature IDs).
+- [ ] Change 380 — Update `cardplay/src/ai/queries/board-queries.ts` to return canonical deck IDs/types/panel IDs and not doc paths.
+- [ ] Change 381 — Ensure `cardplay/docs/canon/ai-deck-integration.md` matches real DeckType behavior (update code to comply).
+- [ ] Change 382 — Add a `DeckType→readsSpec/writesSpec/requestsProlog` capability table in code and use it to drive AI queries.
+- [ ] Change 383 — Update `cardplay/src/ai/theory/deck-templates.ts` to include metadata about which DeckType(s) a template applies to.
+- [ ] Change 384 — Enforce namespaced IDs for non-builtin deck templates and validate them at load time.
+- [ ] Change 385 — Add a test that every deck template’s card IDs exist in the theory card registry.
+- [ ] Change 386 — Add a test that every theory card’s constraint type is in the MusicSpec union (or is namespaced custom).
+- [ ] Change 387 — Update `cardplay/src/ai/knowledge/music-theory-loader.ts` to load KB modules deterministically and expose which predicates are provided.
+- [ ] Change 388 — Add a `kbHealthReport()` API listing loaded KB modules and predicate counts (debugging + doc lint support).
+- [ ] Change 389 — Enforce via linter: every doc predicate example points to an existing predicate in loaded KB.
+- [ ] Change 390 — Update `cardplay/src/ai/theory/harmony-cadence-integration.ts` to avoid defining a second CadenceType; use canonical types.
+- [ ] Change 391 — Resolve “hybrid tonality model” mentions: implement `TonalityModel = 'hybrid'` across code/KB or remove/mark aspirational.
+- [ ] Change 392 — Ensure `cardplay/src/ai/theory/music-spec.ts` `TonalityModel` matches canon docs; add explicit legacy alias mapping if needed.
+- [ ] Change 393 — Ensure `cardplay/docs/canon/ids.md` ModeName list matches code (or update code to match docs) and add explicit legacy alias table.
+- [ ] Change 394 — Update `cardplay/src/ai/theory/host-actions.ts` to allow namespaced extension actions in the discriminant union.
+- [ ] Change 395 — Add extension handler registration for namespaced HostAction types (capability-gated).
+- [ ] Change 396 — Ensure unknown extension actions remain safe no-ops if handler missing; surface diagnostics.
+- [ ] Change 397 — Add tests for extension HostAction handler registration and safe fallback.
+- [ ] Change 398 — Integrate lyrics-first types: ensure lyric-related HostActions and tokens use canonical types from `cardplay/docs/theory/lyrics_integration.md` (or mark aspirational).
+- [ ] Change 399 — Add a lyric anchor model in SSOT (if not present) and ensure it does not conflict with event stores.
+- [ ] Change 400 — Add a doc/code sync check ensuring `cardplay/docs/canon/declarative-vs-imperative.md` references real apply-loop code paths.
+
+## Phase 8 — Extensions, Packs, Registries (Changes 401–450)
+
+- [ ] Change 401 — Implement CardPack manifest schema in `cardplay/src/user-cards/manifest.ts` (name, version, namespace, capabilities, exported entities).
+- [ ] Change 402 — Use manifest `name` as the default namespace for pack IDs.
+- [ ] Change 403 — Add `cardplay/src/extensions/registry.ts` as the single loader for packs and registries (cards, deck templates, ontology packs, themes).
+- [ ] Change 404 — Implement pack discovery mechanism (project-local folder, user folder, etc) and document its paths.
+- [ ] Change 405 — Enforce that third-party pack IDs use namespaced IDs and do not collide with builtins.
+- [ ] Change 406 — Add `cardplay/src/extensions/capabilities.ts` defining capability strings + risk levels (replaces phantom `registry/v2/policy.ts` references).
+- [ ] Change 407 — Replace doc references to `cardplay/src/registry/v2/policy.ts` with the real module (or implement the registry/v2 folder).
+- [ ] Change 408 — Decide whether to create a real `cardplay/src/registry/v2/*`; if yes, add skeleton modules referenced by docs (`types.ts`, `policy.ts`, `schema.ts`, `diff.ts`, `validate.ts`).
+- [ ] Change 409 — If not creating `cardplay/src/registry/v2/*`, mark docs referencing it as `aspirational` and point to current distributed registries.
+- [ ] Change 410 — Implement signature/trust model stubs so pack provenance fields exist and docs stop referencing phantom modules.
+- [ ] Change 411 — Add `RegistryEntryProvenance` type in a real module and use it for all registered entities.
+- [ ] Change 412 — Implement an in-memory registry snapshot format and diffing API (minimal) so registry diff docs have an anchor.
+- [ ] Change 413 — Implement a versioned registry snapshot envelope and migration API (minimal) so migration docs have an anchor.
+- [ ] Change 414 — Implement `cardplay/src/extensions/validators.ts` that validates registered entities (IDs, capabilities, schema versions).
+- [ ] Change 415 — Add `npm run registry:report` producing a coverage/health report (registered entities, missing factories, ID collisions).
+- [ ] Change 416 — Add runtime “missing pack” placeholder UI showing provenance and error information without crashing.
+- [ ] Change 417 — Implement Theme extension surface: add `cardplay/src/boards/theme/registry.ts` (if missing) and namespaced theme IDs.
+- [ ] Change 418 — Enforce themes are visual-only: lint preventing themes from importing core logic modules.
+- [ ] Change 419 — Implement OntologyPack extension surface per `cardplay/docs/canon/ontologies.md` (namespaced IDs, compatibility notes).
+- [ ] Change 420 — Add gating rules: boards declare which ontology packs they allow; AI tools must respect the gate.
+- [ ] Change 421 — Implement a bridge policy for cross-ontology tools (e.g., 12-TET assumptions) and surface warnings.
+- [ ] Change 422 — Add `cardplay/src/ai/theory/ontologies/` holding ontology pack definitions and bridging helpers.
+- [ ] Change 423 — Use namespaced custom constraints per ontology (e.g., `carnatic:*`) rather than extending builtin enums.
+- [ ] Change 424 — Update `cardplay/src/ai/theory/music-spec.ts` so ontology-specific constraint types are namespaced unless explicitly builtin.
+- [ ] Change 425 — Update KB loader to load ontology-specific `.pl` modules only when the ontology pack is active.
+- [ ] Change 426 — Enforce via doc lint: docs that mix ontologies include explicit bridge sections.
+- [ ] Change 427 — Implement extension points for deck templates: allow packs to register additional `DeckTemplate` definitions.
+- [ ] Change 428 — Implement extension points for board definitions: allow packs to register new boards (namespaced board IDs).
+- [ ] Change 429 — Decide deck factory extensibility: keep DeckType pinned or add controlled namespaced DeckType extension; document/enforce choice.
+- [ ] Change 430 — Implement extension points for port types: allow packs to register namespaced port types and compatibility/adapter requirements.
+- [ ] Change 431 — Implement extension points for event kinds: allow packs to register namespaced EventKinds plus payload schemas.
+- [ ] Change 432 — Add an EventKind schema registry so events can be validated at ingestion and before export.
+- [ ] Change 433 — Update `cardplay/src/types/event-kind.ts` to store schema metadata and expose `validateEventPayload(kind, payload)`.
+- [ ] Change 434 — Add migrations: event kind registry tracks legacy aliases and applies them on load.
+- [ ] Change 435 — Implement extension points for HostActions: allow packs to register handlers for namespaced HostAction types.
+- [ ] Change 436 — Add capability policy for HostAction handlers (block/prompt when actions require unsafe capabilities).
+- [ ] Change 437 — Add a sandbox layer for user cards: CardScript cards run with restricted capabilities (at least enforced in the host boundary).
+- [ ] Change 438 — Implement pack-scoped storage namespaces so third-party packs cannot overwrite each other’s persisted state.
+- [ ] Change 439 — Add deterministic pack load order + conflict resolution for ID collisions (builtins win; conflicts logged).
+- [ ] Change 440 — Add and implement `PackMissingBehavior` policy (ignore vs placeholder vs hard error) per canon extensibility contract.
+- [ ] Change 441 — Treat “project-local” vs “global user” packs differently in `cardplay/src/user-cards/*` (security boundary).
+- [ ] Change 442 — Add `cardplay/src/extensions/errors.ts` typed error taxonomy for pack/registry failures.
+- [ ] Change 443 — Add `cardplay/src/extensions/logging.ts` logging registry actions with provenance.
+- [ ] Change 444 — Add a “registry devtool” UI deck listing loaded packs and registered entities (cards, templates, port types, event kinds).
+- [ ] Change 445 — Ensure any “Registry” mentions in UI/docs point to the real extension loader (not phantom `src/registry/*`).
+- [ ] Change 446 — Update `cardplay/docs/registry-api.md` to map each API to the real module (or mark aspirational).
+- [ ] Change 447 — Update `cardplay/docs/validator-rules.md` to map to real validators (or mark aspirational).
+- [ ] Change 448 — Update `cardplay/docs/registry-diff-format.md` to map to real diff output (or mark aspirational).
+- [ ] Change 449 — Add a unit test that loads a dummy pack and verifies all registries update and IDs validate.
+- [ ] Change 450 — Add a unit test that simulates a missing/broken pack and verifies graceful degradation.
+
+## Phase 9 — Cleanup, Tests, Deprecation Removal (Changes 451–500)
+
+- [ ] Change 451 — Remove `.bak` test files under `cardplay/src/boards/__tests__` (or move to fixtures) so they don’t confuse repo-wide searches.
+- [ ] Change 452 — Remove stale references to legacy deck types in tests/fixtures (e.g., `cardplay/src/boards/__tests__/drag-drop-integration.test.ts.bak`).
+- [ ] Change 453 — Update `cardplay/src/tests/board-integration.test.ts` to distinguish deck IDs vs deck types (avoid keying by legacy strings accidentally).
+- [ ] Change 454 — Update `cardplay/src/boards/__tests__/board-switching-semantics.test.ts` to use canonical deck schema (DeckType, DeckId, PanelId).
+- [ ] Change 455 — Update `cardplay/src/boards/__tests__/project-compatibility.test.ts` to use canonical schema and migration logic.
+- [ ] Change 456 — Update `cardplay/src/ui/drop-handlers.ts` + `cardplay/src/ui/drop-handlers.test.ts` so drop targets are addressed by DeckId (not DeckType).
+- [ ] Change 457 — Update `cardplay/src/ui/beginner-bridge.ts` to rename feature IDs that overlap with deck IDs into a dedicated feature namespace.
+- [ ] Change 458 — Update `cardplay/src/ui/components/whats-this-mode.ts` to reference feature IDs (not deck IDs) and keep selectors stable after renames.
+- [ ] Change 459 — Update `cardplay/src/ai/learning/help-browser.ts` related feature IDs to use the new feature namespace.
+- [ ] Change 460 — Update `cardplay/src/export/collaboration-metadata.ts` and tests to avoid ambiguous string reuse; introduce explicit enums.
+- [x] Change 461 — Add `npm run typecheck:all` that typechecks both `cardplay/src` and extracted doc snippet tests.
+- [x] Change 462 — Add `npm run test:canon` that runs only the canon/invariant tests quickly.
+- [ ] Change 463 — Add CI job running `npm run test:canon` on every push (fast feedback).
+- [ ] Change 464 — Add CI job running `npm run docs:lint` on every push (fast feedback).
+- [ ] Change 465 — Add CI job running `npm run registry:report` and uploading the report as an artifact.
+- [ ] Change 466 — Add `cardplay/src/tests/no-hardcoded-ppq.test.ts` failing if any file contains `const PPQ =` outside primitives.
+- [ ] Change 467 — Add `cardplay/src/tests/no-legacy-decktype.test.ts` failing if legacy DeckType strings are used where DeckType is expected.
+- [ ] Change 468 — Add `cardplay/src/tests/no-direction-porttype.test.ts` failing if any port type string contains `_in`/`_out` outside CSS classnames.
+- [ ] Change 469 — Add `cardplay/src/tests/no-phantom-registry-v2.test.ts` failing if docs claim implemented APIs in `src/registry/v2/*` that aren’t present.
+- [ ] Change 470 — Add `cardplay/src/tests/no-duplicate-exported-symbols.test.ts` failing if ambiguous names are exported without explicit aliasing.
+- [ ] Change 471 — Add a “deprecation budget” policy: new code must not add legacy aliases without tests and doc updates.
+- [ ] Change 472 — Migrate all code to use canonical deck schema (DeckId/DeckType/PanelId) and then remove `normalizeDeckType()` warnings.
+- [ ] Change 473 — Migrate all code to use canonical port schema and then remove legacy port type mapping.
+- [ ] Change 474 — Migrate all code to use canonical HostAction discriminant and then remove HostAction shape shims.
+- [ ] Change 475 — Migrate all code to use canonical event kind naming and then remove legacy event kind aliases.
+- [ ] Change 476 — Migrate all code to use canonical PPQ conversions and then remove local conversion helpers.
+- [ ] Change 477 — After migrations, delete deprecated fields on `Event<P>` (`type`, `tick`, `startTick`, `durationTick`) or move them behind an explicit `LegacyEvent` type.
+- [ ] Change 478 — After migrations, delete deprecated fields on other core records (if any) and keep only canonical schema.
+- [ ] Change 479 — Ensure all “Status: implemented” docs are actually implemented; downgrade status where needed.
+- [ ] Change 480 — Regenerate/update `to_fix.md` gap catalogue after refactors so it reflects reality (no stale claims).
+- [ ] Change 481 — Add `cardplay/scripts/update-to-fix-gaps.ts` helper that pulls mismatches from tests/lints and writes back to `to_fix.md` Part B.
+- [ ] Change 482 — Add `cardplay/scripts/update-legacy-aliases-doc.ts` helper syncing `cardplay/docs/canon/legacy-type-aliases.md` with code.
+- [ ] Change 483 — Add `cardplay/scripts/update-module-map.ts` helper syncing `cardplay/docs/canon/module-map.md` with the current code tree.
+- [ ] Change 484 — Add `cardplay/scripts/update-ids-doc.ts` helper syncing `cardplay/docs/canon/ids.md` with code after canonicalization decisions are finalized.
+- [ ] Change 485 — Add `cardplay/scripts/update-card-systems-doc.ts` keeping `cardplay/docs/canon/card-systems.md` aligned with code symbols.
+- [ ] Change 486 — Add `cardplay/scripts/update-deck-systems-doc.ts` keeping `cardplay/docs/canon/deck-systems.md` aligned with code symbols.
+- [ ] Change 487 — Add `cardplay/scripts/update-stack-systems-doc.ts` keeping `cardplay/docs/canon/stack-systems.md` aligned with code symbols.
+- [ ] Change 488 — Add a “golden path” example project fixture exercising boards, decks, routing, AI suggestions, and export end-to-end.
+- [ ] Change 489 — Add an integration test loading the golden path fixture and asserting key invariants (canonical IDs, stable layout, SSOT-only stores).
+- [ ] Change 490 — Add a performance regression test running the AI loop on the golden path fixture within a budget.
+- [ ] Change 491 — Add a snapshot test for board registry output so metadata changes are intentional.
+- [ ] Change 492 — Add a snapshot test for deck factory registry output so factory changes are intentional.
+- [ ] Change 493 — Add a snapshot test for port type registry output so port vocabulary changes are intentional.
+- [ ] Change 494 — Add a snapshot test for event kind registry output so EventKind naming changes are intentional.
+- [ ] Change 495 — Add a snapshot test for theory card registry output so theory card IDs/schemas stay stable.
+- [ ] Change 496 — Add a snapshot test for deck template registry output so deck templates stay stable.
+- [ ] Change 497 — Add a snapshot test for ontology pack registry output so ontology IDs/bridges stay stable.
+- [ ] Change 498 — Add `MIGRATIONS.md` describing the migration order (DeckType, PortType, HostAction, EventKind, PPQ), mirroring this plan.
+- [ ] Change 499 — Add a “done definition” checklist: canon tests pass, docs lint pass, no deprecated aliases used, and `npm run check` is green.
+- [ ] Change 500 — Create `cardplay/docs/canon/implementation-status.md` enumerating which canon docs are fully implemented vs partial (generated from tests).
+

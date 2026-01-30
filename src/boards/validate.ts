@@ -9,6 +9,8 @@
 
 import type { Board, DeckType } from './types';
 import { validateToolConfig } from './validate-tool-config';
+import { DECK_TYPES } from '../canon/ids';
+import { normalizeDeckType, DEPRECATED_DECK_TYPES } from '../canon/legacy-aliases';
 
 // ============================================================================
 // VALIDATION RESULT
@@ -26,32 +28,14 @@ export interface ValidationResult {
 }
 
 // ============================================================================
-// KNOWN DECK TYPES
+// KNOWN DECK TYPES (from canon)
 // ============================================================================
 
-const KNOWN_DECK_TYPES: ReadonlySet<DeckType> = new Set([
-  'pattern-deck',
-  'notation-deck',
-  'piano-roll-deck',
-  'session-deck',
-  'arrangement-deck',
-  'instruments-deck',
-  'dsp-chain',
-  'effects-deck',
-  'samples-deck',
-  'phrases-deck',
-  'harmony-deck',
-  'generators-deck',
-  'mixer-deck',
-  'routing-deck',
-  'automation-deck',
-  'properties-deck',
-  'transport-deck',
-  'arranger-deck',
-  'ai-advisor-deck',
-  'sample-manager-deck',
-  'modulation-matrix-deck',
-]);
+/**
+ * Authoritative set of canonical deck types.
+ * Imported from canon/ids.ts - single source of truth.
+ */
+const KNOWN_DECK_TYPES: ReadonlySet<DeckType> = new Set(DECK_TYPES);
 
 // ============================================================================
 // VALIDATION FUNCTIONS
@@ -85,12 +69,24 @@ export function validateBoard(board: Board): ValidationResult {
     deckIds.add(deck.id);
   }
   
-  // B028: Validate each deck's DeckType is known
+  // B028: Validate each deck's DeckType is known (canonicalize legacy aliases)
   for (const deck of board.decks) {
-    if (!KNOWN_DECK_TYPES.has(deck.type)) {
+    // Check if using deprecated legacy alias
+    if (DEPRECATED_DECK_TYPES.has(deck.type)) {
+      const canonical = normalizeDeckType(deck.type);
       errors.push({
         path: `decks[${deck.id}].type`,
-        message: `Unknown deck type: ${deck.type}`,
+        message: `Deprecated deck type "${deck.type}" - use "${canonical}" instead`,
+        severity: 'warning',
+      });
+    }
+    
+    // Normalize and validate
+    const canonicalType = normalizeDeckType(deck.type);
+    if (!KNOWN_DECK_TYPES.has(canonicalType)) {
+      errors.push({
+        path: `decks[${deck.id}].type`,
+        message: `Unknown deck type: ${deck.type} (canonical: ${canonicalType})`,
         severity: 'error',
       });
     }
@@ -171,12 +167,70 @@ export function validateBoard(board: Board): ValidationResult {
     });
   }
   
-  if (!board.author || board.author.trim() === '') {
+  // B135: Validate required metadata fields per docs
+  if (!board.description || board.description.trim() === '') {
     errors.push({
-      path: 'author',
-      message: 'Board author must be non-empty',
+      path: 'description',
+      message: 'Board description should be provided',
       severity: 'warning',
     });
+  }
+  
+  if (!('difficulty' in board)) {
+    errors.push({
+      path: 'difficulty',
+      message: 'Board difficulty level should be declared (beginner/intermediate/advanced/expert)',
+      severity: 'warning',
+    });
+  }
+  
+  if (!('tags' in board) || !Array.isArray((board as { tags?: unknown }).tags)) {
+    errors.push({
+      path: 'tags',
+      message: 'Board should have tags array for categorization',
+      severity: 'warning',
+    });
+  }
+  
+  if (!('author' in board) || !(board as { author?: string }).author?.trim()) {
+    errors.push({
+      path: 'author',
+      message: 'Board author should be declared',
+      severity: 'warning',
+    });
+  }
+  
+  if (!('version' in board)) {
+    errors.push({
+      path: 'version',
+      message: 'Board version should be declared for compatibility tracking',
+      severity: 'warning',
+    });
+  }
+  
+  // B137: Validate primaryView is consistent with deck mix
+  if (board.primaryView) {
+    const deckTypes = new Set(board.decks.map(d => normalizeDeckType(d.type)));
+    
+    const viewToDeckTypes: Record<string, string[]> = {
+      'tracker': ['pattern-deck'],
+      'notation': ['notation-deck'],
+      'session': ['session-deck', 'session-grid-deck'],
+      'arranger': ['arrangement-deck', 'arranger-deck'],
+      'composer': ['notation-deck', 'pattern-deck'],
+      'sampler': ['sampler-deck', 'sample-manager-deck'],
+    };
+    
+    const expectedDeckTypes = viewToDeckTypes[board.primaryView] ?? [];
+    const hasExpectedDeck = expectedDeckTypes.some(t => deckTypes.has(t as DeckType));
+    
+    if (expectedDeckTypes.length > 0 && !hasExpectedDeck) {
+      errors.push({
+        path: 'primaryView',
+        message: `Board primaryView '${board.primaryView}' suggests deck types [${expectedDeckTypes.join(', ')}], but none found`,
+        severity: 'warning',
+      });
+    }
   }
   
   // D058-D059: Validate tool config with control level
@@ -187,6 +241,66 @@ export function validateBoard(board: Board): ValidationResult {
       message: `${warning.issue}. ${warning.recommendation}`,
       severity: 'warning',
     });
+  }
+  
+  // B131: Validate that BoardDeck.panelId exists in board.layout.panels
+  // Note: board.panels is deprecated, use layout.panels (Change 119)
+  // Still check both for backwards compatibility during transition
+  if (board.panels) {
+    for (const panel of board.panels) {
+      panelIds.add(panel.id);
+    }
+  }
+  
+  for (const deck of board.decks) {
+    if (deck.panelId && !panelIds.has(deck.panelId)) {
+      errors.push({
+        path: `decks[${deck.id}].panelId`,
+        message: `Deck references non-existent panel: "${deck.panelId}"`,
+        severity: 'error',
+      });
+    }
+  }
+  
+  // B132: Validate deck IDs are unique (already done above)
+  
+  // Change 138: Validate controlLevelOverride compatibility
+  for (const deck of board.decks) {
+    if (deck.controlLevelOverride) {
+      const boardLevel = board.controlLevel;
+      const deckLevel = deck.controlLevelOverride;
+      
+      // Define control level hierarchy (less restrictive -> more restrictive)
+      const levelHierarchy: Record<string, number> = {
+        'full-manual': 0,
+        'manual-with-hints': 1,
+        'assisted': 2,
+        'directed': 3,
+        'collaborative': 4,
+        'generative': 5,
+      };
+      
+      const boardLevelIndex = levelHierarchy[boardLevel] ?? -1;
+      const deckLevelIndex = levelHierarchy[deckLevel] ?? -1;
+      
+      if (boardLevelIndex < 0 || deckLevelIndex < 0) {
+        errors.push({
+          path: `decks[${deck.id}].controlLevelOverride`,
+          message: `Unknown control level: ${deckLevel}`,
+          severity: 'error',
+        });
+      } else {
+        // Warn if deck override is more permissive than board level
+        // (Generally board level should be the maximum permission ceiling)
+        if (deckLevelIndex > boardLevelIndex) {
+          errors.push({
+            path: `decks[${deck.id}].controlLevelOverride`,
+            message: `Deck control level '${deckLevel}' is more permissive than board level '${boardLevel}'. Consider raising board level or restricting deck override.`,
+            severity: 'warning',
+          });
+        }
+      }
+    }
   }
   
   return {

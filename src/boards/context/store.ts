@@ -3,12 +3,14 @@
  *
  * Singleton store for active context (current stream, clip, deck, etc.).
  * Context persists across board switches.
+ * 
+ * B130: Context is namespaced by boardId and panelId to prevent cross-board leakage.
  *
  * @module @cardplay/boards/context/store
  */
 
-import type { ActiveContext, ActiveContextListener } from './types';
-import { DEFAULT_ACTIVE_CONTEXT } from './types';
+import type { ActiveContext, ActiveContextListener, BoardContextId } from './types';
+import { DEFAULT_ACTIVE_CONTEXT, createBoardContextId } from './types';
 import type { ViewType } from '../types';
 
 // ============================================================================
@@ -99,14 +101,73 @@ function validateContext(raw: unknown): ActiveContext {
  * BoardContextStore manages the active context across all boards.
  *
  * B068-B071: Complete implementation of active context management.
+ * B130: Context is namespaced by boardId and panelId to prevent cross-board leakage.
  */
 export class BoardContextStore {
   private context: ActiveContext;
   private listeners: Set<ActiveContextListener> = new Set();
+  private boardContexts: Map<BoardContextId, Partial<ActiveContext>> = new Map();
+  private currentBoardId: BoardContextId | null = null;
 
   constructor() {
     // B071: Load from localStorage
     this.context = loadContext();
+  }
+
+  // ============================================================================
+  // B130: BOARD-SCOPED CONTEXT MANAGEMENT
+  // ============================================================================
+
+  /**
+   * B130: Sets the current board context ID.
+   * This determines which namespaced context is active.
+   */
+  setCurrentBoard(boardId: string): void {
+    this.currentBoardId = createBoardContextId(boardId);
+    
+    // Merge board-specific context with global context
+    const boardContext = this.boardContexts.get(this.currentBoardId);
+    if (boardContext) {
+      this.context = {
+        ...this.context,
+        ...boardContext,
+      };
+      this.notify();
+    }
+  }
+
+  /**
+   * B130: Gets the current board context ID.
+   */
+  getCurrentBoardId(): BoardContextId | null {
+    return this.currentBoardId;
+  }
+
+  /**
+   * B130: Resets context for a specific board.
+   * Used during board switches to prevent leakage.
+   */
+  resetBoardContext(boardId: string): void {
+    const contextId = createBoardContextId(boardId);
+    this.boardContexts.delete(contextId);
+    
+    if (this.currentBoardId === contextId) {
+      this.context = { ...DEFAULT_ACTIVE_CONTEXT };
+      this.notify();
+    }
+  }
+
+  /**
+   * B130: Updates context and persists to board-specific namespace.
+   */
+  private updateBoardContext(updates: Partial<ActiveContext>): void {
+    if (this.currentBoardId) {
+      const existingBoardContext = this.boardContexts.get(this.currentBoardId) || {};
+      this.boardContexts.set(this.currentBoardId, {
+        ...existingBoardContext,
+        ...updates,
+      });
+    }
   }
 
   // ============================================================================
@@ -151,12 +212,14 @@ export class BoardContextStore {
 
   /**
    * Sets the active stream ID.
+   * B130: Updates both global and board-scoped context.
    */
   setActiveStream(streamId: string | null): void {
     this.context = {
       ...this.context,
       activeStreamId: streamId,
     };
+    this.updateBoardContext({ activeStreamId: streamId });
     this.notify();
   }
 
@@ -173,12 +236,14 @@ export class BoardContextStore {
 
   /**
    * Sets the active clip ID.
+   * B130: Updates both global and board-scoped context.
    */
   setActiveClip(clipId: string | null): void {
     this.context = {
       ...this.context,
       activeClipId: clipId,
     };
+    this.updateBoardContext({ activeClipId: clipId });
     this.notify();
   }
 
@@ -195,12 +260,14 @@ export class BoardContextStore {
 
   /**
    * Sets the active track ID.
+   * B130: Updates both global and board-scoped context.
    */
   setActiveTrack(trackId: string | null): void {
     this.context = {
       ...this.context,
       activeTrackId: trackId,
     };
+    this.updateBoardContext({ activeTrackId: trackId });
     this.notify();
   }
 
@@ -388,6 +455,71 @@ export class BoardContextStore {
   reset(): void {
     this.context = { ...DEFAULT_ACTIVE_CONTEXT };
     this.notify();
+  }
+  
+  // ============================================================================
+  // B130: NAMESPACED CONTEXT MANAGEMENT
+  // ============================================================================
+  
+  /**
+   * B130: Per-board context storage to prevent cross-board leakage.
+   */
+  private perBoardContext: Map<BoardContextId, Partial<ActiveContext>> = new Map();
+  
+  /**
+   * B130: Current board context ID.
+   */
+  private currentBoardContextId: BoardContextId | null = null;
+  
+  /**
+   * B130: Set the current board context.
+   * This namespaces subsequent context operations to this board.
+   */
+  setCurrentBoardContext(boardId: string): void {
+    const contextId = createBoardContextId(boardId);
+    this.currentBoardContextId = contextId;
+    
+    // Load per-board context if available
+    const boardContext = this.perBoardContext.get(contextId);
+    if (boardContext) {
+      this.context = {
+        ...DEFAULT_ACTIVE_CONTEXT,
+        ...boardContext,
+      };
+    }
+  }
+  
+  /**
+   * B130: Save current context to per-board storage.
+   * Call before switching boards to preserve state.
+   */
+  saveCurrentBoardContext(): void {
+    if (!this.currentBoardContextId) return;
+    
+    // Save relevant fields to per-board storage
+    this.perBoardContext.set(this.currentBoardContextId, {
+      activeStreamId: this.context.activeStreamId,
+      activeClipId: this.context.activeClipId,
+      activeTrackId: this.context.activeTrackId,
+      activeDeckId: this.context.activeDeckId,
+      selectedEventIds: [...this.context.selectedEventIds],
+    });
+  }
+  
+  /**
+   * B130: Get context for a specific board without switching.
+   */
+  getBoardContext(boardId: string): Partial<ActiveContext> | undefined {
+    const contextId = createBoardContextId(boardId);
+    return this.perBoardContext.get(contextId);
+  }
+  
+  /**
+   * B130: Clear all per-board context (for testing).
+   */
+  clearAllBoardContexts(): void {
+    this.perBoardContext.clear();
+    this.currentBoardContextId = null;
   }
 }
 

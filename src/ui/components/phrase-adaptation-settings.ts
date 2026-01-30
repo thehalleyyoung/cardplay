@@ -88,6 +88,7 @@ export function settingsToOptions(settings: AdaptationSettingsState): Adaptation
     velocityScale: settings.velocityScale,
     preservePassingTones: settings.preservePassingTones,
     voiceLeadingWeight: settings.voiceLeadingWeight,
+    preserveGamakas: DEFAULT_ADAPTATION_OPTIONS.preserveGamakas,
   };
   
   // Add octaveRange only if not null

@@ -649,8 +649,50 @@ const humanize = await getHumanizationParams('jazz');
 // { timing: 15, velocity: 25 }
 ```
 
+## Celtic Substyles
+
+### `celtic_tune_type/3`
+```prolog
+celtic_tune_type(TuneType, Meter, TypicalTempo).
+```
+Celtic tune types: reel, jig, hornpipe, slow_air, polka, waltz, march, strathspey.
+
+### `celtic_ornament/3`
+```prolog
+celtic_ornament(OrnamentType, ExecutionRule, AppliesTo).
+```
+Celtic ornaments: roll, cran, cut, tip, treble, triplet.
+
+### `celtic_form_pattern/2`
+```prolog
+celtic_form_pattern(TuneType, FormString).
+```
+Standard form patterns (e.g., "AABB" for most dance tunes).
+
+## Chinese Substyles
+
+### `chinese_mode/3`
+```prolog
+chinese_mode(ModeName, Gong, PitchSet).
+```
+Chinese pentatonic modes: gong, shang, jue, zhi, yu.
+
+### `chinese_heterophony_model/3`
+```prolog
+chinese_heterophony_model(MainMelody, Instruments, Variations).
+```
+Heterophonic ensemble models for traditional Chinese music.
+
+### `chinese_ornament/3`
+```prolog
+chinese_ornament(OrnamentName, Execution, Context).
+```
+Chinese instrumental ornaments (hua, bo, nao, etc.).
+
 ## See Also
 
 - [Music Theory Predicates](./music-theory-predicates.md) - Music theory knowledge base
+- [Celtic](./celtic.md) - Full Celtic music theory reference
+- [Chinese](./chinese.md) - Full Chinese music theory reference
 - [Board Predicates](./board-predicates.md) - Board and deck knowledge base
 - [Prolog Syntax](./prolog-syntax.md) - CardPlay Prolog conventions

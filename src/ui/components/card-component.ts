@@ -31,13 +31,94 @@ export type CardState =
 /** Card size */
 export type CardSize = 'small' | 'medium' | 'large' | 'custom';
 
-/** Port type */
-export type PortType = 'audio_in' | 'audio_out' | 'midi_in' | 'midi_out' | 'mod_in' | 'mod_out' | 'trigger_in' | 'trigger_out';
+/**
+ * UI port type (legacy: encodes direction in type name).
+ * 
+ * Change 201: Renamed from PortType to UIPortType to avoid conflict with canonical PortType.
+ * @deprecated Use UIPortDirection + UICanonicalPortType instead (Changes 070-071)
+ */
+export type UIPortType = 'audio_in' | 'audio_out' | 'midi_in' | 'midi_out' | 'mod_in' | 'mod_out' | 'trigger_in' | 'trigger_out';
 
-/** Port definition */
+/**
+ * Change 070: UI port direction (separate from type).
+ */
+export type UIPortDirection = 'in' | 'out';
+
+/**
+ * Change 070: UI canonical port type (without direction encoding).
+ * Maps to canonical PortType from canon/port-types.ts
+ */
+export type UICanonicalPortType = 'audio' | 'midi' | 'notes' | 'control' | 'trigger' | 'gate' | 'clock' | 'transport' | 'modulation';
+
+/**
+ * Change 071: New port model with separate direction and type.
+ */
+export interface PortSpec {
+  direction: UIPortDirection;
+  type: UICanonicalPortType;
+}
+
+/**
+ * Change 071: Convert legacy UIPortType to PortSpec.
+ */
+export function parseUIPortType(legacyType: UIPortType): PortSpec {
+  const parts = legacyType.split('_');
+  if (parts.length === 2 && parts[0] && parts[1] && (parts[1] === 'in' || parts[1] === 'out')) {
+    const typeMap: Record<string, UICanonicalPortType> = {
+      'audio': 'audio',
+      'midi': 'midi',
+      'mod': 'modulation',
+      'trigger': 'trigger',
+    };
+    return {
+      direction: parts[1] as UIPortDirection,
+      type: typeMap[parts[0]] || 'control',
+    };
+  }
+  // Fallback
+  return { direction: 'in', type: 'control' };
+}
+
+/**
+ * Change 071: Convert PortSpec to legacy UIPortType (for backward compat).
+ */
+export function formatUIPortType(spec: PortSpec): UIPortType {
+  const typeMap: Record<UICanonicalPortType, string> = {
+    'audio': 'audio',
+    'midi': 'midi',
+    'notes': 'midi', // Notes use midi CSS
+    'control': 'mod',
+    'trigger': 'trigger',
+    'gate': 'trigger', // Gate uses trigger CSS
+    'clock': 'trigger', // Clock uses trigger CSS
+    'transport': 'trigger', // Transport uses trigger CSS
+    'modulation': 'mod',
+  };
+  const prefix = typeMap[spec.type] || 'mod';
+  return `${prefix}_${spec.direction}` as UIPortType;
+}
+
+/** 
+ * Port definition (legacy - uses UIPortType).
+ * @deprecated Use PortDefinitionV2 with PortSpec (Changes 070-071)
+ */
 export interface PortDefinition {
   id: string;
-  type: PortType;
+  type: UIPortType;
+  label: string;
+  position: 'top' | 'right' | 'bottom' | 'left';
+  offset: number;  // Percentage along edge (0-100)
+  connected: boolean;
+  highlighted: boolean;
+}
+
+/**
+ * Change 071: Port definition with separate direction and type.
+ */
+export interface PortDefinitionV2 {
+  id: string;
+  direction: UIPortDirection;
+  portType: UICanonicalPortType;
   label: string;
   position: 'top' | 'right' | 'bottom' | 'left';
   offset: number;  // Percentage along edge (0-100)

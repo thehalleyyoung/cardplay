@@ -156,7 +156,8 @@ export const composerBoard: Board = {
       type: 'arranger-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'arranger-top'
     },
     // I009: Chord track (using harmony deck)
     {
@@ -164,7 +165,8 @@ export const composerBoard: Board = {
       type: 'harmony-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'chord-lane'
     },
     // I010: Session grid
     {
@@ -172,7 +174,8 @@ export const composerBoard: Board = {
       type: 'session-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'session-center'
     },
     // I011: Notation editor
     {
@@ -180,7 +183,8 @@ export const composerBoard: Board = {
       type: 'notation-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'editor-panel'
     },
     // I012: Tracker editor (alternate view)
     {
@@ -188,7 +192,8 @@ export const composerBoard: Board = {
       type: 'pattern-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'editor-panel'
     },
     // I014: Generator deck
     {
@@ -196,7 +201,8 @@ export const composerBoard: Board = {
       type: 'generators-deck',
       cardLayout: 'stack',
       allowReordering: true,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'generator-side'
     },
     // I015: Phrase library
     {
@@ -204,7 +210,8 @@ export const composerBoard: Board = {
       type: 'phrases-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'phrase-library'
     },
     // Additional utility decks
     {
@@ -212,14 +219,16 @@ export const composerBoard: Board = {
       type: 'properties-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'generator-side'
     },
     {
       id: 'mixer',
       type: 'mixer-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'editor-panel'
     },
     // I013: Transport always available
     {

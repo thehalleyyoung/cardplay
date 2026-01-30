@@ -11,6 +11,8 @@
 
 import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 import { loadCompositionPatternsKB } from '../knowledge/composition-patterns-loader';
+import { PPQ } from '../../types/primitives';
+
 
 // =============================================================================
 // Types
@@ -329,7 +331,7 @@ export class DrumGenerator {
       seed,
       humanize = 0,
       swing: optSwing,
-      ticksPerBeat = 480,
+      ticksPerBeat = PPQ,
       bars = 1,
       beatsPerBar = 4
     } = options;
@@ -446,7 +448,7 @@ export class DrumGenerator {
     lengthBeats: number = 1,
     options: Omit<DrumGeneratorOptions, 'bars'> = {}
   ): Promise<DrumEvent[]> {
-    const { velocity = 100, ticksPerBeat = 480 } = options;
+    const { velocity = 100, ticksPerBeat = PPQ } = options;
     
     // Initialize random
     let rng = options.seed ?? Date.now();

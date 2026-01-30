@@ -20,8 +20,6 @@ import type {
   ModeName,
   CultureTag,
   StyleTag,
-  TonalityModel,
-  MusicConstraint,
   ConstraintSchema,
   ConstraintTala,
   ConstraintCelticTune,
@@ -441,7 +439,7 @@ export function phraseAdapterParamsFromSpec(spec: MusicSpec): PhraseAdapterParam
     strictness = 0.3; // More permissive
   }
   
-  const baseParams = {
+  const baseParams: PhraseAdapterParams = {
     targetRoot: rootToPitchClass(spec.keyRoot),
     targetScale: modeToIntervals(spec.mode),
     mode: spec.mode,
@@ -449,9 +447,11 @@ export function phraseAdapterParamsFromSpec(spec: MusicSpec): PhraseAdapterParam
     allowChromatic: styleEnergy(spec.style) > 0.7,
   };
 
-  return ragaConstraint
-    ? { ...baseParams, raga: ragaConstraint.raga }
-    : baseParams;
+  if (ragaConstraint?.raga) {
+    return { ...baseParams, raga: ragaConstraint.raga };
+  }
+  
+  return baseParams;
 }
 
 // ============================================================================
@@ -543,16 +543,24 @@ export function chordGeneratorParamsFromSpec(spec: MusicSpec): ChordGeneratorPar
     (c): c is ConstraintSchema => c.type === 'schema'
   );
   
-  return {
+  const baseParams: ChordGeneratorParams = {
     keyRoot: spec.keyRoot,
     mode: spec.mode,
-    filmProgression: filmConstraint?.mood ?? undefined,
-    galantSchema: schemaConstraint?.schema ?? undefined,
     preferredChordTypes: preferredChordTypes(spec.culture, spec.style),
     allowChromaticMediants: spec.style === 'romantic' || spec.style === 'cinematic',
     progressionLength: 4, // Default 4 bars
     harmonicRhythm: styleHarmonicRhythm(spec.style),
   };
+  
+  // Conditionally add optional properties
+  if (filmConstraint?.mood) {
+    return { ...baseParams, filmProgression: filmConstraint.mood };
+  }
+  if (schemaConstraint?.schema) {
+    return { ...baseParams, galantSchema: schemaConstraint.schema };
+  }
+  
+  return baseParams;
 }
 
 // ============================================================================

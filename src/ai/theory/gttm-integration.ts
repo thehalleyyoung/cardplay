@@ -141,16 +141,20 @@ export function getPhraseSelectSuggestions(
   
   // Closest phrase boundary pair
   if (before.length > 0 && after.length > 0) {
-    const start = before[0].tickPosition;
-    const end = after[0].tickPosition;
-    const strength = Math.min(before[0].strength, after[0].strength);
+    const beforeFirst = before[0];
+    const afterFirst = after[0];
+    if (!beforeFirst || !afterFirst) return suggestions;
+    
+    const start = beforeFirst.tickPosition;
+    const end = afterFirst.tickPosition;
+    const strength = Math.min(beforeFirst.strength, afterFirst.strength);
     
     suggestions.push({
       startTicks: start,
       endTicks: end,
       groupingLevel: strength,
       confidence: 100 - (strength - 1) * 20,
-      reason: `Phrase from ${before[0].type} to ${after[0].type} boundary`,
+      reason: `Phrase from ${beforeFirst.type} to ${afterFirst.type} boundary`,
     });
   }
   

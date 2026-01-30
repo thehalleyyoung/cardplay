@@ -307,6 +307,28 @@ describe('AIAdvisor', () => {
       expect(answer.canAnswer).toBe(true);
       expect(answer.text).toMatch(/provide|content|session/i);
     });
+
+    it('N067/N069: should provide per-issue Explain and one-click fix actions for project analysis', async () => {
+      const context: AdvisorContext = {
+        projectSnapshot: {
+          elements: ['drums', 'melody', 'harmony', 'intro', 'outro', 'transition', 'variation'],
+          issueFlags: [{ category: 'technical', issueId: 'clipping' }],
+          stats: { track_count: 8, effect_count: 10 },
+        },
+      };
+
+      const answer = await advisor.ask('Analyze my project health', context);
+      expect(answer.canAnswer).toBe(true);
+      expect(answer.source).toBe('project-analysis');
+      expect(answer.text).toMatch(/Project analysis found/i);
+      expect(answer.actions).toBeDefined();
+
+      const actions = answer.actions ?? [];
+      // At least one "Explain" action per issue
+      expect(actions.some((a) => a.description.startsWith('Explain '))).toBe(true);
+      // At least one one-click fix action should be included for clipping
+      expect(actions.some((a) => a.description.includes('Reduce master gain'))).toBe(true);
+    });
   });
   
   // ===========================================================================

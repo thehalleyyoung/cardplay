@@ -15,7 +15,7 @@
 import { 
   Deck, 
   HybridCard, 
-  CardState,
+  AudioModuleState,
 } from '../audio/instrument-cards';
 
 // ============================================================================
@@ -100,7 +100,7 @@ export interface DeckSlotVisual {
   hasCard: boolean;
   cardType: 'sampler' | 'wavetable' | 'hybrid' | 'effect' | 'empty';
   cardName: string;
-  state: CardState;
+  state: AudioModuleState;
   midiActivity: number;
   audioLevel: number;
   isRevealed: boolean;
@@ -1002,7 +1002,7 @@ function renderSlot(
     c.fillText(displayName, x + w / 2, y + h / 2);
     
     // State indicator
-    const stateColors: Record<CardState, string> = {
+    const stateColors: Record<AudioModuleState, string> = {
       idle: theme.textSecondary,
       active: theme.success,
       bypassed: theme.warning,

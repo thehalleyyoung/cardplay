@@ -108,12 +108,20 @@ export class PrologWorkerClient {
   }
 
   async loadProgram(prologCode: string, programId?: string): Promise<boolean> {
-    const result = await this.request<boolean>({ type: 'loadProgram' as const, prologCode, programId });
+    const payload: Omit<WorkerRequest, 'id'> & { type: 'loadProgram'; prologCode: string; programId?: string } = 
+      programId !== undefined 
+        ? { type: 'loadProgram', prologCode, programId }
+        : { type: 'loadProgram', prologCode };
+    const result = await this.request<boolean>(payload);
     return result;
   }
 
   async query(queryString: string, options?: QueryOptions): Promise<QueryResult> {
-    const result = await this.request<QueryResult>({ type: 'query' as const, queryString, options });
+    const payload: Omit<WorkerRequest, 'id'> & { type: 'query'; queryString: string; options?: QueryOptions } = 
+      options !== undefined
+        ? { type: 'query', queryString, options }
+        : { type: 'query', queryString };
+    const result = await this.request<QueryResult>(payload);
     return result;
   }
 

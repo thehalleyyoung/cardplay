@@ -24,12 +24,17 @@ import {
 // ============================================================================
 
 /**
- * Deck identifier (branded type).
+ * Slot-grid deck identifier (branded type).
+ * 
+ * NOTE: This is distinct from BoardDeck.id (which is boards/types.ts:DeckId).
+ * This identifier is used for the slot-grid runtime system (DeckLayoutAdapter).
+ * 
+ * Change 065: Renamed from DeckId to SlotGridDeckId to avoid confusion with BoardDeck.id
  */
-export type DeckId = string & { readonly __brand: 'DeckId' };
+export type SlotGridDeckId = string & { readonly __brand: 'SlotGridDeckId' };
 
-export function asDeckId(id: string): DeckId {
-  return id as DeckId;
+export function asSlotGridDeckId(id: string): SlotGridDeckId {
+  return id as SlotGridDeckId;
 }
 
 /**
@@ -61,7 +66,7 @@ export interface CardSlot {
  * Deck state.
  */
 export interface DeckState {
-  readonly id: DeckId;
+  readonly id: SlotGridDeckId;
   readonly name: string;
   readonly color?: string;
   /** Grid dimensions */
@@ -91,7 +96,7 @@ export interface DeckState {
  * Audio output chain for deck.
  */
 export interface DeckAudioChain {
-  readonly deckId: DeckId;
+  readonly deckId: SlotGridDeckId;
   readonly inputGain: GainNode | null;
   readonly panner: StereoPannerNode | null;
   readonly outputGain: GainNode | null;
@@ -118,7 +123,7 @@ export class DeckLayoutAdapter {
   private disposed = false;
 
   constructor(
-    id: DeckId,
+    id: SlotGridDeckId,
     options: {
       name?: string;
       color?: string;
@@ -633,7 +638,7 @@ export class DeckLayoutAdapter {
 class DeckRegistry {
   private static instance: DeckRegistry;
 
-  private decks = new Map<DeckId, DeckLayoutAdapter>();
+  private decks = new Map<SlotGridDeckId, DeckLayoutAdapter>();
   private idCounter = 0;
 
   private constructor() {}
@@ -655,7 +660,7 @@ class DeckRegistry {
     cols?: number;
     audioContext?: AudioContext;
   }): DeckLayoutAdapter {
-    const id = asDeckId(`deck-${++this.idCounter}`);
+    const id = asSlotGridDeckId(`deck-${++this.idCounter}`);
     const adapter = new DeckLayoutAdapter(id, options);
     this.decks.set(id, adapter);
     return adapter;
@@ -664,7 +669,7 @@ class DeckRegistry {
   /**
    * Gets a deck by ID.
    */
-  getDeck(id: DeckId): DeckLayoutAdapter | undefined {
+  getDeck(id: SlotGridDeckId): DeckLayoutAdapter | undefined {
     return this.decks.get(id);
   }
 
@@ -678,7 +683,7 @@ class DeckRegistry {
   /**
    * Removes a deck.
    */
-  removeDeck(id: DeckId): void {
+  removeDeck(id: SlotGridDeckId): void {
     const deck = this.decks.get(id);
     if (deck) {
       deck.dispose();

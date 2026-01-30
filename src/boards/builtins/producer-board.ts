@@ -128,6 +128,7 @@ export const producerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'timeline',
     },
     // I035: Instrument browser (left)
     {
@@ -136,6 +137,7 @@ export const producerBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: true,
+      panelId: 'browser',
     },
     // Sample browser tab (left)
     {
@@ -144,6 +146,7 @@ export const producerBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: true,
+      panelId: 'browser',
     },
     // I034: Mixer (bottom)
     {
@@ -152,6 +155,7 @@ export const producerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'mixer-panel',
     },
     // I036: DSP chain for selected track (right)
     {
@@ -160,6 +164,7 @@ export const producerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'inspector',
     },
     // I038: Properties inspector (right tab)
     {
@@ -168,6 +173,7 @@ export const producerBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'inspector',
     },
     // I037: Session view (tab)
     {
@@ -176,6 +182,7 @@ export const producerBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'timeline',
     },
     // Transport deck
     {

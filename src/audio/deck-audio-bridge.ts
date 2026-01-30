@@ -13,7 +13,7 @@
 
 import { 
   Deck, 
-  Card, 
+  AudioModuleCard, 
 } from './instrument-cards';
 import { 
   LayoutManager, 
@@ -712,7 +712,7 @@ export class DeckAudioBridge {
   /**
    * Create audio graph node for card
    */
-  private createNodeForCard(card: Card): void {
+  private createNodeForCard(card: AudioModuleCard): void {
     const nodeId = `node_${card.id}`;
     
     let nodeType: AudioNodeType = 'effect';
@@ -758,7 +758,7 @@ export class DeckAudioBridge {
   /**
    * Update node state from card
    */
-  private updateNodeFromCard(card: Card): void {
+  private updateNodeFromCard(card: AudioModuleCard): void {
     const nodeId = this.cardToNode.get(card.id);
     if (!nodeId) return;
     

@@ -24,6 +24,14 @@ listsModule(pl);
 randomModule(pl);
 formatModule(pl);
 
+// Import canonical wire format utilities
+import {
+  validateConfidence,
+  validateReasons,
+  parseActionTerm,
+  type HostActionWireEnvelope,
+} from '../../canon/host-action-wire';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -953,6 +961,8 @@ export class PrologAdapter {
   
   /**
    * Query for HostActions and parse the results.
+   * Supports both legacy format (just Action) and canonical wire envelope
+   * format (action(Action, Confidence, Reasons)).
    */
   async queryHostActions(queryString: string, actionVar = 'Action'): Promise<HostAction[]> {
     const solutions = await this.queryAll(queryString);
@@ -967,6 +977,52 @@ export class PrologAdapter {
     }
     
     return actions;
+  }
+  
+  /**
+   * Query for HostActions using the canonical wire envelope format.
+   * 
+   * Expects Prolog queries to return:
+   * ```prolog
+   * action(ActionTerm, Confidence, Reasons)
+   * ```
+   * 
+   * @param queryString - Prolog query that binds Action, Confidence, Reasons
+   * @returns Parsed HostActions with confidence and reasons
+   */
+  async queryHostActionsWithEnvelope(
+    queryString: string
+  ): Promise<HostActionWireEnvelope[]> {
+    const solutions = await this.queryAll(queryString);
+    const results: HostActionWireEnvelope[] = [];
+    
+    for (const solution of solutions) {
+      const actionTerm = solution['Action'] ?? solution['ActionTerm'];
+      const rawConfidence = solution['Confidence'];
+      const rawReasons = solution['Reasons'];
+      
+      // Parse action term
+      const jsAction = this.termToJS(actionTerm);
+      const parsedAction = parseActionTerm(jsAction);
+      if (!parsedAction) continue;
+      
+      // Validate confidence (0-1 range)
+      const confidence = validateConfidence(
+        typeof rawConfidence === 'number' ? rawConfidence : 0.5
+      );
+      
+      // Parse and validate reasons
+      const jsReasons = this.termToJS(rawReasons);
+      const reasons = validateReasons(jsReasons);
+      
+      results.push({
+        action: parsedAction,
+        confidence,
+        reasons,
+      });
+    }
+    
+    return results;
   }
   
   /**

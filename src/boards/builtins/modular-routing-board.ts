@@ -104,6 +104,7 @@ export const modularRoutingBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'routing-main',
     },
     // Instrument / effect node browser (left)
     {
@@ -112,6 +113,7 @@ export const modularRoutingBoard: Board = {
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: true,
+      panelId: 'node-browser',
     },
     // DSP chain for selected node (right)
     {
@@ -120,6 +122,7 @@ export const modularRoutingBoard: Board = {
       cardLayout: 'stack',
       allowReordering: true,
       allowDragOut: false,
+      panelId: 'node-inspector',
     },
     // Properties of selected node/connection (right tab)
     {
@@ -128,6 +131,7 @@ export const modularRoutingBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'node-inspector',
     },
     // Mixer / meter bridge (bottom)
     {
@@ -136,6 +140,7 @@ export const modularRoutingBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'dsp-monitor',
     },
   ],
 

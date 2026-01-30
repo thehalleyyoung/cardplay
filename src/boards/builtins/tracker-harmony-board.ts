@@ -90,7 +90,8 @@ export const trackerHarmonyBoard: Board = {
       type: 'harmony-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'harmony'
     },
     // Optional instrument browser (tab in left panel)
     {
@@ -98,7 +99,8 @@ export const trackerHarmonyBoard: Board = {
       type: 'instruments-deck',
       cardLayout: 'tabs',
       allowReordering: true,
-      allowDragOut: true
+      allowDragOut: true,
+      panelId: 'harmony'
     },
     // Pattern editor (center)
     {
@@ -106,7 +108,8 @@ export const trackerHarmonyBoard: Board = {
       type: 'pattern-deck',
       cardLayout: 'tabs',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'pattern'
     },
     // Properties inspector (right)
     {
@@ -114,7 +117,8 @@ export const trackerHarmonyBoard: Board = {
       type: 'properties-deck',
       cardLayout: 'stack',
       allowReordering: false,
-      allowDragOut: false
+      allowDragOut: false,
+      panelId: 'inspector'
     }
   ],
   

@@ -57,11 +57,26 @@ export type TickDuration = Branded<number, 'TickDuration'>;
 /**
  * Pulses Per Quarter note - the temporal resolution.
  * 
+ * **THIS IS THE SINGLE SOURCE OF TRUTH FOR PPQ**.
+ * All tick↔time conversions throughout the codebase must import PPQ from this module.
+ * 
+ * @see cardplay/docs/canon/ids.md - PPQ section
+ * @see to_fix_repo_plan_500.md Change 309
+ * 
  * 960 PPQ provides:
  * - Clean division for common note values (1/2, 1/4, 1/8, 1/16, 1/32, 1/64)
  * - Support for triplets and quintuplets
  * - Sub-millisecond precision at typical tempos
  * - Industry-standard resolution used by major DAWs
+ * 
+ * Common note durations at PPQ=960:
+ * - Whole note: 3840 ticks (960 * 4)
+ * - Half note: 1920 ticks (960 * 2)
+ * - Quarter note: 960 ticks
+ * - Eighth note: 480 ticks (960 / 2)
+ * - Sixteenth note: 240 ticks (960 / 4)
+ * - Thirty-second: 120 ticks (960 / 8)
+ * - Triplet eighth: 320 ticks (960 / 3)
  */
 export const PPQ = 960 as const;
 

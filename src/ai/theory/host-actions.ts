@@ -19,6 +19,7 @@ import type {
   // FilmDevice,
 } from './music-spec';
 import { prologConstraintTermToMusicConstraint } from './spec-prolog-bridge';
+import { isValidConstraintType } from '../../canon/constraint-types';
 
 // ============================================================================
 // HOST ACTION TYPES
@@ -205,43 +206,9 @@ function normalizeConstraintType(type: string): MusicConstraint['type'] | null {
   // Treat unknown namespaces as custom constraints, but avoid inventing types for arbitrary strings.
   if (type.startsWith('custom:') || type.includes(':')) return type as MusicConstraint['type'];
 
-  const known: ReadonlySet<string> = KNOWN_CONSTRAINT_TYPES;
-
-  return known.has(type) ? (type as MusicConstraint['type']) : null;
+  // Use canonical constraint types from SSOT
+  return isValidConstraintType(type) ? (type as MusicConstraint['type']) : null;
 }
-
-const KNOWN_CONSTRAINT_TYPES: ReadonlySet<string> = new Set([
-    'key',
-    'tempo',
-    'meter',
-    'tonality_model',
-    'style',
-    'culture',
-    'schema',
-    'raga',
-    'tala',
-    'celtic_tune',
-    'chinese_mode',
-    'film_mood',
-    'film_device',
-    'phrase_density',
-    'contour',
-    'grouping',
-    'accent',
-    'gamaka_density',
-    'ornament_budget',
-    'harmonic_rhythm',
-    'cadence',
-    'trailer_build',
-    'leitmotif',
-    'drone',
-    'pattern_role',
-    'swing',
-    'heterophony',
-    'max_interval',
-    'arranger_style',
-    'scene_arc',
-]);
 
 /**
  * Parse a Prolog compound action term into a typed HostAction.

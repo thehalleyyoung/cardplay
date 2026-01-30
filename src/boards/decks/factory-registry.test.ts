@@ -17,7 +17,7 @@ describe('DeckFactoryRegistry', () => {
     name: `${deckType} Factory`,
     version: '1.0.0',
     create: () => ({
-      id: 'test-instance',
+      id: `test-${deckType}-1` as any, // Change 155: Use DeckId for instances
       type: deckType,
       title: 'Test Instance',
       render: () => {
@@ -35,18 +35,20 @@ describe('DeckFactoryRegistry', () => {
 
   describe('registerFactory', () => {
     it('should register a factory', () => {
-      const factory = createMockFactory('pattern-editor');
+      // Change 154: Use canonical DeckType 'pattern-deck'
+      const factory = createMockFactory('pattern-deck');
       
-      registry.registerFactory('pattern-editor', factory);
+      registry.registerFactory('pattern-deck', factory);
       
-      expect(registry.hasFactory('pattern-editor')).toBe(true);
+      expect(registry.hasFactory('pattern-deck')).toBe(true);
     });
 
     it('should retrieve registered factory', () => {
-      const factory = createMockFactory('piano-roll');
+      // Change 154: Use canonical DeckType 'piano-roll-deck'
+      const factory = createMockFactory('piano-roll-deck');
       
-      registry.registerFactory('piano-roll', factory);
-      const retrieved = registry.getFactory('piano-roll');
+      registry.registerFactory('piano-roll-deck', factory);
+      const retrieved = registry.getFactory('piano-roll-deck');
       
       expect(retrieved).toBe(factory);
     });
@@ -54,11 +56,12 @@ describe('DeckFactoryRegistry', () => {
     it('should warn when replacing existing factory', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       
-      const factory1 = createMockFactory('notation-score');
-      const factory2 = createMockFactory('notation-score');
+      // Change 154: Use canonical DeckType 'notation-deck'
+      const factory1 = createMockFactory('notation-deck');
+      const factory2 = createMockFactory('notation-deck');
       
-      registry.registerFactory('notation-score', factory1);
-      registry.registerFactory('notation-score', factory2);
+      registry.registerFactory('notation-deck', factory1);
+      registry.registerFactory('notation-deck', factory2);
       
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('already registered')
@@ -68,75 +71,83 @@ describe('DeckFactoryRegistry', () => {
     });
 
     it('should replace existing factory', () => {
-      const factory1 = createMockFactory('timeline');
-      const factory2 = createMockFactory('timeline');
+      // Change 154: Use canonical DeckType 'arrangement-deck' (not 'timeline')
+      const factory1 = createMockFactory('arrangement-deck');
+      const factory2 = createMockFactory('arrangement-deck');
       
-      registry.registerFactory('timeline', factory1);
-      registry.registerFactory('timeline', factory2);
+      registry.registerFactory('arrangement-deck', factory1);
+      registry.registerFactory('arrangement-deck', factory2);
       
-      const retrieved = registry.getFactory('timeline');
+      const retrieved = registry.getFactory('arrangement-deck');
       expect(retrieved).toBe(factory2);
     });
 
     it('should throw when factory deckType does not match key', () => {
-      const factory = createMockFactory('pattern-editor');
+      // Change 154: Use canonical DeckTypes
+      const factory = createMockFactory('pattern-deck');
       
       expect(() => {
-        registry.registerFactory('piano-roll', factory);
+        registry.registerFactory('piano-roll-deck', factory);
       }).toThrow('does not match registration key');
     });
 
     it('should register multiple different factories', () => {
-      const factory1 = createMockFactory('pattern-editor');
-      const factory2 = createMockFactory('piano-roll');
-      const factory3 = createMockFactory('notation-score');
+      // Change 154: Use canonical DeckTypes
+      const factory1 = createMockFactory('pattern-deck');
+      const factory2 = createMockFactory('piano-roll-deck');
+      const factory3 = createMockFactory('notation-deck');
       
-      registry.registerFactory('pattern-editor', factory1);
-      registry.registerFactory('piano-roll', factory2);
-      registry.registerFactory('notation-score', factory3);
+      registry.registerFactory('pattern-deck', factory1);
+      registry.registerFactory('piano-roll-deck', factory2);
+      registry.registerFactory('notation-deck', factory3);
       
-      expect(registry.hasFactory('pattern-editor')).toBe(true);
-      expect(registry.hasFactory('piano-roll')).toBe(true);
-      expect(registry.hasFactory('notation-score')).toBe(true);
+      expect(registry.hasFactory('pattern-deck')).toBe(true);
+      expect(registry.hasFactory('piano-roll-deck')).toBe(true);
+      expect(registry.hasFactory('notation-deck')).toBe(true);
     });
   });
 
   describe('getFactory', () => {
     it('should return undefined for unregistered factory', () => {
-      const factory = registry.getFactory('pattern-editor');
+      // Change 154: Use canonical DeckType
+      const factory = registry.getFactory('pattern-deck');
       expect(factory).toBeUndefined();
     });
 
     it('should return correct factory for registered type', () => {
-      const patternFactory = createMockFactory('pattern-editor');
-      const pianoFactory = createMockFactory('piano-roll');
+      // Change 154: Use canonical DeckTypes
+      const patternFactory = createMockFactory('pattern-deck');
+      const pianoFactory = createMockFactory('piano-roll-deck');
       
-      registry.registerFactory('pattern-editor', patternFactory);
-      registry.registerFactory('piano-roll', pianoFactory);
+      registry.registerFactory('pattern-deck', patternFactory);
+      registry.registerFactory('piano-roll-deck', pianoFactory);
       
-      expect(registry.getFactory('pattern-editor')).toBe(patternFactory);
-      expect(registry.getFactory('piano-roll')).toBe(pianoFactory);
+      expect(registry.getFactory('pattern-deck')).toBe(patternFactory);
+      expect(registry.getFactory('piano-roll-deck')).toBe(pianoFactory);
     });
   });
 
   describe('hasFactory', () => {
     it('should return false for unregistered factory', () => {
-      expect(registry.hasFactory('pattern-editor')).toBe(false);
+      // Change 154: Use canonical DeckType
+      expect(registry.hasFactory('pattern-deck')).toBe(false);
     });
 
     it('should return true for registered factory', () => {
-      const factory = createMockFactory('pattern-editor');
-      registry.registerFactory('pattern-editor', factory);
+      // Change 154: Use canonical DeckType
+      const factory = createMockFactory('pattern-deck');
+      registry.registerFactory('pattern-deck', factory);
       
-      expect(registry.hasFactory('pattern-editor')).toBe(true);
+      expect(registry.hasFactory('pattern-deck')).toBe(true);
     });
 
     it('should return false after unregistering', () => {
-      const factory = createMockFactory('pattern-editor');
-      registry.registerFactory('pattern-editor', factory);
-      registry.unregisterFactory('pattern-editor');
+      // Change 154: Use canonical DeckType
+      const factory = createMockFactory('pattern-deck');
+      registry.registerFactory('pattern-deck', factory);
+      registry.unregisterFactory('pattern-deck');
       
-      expect(registry.hasFactory('pattern-editor')).toBe(false);
+      expect(registry.hasFactory('pattern-deck')).toBe(false);
     });
   });
 
@@ -147,35 +158,38 @@ describe('DeckFactoryRegistry', () => {
     });
 
     it('should return all registered types', () => {
-      registry.registerFactory('pattern-editor', createMockFactory('pattern-editor'));
-      registry.registerFactory('piano-roll', createMockFactory('piano-roll'));
-      registry.registerFactory('notation-score', createMockFactory('notation-score'));
+      // Change 154: Use canonical DeckTypes
+      registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
+      registry.registerFactory('piano-roll-deck', createMockFactory('piano-roll-deck'));
+      registry.registerFactory('notation-deck', createMockFactory('notation-deck'));
       
       const types = registry.getRegisteredTypes();
       
-      expect(types).toContain('pattern-editor');
-      expect(types).toContain('piano-roll');
-      expect(types).toContain('notation-score');
+      expect(types).toContain('pattern-deck');
+      expect(types).toContain('piano-roll-deck');
+      expect(types).toContain('notation-deck');
       expect(types.length).toBe(3);
     });
 
     it('should not include unregistered types', () => {
-      registry.registerFactory('pattern-editor', createMockFactory('pattern-editor'));
-      registry.unregisterFactory('pattern-editor');
+      // Change 154: Use canonical DeckType
+      registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
+      registry.unregisterFactory('pattern-deck');
       
       const types = registry.getRegisteredTypes();
-      expect(types).not.toContain('pattern-editor');
+      expect(types).not.toContain('pattern-deck');
     });
   });
 
   describe('unregisterFactory', () => {
     it('should remove factory from registry', () => {
-      const factory = createMockFactory('pattern-editor');
-      registry.registerFactory('pattern-editor', factory);
+      // Change 154: Use canonical DeckType
+      const factory = createMockFactory('pattern-deck');
+      registry.registerFactory('pattern-deck', factory);
       
-      registry.unregisterFactory('pattern-editor');
+      registry.unregisterFactory('pattern-deck');
       
-      expect(registry.hasFactory('pattern-editor')).toBe(false);
+      expect(registry.hasFactory('pattern-deck')).toBe(false);
     });
 
     it('should not throw when unregistering nonexistent factory', () => {
@@ -187,8 +201,9 @@ describe('DeckFactoryRegistry', () => {
 
   describe('clear', () => {
     it('should remove all factories', () => {
-      registry.registerFactory('pattern-editor', createMockFactory('pattern-editor'));
-      registry.registerFactory('piano-roll', createMockFactory('piano-roll'));
+      // Change 154: Use canonical DeckTypes
+      registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
+      registry.registerFactory('piano-roll-deck', createMockFactory('piano-roll-deck'));
       
       registry.clear();
       
@@ -236,7 +251,7 @@ describe('validateBoardFactories', () => {
     name: `${deckType} Factory`,
     version: '1.0.0',
     create: () => ({
-      id: 'test',
+      id: `test-${deckType}-1` as any, // Change 155: Use DeckId for instances
       type: deckType,
       title: 'Test',
       render: () => document.createElement('div'),
@@ -250,10 +265,11 @@ describe('validateBoardFactories', () => {
 
   describe('validation', () => {
     it('should validate board with all factories registered', () => {
-      const board = createTestBoard(['pattern-editor', 'piano-roll']);
+      // Change 154: Use canonical DeckTypes
+      const board = createTestBoard(['pattern-deck', 'piano-roll-deck']);
       
-      registry.registerFactory('pattern-editor', createMockFactory('pattern-editor'));
-      registry.registerFactory('piano-roll', createMockFactory('piano-roll'));
+      registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
+      registry.registerFactory('piano-roll-deck', createMockFactory('piano-roll-deck'));
       
       const result = validateBoardFactories(board, registry);
       
@@ -262,16 +278,17 @@ describe('validateBoardFactories', () => {
     });
 
     it('should detect missing factories', () => {
-      const board = createTestBoard(['pattern-editor', 'piano-roll', 'notation-score']);
+      // Change 154: Use canonical DeckTypes
+      const board = createTestBoard(['pattern-deck', 'piano-roll-deck', 'notation-deck']);
       
-      registry.registerFactory('pattern-editor', createMockFactory('pattern-editor'));
-      // piano-roll and notation-score not registered
+      registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
+      // piano-roll-deck and notation-deck not registered
       
       const result = validateBoardFactories(board, registry);
       
       expect(result.valid).toBe(false);
-      expect(result.missingFactories).toContain('piano-roll');
-      expect(result.missingFactories).toContain('notation-score');
+      expect(result.missingFactories).toContain('piano-roll-deck');
+      expect(result.missingFactories).toContain('notation-deck');
     });
 
     it('should return empty array for board with no decks', () => {
@@ -284,9 +301,10 @@ describe('validateBoardFactories', () => {
     });
 
     it('should handle duplicate deck types in board', () => {
-      const board = createTestBoard(['pattern-editor', 'pattern-editor']);
+      // Change 154: Use canonical DeckType
+      const board = createTestBoard(['pattern-deck', 'pattern-deck']);
       
-      registry.registerFactory('pattern-editor', createMockFactory('pattern-editor'));
+      registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
       
       const result = validateBoardFactories(board, registry);
       
@@ -295,11 +313,12 @@ describe('validateBoardFactories', () => {
     });
 
     it('should detect all missing factories', () => {
+      // Change 154: Use canonical DeckTypes
       const board = createTestBoard([
-        'pattern-editor',
-        'piano-roll',
-        'notation-score',
-        'timeline',
+        'pattern-deck',
+        'piano-roll-deck',
+        'notation-deck',
+        'arrangement-deck',
       ]);
       
       // Register none
@@ -311,47 +330,51 @@ describe('validateBoardFactories', () => {
     });
 
     it('should validate partially registered factories', () => {
+      // Change 154: Use canonical DeckTypes
       const board = createTestBoard([
-        'pattern-editor',
-        'piano-roll',
-        'notation-score',
+        'pattern-deck',
+        'piano-roll-deck',
+        'notation-deck',
       ]);
       
-      registry.registerFactory('piano-roll', createMockFactory('piano-roll'));
+      registry.registerFactory('piano-roll-deck', createMockFactory('piano-roll-deck'));
       
       const result = validateBoardFactories(board, registry);
       
       expect(result.valid).toBe(false);
-      expect(result.missingFactories).toContain('pattern-editor');
-      expect(result.missingFactories).toContain('notation-score');
-      expect(result.missingFactories).not.toContain('piano-roll');
+      expect(result.missingFactories).toContain('pattern-deck');
+      expect(result.missingFactories).toContain('notation-deck');
+      expect(result.missingFactories).not.toContain('piano-roll-deck');
     });
   });
 
   describe('error messages', () => {
     it('should provide helpful error message', () => {
-      const board = createTestBoard(['pattern-editor']);
+      // Change 154: Use canonical DeckType
+      const board = createTestBoard(['pattern-deck']);
       
       const result = validateBoardFactories(board, registry);
       
       expect(result.valid).toBe(false);
       expect(result.message).toBeTruthy();
-      expect(result.message).toContain('pattern-editor');
+      expect(result.message).toContain('pattern-deck');
     });
 
     it('should list all missing factories in message', () => {
-      const board = createTestBoard(['pattern-editor', 'piano-roll']);
+      // Change 154: Use canonical DeckTypes
+      const board = createTestBoard(['pattern-deck', 'piano-roll-deck']);
       
       const result = validateBoardFactories(board, registry);
       
-      expect(result.message).toContain('pattern-editor');
-      expect(result.message).toContain('piano-roll');
+      expect(result.message).toContain('pattern-deck');
+      expect(result.message).toContain('piano-roll-deck');
     });
 
     it('should provide success message when valid', () => {
-      const board = createTestBoard(['pattern-editor']);
+      // Change 154: Use canonical DeckType
+      const board = createTestBoard(['pattern-deck']);
       
-      registry.registerFactory('pattern-editor', createMockFactory('pattern-editor'));
+      registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
       
       const result = validateBoardFactories(board, registry);
       

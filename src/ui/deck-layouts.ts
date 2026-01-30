@@ -12,7 +12,7 @@
  */
 
 import { 
-  CardCategory,
+  AudioModuleCategory,
 } from '../audio/instrument-cards';
 
 // ============================================================================
@@ -42,7 +42,7 @@ export interface StackConfig {
   maxCards: number;
   collapsible: boolean;
   defaultCollapsed: boolean;
-  acceptsTypes: CardCategory[];
+  acceptsTypes: AudioModuleCategory[];
   color: string;
   icon: string;
 }
@@ -61,13 +61,19 @@ export interface CardPosition {
   pinned: boolean;
 }
 
-/** Connection between cards */
+/**
+ * Connection between cards
+ * 
+ * TODO (Change 072): Migrate to { direction, type } port model instead of string ports.
+ * Current: sourcePort: 'midi_out', targetPort: 'midi_in'
+ * Target: sourcePort: { direction: 'out', type: 'midi' }, targetPort: { direction: 'in', type: 'midi' }
+ */
 export interface CardConnection {
   id: string;
   sourceCardId: string;
-  sourcePort: string;
+  sourcePort: string;  // TODO: Change to { direction: PortDirection, type: PortType }
   targetCardId: string;
-  targetPort: string;
+  targetPort: string;  // TODO: Change to { direction: PortDirection, type: PortType }
   connectionType: 'midi' | 'audio' | 'modulation' | 'trigger';
   color: string;
   visible: boolean;
@@ -81,7 +87,7 @@ export interface LayoutZone {
   y: number;
   width: number;
   height: number;
-  acceptsTypes: CardCategory[];
+  acceptsTypes: AudioModuleCategory[];
   maxCards: number;
   stackId: string | null;
 }
@@ -162,7 +168,7 @@ export interface LayoutPreset {
 
 /** Card template for presets */
 export interface CardTemplate {
-  type: CardCategory;
+  type: AudioModuleCategory;
   subtype?: string;
   name: string;
   stackId: string;

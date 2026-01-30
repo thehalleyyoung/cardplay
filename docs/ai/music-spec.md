@@ -1,5 +1,13 @@
 # MusicSpec (Branch C): Canonical Musical Intent
 
+**Status:** implemented  
+**Canonical terms used:** MusicSpec, MusicConstraint, CultureTag, StyleTag, TonalityModel  
+**Primary code references:** `cardplay/src/ai/theory/music-spec.ts`, `cardplay/src/ai/knowledge/music-spec.pl`  
+**Analogy:** The "scenario sheet" defining what music should be achieved—culture, style, and constraints.  
+**SSOT:** For constraint semantics, see [Constraints](../canon/constraints.md). For IDs, see [Canonical IDs](../canon/ids.md).
+
+---
+
 `MusicSpec` is the canonical, **type-safe representation of musical intent** used to keep:
 - UI-level “theory controls” (cards / decks)
 - Prolog knowledge base reasoning
