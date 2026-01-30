@@ -120,10 +120,10 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 ## Phase 6 — Execution: Compile Plans to CardPlay Mutations with Diffs + Undo (Steps 301–350)
 
-- [ ] Step 301 [Type] — Define `EditPackage` as the atomic applied unit: contains CPL, plan, diff, provenance, undo token, and timestamps.
-- [ ] Step 302 [Type] — Define a transactional execution model: apply edits to a fork; validate constraints; commit or rollback.
-- [ ] Step 303 [Type] — Define an execution effect system: UI actions are separate from project mutations; planners produce proposals, executors apply.
-- [ ] Step 304 [Type] — Define a canonical diff model: event diffs, container diffs, card graph diffs, param diffs, each with stable ordering.
+- [x] Step 301 [Type] — Define `EditPackage` as the atomic applied unit: contains CPL, plan, diff, provenance, undo token, and timestamps.
+- [x] Step 302 [Type] — Define a transactional execution model: apply edits to a fork; validate constraints; commit or rollback.
+- [x] Step 303 [Type] — Define an execution effect system: UI actions are separate from project mutations; planners produce proposals, executors apply.
+- [x] Step 304 [Type] — Define a canonical diff model: event diffs, container diffs, card graph diffs, param diffs, each with stable ordering.
 - [x] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
 - [x] Step 306 [Infra] — Implement event-level edit primitives by composing existing `cardplay/src/events/operations.ts` functions where possible.
 - [x] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
@@ -133,21 +133,21 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 311 [Type] — Introduce param schema validation for cards (enum/number/bool/object), so “set cutoff to 12k” can be validated or clarified.
 - [x] Step 312 [Type] — Implement “unknown param” behavior: show similar params, ask user to choose, or refuse.
 - [x] Step 313 [Type] — Implement “value coercion” rules with provenance: “12k” → 12000; “+3dB” → numeric; refuse unsafe coercions.
-- [ ] Step 314 [Type] — Implement “execution capability checks”: if a plan requires routing edits but policy forbids it, downgrade to preview-only.
-- [ ] Step 315 [Infra] — Implement “deterministic host action ordering” so repeated runs produce identical diffs.
-- [ ] Step 316 [Infra] — Implement automatic undo integration with CardPlay store: each `EditPackage` becomes one undo step (or a grouped transaction).
+- [x] Step 314 [Type] — Implement “execution capability checks”: if a plan requires routing edits but policy forbids it, downgrade to preview-only.
+- [x] Step 315 [Infra] — Implement “deterministic host action ordering” so repeated runs produce identical diffs.
+- [x] Step 316 [Infra] — Implement automatic undo integration with CardPlay store: each `EditPackage` becomes one undo step (or a grouped transaction).
 - [ ] Step 317 [Infra] — Implement redo integration; ensure redo re-validates constraints if the world changed since original apply.
-- [ ] Step 318 [Type] — Implement “edit package addressability”: users can undo by package ID, by scope, or by turn index.
+- [x] Step 318 [Type] — Implement “edit package addressability”: users can undo by package ID, by scope, or by turn index.
 - [ ] Step 319 [HCI] — Add UI for “undo preview”: show what will revert before actually undoing.
 - [ ] Step 320 [HCI] — Add UI for “reapply”: user can reapply a prior package to a new context if still valid.
-- [ ] Step 321 [Sem][Type] — Implement melody preservation checkers (exact pitch+onset equality; tolerances for “recognizable”).
-- [ ] Step 322 [Sem][Type] — Implement harmony preservation checkers (chord skeleton equality; functional equivalence; extension invariance).
+- [x] Step 321 [Sem][Type] — Implement melody preservation checkers (exact pitch+onset equality; tolerances for “recognizable”).
+- [x] Step 322 [Sem][Type] — Implement harmony preservation checkers (chord skeleton equality; functional equivalence; extension invariance).
 - [ ] Step 323 [Sem][Type] — Implement rhythm preservation checkers (grid-aligned onset sets; swing/humanize allowances).
-- [ ] Step 324 [Sem][Type] — Implement “only-change” checker: diff must touch only allowed selectors; report violations with highlighted events.
-- [ ] Step 325 [Sem][Type] — Implement “no-new-layers” checker: ensure no new tracks/cards are added unless allowed.
-- [ ] Step 326 [Infra] — Implement diff rendering helpers: convert low-level diffs into human summary sentences (“Chorus: hats density +20%”).
-- [ ] Step 327 [Infra] — Implement “reason traces”: for each diff item, link back to the plan opcode and the goal it served.
-- [ ] Step 328 [Infra] — Implement “explanation generator”: produce before/after summaries and satisfy-constraint reports.
+- [x] Step 324 [Sem][Type] — Implement “only-change” checker: diff must touch only allowed selectors; report violations with highlighted events.
+- [x] Step 325 [Sem][Type] — Implement “no-new-layers” checker: ensure no new tracks/cards are added unless allowed.
+- [x] Step 326 [Infra] — Implement diff rendering helpers: convert low-level diffs into human summary sentences (“Chorus: hats density +20%”).
+- [x] Step 327 [Infra] — Implement “reason traces”: for each diff item, link back to the plan opcode and the goal it served.
+- [x] Step 328 [Infra] — Implement “explanation generator”: produce before/after summaries and satisfy-constraint reports.
 - [ ] Step 329 [HCI] — Add UI for diff visualization: per-section timeline overlay + per-layer change list + filter by kind.
 - [ ] Step 330 [HCI] — Add UI for “what changed and why” that is readable by collaborators (exportable report).
 - [ ] Step 331 [Ext][Type] — Define how extension opcodes compile: extensions return proposed `EditPackage` fragments but core executor applies them.

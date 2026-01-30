@@ -107,15 +107,15 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
 - [x] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
 - [x] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
-- [ ] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
-- [ ] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
-- [ ] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
-- [ ] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.
-- [ ] Step 296 [Sem] — Add planning support for “multi-objective” requests (increase lift but decrease busyness) by choosing orthogonal levers.
-- [ ] Step 297 [Sem] — Add planning support for “keep X but change Y” by encoding X as hard constraint and planning only over Y levers.
-- [ ] Step 298 [Sem] — Add planning support for “only change drums” by restricting opcodes to selectors matching drums.
-- [ ] Step 299 [Sem] — Add planning support for “do it again but bigger” by taking prior plan and scaling amounts with constraints preserved.
-- [ ] Step 300 [Infra] — Add a plan serialization format (with schema + provenance) so plans can be saved, shared, and replayed.
+- [x] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
+- [x] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
+- [x] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
+- [x] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.
+- [x] Step 296 [Sem] — Add planning support for “multi-objective” requests (increase lift but decrease busyness) by choosing orthogonal levers.
+- [x] Step 297 [Sem] — Add planning support for “keep X but change Y” by encoding X as hard constraint and planning only over Y levers.
+- [x] Step 298 [Sem] — Add planning support for “only change drums” by restricting opcodes to selectors matching drums.
+- [x] Step 299 [Sem] — Add planning support for “do it again but bigger” by taking prior plan and scaling amounts with constraints preserved.
+- [x] Step 300 [Infra] — Add a plan serialization format (with schema + provenance) so plans can be saved, shared, and replayed.
 ---
 
 ## Phase 6 — Execution: Compile Plans to CardPlay Mutations with Diffs + Undo (Steps 301–350)
@@ -126,13 +126,13 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 304 [Type] — Define a canonical diff model: event diffs, container diffs, card graph diffs, param diffs, each with stable ordering.
 - [x] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
 - [x] Step 306 [Infra] — Implement event-level edit primitives by composing existing `cardplay/src/events/operations.ts` functions where possible.
-- [ ] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
-- [ ] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).
-- [ ] Step 309 [Infra] — Implement plan opcode executors for structure edits (insert break, duplicate section) with marker updates.
-- [ ] Step 310 [Infra] — Implement plan opcode executors for card parameter edits (set_param) with type-safe param validation.
-- [ ] Step 311 [Type] — Introduce param schema validation for cards (enum/number/bool/object), so “set cutoff to 12k” can be validated or clarified.
-- [ ] Step 312 [Type] — Implement “unknown param” behavior: show similar params, ask user to choose, or refuse.
-- [ ] Step 313 [Type] — Implement “value coercion” rules with provenance: “12k” → 12000; “+3dB” → numeric; refuse unsafe coercions.
+- [x] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
+- [x] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).
+- [x] Step 309 [Infra] — Implement plan opcode executors for structure edits (insert break, duplicate section) with marker updates.
+- [x] Step 310 [Infra] — Implement plan opcode executors for card parameter edits (set_param) with type-safe param validation.
+- [x] Step 311 [Type] — Introduce param schema validation for cards (enum/number/bool/object), so “set cutoff to 12k” can be validated or clarified.
+- [x] Step 312 [Type] — Implement “unknown param” behavior: show similar params, ask user to choose, or refuse.
+- [x] Step 313 [Type] — Implement “value coercion” rules with provenance: “12k” → 12000; “+3dB” → numeric; refuse unsafe coercions.
 - [ ] Step 314 [Type] — Implement “execution capability checks”: if a plan requires routing edits but policy forbids it, downgrade to preview-only.
 - [ ] Step 315 [Infra] — Implement “deterministic host action ordering” so repeated runs produce identical diffs.
 - [ ] Step 316 [Infra] — Implement automatic undo integration with CardPlay store: each `EditPackage` becomes one undo step (or a grouped transaction).

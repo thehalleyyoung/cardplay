@@ -38,7 +38,8 @@
 import { describe, it, expect } from 'vitest';
 import type { CPLIntent, CPLGoal, CPLConstraint } from '../canon/cpl-types';
 import type { ProjectState } from '../execution/transactional-execution';
-import { generatePlans } from '../planning/plan-generation';
+import { generatePlans, type SearchConfig } from '../planning/plan-generation';
+import type { Goal, Constraint, LeverContext, ProjectWorldAPI } from '../planning/types';
 
 // ============================================================================
 // Performance Measurement Helpers
@@ -60,7 +61,21 @@ function measurePlanningPerformance(
   const startTime = performance.now();
   const startMemory = getMemoryUsage();
 
-  const plans = generatePlans(intent, fixture);
+  // Create a minimal PlanningContext for testing
+  const context = {
+    goals: [] as Goal[],
+    constraints: [] as Constraint[],
+    leverContext: {} as LeverContext,
+    world: fixture as unknown as ProjectWorldAPI,
+    config: {
+      maxDepth: 10,
+      beamWidth: 5,
+      minScore: 0.3,
+      timeoutMs: 5000,
+    } as SearchConfig,
+  };
+
+  const plans = generatePlans(context);
 
   const endTime = performance.now();
   const endMemory = getMemoryUsage();

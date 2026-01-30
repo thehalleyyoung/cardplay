@@ -15,6 +15,7 @@ import { getClipRegistry } from '../../state/clip-registry';
 import { getBoardContextStore } from '../context/store';
 import { asTick, asTickDuration } from '../../types/primitives';
 import { EventKinds } from '../../types/event-kind';
+import { createNoteEvent } from '../../types/event';
 import type { PhrasePayload, CardTemplatePayload, DropTargetContext } from '../../ui/drag-drop-payloads';
 import type { Event } from '../../types/event';
 
@@ -53,16 +54,16 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       const stream = eventStore.createStream({ name: 'Test Pattern' });
       contextStore.setActiveStream(stream.id);
       
-      // Create phrase payload with proper structure
+      // Create phrase payload with proper Event objects
       const phrasePayload: PhrasePayload = {
         type: 'phrase',
         phraseId: 'test-phrase-1',
         phraseName: 'Test Phrase',
         notes: [
-          { pitch: 60, velocity: 100, start: 0, duration: 48 },
-          { pitch: 64, velocity: 100, start: 48, duration: 48 },
-          { pitch: 67, velocity: 100, start: 96, duration: 48 },
-        ] as any,
+          createNoteEvent({ pitch: 60, velocity: 100, start: asTick(0), duration: asTickDuration(48) }),
+          createNoteEvent({ pitch: 64, velocity: 100, start: asTick(48), duration: asTickDuration(48) }),
+          createNoteEvent({ pitch: 67, velocity: 100, start: asTick(96), duration: asTickDuration(48) }),
+        ],
         duration: 192,
         tags: ['melodic', 'test'],
       };
@@ -70,7 +71,6 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       // Create drop context with required fields
       const dropContext: DropTargetContext = {
         targetType: 'pattern-editor',
-        targetId: 'test-deck',
         targetId: 'tracker-deck-1',
         position: { x: 0, y: 0 },
         streamId: stream.id, // Required by handlePhraseToPatternEditor
@@ -123,8 +123,8 @@ describe('Drag/Drop Integration (E079-E080)', () => {
         phraseId: 'test-phrase-2',
         phraseName: 'Test Phrase 2',
         notes: [
-          { pitch: 60, velocity: 100, start: 0, duration: 48 },
-        ] as any,
+          createNoteEvent({ pitch: 60, velocity: 100, start: asTick(0), duration: asTickDuration(48) }),
+        ],
         duration: 48,
         tags: [],
       };
@@ -132,7 +132,6 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       // Drop at tick 192
       const dropContext: DropTargetContext = {
         targetType: 'pattern-editor',
-        targetId: 'test-deck',
         targetId: 'tracker-deck-1',
         position: { x: 0, y: 192 },
         streamId: stream.id,
@@ -160,6 +159,7 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       const emptyPhrasePayload: PhrasePayload = {
         type: 'phrase',
         phraseId: 'empty-phrase',
+        phraseName: 'Empty Phrase',
         notes: [],
         duration: 0,
         tags: [],
@@ -167,10 +167,12 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       
       const dropContext: DropTargetContext = {
         targetType: 'pattern-editor',
-        targetId: 'test-deck',
+        targetId: 'tracker-deck-1',
         position: { x: 0, y: 0 },
+        streamId: stream.id,
+        time: 0,
         modifiers: { shift: false, alt: false, ctrl: false },
-      };
+      } as any;
       
       const result = await handleDrop(emptyPhrasePayload, dropContext);
       
@@ -196,7 +198,8 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       const phrasePayload: PhrasePayload = {
         type: 'phrase',
         phraseId: 'test-phrase',
-        notes: [{ pitch: 60, velocity: 100, start: 0, duration: 48 }],
+        phraseName: 'Test Phrase',
+        notes: [createNoteEvent({ pitch: 60, velocity: 100, start: asTick(0), duration: asTickDuration(48) })],
         duration: 48,
         tags: [],
       };
@@ -206,7 +209,7 @@ describe('Drag/Drop Integration (E079-E080)', () => {
         targetId: 'test-deck',
         position: { x: 0, y: 0 },
         modifiers: { shift: false, alt: false, ctrl: false },
-      };
+      } as any;
       
       const result = await handleDrop(phrasePayload, dropContext);
       
@@ -224,7 +227,8 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       const phrasePayload: PhrasePayload = {
         type: 'phrase',
         phraseId: 'test-phrase',
-        notes: [{ pitch: 60, velocity: 100, start: 0, duration: 48 }],
+        phraseName: 'Test Phrase',
+        notes: [createNoteEvent({ pitch: 60, velocity: 100, start: asTick(0), duration: asTickDuration(48) })],
         duration: 48,
         tags: [],
       };
@@ -235,7 +239,7 @@ describe('Drag/Drop Integration (E079-E080)', () => {
         targetId: 'test-deck',
         position: { x: 0, y: 0 },
         modifiers: { shift: false, alt: false, ctrl: false },
-      };
+      } as any;
       
       const result = await handleDrop(phrasePayload, dropContext);
       
@@ -250,6 +254,7 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       const cardPayload: CardTemplatePayload = {
         type: 'card-template',
         cardType: 'generator',
+        cardCategory: 'generator',
         defaultParams: {
           style: 'melodic',
           seed: 42,
@@ -263,7 +268,7 @@ describe('Drag/Drop Integration (E079-E080)', () => {
         position: { index: 0 },
         modifiers: { shift: false, alt: false, ctrl: false },
         deckControlLevel: 'full-manual', // Manual-only deck
-      };
+      } as any;
       
       const result = await handleDrop(cardPayload, dropContext);
       
@@ -317,7 +322,8 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       const phrasePayload: PhrasePayload = {
         type: 'phrase',
         phraseId: 'test-phrase',
-        notes: [{ pitch: 60, velocity: 100, start: 0, duration: 48 }],
+        phraseName: 'Test Phrase',
+        notes: [createNoteEvent({ pitch: 60, velocity: 100, start: asTick(0), duration: asTickDuration(48) })],
         duration: 48,
         tags: [],
       };
@@ -326,8 +332,10 @@ describe('Drag/Drop Integration (E079-E080)', () => {
         targetType: 'pattern-editor',
         targetId: 'test-deck',
         position: { x: 0, y: 0 },
+        streamId: stream.id,
+        time: 0,
         modifiers: { shift: false, alt: false, ctrl: false },
-      };
+      } as any;
       
       const result = await handleDrop(phrasePayload, dropContext);
       
@@ -347,9 +355,10 @@ describe('Drag/Drop Integration (E079-E080)', () => {
       const multiTrackPhrase: PhrasePayload = {
         type: 'phrase',
         phraseId: 'multi-track-phrase',
+        phraseName: 'Multi-track Phrase',
         notes: [
-          { pitch: 60, velocity: 100, start: 0, duration: 48, track: 0 },
-          { pitch: 48, velocity: 80, start: 0, duration: 96, track: 1 },
+          createNoteEvent({ pitch: 60, velocity: 100, start: asTick(0), duration: asTickDuration(48) }),
+          createNoteEvent({ pitch: 48, velocity: 80, start: asTick(0), duration: asTickDuration(96) }),
         ],
         duration: 96,
         tags: ['chord'],
@@ -359,8 +368,10 @@ describe('Drag/Drop Integration (E079-E080)', () => {
         targetType: 'pattern-editor',
         targetId: 'test-deck',
         position: { x: 0, y: 0 },
+        streamId: stream.id,
+        time: 0,
         modifiers: { shift: false, alt: false, ctrl: false },
-      };
+      } as any;
       
       const result = await handleDrop(multiTrackPhrase, dropContext);
       

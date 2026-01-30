@@ -151,10 +151,10 @@ export const handlePhraseToPatternEditor: DropHandler<PhrasePayload> = async (
   }
   
   // Transform phrase notes to events at drop position
-  const baseTime = asTick(Math.round(context.time));
+  const baseTime = Math.round(context.time);
   const newEvents: Event<unknown>[] = notesToDrop.map(note => ({
     ...note,
-    start: asTick((note.start as number) + (baseTime as number)),
+    start: asTick((note.start as unknown as number) + baseTime),
   }));
   
   // Execute with undo support (E070)

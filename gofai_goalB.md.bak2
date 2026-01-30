@@ -75,47 +75,47 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 257 [Sem] — Implement plan generation as bounded search over opcodes (depth limit, beam size) to keep runtime predictable offline.
 - [x] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
 - [x] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
-- [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
+- [x] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
 - [x] Step 261 [Sem][Type] — Implement a “plan skeleton” step that maps from CPL-Intent to a set of lever candidates with open parameters.
 - [x] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
 - [x] Step 263 [Sem] — Implement “plan legality” checks: ensure opcodes only touch allowed scope and do not mutate forbidden targets.
 - [x] Step 264 [Sem] — Implement “plan explainability”: each opcode carries a reason string linked to the goal it serves.
 - [x] Step 265 [Sem] — Implement “plan provenance”: preserve lexeme/rule origins through to plan steps for end-to-end explanations.
 - [x] Step 266 [Sem][Infra] — Integrate Prolog for symbolic suggestions: query theory KB for chord substitutions, cadence options, mode inference.
-- [ ] Step 267 [Sem] — Define a typed Prolog query layer for GOFAI planning (wrap raw predicates; validate results).
-- [ ] Step 268 [Sem] — Define “theory-driven levers” that depend on analysis (e.g., tension increase via chromatic mediants if harmony permits).
-- [ ] Step 269 [Type] — Define an interface for “analysis facts” computed from project state (key estimate, chord map, density metrics).
-- [ ] Step 270 [Infra] — Add caching for analysis facts keyed by project version and scope to avoid recomputation per keystroke.
-- [ ] Step 271 [Sem] — Implement “constraints as filters”: constraints prune candidate levers early (if preserve melody exact, avoid reharmonize ops).
-- [ ] Step 272 [Sem] — Implement “soft constraints as weights”: preferences influence scoring but never violate hard constraints.
-- [ ] Step 273 [Sem] — Implement “capability-aware planning”: if production layer disabled, map “wider” to orchestration levers instead of DSP.
-- [ ] Step 274 [Sem][HCI] — Implement “ask vs act” planning: if satisfaction requires risky ops, produce a clarification/choice rather than auto-select.
-- [ ] Step 275 [Type] — Implement an “effect typing” rule: plans with mutation effects cannot be executed in `full-manual` without explicit confirmation.
+- [x] Step 267 [Sem] — Define a typed Prolog query layer for GOFAI planning (wrap raw predicates; validate results).
+- [x] Step 268 [Sem] — Define “theory-driven levers” that depend on analysis (e.g., tension increase via chromatic mediants if harmony permits).
+- [x] Step 269 [Type] — Define an interface for “analysis facts” computed from project state (key estimate, chord map, density metrics).
+- [x] Step 270 [Infra] — Add caching for analysis facts keyed by project version and scope to avoid recomputation per keystroke.
+- [x] Step 271 [Sem] — Implement “constraints as filters”: constraints prune candidate levers early (if preserve melody exact, avoid reharmonize ops).
+- [x] Step 272 [Sem] — Implement “soft constraints as weights”: preferences influence scoring but never violate hard constraints.
+- [x] Step 273 [Sem] — Implement “capability-aware planning”: if production layer disabled, map “wider” to orchestration levers instead of DSP.
+- [x] Step 274 [Sem][HCI] — Implement “ask vs act” planning: if satisfaction requires risky ops, produce a clarification/choice rather than auto-select.
+- [x] Step 275 [Type] — Implement an “effect typing” rule: plans with mutation effects cannot be executed in `full-manual` without explicit confirmation.
 - [x] Step 276 [Sem] — Add plan opcodes for musical structure edits: duplicate section, shorten/extend, insert pickup, add break/build/drop.
 - [x] Step 277 [Sem] — Add plan opcodes for rhythm edits: swing adjustment, quantize strength, humanize timing, halftime/doubletime transforms.
 - [x] Step 278 [Sem] — Add plan opcodes for harmony edits: revoice, add extensions, substitute chords under melody constraints, functional reharmonization.
 - [x] Step 279 [Sem] — Add plan opcodes for melody edits: ornamentation, contour shaping, register shifts under range constraints (must be optional/high cost).
 - [x] Step 280 [Sem] — Add plan opcodes for arrangement edits: add/remove layers, role redistribution, density shaping across sections.
-- [ ] Step 281 [Type] — Define a typed “plan execution preflight” that checks project world invariants and gathers required entity bindings.
-- [ ] Step 282 [Type] — Define a typed “plan postflight” that recomputes diffs and verifies constraints; if fail, rollback automatically.
-- [ ] Step 283 [Type] — Define a deterministic “plan-to-diff summary” mapping for UI (what changed by layer/section).
-- [ ] Step 284 [HCI] — Design a “plan preview timeline” that visually marks where edits apply (bar ranges highlighted).
-- [ ] Step 285 [HCI] — Design “confidence UI”: show confidence as “ready / needs clarification / risky” derived from hole count + cost.
-- [ ] Step 286 [Eval] — Build a planning golden suite: given CPL-Intent and a fixture, expected top plan(s) are stable and deterministic.
-- [ ] Step 287 [Eval] — Add constraint violation tests: planner must never output a plan that violates hard constraints in the fixture.
-- [ ] Step 288 [Eval] — Add least-change tests: given two satisfying plans, system picks lower cost unless user requests otherwise.
-- [ ] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
-- [ ] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
-- [ ] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
-- [ ] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
-- [ ] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
-- [ ] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
-- [ ] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.
-- [ ] Step 296 [Sem] — Add planning support for “multi-objective” requests (increase lift but decrease busyness) by choosing orthogonal levers.
-- [ ] Step 297 [Sem] — Add planning support for “keep X but change Y” by encoding X as hard constraint and planning only over Y levers.
-- [ ] Step 298 [Sem] — Add planning support for “only change drums” by restricting opcodes to selectors matching drums.
-- [ ] Step 299 [Sem] — Add planning support for “do it again but bigger” by taking prior plan and scaling amounts with constraints preserved.
-- [ ] Step 300 [Infra] — Add a plan serialization format (with schema + provenance) so plans can be saved, shared, and replayed.
+- [x] Step 281 [Type] — Define a typed “plan execution preflight” that checks project world invariants and gathers required entity bindings.
+- [x] Step 282 [Type] — Define a typed “plan postflight” that recomputes diffs and verifies constraints; if fail, rollback automatically.
+- [x] Step 283 [Type] — Define a deterministic “plan-to-diff summary” mapping for UI (what changed by layer/section).
+- [x] Step 284 [HCI] — Design a “plan preview timeline” that visually marks where edits apply (bar ranges highlighted).
+- [x] Step 285 [HCI] — Design “confidence UI”: show confidence as “ready / needs clarification / risky” derived from hole count + cost.
+- [x] Step 286 [Eval] — Build a planning golden suite: given CPL-Intent and a fixture, expected top plan(s) are stable and deterministic.
+- [x] Step 287 [Eval] — Add constraint violation tests: planner must never output a plan that violates hard constraints in the fixture.
+- [x] Step 288 [Eval] — Add least-change tests: given two satisfying plans, system picks lower cost unless user requests otherwise.
+- [x] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
+- [x] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
+- [x] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
+- [x] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
+- [x] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
+- [x] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
+- [x] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.
+- [x] Step 296 [Sem] — Add planning support for “multi-objective” requests (increase lift but decrease busyness) by choosing orthogonal levers.
+- [x] Step 297 [Sem] — Add planning support for “keep X but change Y” by encoding X as hard constraint and planning only over Y levers.
+- [x] Step 298 [Sem] — Add planning support for “only change drums” by restricting opcodes to selectors matching drums.
+- [x] Step 299 [Sem] — Add planning support for “do it again but bigger” by taking prior plan and scaling amounts with constraints preserved.
+- [x] Step 300 [Infra] — Add a plan serialization format (with schema + provenance) so plans can be saved, shared, and replayed.
 ---
 
 ## Phase 6 — Execution: Compile Plans to CardPlay Mutations with Diffs + Undo (Steps 301–350)
@@ -124,15 +124,15 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 302 [Type] — Define a transactional execution model: apply edits to a fork; validate constraints; commit or rollback.
 - [ ] Step 303 [Type] — Define an execution effect system: UI actions are separate from project mutations; planners produce proposals, executors apply.
 - [ ] Step 304 [Type] — Define a canonical diff model: event diffs, container diffs, card graph diffs, param diffs, each with stable ordering.
-- [ ] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
-- [ ] Step 306 [Infra] — Implement event-level edit primitives by composing existing `cardplay/src/events/operations.ts` functions where possible.
-- [ ] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
-- [ ] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).
-- [ ] Step 309 [Infra] — Implement plan opcode executors for structure edits (insert break, duplicate section) with marker updates.
-- [ ] Step 310 [Infra] — Implement plan opcode executors for card parameter edits (set_param) with type-safe param validation.
-- [ ] Step 311 [Type] — Introduce param schema validation for cards (enum/number/bool/object), so “set cutoff to 12k” can be validated or clarified.
-- [ ] Step 312 [Type] — Implement “unknown param” behavior: show similar params, ask user to choose, or refuse.
-- [ ] Step 313 [Type] — Implement “value coercion” rules with provenance: “12k” → 12000; “+3dB” → numeric; refuse unsafe coercions.
+- [x] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
+- [x] Step 306 [Infra] — Implement event-level edit primitives by composing existing `cardplay/src/events/operations.ts` functions where possible.
+- [x] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
+- [x] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).
+- [x] Step 309 [Infra] — Implement plan opcode executors for structure edits (insert break, duplicate section) with marker updates.
+- [x] Step 310 [Infra] — Implement plan opcode executors for card parameter edits (set_param) with type-safe param validation.
+- [x] Step 311 [Type] — Introduce param schema validation for cards (enum/number/bool/object), so “set cutoff to 12k” can be validated or clarified.
+- [x] Step 312 [Type] — Implement “unknown param” behavior: show similar params, ask user to choose, or refuse.
+- [x] Step 313 [Type] — Implement “value coercion” rules with provenance: “12k” → 12000; “+3dB” → numeric; refuse unsafe coercions.
 - [ ] Step 314 [Type] — Implement “execution capability checks”: if a plan requires routing edits but policy forbids it, downgrade to preview-only.
 - [ ] Step 315 [Infra] — Implement “deterministic host action ordering” so repeated runs produce identical diffs.
 - [ ] Step 316 [Infra] — Implement automatic undo integration with CardPlay store: each `EditPackage` becomes one undo step (or a grouped transaction).
@@ -145,7 +145,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 323 [Sem][Type] — Implement rhythm preservation checkers (grid-aligned onset sets; swing/humanize allowances).
 - [ ] Step 324 [Sem][Type] — Implement “only-change” checker: diff must touch only allowed selectors; report violations with highlighted events.
 - [ ] Step 325 [Sem][Type] — Implement “no-new-layers” checker: ensure no new tracks/cards are added unless allowed.
-- [ ] Step 326 [Infra] — Implement diff rendering helpers: convert low-level diffs into human summary sentences (“Chorus: hats density +20%”).
+- [x] Step 326 [Infra] — Implement diff rendering helpers: convert low-level diffs into human summary sentences (“Chorus: hats density +20%”).
 - [ ] Step 327 [Infra] — Implement “reason traces”: for each diff item, link back to the plan opcode and the goal it served.
 - [ ] Step 328 [Infra] — Implement “explanation generator”: produce before/after summaries and satisfy-constraint reports.
 - [ ] Step 329 [HCI] — Add UI for diff visualization: per-section timeline overlay + per-layer change list + filter by kind.
