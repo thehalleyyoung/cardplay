@@ -13,7 +13,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 004 [Type] — Introduce a vocabulary policy: builtin meaning IDs un-namespaced; extension meaning IDs must be `namespace:*` (mirrors CardPlayId rules).
 - [ ] Step 006 [Infra] — Create a “GOFAI build matrix” mapping features to required tests (unit, golden NL→CPL, paraphrase invariance, safety diffs, UX interaction tests).
 - [ ] Step 007 [Type] — Define a stable “CPL schema versioning” strategy compatible with CardPlay canon serialization/versioning conventions.
-- [ ] Step 008 [Type] — Define an effect taxonomy for compiler outputs: `inspect` vs `propose` vs `mutate`, to forbid silent mutation in manual boards.
+- [x] Step 008 [Type] — Define an effect taxonomy for compiler outputs: `inspect` vs `propose` vs `mutate`, to forbid silent mutation in manual boards.
 - [ ] Step 010 [Infra] — Identify the minimal “project world API” needed by GOFAI (section markers, tracks/layers, card registry, selected range, undo stack).
 - [x] Step 011 [Type] — Specify the difference between **goals**, **constraints**, and **preferences** (hard vs soft), with a stable typed model.
 - [ ] Step 016 [Infra] — Add a glossary of key terms (scope, referent, salience, presupposition, implicature, constraint) and require it in docs review.
