@@ -171,33 +171,33 @@ export const COLOR_SCHEMES: ColorScheme[] = [
 export const CATEGORY_KEYWORDS: Record<InstrumentCategory, string[]> = {
   drums: ['drum', 'kick', 'snare', 'hat', 'hihat', 'hi-hat', 'tom', 'cymbal', 'crash', 'ride', 'kit', 'beat', '808', '909', 'breakbeat'],
   percussion: ['perc', 'conga', 'bongo', 'shaker', 'tambourine', 'clap', 'snap', 'rim', 'cowbell', 'triangle', 'wood', 'maracas'],
-  bass: ['bass guitar', 'bass', 'sub', 'low', 'reese', 'wobble', 'dub', 'synbass', 'acid'],
-  synth: ['synth lead', 'synth pad', 'synth bass', 'synth', 'pad', 'lead', 'arp', 'pluck', 'stab', 'saw', 'square', 'analog', 'digital', 'fm'],
+  bass: ['bass guitar', 'synbass', 'bass', 'sub', 'low', 'reese', 'wobble', 'dub', 'acid'],
+  synth: ['synth lead', 'synth pad', 'synth bass', 'moog bass', 'moog', 'synth', 'pad', 'lead', 'arp', 'pluck', 'stab', 'saw', 'square', 'analog', 'digital', 'fm'],
   keys: ['electric piano', 'piano', 'key', 'rhodes', 'wurli', 'organ', 'clav', 'epiano', 'ep'],
   guitar: ['electric guitar', 'acoustic guitar', 'guitar', 'gtr', 'acoustic', 'electric', 'strat', 'tele', 'les paul', 'nylon', 'steel', 'distort'],
-  strings: ['string', 'violin', 'viola', 'cello', 'contrabass', 'orchestra', 'ensemble', 'pizz', 'legato', 'tremolo'],
-  brass: ['brass section', 'brass', 'trumpet', 'trombone', 'horn', 'tuba', 'section'],
+  strings: ['cello section', 'orchestral', 'string', 'violin', 'viola', 'cello', 'contrabass', 'orchestra', 'ensemble', 'pizz', 'legato', 'tremolo'],
+  brass: ['brass section', 'horn section', 'brass', 'trumpet', 'trombone', 'horn', 'tuba'],
   woodwinds: ['flute', 'clarinet', 'oboe', 'bassoon', 'piccolo', 'recorder', 'wind', 'reed', 'sax', 'saxophone'],
   vocals: ['lead vocal', 'backing vocal', 'vocal', 'voice', 'vox', 'sing', 'choir', 'harmony', 'backing', 'adlib', 'acapella'],
   fx: ['sound effects', 'ambient fx', 'fx', 'effect', 'sfx', 'riser', 'sweep', 'noise', 'impact', 'whoosh', 'transition', 'foley'],
   ambient: ['ambient', 'atmosphere', 'texture', 'drone', 'pad', 'field', 'nature', 'environmental'],
-  aux: ['reverb send', 'delay send', 'aux', 'bus', 'send', 'return'],
+  aux: ['reverb send', 'delay send', 'drum bus', 'aux', 'bus', 'send', 'return'],
   master: ['stereo out', 'main out', 'mix bus', 'master'],
   other: [],
 };
 
 /** Plugin keywords for category detection */
 export const PLUGIN_KEYWORDS: Record<InstrumentCategory, string[]> = {
-  drums: ['addictive drums', 'superior drummer', 'ezdrummer', 'battery', 'maschine', 'ultrabeat'],
+  drums: ['addictive drums', 'superior drummer', 'ezdrummer', 'bfd', 'battery', 'maschine', 'ultrabeat'],
   percussion: ['percussion', 'latin', 'world'],
-  bass: ['trilian', 'monark', 'diva', 'massive'],
+  bass: ['trilian', 'modo bass', 'monark', 'diva'],
   synth: ['serum', 'massive', 'sylenth', 'omnisphere', 'vital', 'phase plant', 'pigments'],
-  keys: ['keyscape', 'noire', 'una corda', 'grandeur', 'b3'],
-  guitar: ['guitar rig', 'amplitube', 'helix', 'archetype'],
+  keys: ['keyscape', 'pianoteq', 'b3', 'noire', 'una corda', 'grandeur'],
+  guitar: ['guitar rig', 'amp room', 'amplitube', 'helix', 'archetype'],
   strings: ['spitfire', 'css', 'berlin strings', 'orchestral'],
   brass: ['cinebrass', 'berlin brass', 'sample modeling'],
   woodwinds: ['cinewinds', 'berlin woodwinds', 'sample modeling'],
-  vocals: ['vocaloid', 'synth v', 'exhale'],
+  vocals: ['auto-tune', 'melodyne', 'vocaloid', 'synth v', 'exhale'],
   fx: ['soundtoys', 'effectrix', 'glitch'],
   ambient: ['omnisphere', 'alchemy', 'pigments'],
   aux: [],
@@ -298,30 +298,29 @@ export function detectCategory(track: TrackInfo): { category: InstrumentCategory
     return { category: track.instrumentType, confidence: 1.0 };
   }
   
-  const results: Array<{ category: InstrumentCategory; confidence: number }> = [];
+  // Prioritize name detection
+  const nameResult = detectCategoryFromName(track.name);
+  if (nameResult.category !== 'other') {
+    return nameResult;
+  }
   
-  // Check name
-  results.push(detectCategoryFromName(track.name));
-  
-  // Check plugins
+  // Fall back to plugin detection
   if (track.plugins && track.plugins.length > 0) {
-    results.push(detectCategoryFromPlugins(track.plugins));
+    const pluginResult = detectCategoryFromPlugins(track.plugins);
+    if (pluginResult.category !== 'other') {
+      return pluginResult;
+    }
   }
   
-  // Check sample path
+  // Fall back to sample path
   if (track.samplePath) {
-    results.push(detectCategoryFromSamplePath(track.samplePath));
+    const sampleResult = detectCategoryFromSamplePath(track.samplePath);
+    if (sampleResult.category !== 'other') {
+      return sampleResult;
+    }
   }
   
-  // Return highest confidence result (excluding 'other' if possible)
-  const validResults = results.filter(r => r.category !== 'other' || r.confidence > 0.5);
-  if (validResults.length === 0) {
-    return { category: 'other', confidence: 0.1 };
-  }
-  
-  validResults.sort((a, b) => b.confidence - a.confidence);
-  const firstResult = validResults[0];
-  return firstResult ?? { category: 'other', confidence: 0.1 };
+  return { category: 'other', confidence: 0.1 };
 }
 
 /**
@@ -375,8 +374,13 @@ export class TrackColoringStore {
       // Recolor all tracks and notify
       this.recolorAll();
       // Notify all listeners about scheme change
-      for (const result of this.trackColors.values()) {
-        this.notifyListeners(result.trackId, result);
+      if (this.trackColors.size > 0) {
+        for (const result of this.trackColors.values()) {
+          this.notifyListeners(result.trackId, result);
+        }
+      } else {
+        // Notify with sentinel when no tracks exist
+        this.notifyListeners('', { trackId: '', detectedCategory: 'other', assignedColor: '', confidence: 0 });
       }
       return true;
     }
@@ -522,6 +526,15 @@ export class TrackColoringStore {
    */
   clearOverride(trackId: string): void {
     this.clearCustomColor(trackId);
+    
+    // Recompute color from stored track info
+    const existing = this.trackColors.get(trackId);
+    if (existing) {
+      // Recompute category color
+      const categoryColor = this.scheme.colors[existing.detectedCategory];
+      existing.assignedColor = categoryColor;
+      this.notifyListeners(trackId, existing);
+    }
   }
   
   /**

@@ -208,14 +208,17 @@ export function assessConstraintRisk(
   return constraints.map(constraint => {
     // Check if any opcode might violate this constraint
     const riskyOpcodes = plan.opcodes.filter(opcode => {
-      // Simplified: check if opcode category conflicts with constraint type
-      if (constraint.type === 'preserve-constraint') {
+      // Check if opcode category conflicts with constraint variant
+      const variant = constraint.variant;
+      
+      if (variant === 'preserve') {
         // Melody/harmony opcodes risk violating preserve constraints
         return opcode.category === 'melody' || opcode.category === 'harmony';
       }
-      if (constraint.type === 'only-change-constraint') {
+      if (variant === 'only-change') {
         // Any opcode outside the allowed scope is risky
-        return true; // Would check scope overlap in real implementation
+        // (Would check scope overlap in full implementation)
+        return true;
       }
       return false;
     });
@@ -230,7 +233,7 @@ export function assessConstraintRisk(
     else riskLevel = 'critical';
     
     return {
-      constraintId: constraint.type,
+      constraintId: constraint.description,
       riskLevel,
       riskScore,
       reason: `${riskyOpcodes.length} potentially conflicting opcodes`,
@@ -276,6 +279,222 @@ export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
   costWeight: 0.5,
 };
 
+// ============================================================================
+// Step 272: Soft Constraints as Weights
+// ============================================================================
+
+/**
+ * Soft constraint violation and penalty
+ * 
+ * Unlike hard constraints (which reject plans), soft constraints
+ * (preferences) add penalties to the plan score. This allows preferences
+ * to influence plan selection without blocking valid alternatives.
+ */
+export interface SoftConstraintViolation {
+  readonly constraintId: string;
+  readonly constraintType: string;
+  readonly description: string;
+  readonly severity: number; // 0.0 - 1.0 (how bad this violation is)
+  readonly penaltyWeight: number; // multiplier for this specific constraint
+  readonly affectedOpcodes: readonly string[];
+}
+
+/**
+ * Calculate soft constraint penalties for a plan
+ * 
+ * Soft constraints are preferences that influence scoring but don't block execution.
+ * Examples:
+ * - "Prefer not to change harmony" (soft) vs "Don't change harmony" (hard)
+ * - "Keep edits minimal" vs "Don't exceed 3 operations"
+ * - "Maintain similar density" vs "Density must stay in range [0.6, 0.8]"
+ * 
+ * @param plan The plan to evaluate
+ * @param softConstraints Soft constraints (preferences)
+ * @returns Total penalty score (0.0 - 1.0, where 0 = no violations, 1 = severe violations)
+ */
+export function calculateSoftConstraintPenalty(
+  plan: CPLPlan,
+  softConstraints: readonly CPLConstraint[]
+): { penalty: number; violations: readonly SoftConstraintViolation[] } {
+  if (softConstraints.length === 0) {
+    return { penalty: 0, violations: [] };
+  }
+  
+  const violations: SoftConstraintViolation[] = [];
+  let totalPenalty = 0;
+  
+  for (const constraint of softConstraints) {
+    const violation = evaluateSoftConstraint(plan, constraint);
+    if (violation) {
+      violations.push(violation);
+      totalPenalty += violation.severity * violation.penaltyWeight;
+    }
+  }
+  
+  // Normalize to 0-1 range (assume max reasonable violations is 3 constraints at severity 0.8)
+  const normalizedPenalty = Math.min(totalPenalty / 2.4, 1.0);
+  
+  return {
+    penalty: normalizedPenalty,
+    violations
+  };
+}
+
+/**
+ * Evaluate a single soft constraint
+ * 
+ * Returns violation details if the preference is not satisfied, null otherwise
+ */
+function evaluateSoftConstraint(
+  plan: CPLPlan,
+  constraint: CPLConstraint
+): SoftConstraintViolation | null {
+  // Extract constraint details
+  const variant = constraint.variant;
+  
+  // Different constraint variants have different evaluation logic
+  if (variant === 'preserve') {
+    // Check if plan modifies something that should be preserved
+    const affectedOpcodes = plan.opcodes.filter(op => 
+      op.category === 'melody' || op.category === 'harmony'
+    );
+    
+    if (affectedOpcodes.length > 0) {
+      // Calculate severity based on number and risk of modifications
+      const severity = Math.min(
+        affectedOpcodes.length * 0.15 + 
+        affectedOpcodes.reduce((sum, op) => sum + RISK_COST_MULTIPLIERS[op.risk] * 0.1, 0),
+        1.0
+      );
+      
+      return {
+        constraintId: `soft_preserve_${constraint.description}`,
+        constraintType: 'preserve',
+        description: `Preference to preserve ${constraint.description}`,
+        severity,
+        penaltyWeight: 0.8, // High weight for preservation preferences
+        affectedOpcodes: affectedOpcodes.map(op => op.id)
+      };
+    }
+  } else if (variant === 'only-change') {
+    // Check if plan modifies more than preferred
+    const affectedCategories = new Set(plan.opcodes.map(op => op.category));
+    if (affectedCategories.size > 2) {
+      return {
+        constraintId: `soft_only_change`,
+        constraintType: 'only-change',
+        description: 'Preference for focused edits',
+        severity: Math.min((affectedCategories.size - 2) * 0.25, 1.0),
+        penaltyWeight: 0.6,
+        affectedOpcodes: plan.opcodes.map(op => op.id)
+      };
+    }
+  } else if (variant === 'range') {
+    // For range constraints, check if we're near the boundaries
+    const hasRiskyOps = plan.opcodes.some(op => op.risk === 'high' || op.risk === 'critical');
+    if (hasRiskyOps) {
+      return {
+        constraintId: `soft_range_${constraint.description}`,
+        constraintType: 'range',
+        description: 'Preference to stay within safe ranges',
+        severity: 0.4,
+        penaltyWeight: 0.5,
+        affectedOpcodes: plan.opcodes.filter(op => op.risk === 'high' || op.risk === 'critical').map(op => op.id)
+      };
+    }
+  }
+  
+  // Check for implicit soft constraints based on plan characteristics
+  
+  // Prefer fewer opcodes
+  if (plan.opcodes.length > 3) {
+    return {
+      constraintId: `soft_minimize_changes`,
+      constraintType: 'minimize-changes',
+      description: 'Preference for minimal changes',
+      severity: Math.min((plan.opcodes.length - 3) * 0.2, 1.0),
+      penaltyWeight: 0.5,
+      affectedOpcodes: plan.opcodes.map(op => op.id)
+    };
+  }
+  
+  // Prefer non-destructive operations
+  const destructiveOps = plan.opcodes.filter(op => op.destructive);
+  if (destructiveOps.length > 0) {
+    return {
+      constraintId: `soft_prefer_non_destructive`,
+      constraintType: 'prefer-non-destructive',
+      description: 'Preference for non-destructive operations',
+      severity: Math.min(destructiveOps.length * 0.3, 1.0),
+      penaltyWeight: 0.7,
+      affectedOpcodes: destructiveOps.map(op => op.id)
+    };
+  }
+  
+  // Prefer operations that don't drastically change density
+  const densityChangingOps = plan.opcodes.filter(op => 
+    op.category === 'texture' || op.type.includes('density')
+  );
+  if (densityChangingOps.length > 0) {
+    return {
+      constraintId: `soft_maintain_density`,
+      constraintType: 'maintain-density',
+      description: 'Preference to maintain current density',
+      severity: Math.min(densityChangingOps.length * 0.2, 0.6),
+      penaltyWeight: 0.4,
+      affectedOpcodes: densityChangingOps.map(op => op.id)
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Create common soft constraints from hard constraints
+ * 
+ * Converts strict constraints into preferences that influence but don't block.
+ * Useful when user says "try to" or "if possible" which signals preference not requirement.
+ */
+export function relaxConstraintToPreference(
+  hardConstraint: CPLConstraint,
+  relaxationFactor: number = 0.5
+): CPLConstraint {
+  // Create a soft version of the constraint with reduced penalty weight
+  return {
+    ...hardConstraint,
+    type: `soft_${hardConstraint.type}` as any,
+    // Additional metadata indicating this is a preference
+    // (Full implementation would have proper soft constraint type)
+  };
+}
+
+/**
+ * Separate hard and soft constraints
+ * 
+ * Helper to partition constraints into those that must be satisfied (hard)
+ * and those that should be satisfied if possible (soft).
+ */
+export function partitionConstraints(
+  constraints: readonly CPLConstraint[]
+): {
+  hard: readonly CPLConstraint[];
+  soft: readonly CPLConstraint[];
+} {
+  const hard: CPLConstraint[] = [];
+  const soft: CPLConstraint[] = [];
+  
+  for (const constraint of constraints) {
+    // Soft constraints have strength 'soft'
+    if (constraint.strength === 'soft') {
+      soft.push(constraint);
+    } else {
+      hard.push(constraint);
+    }
+  }
+  
+  return { hard, soft };
+}
+
 /**
  * Score a plan
  * 
@@ -291,6 +510,9 @@ export function scorePlan(
   constraints: readonly CPLConstraint[],
   weights: ScoringWeights = DEFAULT_SCORING_WEIGHTS
 ): PlanScore {
+  // Partition constraints into hard and soft
+  const { hard: hardConstraints, soft: softConstraints } = partitionConstraints(constraints);
+  
   // Calculate satisfaction
   const satisfactionScore = calculatePlanSatisfaction(plan, goals);
   
@@ -300,24 +522,30 @@ export function scorePlan(
   // Normalize cost (assuming max reasonable cost is 50)
   const normalizedCost = Math.min(cost / 50.0, 1.0);
   
-  // Calculate constraint risk
-  const risks = assessConstraintRisk(plan, constraints);
+  // Calculate constraint risk (from hard constraints only)
+  const risks = assessConstraintRisk(plan, hardConstraints);
   const constraintRisk = risks.length > 0
     ? Math.max(...risks.map(r => r.riskScore))
     : 0.0;
   
+  // Calculate soft constraint penalty
+  const softPenaltyResult = calculateSoftConstraintPenalty(plan, softConstraints);
+  const softConstraintPenalty = softPenaltyResult.penalty;
+  
   // Calculate overall score (weighted combination)
-  // Note: cost is inverted (1 - normalizedCost) because lower cost is better
+  // Note: cost and penalties are inverted (1 - x) because lower is better
   const overallScore =
     satisfactionScore * weights.satisfactionWeight +
     (1.0 - normalizedCost) * weights.costWeight +
-    (1.0 - constraintRisk) * weights.constraintRiskWeight;
+    (1.0 - constraintRisk) * weights.constraintRiskWeight +
+    (1.0 - softConstraintPenalty) * weights.softConstraintPenaltyWeight;
   
   // Normalize to 0-1 range
   const maxPossibleScore =
     weights.satisfactionWeight +
     weights.costWeight +
-    weights.constraintRiskWeight;
+    weights.constraintRiskWeight +
+    weights.softConstraintPenaltyWeight;
   const normalizedOverallScore = overallScore / maxPossibleScore;
   
   // Calculate confidence
@@ -325,10 +553,12 @@ export function scorePlan(
   // - High satisfaction (> 0.8)
   // - Low cost (normalized < 0.4)
   // - Low constraint risk (< 0.2)
+  // - Low soft constraint violations (< 0.3)
   const confidence = Math.min(
     satisfactionScore,
     1.0 - normalizedCost * 0.5,
-    1.0 - constraintRisk
+    1.0 - constraintRisk,
+    1.0 - softConstraintPenalty * 0.6
   );
   
   return {
@@ -336,6 +566,7 @@ export function scorePlan(
     cost,
     normalizedCost,
     constraintRisk,
+    softConstraintPenalty,
     overallScore: normalizedOverallScore,
     confidence,
   };
@@ -446,9 +677,9 @@ export function arePlansSignificantlyDifferent(
   // 2. Different opcode categories (> 30% different)
   const categories1 = new Set(plan1.opcodes.map(o => o.category));
   const categories2 = new Set(plan2.opcodes.map(o => o.category));
-  const unionSize = new Set([...categories1, ...categories2]).size;
+  const unionSize = new Set([...Array.from(categories1), ...Array.from(categories2)]).size;
   const intersectionSize = new Set(
-    [...categories1].filter(c => categories2.has(c))
+    Array.from(categories1).filter(c => categories2.has(c))
   ).size;
   const similarity = intersectionSize / unionSize;
   

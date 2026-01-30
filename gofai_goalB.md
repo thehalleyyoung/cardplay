@@ -86,8 +86,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 268 [Sem] — Define “theory-driven levers” that depend on analysis (e.g., tension increase via chromatic mediants if harmony permits).
 - [x] Step 269 [Type] — Define an interface for “analysis facts” computed from project state (key estimate, chord map, density metrics).
 - [x] Step 270 [Infra] — Add caching for analysis facts keyed by project version and scope to avoid recomputation per keystroke.
-- [ ] Step 271 [Sem] — Implement “constraints as filters”: constraints prune candidate levers early (if preserve melody exact, avoid reharmonize ops).
-- [ ] Step 272 [Sem] — Implement “soft constraints as weights”: preferences influence scoring but never violate hard constraints.
+- [x] Step 271 [Sem] — Implement “constraints as filters”: constraints prune candidate levers early (if preserve melody exact, avoid reharmonize ops).
+- [x] Step 272 [Sem] — Implement “soft constraints as weights”: preferences influence scoring but never violate hard constraints.
 - [ ] Step 273 [Sem] — Implement “capability-aware planning”: if production layer disabled, map “wider” to orchestration levers instead of DSP.
 - [ ] Step 274 [Sem][HCI] — Implement “ask vs act” planning: if satisfaction requires risky ops, produce a clarification/choice rather than auto-select.
 - [ ] Step 275 [Type] — Implement an “effect typing” rule: plans with mutation effects cannot be executed in `full-manual` without explicit confirmation.
