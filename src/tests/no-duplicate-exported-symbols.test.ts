@@ -10,7 +10,10 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import glob from 'glob';
+import { promisify } from 'util';
+
+const globAsync = promisify(glob);
 
 // Ambiguous symbol names that need qualification
 const AMBIGUOUS_SYMBOLS = [
@@ -51,7 +54,7 @@ describe('No Duplicate Exported Symbols (Change 470)', () => {
     const srcDir = path.resolve(__dirname, '../../');
     
     // Find index.ts barrel files
-    const files = await glob('**/index.ts', {
+    const files = await globAsync('**/index.ts', {
       cwd: srcDir,
       ignore: [
         '**/node_modules/**',

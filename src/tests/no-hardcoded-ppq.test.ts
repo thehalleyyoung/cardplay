@@ -10,14 +10,17 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import glob from 'glob';
+import { promisify } from 'util';
+
+const globAsync = promisify(glob);
 
 describe('No Hardcoded PPQ (Change 466)', () => {
   it('should not have local PPQ definitions outside primitives.ts', async () => {
     const srcDir = path.resolve(__dirname, '../../');
     
     // Find all TypeScript files
-    const files = await glob('**/*.ts', {
+    const files = await globAsync('**/*.ts', {
       cwd: srcDir,
       ignore: [
         '**/node_modules/**',

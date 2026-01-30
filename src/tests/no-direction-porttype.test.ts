@@ -10,7 +10,10 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import glob from 'glob';
+import { promisify } from 'util';
+
+const globAsync = promisify(glob);
 
 // Pattern for port types with embedded direction
 const DIRECTION_PORT_PATTERN = /['"](\w+)_(in|out)['"]/g;
@@ -33,7 +36,7 @@ describe('No Direction in PortType (Change 468)', () => {
     const srcDir = path.resolve(__dirname, '../../');
     
     // Find relevant TypeScript files
-    const files = await glob('**/*.ts', {
+    const files = await globAsync('**/*.ts', {
       cwd: srcDir,
       ignore: [
         '**/node_modules/**',

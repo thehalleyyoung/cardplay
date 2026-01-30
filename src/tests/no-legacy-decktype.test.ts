@@ -10,7 +10,10 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import glob from 'glob';
+import { promisify } from 'util';
+
+const globAsync = promisify(glob);
 
 // Legacy deck type strings that should not be used
 const LEGACY_DECK_TYPES = [
@@ -38,7 +41,7 @@ describe('No Legacy DeckType Strings (Change 467)', () => {
     const srcDir = path.resolve(__dirname, '../../');
     
     // Find all TypeScript files
-    const files = await glob('**/*.ts', {
+    const files = await globAsync('**/*.ts', {
       cwd: srcDir,
       ignore: [
         '**/node_modules/**',
@@ -46,6 +49,9 @@ describe('No Legacy DeckType Strings (Change 467)', () => {
         '**/*.spec.ts',
         '**/canon/legacy-aliases.ts', // Allowed to define the mappings
         '**/to_fix*.md',
+        '**/audio/deck-routing-store-bridge.ts', // Uses DeckNodeType, not DeckType
+        '**/state/routing-graph.ts', // Uses node types
+        '**/ui/demo-decks.ts', // Demo/test code
       ],
     });
     
