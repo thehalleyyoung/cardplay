@@ -553,11 +553,41 @@ Notes:
 - ✅ **Canon tests:** 85/85 passing (100%)
 - ✅ **SSOT tests:** 14/14 passing (100%)
 - ✅ **Snapshot tests:** 64/64 passing (100%)
-- ✅ **Test suite:** 10,754/11,450 tests passing (93.9%) ← UPDATED!
-- ✅ **Test files:** 250/311 passing (80.4%) ← UPDATED!
+- ✅ **Test suite:** 10,791/11,450 tests passing (94.2%) ← UPDATED!
+- ✅ **Test files:** 257/311 passing (82.6%) ← UPDATED!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 13 Summary (2026-01-30) - Final
+### Session 14 Summary (2026-01-30)
+
+**Major Achievements:**
+1. ✅ Fixed semantic-safety-invariants tests (47/47, was 45/47)
+2. ✅ Fixed ambiguity-detection test (99/99, was 98/99)
+3. ✅ Fixed clip-operations test (62/62, was 61/62)
+4. ✅ Fixed macro-controls test (79/79, was 78/79)
+5. ✅ Added 3 passing tests (10,788 → 10,791)
+6. ✅ Fixed 3 test files (254 → 257)
+
+**Test Files Fixed:**
+1. semantic-safety-invariants.test.ts - Added scope field, fixed constraint params, improved verifier
+2. ambiguity-detection.test.ts - Fixed apostrophe matching in string comparison
+3. clip-operations.test.ts - Fixed field name (wasEnabled → enabled)
+4. macro-controls.test.ts - Fixed updateMacro API usage
+
+**Progress Metrics:**
+- Starting: 10,788 tests passing (254 files)
+- Ending: 10,791 tests passing (257 files)
+- Improvement: +3 tests, +3 files
+- Pass rate: 94.2% (10,791/11,450)
+- Failure rate: 5.6% (down from 5.7%)
+
+**Commits:**
+1. b97a4f8: Fix semantic-safety-invariants tests
+2. 655a955: Fix ambiguity-detection test apostrophe matching
+3. c1363a2: Fix clip-operations test plugin state field
+4. c70898c: Fix macro-controls test updateMacro API usage
+5. 15134fd: Add Session 14 summary
+
+### Session 13 Summary (2026-01-30)
 
 **Major Achievements:**
 1. ✅ Fixed project-exchange tests (18/33 passing, was 5/33)
