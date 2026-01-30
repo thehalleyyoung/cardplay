@@ -557,31 +557,43 @@ Notes:
 - ✅ **Test files:** 250/311 passing (80.4%) ← UPDATED!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 13 Summary (2026-01-30)
+### Session 13 Summary (2026-01-30) - Final
 
 **Major Achievements:**
 1. ✅ Fixed project-exchange tests (18/33 passing, was 5/33)
-2. ✅ Added exportAndParse helper for test convenience
-3. ✅ Fixed API usage (exportProject signature, options format)
-4. ✅ Fixed identifier issues (asEventId→generateEventId, ClipRegistry calls)
-5. ✅ Added 13 passing tests (10,754 → 10,767)
-6. ✅ All snapshot tests verified complete (Changes 494-497)
+2. ✅ Fixed core-card-adapter tests (21/21 passing, was 12/21)
+3. ✅ Added exportAndParse helper for test convenience
+4. ✅ Implemented UICardWithPorts interface with port mapping
+5. ✅ Added 22 passing tests (10,754 → 10,776)
+6. ✅ Fixed 1 test file (250 → 251 passing files)
+7. ✅ All snapshot tests verified complete (Changes 494-497)
 
 **Test Files Fixed:**
 1. project-exchange.test.ts - Fixed export API usage and test helpers (18/33 tests, was 5/33)
+2. core-card-adapter.test.ts - Implemented port mapping and UI conversion (21/21 tests, was 12/21)
 
 **Progress Metrics:**
 - Starting: 10,754 tests passing (250 files)
-- Ending: 10,767 tests passing (250 files)
-- Improvement: +13 tests
-- Pass rate: 94.1% (10,767/11,450)
+- Ending: 10,776 tests passing (251 files)
+- Improvement: +22 tests, +1 file
+- Pass rate: 94.1% (10,776/11,450)
+- Failure rate: 5.7% (down from 5.9%)
 
 **Commits This Session:**
 1. 77c584a: Fix project-exchange tests: improve from 5/33 to 18/33 passing
+2. 07604be: Fix core-card-adapter tests: 21/21 passing (was 12/21)
+
+**Technical Improvements:**
+- Created UICardWithPorts interface extending CardSurfaceConfig
+- Implemented port mapping (inputs/outputs arrays) from CoreCard
+- Added color and description fields to UI card config
+- Fixed port ID/name handling (supports both id and name fields)
+- Fixed exportProject API usage (requires metadata parameter)
+- Added helper to convert old test options format to actual API
 
 **Remaining Work:**
-- 61 test files still failing (mostly logic/timing issues)
-- 664 tests failing (5.8% failure rate, down from 5.9%)
+- 60 test files still failing (mostly logic/timing issues)
+- 655 tests failing (5.7% failure rate)
 - project-exchange import tests need API alignment (expect File, tests pass Archive)
 - Most failures are in experimental GOFAI modules or timing-sensitive UI tests
 - Changes 488-489 deferred for integration test design
