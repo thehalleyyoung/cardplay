@@ -128,8 +128,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 156 [Sem] — Add a Montague-style compositional pipeline: parse rules attach lambda terms that assemble into CPL-Intent skeletons.
 - [x] Step 157 [Sem] — Add FrameNet/Frame semantics integration: verb frames ("tighten", "widen", "simplify") map to axis/levers + selectional restrictions.
 - [x] Step 158 [Sem] — Add a typed representation for "musical goals" distinct from "actions": goals are desiderata over axes and structures.
-- [ ] Step 159 [Sem] — Add a typed representation for “constraints” that can be checked against diffs (preserve melody exact, keep chords functional).
-- [ ] Step 160 [Sem] — Add a typed representation for “preferences” (least-change, no-new-layers) as weighted soft constraints.
+- [x] Step 159 [Sem] — Add a typed representation for "constraints" that can be checked against diffs (preserve melody exact, keep chords functional).
+- [x] Step 160 [Sem] — Add a typed representation for "preferences" (least-change, no-new-layers) as weighted soft constraints.
 - [ ] Step 161 [Sem] — Implement contrast semantics for “but” (SDRT cue): represent as goal+constraint pairing with discourse relation `Contrast`.
 - [ ] Step 162 [Sem] — Implement sequencing semantics for “then/after/before” as plan composition constraints (order in CPL-Plan).
 - [ ] Step 163 [Sem] — Implement “only” semantics: a focus-sensitive operator that restricts the allowed change targets.

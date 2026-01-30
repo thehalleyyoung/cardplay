@@ -53,3 +53,9 @@ export * from './frame-semantics';
 
 // Musical goals representation (Step 158)
 export * from './musical-goals';
+
+// Musical constraints for diff checking (Step 159)
+export * from './musical-constraints';
+
+// Musical preferences as weighted soft constraints (Step 160)
+export * from './musical-preferences';

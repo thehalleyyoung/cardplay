@@ -380,7 +380,7 @@ export function getRhythmTempoNoun(id: string): DomainNoun | undefined {
  */
 export function getRhythmTempoSynonyms(id: string): readonly string[] {
   const noun = RHYTHM_TEMPO_BATCH1_MAP.get(id);
-  return noun ? [noun.canonical, ...noun.synonyms] : [];
+  return noun ? [noun.canonical, ...(noun.synonyms ?? [])] : [];
 }
 
 /**

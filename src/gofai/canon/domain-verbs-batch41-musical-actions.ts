@@ -43,6 +43,23 @@ function createActionSemantics(params: {
   };
 }
 
+// Helper to create a lexeme with defaults for description and examples
+function createActionLexeme(params: {
+  id: LexemeId;
+  lemma: string;
+  variants: readonly string[];
+  category: 'verb';
+  semantics: ReturnType<typeof createActionSemantics>;
+  description?: string;
+  examples?: readonly string[];
+}): Lexeme {
+  return {
+    ...params,
+    description: params.description ?? `Action verb: ${params.lemma}`,
+    examples: params.examples ?? [`${params.variants[0]} the sound`],
+  };
+}
+
 // =============================================================================
 // Timbre & Sound Design Action Verbs (80 entries)
 // =============================================================================
@@ -52,7 +69,7 @@ function createActionSemantics(params: {
  */
 export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
   // Core timbre modification
-  {
+  createActionLexeme({
     id: 'verb:brighten' as LexemeId,
     lemma: 'brighten',
     variants: ['brighten', 'brightens', 'brightened', 'brightening', 'make brighter'],
@@ -62,8 +79,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
       axis: 'brightness',
       direction: 'increase',
     }),
-  },
-  {
+  }),
+  createActionLexeme({
     id: 'verb:darken' as LexemeId,
     lemma: 'darken',
     variants: ['darken', 'darkens', 'darkened', 'darkening', 'make darker'],
@@ -73,8 +90,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
       axis: 'brightness',
       direction: 'decrease',
     }),
-  },
-  {
+  }),
+  createActionLexeme({
     id: 'verb:warm' as LexemeId,
     lemma: 'warm',
     variants: ['warm', 'warms', 'warmed', 'warming', 'warm up', 'make warmer'],
@@ -84,8 +101,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
       axis: 'warmth',
       direction: 'increase',
     }),
-  },
-  {
+  }),
+  createActionLexeme({
     id: 'verb:cool' as LexemeId,
     lemma: 'cool',
     variants: ['cool', 'cools', 'cooled', 'cooling', 'cool down', 'make cooler'],
@@ -95,7 +112,7 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
       axis: 'warmth',
       direction: 'decrease',
     }),
-  },
+  }),
   {
     id: 'verb:soften' as LexemeId,
     lemma: 'soften',

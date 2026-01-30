@@ -61,6 +61,7 @@ const CANONICAL_DECK_TYPES = [
   'reference-track-deck',
   'spectrum-analyzer-deck',
   'waveform-editor-deck',
+  'registry-devtool-deck',
 ] as const;
 
 const CANONICAL_PPQ = 960;

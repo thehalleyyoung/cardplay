@@ -12,6 +12,7 @@ interface IdCategory {
   values: string[];
   source: string;
   description: string;
+  constantValue?: number;  // For numeric constants like PPQ
 }
 
 function extractIdsFromFile(filePath: string, content: string): IdCategory[] {
@@ -26,8 +27,11 @@ function extractIdsFromFile(filePath: string, content: string): IdCategory[] {
     if (unionBody.includes('|')) {
       const values = unionBody
         .split('|')
-        .map(v => v.trim().replace(/['"]/g, ''))
-        .filter(v => v && !v.includes('${') && v !== 'string');
+        .map(v => v.trim())
+        // Remove comments
+        .map(v => v.replace(/\/\/.*$/, '').trim())
+        .map(v => v.replace(/['"]/g, ''))
+        .filter(v => v && !v.includes('${') && v !== 'string' && !v.startsWith('//'));
       
       if (values.length > 0) {
         categories.push({
@@ -84,6 +88,18 @@ function extractIdsFromFile(filePath: string, content: string): IdCategory[] {
         });
       }
     }
+  }
+
+  // Extract PPQ constant
+  const ppqMatch = content.match(/export\s+const\s+PPQ\s*=\s*(\d+)/);
+  if (ppqMatch) {
+    categories.push({
+      name: 'PPQ',
+      values: [],
+      source: filePath,
+      description: 'Pulses Per Quarter note (timebase resolution)',
+      constantValue: parseInt(ppqMatch[1], 10)
+    });
   }
 
   return categories;
@@ -162,12 +178,30 @@ This document enumerates all canonical ID spaces used in CardPlay.
 **Source:** \`${category.source}\`  
 **Description:** ${category.description}
 
+`;
+      
+      if (category.constantValue !== undefined) {
+        // Numeric constant like PPQ
+        md += `**TypeScript Definition:**
+\`\`\`typescript
+export const ${category.name} = ${category.constantValue};
+\`\`\`
+
+`;
+      } else {
+        // Union type or enum
+        md += `**TypeScript Definition:**
+\`\`\`typescript
+type ${category.name} = ${category.values.map(v => `'${v}'`).join(' | ')};
+\`\`\`
+
 **Values:**
 `;
-      for (const value of category.values.sort()) {
-        md += `- \`${value}\`\n`;
+        for (const value of category.values.sort()) {
+          md += `- \`${value}\`\n`;
+        }
+        md += '\n';
       }
-      md += '\n';
     }
   }
 

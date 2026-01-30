@@ -12,7 +12,7 @@
  * @module @cardplay/ai/policy/control-policy
  */
 
-import type { ControlLevel } from '../../canon/card-kind';
+import type { ControlLevel } from '../../boards/types';
 
 /**
  * Tool modes that affect auto-apply behavior.
