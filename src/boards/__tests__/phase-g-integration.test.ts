@@ -155,7 +155,7 @@ describe('Phase G: Assisted Boards Integration', () => {
       expect(board).toBeDefined();
       
       // Verify phrase library deck is in the layout
-      const hasPhraseLibrary = board!.decks.some(deck => deck.type === 'phrase-library');
+      const hasPhraseLibrary = board!.decks.some(deck => deck.type === 'phrases-deck');
       expect(hasPhraseLibrary).toBe(true);
       
       // Verify phrase database tool is enabled
@@ -167,8 +167,8 @@ describe('Phase G: Assisted Boards Integration', () => {
       
       // Verify generator decks are hidden via gating
       const visibleDeckTypes = computeVisibleDeckTypes(board!);
-      expect(visibleDeckTypes).toContain('phrase-library');
-      expect(visibleDeckTypes).not.toContain('generator');
+      expect(visibleDeckTypes).toContain('phrases-deck');
+      expect(visibleDeckTypes).not.toContain('generators-deck');
     });
 
     it('G056: should write correct event timings when dropping phrase', async () => {
@@ -284,7 +284,7 @@ describe('Phase G: Assisted Boards Integration', () => {
       
       expect(board).toBeDefined();
       
-      const hasHarmonyDisplay = board!.decks.some(deck => deck.type === 'harmony-display');
+      const hasHarmonyDisplay = board!.decks.some(deck => deck.type === 'harmony-deck');
       expect(hasHarmonyDisplay).toBe(true);
       
       expect(board!.compositionTools.harmonyExplorer.enabled).toBe(true);
@@ -298,7 +298,7 @@ describe('Phase G: Assisted Boards Integration', () => {
       
       expect(board).toBeDefined();
       
-      const hasGeneratorDeck = board!.decks.some(deck => deck.type === 'generator');
+      const hasGeneratorDeck = board!.decks.some(deck => deck.type === 'generators-deck');
       expect(hasGeneratorDeck).toBe(true);
       
       expect(board!.compositionTools.phraseGenerators.enabled).toBe(true);
@@ -312,8 +312,8 @@ describe('Phase G: Assisted Boards Integration', () => {
       
       expect(board).toBeDefined();
       
-      const hasNotation = board!.decks.some(deck => deck.type === 'notation-score');
-      const hasHarmony = board!.decks.some(deck => deck.type === 'harmony-display');
+      const hasNotation = board!.decks.some(deck => deck.type === 'notation-deck');
+      const hasHarmony = board!.decks.some(deck => deck.type === 'harmony-deck');
       
       expect(hasNotation).toBe(true);
       expect(hasHarmony).toBe(true);

@@ -155,7 +155,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 333 [Ext][Type] — Define “unknown opcode” runtime behavior: cannot execute; must display and ask for handler selection or decline.
 - [x] Step 334 [Type] — Implement “safe failure”: if execution fails mid-transaction, rollback and show a structured error with context and suggested fixes.
 - [ ] Step 335 [HCI] — Add UI for execution failures that shows exactly which precondition failed and offers remedial actions (“select a chorus first”).
-- [ ] Step 336 [Eval] — Build execution golden tests: given plan + fixture, applying yields exact diff snapshots and passes constraint checks.
+- [x] Step 336 [Eval] — Build execution golden tests: given plan + fixture, applying yields exact diff snapshots and passes constraint checks.
 - [ ] Step 337 [Eval] — Add undo/redo roundtrip tests: apply → undo → redo yields identical state and identical diffs.
 - [ ] Step 338 [Eval] — Add property tests: applying a plan then applying its inverse yields original state (where inverse defined).
 - [ ] Step 339 [Eval] — Add fuzz tests for selector safety: random scopes must not escape their bounds or mutate outside allowed ranges.
