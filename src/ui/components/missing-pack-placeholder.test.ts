@@ -1,5 +1,6 @@
 /**
  * @fileoverview Tests for Missing Pack Placeholder
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect } from 'vitest';
@@ -130,7 +131,7 @@ describe('getPackOrPlaceholder', () => {
     const result = getPackOrPlaceholder(
       'test:pack',
       () => {
-        throw new Error('Pack load failed');
+        throw new PackNotFoundError('test:pack', 'Pack load failed');
       }
     );
     
