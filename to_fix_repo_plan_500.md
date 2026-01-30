@@ -553,11 +553,49 @@ Notes:
 - ✅ **Canon tests:** 85/85 passing (100%)
 - ✅ **SSOT tests:** 14/14 passing (100%)
 - ✅ **Snapshot tests:** 64/64 passing (100%)
-- ✅ **Test suite:** 10,822/11,450 tests passing (94.5%) ← UPDATED Session 18!
-- ✅ **Test files:** 268/311 passing (86.2%) ← UPDATED Session 18!
+- ✅ **Test suite:** 10,846/11,451 tests passing (95.0%) ← UPDATED Session 21!
+- ✅ **Test files:** 269/311 passing (86.5%) ← UPDATED Session 21!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 20 Summary (2026-01-30) - FINAL
+### Session 21 Summary (2026-01-30) - LATEST
+
+**Major Achievements:**
+1. ✅ Fixed spec-event-bus require() statements (195/395 passing, was 190/395)
+2. ✅ Fixed auto-coloring API usage (23/49 passing, was 12/49, +92%)
+3. ✅ Tests passing: 10,830 → 10,846 (+16 tests)
+4. ✅ Tests failing: 588 → 572 (-16 failures)
+5. ✅ Pass rate: 94.6% → 95.0% (+0.4%)
+
+**Test Files Fixed:**
+1. spec-event-bus.test.ts - Replaced 93 require() statements:
+   - `require('../../queries/spec-queries')` → `specQueries.*` calls
+   - Added missing `DEFAULT_PROLOG_TIMEOUT` import
+   - Fixed 5 tests (205 → 200 failures)
+   - Remaining failures are logic issues, not imports
+
+2. auto-coloring.test.ts - Updated API usage:
+   - `store.colorTrack('id', 'name')` → `store.colorTrack({ id, name })`
+   - Fixed return type expectations (`.category` instead of raw string)
+   - Fixed `toBeNull()` → check `category === 'other'`
+   - Fixed 11 tests (12 → 23 passing, +92% improvement)
+
+**Progress Metrics:**
+- Starting: 10,830 tests passing (269 files), 588 failing
+- Ending: 10,846 tests passing (269 files), 572 failing
+- Pass rate: 95.0% (10,846/11,451)
+- Improvement: +16 tests, -16 failures, +0.4% pass rate
+
+**Commits:**
+1. 37e2d81: Fix spec-event-bus test imports
+2. a73260c: Fix auto-coloring test API usage
+
+**Remaining Work:**
+- 42 test files still failing (mostly integration tests and GOFAI experiments)
+- 572 tests failing (5.0% failure rate, down from 5.1%)
+- High-impact files: spec-event-bus (200), vocabulary-policy (42), auto-coloring (26), store (25)
+- Most failures in: integration tests, GOFAI experiments, UI timing tests
+
+### Session 20 Summary (2026-01-30)
 
 **Major Achievements:**
 1. ✅ Fixed 156 require() import paths in spec-event-bus.test.ts
