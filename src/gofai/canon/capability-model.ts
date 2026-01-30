@@ -1091,6 +1091,240 @@ export function createCapabilityProfile(
 }
 
 // =============================================================================
+// Capability Lattice (Step 063)
+// =============================================================================
+
+/**
+ * Capability lattice node representing a capability level with ordering.
+ * 
+ * Forms a partial order where higher capabilities imply lower ones:
+ * FullEdit > AssitedEdit > SafeEdit > ReadOnly
+ */
+export interface CapabilityLatticeNode {
+  readonly level: CapabilityLevel;
+  readonly implies: readonly CapabilityLevel[];
+  readonly allowedCapabilities: readonly CapabilityId[];
+  readonly forbiddenCapabilities: readonly CapabilityId[];
+}
+
+export enum CapabilityLevel {
+  /** No editing allowed */
+  ReadOnly = 'read-only',
+  
+  /** Safe, non-destructive edits only */
+  SafeEdit = 'safe-edit',
+  
+  /** Assisted editing with preview */
+  AssistedEdit = 'assisted-edit',
+  
+  /** Full editing with minimal restrictions */
+  FullEdit = 'full-edit',
+  
+  /** Production editing (events + routing + DSP) */
+  ProductionEnabled = 'production-enabled',
+  
+  /** Routing editing allowed */
+  RoutingEditable = 'routing-editable',
+  
+  /** AI features allowed */
+  AIAllowed = 'ai-allowed',
+}
+
+/**
+ * Complete capability lattice defining the ordering and implications.
+ */
+export const CAPABILITY_LATTICE: ReadonlyMap<CapabilityLevel, CapabilityLatticeNode> =
+  new Map([
+    [
+      CapabilityLevel.ReadOnly,
+      {
+        level: CapabilityLevel.ReadOnly,
+        implies: [],
+        allowedCapabilities: ['ai:suggest', 'ai:analyze'],
+        forbiddenCapabilities: [
+          'event:create', 'event:delete', 'event:move',
+          'routing:connect', 'routing:disconnect',
+          'production:add-card', 'production:remove-card',
+          'structure:add-track', 'structure:remove-track',
+        ],
+      },
+    ],
+    [
+      CapabilityLevel.SafeEdit,
+      {
+        level: CapabilityLevel.SafeEdit,
+        implies: [CapabilityLevel.ReadOnly],
+        allowedCapabilities: [
+          'event:move', 'event:transform-pitch', 'event:transform-time',
+          'event:transform-velocity', 'event:quantize', 'event:humanize',
+          'dsp:set-param', 'metadata:rename', 'metadata:recolor', 'metadata:retag',
+        ],
+        forbiddenCapabilities: [
+          'event:delete', 'routing:disconnect', 'production:remove-card',
+          'structure:remove-track', 'ai:auto-apply',
+        ],
+      },
+    ],
+    [
+      CapabilityLevel.AssistedEdit,
+      {
+        level: CapabilityLevel.AssistedEdit,
+        implies: [CapabilityLevel.SafeEdit, CapabilityLevel.AIAllowed],
+        allowedCapabilities: [
+          'event:create', 'ai:suggest', 'ai:analyze', 'ai:generate',
+        ],
+        forbiddenCapabilities: [
+          'ai:auto-apply',
+        ],
+      },
+    ],
+    [
+      CapabilityLevel.FullEdit,
+      {
+        level: CapabilityLevel.FullEdit,
+        implies: [
+          CapabilityLevel.AssistedEdit,
+          CapabilityLevel.ProductionEnabled,
+          CapabilityLevel.RoutingEditable,
+        ],
+        allowedCapabilities: [
+          'event:delete', 'structure:remove-track', 'production:remove-card',
+        ],
+        forbiddenCapabilities: [],
+      },
+    ],
+    [
+      CapabilityLevel.ProductionEnabled,
+      {
+        level: CapabilityLevel.ProductionEnabled,
+        implies: [CapabilityLevel.SafeEdit],
+        allowedCapabilities: [
+          'production:add-card', 'production:remove-card', 'production:move-card',
+          'production:replace-card', 'dsp:set-param', 'dsp:automate-param',
+        ],
+        forbiddenCapabilities: [],
+      },
+    ],
+    [
+      CapabilityLevel.RoutingEditable,
+      {
+        level: CapabilityLevel.RoutingEditable,
+        implies: [CapabilityLevel.SafeEdit],
+        allowedCapabilities: [
+          'routing:connect', 'routing:disconnect', 'routing:reorder',
+          'routing:add-adapter', 'routing:remove-adapter',
+        ],
+        forbiddenCapabilities: [],
+      },
+    ],
+    [
+      CapabilityLevel.AIAllowed,
+      {
+        level: CapabilityLevel.AIAllowed,
+        implies: [CapabilityLevel.ReadOnly],
+        allowedCapabilities: [
+          'ai:suggest', 'ai:analyze', 'ai:generate',
+        ],
+        forbiddenCapabilities: [
+          'ai:auto-apply',
+        ],
+      },
+    ],
+  ]);
+
+/**
+ * Check if one capability level implies another
+ */
+export function capabilityLevelImplies(
+  level: CapabilityLevel,
+  implies: CapabilityLevel
+): boolean {
+  if (level === implies) return true;
+  
+  const node = CAPABILITY_LATTICE.get(level);
+  if (!node) return false;
+  
+  if (node.implies.includes(implies)) return true;
+  
+  // Check transitive implications
+  for (const implied of node.implies) {
+    if (capabilityLevelImplies(implied, implies)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Get effective capabilities for a level (including implied)
+ */
+export function getEffectiveCapabilities(
+  level: CapabilityLevel
+): {
+  allowed: Set<CapabilityId>;
+  forbidden: Set<CapabilityId>;
+} {
+  const allowed = new Set<CapabilityId>();
+  const forbidden = new Set<CapabilityId>();
+  
+  const node = CAPABILITY_LATTICE.get(level);
+  if (!node) return { allowed, forbidden };
+  
+  // Add this level's capabilities
+  for (const cap of node.allowedCapabilities) {
+    allowed.add(cap);
+  }
+  for (const cap of node.forbiddenCapabilities) {
+    forbidden.add(cap);
+  }
+  
+  // Add implied level capabilities
+  for (const impliedLevel of node.implies) {
+    const implied = getEffectiveCapabilities(impliedLevel);
+    for (const cap of implied.allowed) {
+      allowed.add(cap);
+    }
+    for (const cap of implied.forbidden) {
+      forbidden.add(cap);
+    }
+  }
+  
+  return { allowed, forbidden };
+}
+
+/**
+ * Create a capability profile from a lattice level
+ */
+export function createProfileFromLattice(
+  name: string,
+  description: string,
+  level: CapabilityLevel
+): CapabilityProfile {
+  const effective = getEffectiveCapabilities(level);
+  const permissions = new Map<CapabilityId, CapabilityPermission>();
+  
+  // Set allowed capabilities
+  for (const capId of effective.allowed) {
+    const capability = CAPABILITY_REGISTRY.get(capId);
+    if (capability) {
+      permissions.set(capId, capability.defaultPermission);
+    }
+  }
+  
+  // Set forbidden capabilities
+  for (const capId of effective.forbidden) {
+    permissions.set(capId, CapabilityPermission.Forbidden);
+  }
+  
+  return {
+    name,
+    description,
+    permissions,
+  };
+}
+
+// =============================================================================
 // Capability Reporting
 // =============================================================================
 
