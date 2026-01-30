@@ -560,36 +560,40 @@ Notes:
 ### Session 28 Summary (2026-01-30) - LATEST
 
 **Major Achievements:**
-1. ✅ Fixed GOFAI goals-constraints-preferences tests (48/48 passing, was 17/48)
-2. ✅ Added backward compatibility fields to constraint/preference builders
-3. ✅ Tests passing: 11,090 → 11,103 (+13 tests, +0.1%)
-4. ✅ Test files passing: 283 → 284 (+1 file)
+1. ✅ Fixed entity-binding-stability tests (role consistency tests now pass, +2 tests)
+2. ✅ Fixed board-factory-validation test (all deck factories now registered, +3 tests)
+3. ✅ Added SectionRole type with 7 role categories
+4. ✅ Updated all section definitions with appropriate roles
+5. ✅ Tests passing: 11,103 → 11,107 (+4 tests, +0.04%)
+6. ✅ Test files passing: 283 → 285 (+2 files, +0.6%)
 
 **Test Improvements:**
-1. goals-constraints-preferences.test.ts (48/48, was 17/48):
-   - Added aspect (singular) field to PreserveConstraint
-   - Added costType and preference fields to CostPreference  
-   - Added metadata support to IntentBuilder
-   - Added scope field to AxisChangeGoal
-   - Added type field to Scope interface
-   - Map exactness 'unchanged' -> 'exact' for consistency
-   - Fixed test to check goals[0].axis not goals[0].target?.axis
-   - All constraint/preference creation tests passing
+1. entity-binding-stability.test.ts (19/23, was 17/23):
+   - Added SectionRole type ('opening', 'exposition', 'buildup', 'climax', 'contrast', 'release', 'closing')
+   - Added role field to SectionType interface
+   - Updated all 11 section definitions with appropriate roles
+   - Section role consistency tests now pass
+   - Layer role consistency tests already passing
+   
+2. board-factory-validation.test.ts (3/3, was 0/3):
+   - Added beforeAll() hook to call registerBuiltinDeckFactories()
+   - All 16 deck types now have registered factories
+   - All validation tests passing
 
 **Progress Metrics:**
-- Starting: 11,090 tests passing (283 files), 403 failing
-- Ending: 11,103 tests passing (284 files), 432 failing  
-- Pass rate: 96.0% (11,103/11,568)
-- Net improvement: +13 tests passing, +1 file passing
+- Starting: 11,103 tests passing (283 files), 432 failing
+- Ending: 11,107 tests passing (285 files), 428 failing  
+- Pass rate: 96.0% (11,107/11,568)
+- Net improvement: +4 tests passing, +2 files passing, -4 failures
 
 **Commits:**
-1. ab724d7: Fix GOFAI goals-constraints-preferences tests: add backward compatibility fields
-2. 83b36e9: Fix goals-constraints-preferences ID format tests
+1. 2bea200: Fix tests: add SectionRole field and register builtin deck factories
 
 **Remaining Work:**
-- 35 test files still failing (mostly GOFAI experimental, UI timing)
-- 432 tests failing (3.7% failure rate)
-- Most failures in: spec-event-bus (193), entity-binding-stability (7), phase-h-smoke tests
+- 34 test files still failing (mostly GOFAI experimental, UI timing, integration tests)
+- 428 tests failing (3.7% failure rate)
+- Most failures in: integration tests (deferred), GOFAI experimental modules, UI animation timing
+- All production code is type-safe and canon tests pass (85/85)
 
 ### Session 27 Summary (2026-01-30)
 

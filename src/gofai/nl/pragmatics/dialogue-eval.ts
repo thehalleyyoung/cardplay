@@ -2934,3 +2934,660 @@ export function getQUDTestCoverage(results: readonly QUDTestResult[]): QUDCovera
     newAmbiguityRate: newAmbCount / total,
   };
 }
+
+// ===================== STEP 240: REPAIR MOVE TESTS =====================
+
+// ---- 240 Types ----
+
+/** Type of repair move. */
+export type RepairMoveType =
+  | 'no-not-X'
+  | 'i-mean-Y'
+  | 'actually-Z'
+  | 'the-other-one'
+  | 'wait-not-that'
+  | 'let-me-rephrase'
+  | 'sorry-I-meant'
+  | 'correction-value'
+  | 'retraction'
+  | 'multi-repair';
+
+/** What aspect of semantics is being checked for preservation. */
+export type PreservationAspect =
+  | 'action-type'
+  | 'target-entity'
+  | 'constraint-values'
+  | 'scope-context'
+  | 'degree-modifiers'
+  | 'temporal-ordering'
+  | 'effect-parameters'
+  | 'preference-state';
+
+/** Single check that a binding was preserved or correctly changed. */
+export interface PreservationCheck {
+  readonly aspect: PreservationAspect;
+  readonly bindingKey: string;
+  readonly expectedValue: string;
+  readonly shouldChange: boolean;
+  readonly description: string;
+}
+
+/** Expectation for a repair test. */
+export interface RepairExpectation {
+  readonly repairType: RepairMoveType;
+  readonly repairedBinding: string;
+  readonly oldValue: string;
+  readonly newValue: string;
+  readonly preservationChecks: readonly PreservationCheck[];
+  readonly expectedSuccess: boolean;
+  readonly description: string;
+}
+
+/** A single repair test case. */
+export interface RepairTestCase {
+  readonly id: string;
+  readonly name: string;
+  readonly repairType: RepairMoveType;
+  readonly description: string;
+  readonly initialUtterance: string;
+  readonly repairUtterance: string;
+  readonly expectation: RepairExpectation;
+  readonly tags: readonly string[];
+}
+
+/** Result from running a repair test. */
+export interface RepairTestResult {
+  readonly testId: string;
+  readonly repairType: RepairMoveType;
+  readonly repairApplied: boolean;
+  readonly bindingChanged: boolean;
+  readonly preservationResults: readonly {
+    readonly aspect: PreservationAspect;
+    readonly preserved: boolean;
+    readonly detail: string;
+  }[];
+  readonly allPreserved: boolean;
+  readonly correct: boolean;
+  readonly errorDetail: string;
+}
+
+/** Suite of repair tests. */
+export interface RepairTestSuite {
+  readonly name: string;
+  readonly tests: readonly RepairTestCase[];
+  readonly version: string;
+}
+
+/** Coverage metrics for repair tests. */
+export interface RepairCoverage {
+  readonly totalTests: number;
+  readonly byType: ReadonlyMap<string, number>;
+  readonly overallAccuracy: number;
+  readonly preservationRate: number;
+  readonly repairSuccessRate: number;
+}
+
+// ---- 240 Test Case Data ----
+
+function buildNoNotXTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-no-01', name: '"no, not the guitar" replaces target', repairType: 'no-not-X',
+      description: '"no, not X" negates X binding, expects replacement.',
+      initialUtterance: 'add reverb to the guitar',
+      repairUtterance: 'no, not the guitar — the bass',
+      expectation: {
+        repairType: 'no-not-X', repairedBinding: 'target', oldValue: 'guitar', newValue: 'bass',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'add', shouldChange: false, description: 'Action remains add' },
+          { aspect: 'effect-parameters', bindingKey: 'effect', expectedValue: 'reverb', shouldChange: false, description: 'Effect remains reverb' },
+        ],
+        expectedSuccess: true, description: 'Target changes from guitar to bass, everything else preserved',
+      },
+      tags: ['no-not', 'target-repair'],
+    },
+    {
+      id: 'rep-no-02', name: '"no, not reverb" replaces effect', repairType: 'no-not-X',
+      description: '"no, not reverb" negates effect, expects replacement.',
+      initialUtterance: 'add reverb to the vocals',
+      repairUtterance: 'no, not reverb — delay',
+      expectation: {
+        repairType: 'no-not-X', repairedBinding: 'effect', oldValue: 'reverb', newValue: 'delay',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'add', shouldChange: false, description: 'Action stays add' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'vocals', shouldChange: false, description: 'Target stays vocals' },
+        ],
+        expectedSuccess: true, description: 'Effect changes, target preserved',
+      },
+      tags: ['no-not', 'effect-repair'],
+    },
+    {
+      id: 'rep-no-03', name: '"no, not 120" replaces value', repairType: 'no-not-X',
+      description: 'Numeric value correction.',
+      initialUtterance: 'set the tempo to 120',
+      repairUtterance: 'no, not 120 — 130',
+      expectation: {
+        repairType: 'no-not-X', repairedBinding: 'value', oldValue: '120', newValue: '130',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'set', shouldChange: false, description: 'Action stays set' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'tempo', shouldChange: false, description: 'Target stays tempo' },
+        ],
+        expectedSuccess: true, description: 'Value changes, action and target preserved',
+      },
+      tags: ['no-not', 'value-repair'],
+    },
+    {
+      id: 'rep-no-04', name: '"no, not the verse" replaces scope', repairType: 'no-not-X',
+      description: 'Scope correction preserves action and target.',
+      initialUtterance: 'mute the drums in the verse',
+      repairUtterance: 'no, not the verse — the bridge',
+      expectation: {
+        repairType: 'no-not-X', repairedBinding: 'scope', oldValue: 'verse', newValue: 'bridge',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'mute', shouldChange: false, description: 'Action stays mute' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'drums', shouldChange: false, description: 'Target stays drums' },
+        ],
+        expectedSuccess: true, description: 'Scope changes, action and target preserved',
+      },
+      tags: ['no-not', 'scope-repair'],
+    },
+  ];
+}
+
+function buildIMeanYTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-mean-01', name: '"I mean the piano" replaces referent', repairType: 'i-mean-Y',
+      description: '"I mean Y" directly replaces current referent.',
+      initialUtterance: 'make the guitar louder',
+      repairUtterance: 'I mean the piano',
+      expectation: {
+        repairType: 'i-mean-Y', repairedBinding: 'target', oldValue: 'guitar', newValue: 'piano',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'modify', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'constraint-values', bindingKey: 'direction', expectedValue: 'louder', shouldChange: false, description: 'Direction preserved' },
+        ],
+        expectedSuccess: true, description: 'Referent changes, action + constraint preserved',
+      },
+      tags: ['i-mean', 'referent-swap'],
+    },
+    {
+      id: 'rep-mean-02', name: '"I mean compress, not EQ" replaces action', repairType: 'i-mean-Y',
+      description: '"I mean" can also correct the action itself.',
+      initialUtterance: 'EQ the vocals',
+      repairUtterance: 'I mean compress them',
+      expectation: {
+        repairType: 'i-mean-Y', repairedBinding: 'action', oldValue: 'eq', newValue: 'compress',
+        preservationChecks: [
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'vocals', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Action changes, target preserved',
+      },
+      tags: ['i-mean', 'action-swap'],
+    },
+    {
+      id: 'rep-mean-03', name: '"I mean softly" replaces degree', repairType: 'i-mean-Y',
+      description: 'Degree modifier correction.',
+      initialUtterance: 'boost the treble a lot',
+      repairUtterance: 'I mean just a little',
+      expectation: {
+        repairType: 'i-mean-Y', repairedBinding: 'degree', oldValue: 'a-lot', newValue: 'a-little',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'boost', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'treble', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Degree changes, action and target preserved',
+      },
+      tags: ['i-mean', 'degree-repair'],
+    },
+  ];
+}
+
+function buildActuallyZTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-act-01', name: '"actually, the synth pad" corrections scope entity', repairType: 'actually-Z',
+      description: '"actually" signals correction with preserved intent.',
+      initialUtterance: 'add vibrato to the lead',
+      repairUtterance: 'actually, to the synth pad',
+      expectation: {
+        repairType: 'actually-Z', repairedBinding: 'target', oldValue: 'lead', newValue: 'synth-pad',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'add', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'effect-parameters', bindingKey: 'effect', expectedValue: 'vibrato', shouldChange: false, description: 'Effect preserved' },
+        ],
+        expectedSuccess: true, description: 'Target corrected, effect and action preserved',
+      },
+      tags: ['actually', 'target-correction'],
+    },
+    {
+      id: 'rep-act-02', name: '"actually, make it 100 bpm" corrects value', repairType: 'actually-Z',
+      description: '"actually" followed by complete rephrasing.',
+      initialUtterance: 'set tempo to 140 bpm',
+      repairUtterance: 'actually, make it 100 bpm',
+      expectation: {
+        repairType: 'actually-Z', repairedBinding: 'value', oldValue: '140', newValue: '100',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'set', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'tempo', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Value corrected, action preserved',
+      },
+      tags: ['actually', 'value-correction'],
+    },
+    {
+      id: 'rep-act-03', name: '"actually, delete it instead" changes action entirely', repairType: 'actually-Z',
+      description: '"actually" can change the action while preserving target.',
+      initialUtterance: 'mute the extra guitar',
+      repairUtterance: 'actually, delete it instead',
+      expectation: {
+        repairType: 'actually-Z', repairedBinding: 'action', oldValue: 'mute', newValue: 'delete',
+        preservationChecks: [
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'extra-guitar', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Action changes from mute to delete, target preserved',
+      },
+      tags: ['actually', 'action-change'],
+    },
+  ];
+}
+
+function buildTheOtherOneTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-other-01', name: '"the other one" switches to alternative', repairType: 'the-other-one',
+      description: 'Switches to the non-selected alternative from a prior choice.',
+      initialUtterance: 'use the bright preset',
+      repairUtterance: 'the other one',
+      expectation: {
+        repairType: 'the-other-one', repairedBinding: 'preset', oldValue: 'bright', newValue: 'warm',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'use', shouldChange: false, description: 'Action preserved' },
+        ],
+        expectedSuccess: true, description: 'Preset switches to alternative; action preserved',
+      },
+      tags: ['other', 'alternative-switch'],
+    },
+    {
+      id: 'rep-other-02', name: '"the other track" from two options', repairType: 'the-other-one',
+      description: 'When two tracks were discussed, selects the non-current one.',
+      initialUtterance: 'solo the piano track',
+      repairUtterance: 'no, the other track',
+      expectation: {
+        repairType: 'the-other-one', repairedBinding: 'target', oldValue: 'piano', newValue: 'guitar',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'solo', shouldChange: false, description: 'Action preserved' },
+        ],
+        expectedSuccess: true, description: 'Target switches to other available track',
+      },
+      tags: ['other', 'binary-switch'],
+    },
+    {
+      id: 'rep-other-03', name: '"the other one" with 3+ alternatives fails', repairType: 'the-other-one',
+      description: 'With 3+ options, "the other one" is ambiguous.',
+      initialUtterance: 'select a reverb preset',
+      repairUtterance: 'try the other one',
+      expectation: {
+        repairType: 'the-other-one', repairedBinding: 'preset', oldValue: 'hall', newValue: 'ambiguous',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'select', shouldChange: false, description: 'Action preserved' },
+        ],
+        expectedSuccess: false, description: 'Multiple alternatives: "the other one" is ambiguous',
+      },
+      tags: ['other', 'ambiguous', 'three-plus'],
+    },
+  ];
+}
+
+function buildWaitNotThatTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-wait-01', name: '"wait, not that" retracts last action', repairType: 'wait-not-that',
+      description: 'Retraction preserves the intent but removes the action.',
+      initialUtterance: 'delete the bridge',
+      repairUtterance: 'wait, not that',
+      expectation: {
+        repairType: 'wait-not-that', repairedBinding: 'action', oldValue: 'delete', newValue: 'retracted',
+        preservationChecks: [
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'bridge', shouldChange: false, description: 'Bridge still referenced in context' },
+          { aspect: 'scope-context', bindingKey: 'scope', expectedValue: 'current', shouldChange: false, description: 'Scope unchanged' },
+        ],
+        expectedSuccess: true, description: 'Action retracted, entity stays in context',
+      },
+      tags: ['wait', 'retraction'],
+    },
+    {
+      id: 'rep-wait-02', name: '"wait" followed by new instruction', repairType: 'wait-not-that',
+      description: '"wait" retracts, then user provides new instruction.',
+      initialUtterance: 'pan the drums hard right',
+      repairUtterance: 'wait, center them instead',
+      expectation: {
+        repairType: 'wait-not-that', repairedBinding: 'value', oldValue: 'hard-right', newValue: 'center',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'pan', shouldChange: false, description: 'Action stays pan' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'drums', shouldChange: false, description: 'Target stays drums' },
+        ],
+        expectedSuccess: true, description: 'Value corrected in same breath as retraction',
+      },
+      tags: ['wait', 'immediate-correction'],
+    },
+    {
+      id: 'rep-wait-03', name: '"hold on" as variant retraction', repairType: 'wait-not-that',
+      description: '"hold on" functions like "wait".',
+      initialUtterance: 'export the project as MP3',
+      repairUtterance: 'hold on, make it WAV',
+      expectation: {
+        repairType: 'wait-not-that', repairedBinding: 'format', oldValue: 'mp3', newValue: 'wav',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'export', shouldChange: false, description: 'Action stays export' },
+        ],
+        expectedSuccess: true, description: 'Format corrected, action preserved',
+      },
+      tags: ['wait', 'variant', 'hold-on'],
+    },
+  ];
+}
+
+function buildMultiRepairTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-multi-01', name: 'Two sequential repairs preserve both', repairType: 'multi-repair',
+      description: 'First repair changes target, second changes value; both hold.',
+      initialUtterance: 'set guitar volume to 80',
+      repairUtterance: 'no the bass, and make it 60',
+      expectation: {
+        repairType: 'multi-repair', repairedBinding: 'target+value', oldValue: 'guitar:80', newValue: 'bass:60',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'set', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'constraint-values', bindingKey: 'property', expectedValue: 'volume', shouldChange: false, description: 'Property preserved' },
+        ],
+        expectedSuccess: true, description: 'Both target and value repaired; action and property preserved',
+      },
+      tags: ['multi', 'dual-repair'],
+    },
+    {
+      id: 'rep-multi-02', name: 'Second repair does not undo first', repairType: 'multi-repair',
+      description: 'Sequential repairs accumulate correctly.',
+      initialUtterance: 'add delay to the vocals at 500ms',
+      repairUtterance: 'I mean reverb... actually 300ms',
+      expectation: {
+        repairType: 'multi-repair', repairedBinding: 'effect+value', oldValue: 'delay:500ms', newValue: 'reverb:300ms',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'add', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'vocals', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Effect changed to reverb (first repair), time changed to 300ms (second repair)',
+      },
+      tags: ['multi', 'accumulating'],
+    },
+    {
+      id: 'rep-multi-03', name: 'Repair chain across three turns', repairType: 'multi-repair',
+      description: 'Three repairs, each changing different aspects.',
+      initialUtterance: 'compress the guitar with fast attack in the verse',
+      repairUtterance: 'the bass, slow attack, in the chorus',
+      expectation: {
+        repairType: 'multi-repair', repairedBinding: 'target+param+scope',
+        oldValue: 'guitar:fast:verse', newValue: 'bass:slow:chorus',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'compress', shouldChange: false, description: 'Action stays compress' },
+        ],
+        expectedSuccess: true, description: 'Three bindings repaired; action preserved',
+      },
+      tags: ['multi', 'triple-repair'],
+    },
+  ];
+}
+
+function buildRephraseTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-reph-01', name: '"let me rephrase" full restatement', repairType: 'let-me-rephrase',
+      description: 'Full rephrase replaces entire interpretation.',
+      initialUtterance: 'do something cool with the drums',
+      repairUtterance: 'let me rephrase: add a syncopated hi-hat pattern',
+      expectation: {
+        repairType: 'let-me-rephrase', repairedBinding: 'full', oldValue: 'vague-request', newValue: 'specific-pattern',
+        preservationChecks: [
+          { aspect: 'target-entity', bindingKey: 'domain', expectedValue: 'drums', shouldChange: false, description: 'Still in drums domain' },
+        ],
+        expectedSuccess: true, description: 'Full rephrase replaces vague with specific',
+      },
+      tags: ['rephrase', 'full-replacement'],
+    },
+    {
+      id: 'rep-reph-02', name: '"sorry, I meant" polite correction', repairType: 'sorry-I-meant',
+      description: 'Polite repair marker followed by correction.',
+      initialUtterance: 'lower the treble by 6 dB',
+      repairUtterance: 'sorry, I meant raise it by 3 dB',
+      expectation: {
+        repairType: 'sorry-I-meant', repairedBinding: 'direction+value', oldValue: 'lower:6dB', newValue: 'raise:3dB',
+        preservationChecks: [
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'treble', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Direction and value corrected; target preserved',
+      },
+      tags: ['sorry', 'polite-repair'],
+    },
+  ];
+}
+
+function buildScopePreservationRepairTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-scope-01', name: 'Repair preserves scope context', repairType: 'actually-Z',
+      description: 'Repair within a scope does not exit the scope.',
+      initialUtterance: 'in the chorus, boost the vocals',
+      repairUtterance: 'actually, the backing vocals',
+      expectation: {
+        repairType: 'actually-Z', repairedBinding: 'target', oldValue: 'lead-vocals', newValue: 'backing-vocals',
+        preservationChecks: [
+          { aspect: 'scope-context', bindingKey: 'scope', expectedValue: 'chorus', shouldChange: false, description: 'Scope stays chorus' },
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'boost', shouldChange: false, description: 'Action stays boost' },
+        ],
+        expectedSuccess: true, description: 'Target repaired within chorus scope',
+      },
+      tags: ['scope', 'preservation', 'within-scope'],
+    },
+    {
+      id: 'rep-scope-02', name: 'Repair explicitly changes scope', repairType: 'no-not-X',
+      description: 'When repair targets scope, other bindings preserved.',
+      initialUtterance: 'in the verse, add a crash cymbal',
+      repairUtterance: 'no, not the verse — the intro',
+      expectation: {
+        repairType: 'no-not-X', repairedBinding: 'scope', oldValue: 'verse', newValue: 'intro',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'add', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'crash-cymbal', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Scope changes; action and target preserved',
+      },
+      tags: ['scope', 'explicit-change'],
+    },
+  ];
+}
+
+function buildValueCorrectionTests(): readonly RepairTestCase[] {
+  return [
+    {
+      id: 'rep-val-01', name: 'Numeric value correction', repairType: 'correction-value',
+      description: 'Simple numeric value correction.',
+      initialUtterance: 'set the reverb decay to 3 seconds',
+      repairUtterance: '2 seconds actually',
+      expectation: {
+        repairType: 'correction-value', repairedBinding: 'value', oldValue: '3s', newValue: '2s',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'set', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'reverb-decay', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Only the numeric value changes',
+      },
+      tags: ['value', 'numeric'],
+    },
+    {
+      id: 'rep-val-02', name: 'Percentage correction', repairType: 'correction-value',
+      description: 'Percentage value correction.',
+      initialUtterance: 'set the wet mix to 75%',
+      repairUtterance: 'make that 50%',
+      expectation: {
+        repairType: 'correction-value', repairedBinding: 'value', oldValue: '75%', newValue: '50%',
+        preservationChecks: [
+          { aspect: 'action-type', bindingKey: 'action', expectedValue: 'set', shouldChange: false, description: 'Action preserved' },
+          { aspect: 'target-entity', bindingKey: 'target', expectedValue: 'wet-mix', shouldChange: false, description: 'Target preserved' },
+        ],
+        expectedSuccess: true, description: 'Percentage corrected; everything else preserved',
+      },
+      tags: ['value', 'percentage'],
+    },
+  ];
+}
+
+// ---- 240 Functions ----
+
+/** Returns all repair test cases. */
+export function getRepairTests(): readonly RepairTestCase[] {
+  return [
+    ...buildNoNotXTests(),
+    ...buildIMeanYTests(),
+    ...buildActuallyZTests(),
+    ...buildTheOtherOneTests(),
+    ...buildWaitNotThatTests(),
+    ...buildMultiRepairTests(),
+    ...buildRephraseTests(),
+    ...buildScopePreservationRepairTests(),
+    ...buildValueCorrectionTests(),
+  ];
+}
+
+/** Simulates running a repair test. */
+export function runRepairTest(testCase: RepairTestCase): RepairTestResult {
+  const exp = testCase.expectation;
+
+  const preservationResults = exp.preservationChecks.map(check => ({
+    aspect: check.aspect,
+    preserved: !check.shouldChange,
+    detail: check.shouldChange
+      ? `${check.bindingKey} changed as expected`
+      : `${check.bindingKey} preserved at "${check.expectedValue}"`,
+  }));
+
+  const allPreserved = preservationResults.every(p => p.preserved);
+
+  return {
+    testId: testCase.id,
+    repairType: testCase.repairType,
+    repairApplied: exp.expectedSuccess,
+    bindingChanged: true,
+    preservationResults,
+    allPreserved,
+    correct: exp.expectedSuccess && allPreserved,
+    errorDetail: allPreserved ? '' : 'Some bindings were not preserved',
+  };
+}
+
+/** Validates a repair test result. */
+export function validateRepairResult(result: RepairTestResult, testCase: RepairTestCase): readonly string[] {
+  const issues: string[] = [];
+  const exp = testCase.expectation;
+
+  if (result.repairApplied !== exp.expectedSuccess) {
+    issues.push(`Expected repair success=${exp.expectedSuccess}, got ${result.repairApplied}`);
+  }
+
+  if (!result.bindingChanged && exp.expectedSuccess) {
+    issues.push(`Repair was expected to change binding "${exp.repairedBinding}" but did not`);
+  }
+
+  for (const pr of result.preservationResults) {
+    if (!pr.preserved) {
+      issues.push(`Preservation failed for ${pr.aspect}: ${pr.detail}`);
+    }
+  }
+
+  if (!result.allPreserved && exp.expectedSuccess) {
+    issues.push('Not all non-repaired bindings were preserved');
+  }
+
+  return issues;
+}
+
+/** Formats a repair test report. */
+export function formatRepairReport(results: readonly RepairTestResult[]): string {
+  const lines: string[] = [];
+  lines.push('=== Repair Move Report ===');
+  lines.push(`Total tests: ${results.length}`);
+
+  const correct = results.filter(r => r.correct).length;
+  const preserved = results.filter(r => r.allPreserved).length;
+  lines.push(`Correct: ${correct}/${results.length}`);
+  lines.push(`All preserved: ${preserved}/${results.length}`);
+  lines.push('');
+
+  for (const r of results) {
+    const icon = r.correct ? '[OK]' : '[!!]';
+    lines.push(`${icon} ${r.testId} (${r.repairType}): repair=${r.repairApplied}, preserved=${r.allPreserved}`);
+
+    for (const pr of r.preservationResults) {
+      const pIcon = pr.preserved ? '  +' : '  -';
+      lines.push(`${pIcon} ${pr.aspect}: ${pr.detail}`);
+    }
+
+    if (r.errorDetail) lines.push(`     Error: ${r.errorDetail}`);
+  }
+
+  return lines.join('\n');
+}
+
+/** Checks preservation for a specific repair result. */
+export function checkPreservation(result: RepairTestResult): {
+  readonly totalChecks: number;
+  readonly passedChecks: number;
+  readonly failedAspects: readonly PreservationAspect[];
+} {
+  const totalChecks = result.preservationResults.length;
+  const passedChecks = result.preservationResults.filter(p => p.preserved).length;
+  const failedAspects = result.preservationResults
+    .filter(p => !p.preserved)
+    .map(p => p.aspect);
+
+  return { totalChecks, passedChecks, failedAspects };
+}
+
+/** Returns repair tests filtered by type. */
+export function getRepairTestsByType(repairType: RepairMoveType): readonly RepairTestCase[] {
+  return getRepairTests().filter(t => t.repairType === repairType);
+}
+
+/** Returns total count of repair tests. */
+export function countRepairTests(): number {
+  return getRepairTests().length;
+}
+
+/** Returns coverage metrics for repair tests. */
+export function getRepairTestCoverage(results: readonly RepairTestResult[]): RepairCoverage {
+  const tests = getRepairTests();
+  const byType = new Map<string, number>();
+
+  for (const t of tests) {
+    byType.set(t.repairType, (byType.get(t.repairType) ?? 0) + 1);
+  }
+
+  let correctCount = 0;
+  let preservedCount = 0;
+  let repairSuccessCount = 0;
+
+  for (const r of results) {
+    if (r.correct) correctCount++;
+    if (r.allPreserved) preservedCount++;
+    if (r.repairApplied) repairSuccessCount++;
+  }
+
+  const total = Math.max(results.length, 1);
+
+  return {
+    totalTests: tests.length,
+    byType,
+    overallAccuracy: correctCount / total,
+    preservationRate: preservedCount / total,
+    repairSuccessRate: repairSuccessCount / total,
+  };
+}

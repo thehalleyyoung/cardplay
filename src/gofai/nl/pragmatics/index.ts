@@ -24,3 +24,6 @@ export * from './speech-acts';
 
 // HCI dialogue UI: clarification cards, context strip, memory, undo, tuning (Steps 231–235)
 export * from './dialogue-hci';
+
+// Evaluation: dialogue fixtures, anaphora tests, presupposition tests, QUD tests, repair tests (Steps 236–240)
+export * from './dialogue-eval';

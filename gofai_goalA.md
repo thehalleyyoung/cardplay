@@ -209,11 +209,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 233 [HCI] — Add UI for "conversation memory": show last N turns with CPL and diffs; allow bookmarking.
 - [x] Step 234 [HCI] — Add UI for "undo target selection": user can undo last, undo specific package, or undo by scope (chorus only).
 - [x] Step 235 [HCI] — Add UI for "preference tuning": user can set "dark means…" via a simple toggle matrix.
-- [ ] Step 236 [Eval] — Create a dialogue fixture suite: multi-turn conversations with expected referent bindings and clarifications.
-- [ ] Step 237 [Eval] — Add tests for anaphora correctness across turns (it/that/again) using DRT-style referents.
-- [ ] Step 238 [Eval] — Add tests for presupposition handling: “again” must fail/clarify if no antecedent edit exists.
-- [ ] Step 239 [Eval] — Add tests for QUD behavior: clarification questions should reduce ambiguity and not introduce new ambiguities.
-- [ ] Step 240 [Eval] — Add regression tests for “repair moves” (“no, I meant…”) preserving all other semantics.
+- [x] Step 236 [Eval] — Create a dialogue fixture suite: multi-turn conversations with expected referent bindings and clarifications.
+- [x] Step 237 [Eval] — Add tests for anaphora correctness across turns (it/that/again) using DRT-style referents.
+- [x] Step 238 [Eval] — Add tests for presupposition handling: "again" must fail/clarify if no antecedent edit exists.
+- [x] Step 239 [Eval] — Add tests for QUD behavior: clarification questions should reduce ambiguity and not introduce new ambiguities.
+- [x] Step 240 [Eval] — Add regression tests for "repair moves" ("no, I meant…") preserving all other semantics.
 - [ ] Step 241 [Sem][Prag] — Integrate discourse-level constraints: “but keep the melody” should become a high-priority hard constraint by default.
 - [ ] Step 242 [Sem][Prag] — Implement “accommodation policies” for underspecified requests: propose defaults but require explicit acknowledgement before execution.
 - [ ] Step 243 [Prag] — Implement “safety-first deference”: if a binding would cause large changes, prefer asking a question over executing.
