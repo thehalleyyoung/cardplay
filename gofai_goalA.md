@@ -189,11 +189,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 213 [Prag] — Implement a "common ground" model: track what has been mutually established (selected chorus = Chorus 2) to stabilize references.
 - [x] Step 214 [Prag] — Implement discourse relations (SDRT) for "but/so/then/also" to shape plan ordering and constraint emphasis.
 - [x] Step 215 [Prag] — Implement repair moves: user can say "no, not that chorus" and the system rebinds referent without losing other meaning.
-- [ ] Step 216 [Prag] — Implement temporal deixis: interpret “earlier/later” relative to (a) song form or (b) bar microtiming as an explicit ambiguity.
-- [ ] Step 217 [Prag] — Implement scale of granularity: interpret “earlier” as section-level vs beat-level depending on context (default to safer clarification).
-- [ ] Step 218 [Prag] — Implement “topic continuity”: if user is working on chorus, “make it wider” inherits chorus scope unless contradicted.
-- [ ] Step 219 [Prag] — Implement “focus semantics”: contrastive stress (if captured) or textual cues (“NOT the chords”) prioritize certain constraints.
-- [ ] Step 220 [Prag] — Implement “reference by description”: “the noisy synth” resolves via metadata/tags; if multiple, ask a disambiguating question.
+- [x] Step 216 [Prag] — Implement temporal deixis: interpret "earlier/later" relative to (a) song form or (b) bar microtiming as an explicit ambiguity.
+- [x] Step 217 [Prag] — Implement scale of granularity: interpret "earlier" as section-level vs beat-level depending on context (default to safer clarification).
+- [x] Step 218 [Prag] — Implement "topic continuity": if user is working on chorus, "make it wider" inherits chorus scope unless contradicted.
+- [x] Step 219 [Prag] — Implement "focus semantics": contrastive stress (if captured) or textual cues ("NOT the chords") prioritize certain constraints.
+- [x] Step 220 [Prag] — Implement "reference by description": "the noisy synth" resolves via metadata/tags; if multiple, ask a disambiguating question.
 - [ ] Step 221 [Prag][Type] — Typecheck pragmatic bindings: references must resolve to entities compatible with their semantic roles or become holes.
 - [ ] Step 222 [Prag][Type] — Define a structured “clarification object” type: question text, options, default, effect on CPL, and safety notes.
 - [ ] Step 223 [Prag] — Implement a “clarification minimality” principle: ask only what’s needed to execute safely, not what’s needed to be perfect.

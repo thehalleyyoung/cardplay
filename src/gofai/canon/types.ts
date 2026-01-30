@@ -836,3 +836,9 @@ export function lookupVocabulary<T>(
   // Try variant match (case-insensitive)
   return table.byVariant.get(query.toLowerCase());
 }
+
+// Re-export namespace validation constants from gofai-id
+export {
+  isValidNamespace,
+  RESERVED_NAMESPACES,
+} from './gofai-id.js';

@@ -12,3 +12,6 @@ export * from './presupposition-qud';
 
 // Discourse context: ellipsis, modals, common ground, SDRT, repair (Steps 211–215)
 export * from './discourse-context';
+
+// Context resolution: temporal deixis, granularity, topic continuity, focus, descriptive reference (Steps 216–220)
+export * from './context-resolution';

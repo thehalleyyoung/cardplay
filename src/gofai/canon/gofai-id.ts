@@ -325,39 +325,6 @@ export interface ValidationResult {
 }
 
 /**
- * Check if a string is a valid namespace.
- *
- * Rules:
- * - Lowercase
- * - Alphanumeric + hyphen
- * - No leading/trailing hyphens
- * - No consecutive hyphens
- * - Length 1-63 characters
- */
-function isValidNamespace(namespace: string): boolean {
-  if (namespace.length === 0 || namespace.length > 63) {
-    return false;
-  }
-
-  // Must be lowercase alphanumeric + hyphen
-  if (!/^[a-z0-9-]+$/.test(namespace)) {
-    return false;
-  }
-
-  // No leading/trailing hyphens
-  if (namespace.startsWith('-') || namespace.endsWith('-')) {
-    return false;
-  }
-
-  // No consecutive hyphens
-  if (namespace.includes('--')) {
-    return false;
-  }
-
-  return true;
-}
-
-/**
  * Check if a string is a valid path component.
  *
  * Rules:
