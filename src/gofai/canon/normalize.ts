@@ -11,7 +11,7 @@ import { getLexemeBySurface } from './lexemes';
 import { getSectionTypeByName } from './section-vocabulary';
 import { getLayerTypeByName } from './layer-vocabulary';
 import { getUnitByName } from './units';
-import { getAxisById, getAxisByName } from './perceptual-axes';
+import { getAxisByName } from './perceptual-axes';
 import { getOpcodeByName, type EditOpcode } from './edit-opcodes';
 import { getConstraintTypeByName, type ConstraintType } from './constraint-types';
 import type { AxisId } from './types';

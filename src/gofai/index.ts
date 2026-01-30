@@ -63,7 +63,14 @@ export * from './canon';
 // Re-exports: Invariants (Semantic Safety Checks)
 // =============================================================================
 
-export * from './invariants';
+// Export only non-conflicting types from invariants
+export {
+  type InvariantCheckResult,
+  type ConstraintVerificationResult,
+  type CoreInvariant,
+  checkCoreInvariants,
+  type ConstraintVerifier,
+} from './invariants';
 
 // =============================================================================
 // Re-exports: CPL (CardPlay Logic Types)

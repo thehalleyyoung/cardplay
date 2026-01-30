@@ -12,7 +12,6 @@ import {
   constraintSatisfied,
   constraintViolated,
   type ConstraintVerificationResult,
-  type VerifiableConstraint,
 } from './types';
 
 // =============================================================================
@@ -98,7 +97,11 @@ function extractMelodySignature(notes: readonly NoteEvent[]): string {
   // Extract pitch sequence (intervals)
   const intervals: number[] = [];
   for (let i = 1; i < sorted.length; i++) {
-    intervals.push(sorted[i].pitch - sorted[i - 1].pitch);
+    const prevNote = sorted[i - 1];
+    const currNote = sorted[i];
+    if (prevNote && currNote) {
+      intervals.push(currNote.pitch - prevNote.pitch);
+    }
   }
 
   return intervals.join(',');
