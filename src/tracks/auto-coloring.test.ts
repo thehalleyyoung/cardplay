@@ -22,92 +22,92 @@ describe('Auto Track Coloring', () => {
   
   describe('detectCategoryFromName', () => {
     it('should detect drums', () => {
-      expect(detectCategoryFromName('Drums')).toBe('drums');
-      expect(detectCategoryFromName('Kick')).toBe('drums');
-      expect(detectCategoryFromName('Snare Track')).toBe('drums');
-      expect(detectCategoryFromName('HiHat Loop')).toBe('drums');
-      expect(detectCategoryFromName('Percussion')).toBe('drums');
+      expect(detectCategoryFromName('Drums').category).toBe('drums');
+      expect(detectCategoryFromName('Kick').category).toBe('drums');
+      expect(detectCategoryFromName('Snare Track').category).toBe('drums');
+      expect(detectCategoryFromName('HiHat Loop').category).toBe('drums');
+      expect(detectCategoryFromName('Percussion').category).toBe('drums');
     });
     
     it('should detect bass', () => {
-      expect(detectCategoryFromName('Bass')).toBe('bass');
-      expect(detectCategoryFromName('808 Bass')).toBe('bass');
-      expect(detectCategoryFromName('Sub Bass')).toBe('bass');
-      expect(detectCategoryFromName('Bass Guitar')).toBe('bass');
+      expect(detectCategoryFromName('Bass').category).toBe('bass');
+      expect(detectCategoryFromName('808 Bass').category).toBe('bass');
+      expect(detectCategoryFromName('Sub Bass').category).toBe('bass');
+      expect(detectCategoryFromName('Bass Guitar').category).toBe('bass');
     });
     
     it('should detect keys', () => {
-      expect(detectCategoryFromName('Piano')).toBe('keys');
-      expect(detectCategoryFromName('Keys')).toBe('keys');
-      expect(detectCategoryFromName('Organ')).toBe('keys');
-      expect(detectCategoryFromName('Rhodes')).toBe('keys');
+      expect(detectCategoryFromName('Piano').category).toBe('keys');
+      expect(detectCategoryFromName('Keys').category).toBe('keys');
+      expect(detectCategoryFromName('Organ').category).toBe('keys');
+      expect(detectCategoryFromName('Rhodes').category).toBe('keys');
     });
     
     it('should detect synth', () => {
-      expect(detectCategoryFromName('Synth Lead')).toBe('synth');
-      expect(detectCategoryFromName('Pad')).toBe('synth');
-      expect(detectCategoryFromName('Arpeggiator')).toBe('synth');
-      expect(detectCategoryFromName('Moog Bass')).toBe('synth');
+      expect(detectCategoryFromName('Synth Lead').category).toBe('synth');
+      expect(detectCategoryFromName('Pad').category).toBe('synth');
+      expect(detectCategoryFromName('Arpeggiator').category).toBe('synth');
+      expect(detectCategoryFromName('Moog Bass').category).toBe('synth');
     });
     
     it('should detect guitar', () => {
-      expect(detectCategoryFromName('Guitar')).toBe('guitar');
-      expect(detectCategoryFromName('Electric Guitar')).toBe('guitar');
-      expect(detectCategoryFromName('Acoustic Gtr')).toBe('guitar');
+      expect(detectCategoryFromName('Guitar').category).toBe('guitar');
+      expect(detectCategoryFromName('Electric Guitar').category).toBe('guitar');
+      expect(detectCategoryFromName('Acoustic Gtr').category).toBe('guitar');
     });
     
     it('should detect vocals', () => {
-      expect(detectCategoryFromName('Lead Vocals')).toBe('vocals');
-      expect(detectCategoryFromName('Vox')).toBe('vocals');
-      expect(detectCategoryFromName('Harmony Voice')).toBe('vocals');
+      expect(detectCategoryFromName('Lead Vocals').category).toBe('vocals');
+      expect(detectCategoryFromName('Vox').category).toBe('vocals');
+      expect(detectCategoryFromName('Harmony Voice').category).toBe('vocals');
     });
     
     it('should detect strings', () => {
-      expect(detectCategoryFromName('Strings')).toBe('strings');
-      expect(detectCategoryFromName('Violin')).toBe('strings');
-      expect(detectCategoryFromName('Cello Section')).toBe('strings');
-      expect(detectCategoryFromName('Orchestral')).toBe('strings');
+      expect(detectCategoryFromName('Strings').category).toBe('strings');
+      expect(detectCategoryFromName('Violin').category).toBe('strings');
+      expect(detectCategoryFromName('Cello Section').category).toBe('strings');
+      expect(detectCategoryFromName('Orchestral').category).toBe('strings');
     });
     
     it('should detect brass', () => {
-      expect(detectCategoryFromName('Brass')).toBe('brass');
-      expect(detectCategoryFromName('Trumpet')).toBe('brass');
-      expect(detectCategoryFromName('Horn Section')).toBe('brass');
+      expect(detectCategoryFromName('Brass').category).toBe('brass');
+      expect(detectCategoryFromName('Trumpet').category).toBe('brass');
+      expect(detectCategoryFromName('Horn Section').category).toBe('brass');
     });
     
     it('should detect woodwinds', () => {
-      expect(detectCategoryFromName('Flute')).toBe('woodwinds');
-      expect(detectCategoryFromName('Clarinet')).toBe('woodwinds');
-      expect(detectCategoryFromName('Saxophone')).toBe('woodwinds');
+      expect(detectCategoryFromName('Flute').category).toBe('woodwinds');
+      expect(detectCategoryFromName('Clarinet').category).toBe('woodwinds');
+      expect(detectCategoryFromName('Saxophone').category).toBe('woodwinds');
     });
     
     it('should detect fx', () => {
-      expect(detectCategoryFromName('FX')).toBe('fx');
-      expect(detectCategoryFromName('Sound Effects')).toBe('fx');
-      expect(detectCategoryFromName('Ambient FX')).toBe('fx');
-      expect(detectCategoryFromName('Riser')).toBe('fx');
+      expect(detectCategoryFromName('FX').category).toBe('fx');
+      expect(detectCategoryFromName('Sound Effects').category).toBe('fx');
+      expect(detectCategoryFromName('Ambient FX').category).toBe('fx');
+      expect(detectCategoryFromName('Riser').category).toBe('fx');
     });
     
     it('should detect aux/bus', () => {
-      expect(detectCategoryFromName('Drum Bus')).toBe('aux');
-      expect(detectCategoryFromName('Reverb Send')).toBe('aux');
-      expect(detectCategoryFromName('Delay AUX')).toBe('aux');
+      expect(detectCategoryFromName('Drum Bus').category).toBe('aux');
+      expect(detectCategoryFromName('Reverb Send').category).toBe('aux');
+      expect(detectCategoryFromName('Delay AUX').category).toBe('aux');
     });
     
     it('should detect master', () => {
-      expect(detectCategoryFromName('Master')).toBe('master');
-      expect(detectCategoryFromName('Stereo Out')).toBe('master');
-      expect(detectCategoryFromName('Mix Bus')).toBe('master');
+      expect(detectCategoryFromName('Master').category).toBe('master');
+      expect(detectCategoryFromName('Stereo Out').category).toBe('master');
+      expect(detectCategoryFromName('Mix Bus').category).toBe('master');
     });
     
-    it('should return null for unknown', () => {
-      expect(detectCategoryFromName('Track 1')).toBeNull();
-      expect(detectCategoryFromName('Audio')).toBeNull();
+    it('should return "other" for unknown', () => {
+      expect(detectCategoryFromName('Track 1').category).toBe('other');
+      expect(detectCategoryFromName('Audio').category).toBe('other');
     });
     
     it('should be case insensitive', () => {
-      expect(detectCategoryFromName('DRUMS')).toBe('drums');
-      expect(detectCategoryFromName('VoCaLs')).toBe('vocals');
+      expect(detectCategoryFromName('DRUMS').category).toBe('drums');
+      expect(detectCategoryFromName('VoCaLs').category).toBe('vocals');
     });
   });
   
@@ -117,36 +117,36 @@ describe('Auto Track Coloring', () => {
   
   describe('detectCategoryFromPlugins', () => {
     it('should detect drums from plugin names', () => {
-      expect(detectCategoryFromPlugins(['BFD3'])).toBe('drums');
-      expect(detectCategoryFromPlugins(['EZDrummer'])).toBe('drums');
-      expect(detectCategoryFromPlugins(['Superior Drummer'])).toBe('drums');
+      expect(detectCategoryFromPlugins(['BFD3']).category).toBe('drums');
+      expect(detectCategoryFromPlugins(['EZDrummer']).category).toBe('drums');
+      expect(detectCategoryFromPlugins(['Superior Drummer']).category).toBe('drums');
     });
     
     it('should detect bass from plugin names', () => {
-      expect(detectCategoryFromPlugins(['Trilian'])).toBe('bass');
-      expect(detectCategoryFromPlugins(['MODO BASS'])).toBe('bass');
+      expect(detectCategoryFromPlugins(['Trilian']).category).toBe('bass');
+      expect(detectCategoryFromPlugins(['MODO BASS']).category).toBe('bass');
     });
     
     it('should detect keys from plugin names', () => {
-      expect(detectCategoryFromPlugins(['Keyscape'])).toBe('keys');
-      expect(detectCategoryFromPlugins(['Pianoteq'])).toBe('keys');
-      expect(detectCategoryFromPlugins(['B3-X'])).toBe('keys');
+      expect(detectCategoryFromPlugins(['Keyscape']).category).toBe('keys');
+      expect(detectCategoryFromPlugins(['Pianoteq']).category).toBe('keys');
+      expect(detectCategoryFromPlugins(['B3-X']).category).toBe('keys');
     });
     
     it('should detect synth from plugin names', () => {
-      expect(detectCategoryFromPlugins(['Serum'])).toBe('synth');
-      expect(detectCategoryFromPlugins(['Massive X'])).toBe('synth');
-      expect(detectCategoryFromPlugins(['Omnisphere'])).toBe('synth');
+      expect(detectCategoryFromPlugins(['Serum']).category).toBe('synth');
+      expect(detectCategoryFromPlugins(['Massive X']).category).toBe('synth');
+      expect(detectCategoryFromPlugins(['Omnisphere']).category).toBe('synth');
     });
     
     it('should detect guitar from plugin names', () => {
-      expect(detectCategoryFromPlugins(['Guitar Rig'])).toBe('guitar');
-      expect(detectCategoryFromPlugins(['Amp Room'])).toBe('guitar');
+      expect(detectCategoryFromPlugins(['Guitar Rig']).category).toBe('guitar');
+      expect(detectCategoryFromPlugins(['Amp Room']).category).toBe('guitar');
     });
     
     it('should detect vocals from plugin names', () => {
-      expect(detectCategoryFromPlugins(['Auto-Tune'])).toBe('vocals');
-      expect(detectCategoryFromPlugins(['Melodyne'])).toBe('vocals');
+      expect(detectCategoryFromPlugins(['Auto-Tune']).category).toBe('vocals');
+      expect(detectCategoryFromPlugins(['Melodyne']).category).toBe('vocals');
     });
     
     it('should return null for no matching plugins', () => {

@@ -557,6 +557,33 @@ Notes:
 - ✅ **Test files:** 247/311 passing (79.4%) ← IMPROVED (+5 files)
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
+### Session 11 Summary (2026-01-30)
+
+**Major Achievements:**
+1. ✅ Fixed semantic-safety-invariants test API usage (40/47 tests now passing)
+2. ✅ Fixed golden-utterances test (211/211 tests passing)
+3. ✅ Added 40 passing tests (10,652 → 10,692)
+4. ✅ Fixed 1 test file (247 → 248 files passing)
+
+**Test Files Fixed:**
+1. semantic-safety-invariants.test.ts - Updated to use InvariantCheckResult[] API (40/47 tests)
+2. golden-utterances.test.ts - Fixed skip condition for error cases (211/211 tests)
+
+**Progress Metrics:**
+- Starting: 10,652 tests passing (247 files)
+- Ending: 10,692 tests passing (248 files)
+- Improvement: +40 tests, +1 file
+- Pass rate: 93.8% (10,692/11,401)
+
+**Commits This Session:**
+1. 6d18b2b: Fix semantic-safety-invariants test API usage (40/47 tests passing)
+2. 86bf515: Fix golden-utterances test to skip error cases with 0 tokens
+
+**Remaining Work:**
+- 63 test files still failing (mostly logic/timing issues, not imports)
+- 690 tests failing (6.2% failure rate)
+- Changes 488-489 deferred for integration test design
+
 ### Session 10 Summary (2026-01-30)
 
 **Major Achievements:**
