@@ -118,7 +118,8 @@ describe('M193: Spectrum Analyzer Updates in Real-Time', () => {
 
     it('peak hold stores maximum values', () => {
       const frequencyData = new Float32Array([-10, -20, -15, -25]);
-      const peakData = new Float32Array(frequencyData.length);
+      // Initialize with very low values so Math.max works correctly
+      const peakData = new Float32Array(frequencyData.length).fill(-Infinity);
       
       // Initial peak capture
       for (let i = 0; i < frequencyData.length; i++) {
@@ -199,7 +200,7 @@ describe('M194: Preset Browser Categories are Logical', () => {
     it('extracts unique categories from presets', () => {
       const categories = extractCategories(presets);
       
-      expect(categories.length).toBe(7);
+      expect(categories.length).toBe(8);
       expect(categories).toContain('Bass');
       expect(categories).toContain('Pads');
       expect(categories).toContain('Lead');
@@ -207,6 +208,7 @@ describe('M194: Preset Browser Categories are Logical', () => {
       expect(categories).toContain('Plucks');
       expect(categories).toContain('FX');
       expect(categories).toContain('Drums');
+      expect(categories).toContain('Utility');
     });
 
     it('maintains consistent category order', () => {

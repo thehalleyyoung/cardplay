@@ -261,7 +261,9 @@ describe('BoardContextStore', () => {
         store.setActiveStream(`stream-${i}`);
       }
 
+      // Advance past debounce time and run the timeout
       vi.advanceTimersByTime(600);
+      vi.runAllTimers(); // Ensure the timeout callback runs
 
       // Should have called setItem only once
       const contextCalls = setItemSpy.mock.calls.filter(

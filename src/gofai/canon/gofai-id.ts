@@ -138,6 +138,23 @@ export function isReservedNamespace(namespace: string): namespace is ReservedNam
   return RESERVED_NAMESPACES.includes(namespace as ReservedNamespace);
 }
 
+/**
+ * Validate namespace format according to CardPlay ID rules:
+ * - lowercase letters, numbers, and hyphens only
+ * - no leading or trailing hyphens
+ * - no consecutive hyphens
+ * - not a reserved namespace
+ */
+export function isValidNamespace(namespace: string): boolean {
+  if (isReservedNamespace(namespace)) {
+    return false;
+  }
+  
+  // Check format: lowercase alphanumeric + hyphens, no leading/trailing/consecutive hyphens
+  const namespaceRegex = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+  return namespaceRegex.test(namespace);
+}
+
 // =============================================================================
 // ID Categories
 // =============================================================================
