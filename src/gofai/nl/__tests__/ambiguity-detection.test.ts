@@ -766,7 +766,7 @@ describe('Ambiguity Reading Descriptions', () => {
       const parts = cleanSpan.split(/\s+/);
       // At least the first word of the span should appear
       if (parts[0]) {
-        const inputLower = c.input.toLowerCase();
+        const inputLower = c.input.toLowerCase().replace(/['"]/g, '');
         const spanLower = parts[0].toLowerCase().replace(/['"]/g, '');
         expect(inputLower.includes(spanLower)).toBe(true);
       }
