@@ -65,9 +65,13 @@ export function mapCardPortToUI(port: Port, direction: PortDirection): {
   type: UISurfacePortType;
   direction: PortDirection;
 } {
+  // Use id if available (for compatibility), otherwise use name
+  const portId = (port as any).id || port.name;
+  // Use name if available, otherwise fall back to id
+  const portName = port.name || (port as any).id || portId;
   return {
-    id: port.name,
-    name: port.name,
+    id: portId,
+    name: portName,
     type: mapPortTypeToUI(port.type as CanonicalPortType),
     direction,
   };
@@ -78,11 +82,36 @@ export function mapCardPortToUI(port: Port, direction: PortDirection): {
 // ============================================================================
 
 /**
+ * Extended UI card config with port information.
+ * Extends CardSurfaceConfig with input/output port mappings.
+ */
+export interface UICardWithPorts extends CardSurfaceConfig {
+  /** Input ports */
+  inputs: Array<{
+    id: string;
+    name: string;
+    type: UISurfacePortType;
+    direction: 'input';
+  }>;
+  /** Output ports */
+  outputs: Array<{
+    id: string;
+    name: string;
+    type: UISurfacePortType;
+    direction: 'output';
+  }>;
+  /** Card color (CSS color value) */
+  color?: string;
+  /** Card description */
+  description?: string;
+}
+
+/**
  * Adapt a core card to UI card surface configuration.
  * 
  * @param card - Core card instance
  * @param options - Adapter options
- * @returns UI card surface configuration
+ * @returns UI card surface configuration with ports
  */
 export function coreCardToUI<A = unknown, B = unknown>(
   card: CoreCard<A, B>,
@@ -95,16 +124,17 @@ export function coreCardToUI<A = unknown, B = unknown>(
     /** Visual style */
     style?: 'default' | 'minimal' | 'rounded';
   } = {}
-): CardSurfaceConfig {
+): UICardWithPorts {
   // Map card metadata to UI config
-  const config: CardSurfaceConfig = {
+  const config: UICardWithPorts = {
     id: card.meta.id,
     type: card.meta.category,
     title: card.meta.name,
+    description: card.meta.description,
     
-    // TODO: CardSurfaceConfig needs ports - extend interface or create wrapper
-    // inputs: (card.signature.inputs || []).map(port => mapCardPortToUI(port, 'input')),
-    // outputs: (card.signature.outputs || []).map(port => mapCardPortToUI(port, 'output')),
+    // Map ports
+    inputs: (card.inputs || []).map(port => mapCardPortToUI(port, 'input')),
+    outputs: (card.outputs || []).map(port => mapCardPortToUI(port, 'output')),
     
     // Visual properties
     size: options.size || 'medium',
@@ -123,7 +153,10 @@ export function coreCardToUI<A = unknown, B = unknown>(
     maximizable: true,
     closable: true,
     
-    // Color (default hue/saturation)
+    // Color from metadata or default
+    color: (card.meta as any).color || '#4a90e2',
+    
+    // Color (hue/saturation for legacy systems)
     hue: 210,
     saturation: 60,
     zIndex: 0,
@@ -147,7 +180,7 @@ export function createUICardFromCore<A = unknown, B = unknown>(
     size?: 'small' | 'medium' | 'large';
     style?: 'default' | 'minimal' | 'rounded';
   } = {}
-): CardSurfaceConfig & { x: number; y: number } {
+): UICardWithPorts & { x: number; y: number } {
   const config = coreCardToUI(card, options);
   
   return {

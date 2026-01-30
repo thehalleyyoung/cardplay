@@ -1,0 +1,717 @@
+/**
+ * GOFAI Canon: Textural and Timbral Vocabulary (Batch 67)
+ * 
+ * This batch provides comprehensive vocabulary for describing sonic qualities,
+ * spectral characteristics, envelope shapes, and sound design elements.
+ * Essential for professional production and mixing conversations.
+ * 
+ * Categories:
+ * 1. Spectral Character (8 entries) - frequency content and tonal color
+ * 2. Envelope and Dynamics (8 entries) - attack, decay, sustain, release
+ * 3. Spatial Characteristics (8 entries) - width, depth, placement
+ * 4. Textural Density (8 entries) - thickness, layering, complexity
+ * 5. Timbral Quality (8 entries) - character, grain, saturation
+ * 
+ * Each entry includes:
+ * - Lexeme ID with proper namespacing
+ * - Category classification
+ * - Semantic mapping to perceptual axes
+ * - Synonym variants for natural language flexibility
+ * - Usage examples
+ * 
+ * @module gofai/canon/textural-timbral-batch67
+ */
+
+import { type Lexeme, createLexemeId, createAxisId } from './types.js';
+
+/**
+ * ============================================================================
+ * CATEGORY 1: SPECTRAL CHARACTER (8 entries)
+ * Frequency content, tonal color, harmonic vs inharmonic content
+ * ============================================================================
+ */
+
+export const bright: Lexeme = {
+  id: createLexemeId('spectral', 'bright'),
+  lemma: 'bright',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('brightness'),
+    direction: 'increase',
+  },
+  variants: ['brighter', 'brilliant', 'luminous', 'shimmering', 'sparkle'],
+  description: 'Increase high-frequency content and presence for a brighter, more luminous sound',
+  examples: ['make it brighter', 'add brilliance', 'more luminous pad'],
+};
+
+export const dark: Lexeme = {
+  id: createLexemeId('spectral', 'dark'),
+  lemma: 'dark',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('brightness'),
+    direction: 'decrease',
+  },
+  variants: ['darker', 'dim', 'muted', 'dusky', 'shadowy'],
+  description: 'Decrease high-frequency content for a darker, more muted sound',
+  examples: ['make it darker', 'dim the highs', 'more muted tone'],
+};
+
+export const warm: Lexeme = {
+  id: createLexemeId('spectral', 'warm'),
+  lemma: 'warm',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('warmth'),
+    direction: 'increase',
+  },
+  variants: ['warmer', 'cozy', 'rounded', 'smooth', 'mellow'],
+  description: 'Increase low-mid frequency content for a warmer, more rounded sound',
+  examples: ['warm up the bass', 'add warmth', 'more rounded tone'],
+};
+
+export const cold: Lexeme = {
+  id: createLexemeId('spectral', 'cold'),
+  lemma: 'cold',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('warmth'),
+    direction: 'decrease',
+  },
+  variants: ['colder', 'icy', 'clinical', 'sterile', 'crisp'],
+  description: 'Decrease warmth for a colder, more clinical sound',
+  examples: ['make it colder', 'more clinical sound', 'crisp highs'],
+};
+
+export const harsh: Lexeme = {
+  id: createLexemeId('spectral', 'harsh'),
+  lemma: 'harsh',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('harshness'),
+    direction: 'increase',
+  },
+  variants: ['harsher', 'abrasive', 'grating', 'edgy', 'aggressive'],
+  description: 'Increase harshness for a more abrasive, aggressive sound',
+  examples: ['too harsh', 'reduce harshness', 'less abrasive'],
+};
+
+export const smooth: Lexeme = {
+  id: createLexemeId('spectral', 'smooth'),
+  lemma: 'smooth',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('harshness'),
+    direction: 'decrease',
+  },
+  variants: ['smoother', 'silky', 'polished', 'refined', 'gentle'],
+  description: 'Decrease harshness for a smoother, more polished sound',
+  examples: ['smooth out the lead', 'more silky tone', 'polished sound'],
+};
+
+export const hollow: Lexeme = {
+  id: createLexemeId('spectral', 'hollow'),
+  lemma: 'hollow',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('spectral_fullness'),
+    direction: 'decrease',
+  },
+  variants: ['hollower', 'scooped', 'thin', 'nasal', 'boxy'],
+  description: 'Decrease spectral fullness for a hollow or scooped sound',
+  examples: ['sounds hollow', 'less scooped', 'remove boxiness'],
+};
+
+export const full: Lexeme = {
+  id: createLexemeId('spectral', 'full'),
+  lemma: 'full',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('spectral_fullness'),
+    direction: 'increase',
+  },
+  variants: ['fuller', 'rich', 'lush', 'fat', 'thick'],
+  description: 'Increase spectral fullness for a richer, more lush sound',
+  examples: ['make it fuller', 'richer harmonics', 'fat bass sound'],
+};
+
+/**
+ * ============================================================================
+ * CATEGORY 2: ENVELOPE AND DYNAMICS (8 entries)
+ * Attack, decay, sustain, release, transients, dynamic range
+ * ============================================================================
+ */
+
+export const punchy: Lexeme = {
+  id: createLexemeId('envelope', 'punchy'),
+  lemma: 'punchy',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('punch'),
+    direction: 'increase',
+  },
+  variants: ['punchier', 'impactful', 'snappy', 'tight', 'defined'],
+  description: 'Increase punch and impact for a more defined, snappy sound',
+  examples: ['more punchy drums', 'punchier kick', 'add impact'],
+};
+
+export const soft: Lexeme = {
+  id: createLexemeId('envelope', 'soft'),
+  lemma: 'soft',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('punch'),
+    direction: 'decrease',
+  },
+  variants: ['softer', 'gentle', 'subdued', 'mellow', 'rounded'],
+  description: 'Decrease punch for a softer, more gentle sound',
+  examples: ['soften the attack', 'more gentle onset', 'subdued transients'],
+};
+
+export const sharp: Lexeme = {
+  id: createLexemeId('envelope', 'sharp'),
+  lemma: 'sharp',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('transient_definition'),
+    direction: 'increase',
+  },
+  variants: ['sharper', 'crisp', 'articulate', 'clean', 'precise'],
+  description: 'Increase transient definition for sharper, more articulate sound',
+  examples: ['sharper transients', 'crisp attack', 'more articulate'],
+};
+
+export const blurred: Lexeme = {
+  id: createLexemeId('envelope', 'blurred'),
+  lemma: 'blurred',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('transient_definition'),
+    direction: 'decrease',
+  },
+  variants: ['blurrier', 'smeared', 'softened', 'diffuse', 'hazy'],
+  description: 'Decrease transient definition for a more blurred, diffuse sound',
+  examples: ['blur the attack', 'smeared transients', 'diffuse onset'],
+};
+
+export const sustained: Lexeme = {
+  id: createLexemeId('envelope', 'sustained'),
+  lemma: 'sustained',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('sustain_length'),
+    direction: 'increase',
+  },
+  variants: ['longer sustain', 'held', 'continuous', 'prolonged', 'legato'],
+  description: 'Increase sustain length for more continuous, held notes',
+  examples: ['more sustained notes', 'longer sustain', 'continuous sound'],
+};
+
+export const staccato: Lexeme = {
+  id: createLexemeId('envelope', 'staccato'),
+  lemma: 'staccato',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('sustain_length'),
+    direction: 'decrease',
+  },
+  variants: ['shorter sustain', 'clipped', 'chopped', 'truncated', 'short'],
+  description: 'Decrease sustain length for shorter, clipped notes',
+  examples: ['staccato notes', 'clipped rhythm', 'shorter sustain'],
+};
+
+export const compressed: Lexeme = {
+  id: createLexemeId('envelope', 'compressed'),
+  lemma: 'compressed',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('dynamic_range'),
+    direction: 'decrease',
+  },
+  variants: ['more compressed', 'squashed', 'limited', 'controlled', 'even'],
+  description: 'Decrease dynamic range for more even, controlled dynamics',
+  examples: ['compress the vocals', 'more even dynamics', 'squashed drum bus'],
+};
+
+export const dynamic: Lexeme = {
+  id: createLexemeId('envelope', 'dynamic'),
+  lemma: 'dynamic',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('dynamic_range'),
+    direction: 'increase',
+  },
+  variants: ['more dynamic', 'expressive', 'breathing', 'varied', 'alive'],
+  description: 'Increase dynamic range for more expressive, varied performance',
+  examples: ['more dynamic performance', 'expressive phrasing', 'alive mix'],
+};
+
+/**
+ * ============================================================================
+ * CATEGORY 3: SPATIAL CHARACTERISTICS (8 entries)
+ * Width, depth, placement, dimension, stereo field
+ * ============================================================================
+ */
+
+export const wide: Lexeme = {
+  id: createLexemeId('spatial', 'wide'),
+  lemma: 'wide',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('width'),
+    direction: 'increase',
+  },
+  variants: ['wider', 'broad', 'expansive', 'spread', 'spacious'],
+  description: 'Increase stereo width for a more expansive, spacious sound',
+  examples: ['widen the chorus', 'more spacious mix', 'spread the pads'],
+};
+
+export const narrow: Lexeme = {
+  id: createLexemeId('spatial', 'narrow'),
+  lemma: 'narrow',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('width'),
+    direction: 'decrease',
+  },
+  variants: ['narrower', 'focused', 'centered', 'mono', 'tight'],
+  description: 'Decrease stereo width for a more focused, centered sound',
+  examples: ['narrow the lead', 'more focused sound', 'center the vocals'],
+};
+
+export const deep: Lexeme = {
+  id: createLexemeId('spatial', 'deep'),
+  lemma: 'deep',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('depth'),
+    direction: 'increase',
+  },
+  variants: ['deeper', 'distant', 'far', 'recessed', 'reverberant'],
+  description: 'Increase depth for a more distant, reverberant sound',
+  examples: ['push it deeper', 'more distant feel', 'add depth'],
+};
+
+export const close: Lexeme = {
+  id: createLexemeId('spatial', 'close'),
+  lemma: 'close',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('depth'),
+    direction: 'decrease',
+  },
+  variants: ['closer', 'intimate', 'upfront', 'forward', 'dry'],
+  description: 'Decrease depth for a more upfront, intimate sound',
+  examples: ['bring it closer', 'more upfront', 'intimate vocal'],
+};
+
+export const left: Lexeme = {
+  id: createLexemeId('spatial', 'left'),
+  lemma: 'left',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('pan_position'),
+    direction: 'decrease',
+  },
+  variants: ['further left', 'leftward', 'left side', 'port'],
+  description: 'Pan toward the left for leftward placement in the stereo field',
+  examples: ['pan left', 'move leftward', 'place on left side'],
+};
+
+export const right: Lexeme = {
+  id: createLexemeId('spatial', 'right'),
+  lemma: 'right',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('pan_position'),
+    direction: 'increase',
+  },
+  variants: ['further right', 'rightward', 'right side', 'starboard'],
+  description: 'Pan toward the right for rightward placement in the stereo field',
+  examples: ['pan right', 'move rightward', 'place on right side'],
+};
+
+export const ambient: Lexeme = {
+  id: createLexemeId('spatial', 'ambient'),
+  lemma: 'ambient',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('ambience'),
+    direction: 'increase',
+  },
+  variants: ['more ambient', 'atmospheric', 'spatial', 'environmental', 'room'],
+  description: 'Increase ambience for a more atmospheric, spatial sound',
+  examples: ['add ambience', 'more atmospheric', 'create space'],
+};
+
+export const dry: Lexeme = {
+  id: createLexemeId('spatial', 'dry'),
+  lemma: 'dry',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('ambience'),
+    direction: 'decrease',
+  },
+  variants: ['drier', 'dead', 'tight', 'direct', 'immediate'],
+  description: 'Decrease ambience for a drier, more immediate sound',
+  examples: ['make it drier', 'remove reverb', 'tight drum sound'],
+};
+
+/**
+ * ============================================================================
+ * CATEGORY 4: TEXTURAL DENSITY (8 entries)
+ * Thickness, layering, complexity, fill, emptiness
+ * ============================================================================
+ */
+
+export const thick: Lexeme = {
+  id: createLexemeId('texture', 'thick'),
+  lemma: 'thick',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('textural_density'),
+    direction: 'increase',
+  },
+  variants: ['thicker', 'dense', 'heavy', 'weighted', 'solid'],
+  description: 'Increase textural density for a thicker, more heavy sound',
+  examples: ['thicken the texture', 'denser arrangement', 'heavy mix'],
+};
+
+export const thin: Lexeme = {
+  id: createLexemeId('texture', 'thin'),
+  lemma: 'thin',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('textural_density'),
+    direction: 'decrease',
+  },
+  variants: ['thinner', 'sparse', 'light', 'airy', 'transparent'],
+  description: 'Decrease textural density for a thinner, more transparent sound',
+  examples: ['thin out the arrangement', 'lighter texture', 'more transparent'],
+};
+
+export const layered: Lexeme = {
+  id: createLexemeId('texture', 'layered'),
+  lemma: 'layered',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('layer_count'),
+    direction: 'increase',
+  },
+  variants: ['more layers', 'stacked', 'doubled', 'multiplied', 'complex'],
+  description: 'Increase layer count for more stacked, complex arrangement',
+  examples: ['add layers', 'stack the vocals', 'double the guitars'],
+};
+
+export const stripped: Lexeme = {
+  id: createLexemeId('texture', 'stripped'),
+  lemma: 'stripped',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('layer_count'),
+    direction: 'decrease',
+  },
+  variants: ['fewer layers', 'bare', 'minimal', 'reduced', 'simple'],
+  description: 'Decrease layer count for a more minimal, bare arrangement',
+  examples: ['strip it down', 'fewer layers', 'minimal arrangement'],
+};
+
+export const busy: Lexeme = {
+  id: createLexemeId('texture', 'busy'),
+  lemma: 'busy',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('busyness'),
+    direction: 'increase',
+  },
+  variants: ['busier', 'active', 'cluttered', 'crowded', 'filled'],
+  description: 'Increase busyness for a more active, filled arrangement',
+  examples: ['too busy', 'reduce activity', 'less cluttered'],
+};
+
+export const spacious: Lexeme = {
+  id: createLexemeId('texture', 'spacious'),
+  lemma: 'spacious',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('busyness'),
+    direction: 'decrease',
+  },
+  variants: ['more spacious', 'open', 'breathable', 'empty', 'clear'],
+  description: 'Decrease busyness for a more spacious, open arrangement',
+  examples: ['more spacious mix', 'open up the arrangement', 'add breathing room'],
+};
+
+export const cohesive: Lexeme = {
+  id: createLexemeId('texture', 'cohesive'),
+  lemma: 'cohesive',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('textural_coherence'),
+    direction: 'increase',
+  },
+  variants: ['more cohesive', 'unified', 'blended', 'integrated', 'glued'],
+  description: 'Increase textural coherence for a more unified, blended sound',
+  examples: ['blend the layers', 'more unified sound', 'glue the mix'],
+};
+
+export const separated: Lexeme = {
+  id: createLexemeId('texture', 'separated'),
+  lemma: 'separated',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('textural_coherence'),
+    direction: 'decrease',
+  },
+  variants: ['more separated', 'distinct', 'isolated', 'independent', 'clear'],
+  description: 'Decrease textural coherence for more separated, distinct layers',
+  examples: ['separate the parts', 'more distinct layers', 'clear definition'],
+};
+
+/**
+ * ============================================================================
+ * CATEGORY 5: TIMBRAL QUALITY (8 entries)
+ * Character, grain, saturation, color, texture
+ * ============================================================================
+ */
+
+export const gritty: Lexeme = {
+  id: createLexemeId('timbre', 'gritty'),
+  lemma: 'gritty',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('grit'),
+    direction: 'increase',
+  },
+  variants: ['grittier', 'rough', 'coarse', 'textured', 'grainy'],
+  description: 'Increase grit for a rougher, more textured sound',
+  examples: ['add grit', 'rougher tone', 'textured sound'],
+};
+
+export const clean: Lexeme = {
+  id: createLexemeId('timbre', 'clean'),
+  lemma: 'clean',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('grit'),
+    direction: 'decrease',
+  },
+  variants: ['cleaner', 'pristine', 'pure', 'polished', 'untouched'],
+  description: 'Decrease grit for a cleaner, more pristine sound',
+  examples: ['clean up the tone', 'pristine sound', 'pure signal'],
+};
+
+export const saturated: Lexeme = {
+  id: createLexemeId('timbre', 'saturated'),
+  lemma: 'saturated',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('saturation'),
+    direction: 'increase',
+  },
+  variants: ['more saturated', 'driven', 'overdriven', 'distorted', 'colored'],
+  description: 'Increase saturation for a more driven, colored sound',
+  examples: ['saturate the signal', 'drive it harder', 'add color'],
+};
+
+export const transparent: Lexeme = {
+  id: createLexemeId('timbre', 'transparent'),
+  lemma: 'transparent',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('saturation'),
+    direction: 'decrease',
+  },
+  variants: ['more transparent', 'neutral', 'linear', 'uncolored', 'clear'],
+  description: 'Decrease saturation for a more transparent, neutral sound',
+  examples: ['more transparent processing', 'neutral tone', 'linear response'],
+};
+
+export const organic: Lexeme = {
+  id: createLexemeId('timbre', 'organic'),
+  lemma: 'organic',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('naturalness'),
+    direction: 'increase',
+  },
+  variants: ['more organic', 'natural', 'acoustic', 'human', 'breathing'],
+  description: 'Increase naturalness for a more organic, human sound',
+  examples: ['more organic feel', 'natural sound', 'human touch'],
+};
+
+export const synthetic: Lexeme = {
+  id: createLexemeId('timbre', 'synthetic'),
+  lemma: 'synthetic',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('naturalness'),
+    direction: 'decrease',
+  },
+  variants: ['more synthetic', 'electronic', 'artificial', 'processed', 'digital'],
+  description: 'Decrease naturalness for a more synthetic, electronic sound',
+  examples: ['more synthetic tone', 'electronic character', 'processed sound'],
+};
+
+export const analog: Lexeme = {
+  id: createLexemeId('timbre', 'analog'),
+  lemma: 'analog',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('analog_character'),
+    direction: 'increase',
+  },
+  variants: ['more analog', 'vintage', 'tape-like', 'tube', 'classic'],
+  description: 'Increase analog character for a more vintage, tape-like sound',
+  examples: ['analog warmth', 'vintage character', 'tape saturation'],
+};
+
+export const digital: Lexeme = {
+  id: createLexemeId('timbre', 'digital'),
+  lemma: 'digital',
+  category: 'adj',
+  semantics: {
+    type: 'axis_modifier',
+    axis: createAxisId('analog_character'),
+    direction: 'decrease',
+  },
+  variants: ['more digital', 'modern', 'precise', 'clean', 'hi-fi'],
+  description: 'Decrease analog character for a more digital, precise sound',
+  examples: ['digital precision', 'modern sound', 'hi-fi clarity'],
+};
+
+/**
+ * ============================================================================
+ * BATCH EXPORTS
+ * Export all lexemes from this batch for registration
+ * ============================================================================
+ */
+
+export const texturalTimbralBatch67: readonly Lexeme[] = [
+  // Spectral Character (8)
+  bright,
+  dark,
+  warm,
+  cold,
+  harsh,
+  smooth,
+  hollow,
+  full,
+  
+  // Envelope and Dynamics (8)
+  punchy,
+  soft,
+  sharp,
+  blurred,
+  sustained,
+  staccato,
+  compressed,
+  dynamic,
+  
+  // Spatial Characteristics (8)
+  wide,
+  narrow,
+  deep,
+  close,
+  left,
+  right,
+  ambient,
+  dry,
+  
+  // Textural Density (8)
+  thick,
+  thin,
+  layered,
+  stripped,
+  busy,
+  spacious,
+  cohesive,
+  separated,
+  
+  // Timbral Quality (8)
+  gritty,
+  clean,
+  saturated,
+  transparent,
+  organic,
+  synthetic,
+  analog,
+  digital,
+] as const;
+
+/**
+ * Batch metadata for tracking and documentation
+ */
+export const batch67Metadata = {
+  batchNumber: 67,
+  batchName: 'Textural and Timbral Vocabulary',
+  lexemeCount: 40,
+  categories: [
+    'Spectral Character',
+    'Envelope and Dynamics',
+    'Spatial Characteristics',
+    'Textural Density',
+    'Timbral Quality',
+  ],
+  newAxes: [
+    'brightness',
+    'warmth',
+    'harshness',
+    'spectral_fullness',
+    'punch',
+    'transient_definition',
+    'sustain_length',
+    'dynamic_range',
+    'width',
+    'depth',
+    'pan_position',
+    'ambience',
+    'textural_density',
+    'layer_count',
+    'busyness',
+    'textural_coherence',
+    'grit',
+    'saturation',
+    'naturalness',
+    'analog_character',
+  ],
+} as const;

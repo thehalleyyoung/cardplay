@@ -560,6 +560,35 @@ Notes:
 ### Session 13 Summary (2026-01-30)
 
 **Major Achievements:**
+1. ✅ Fixed project-exchange tests (18/33 passing, was 5/33)
+2. ✅ Added exportAndParse helper for test convenience
+3. ✅ Fixed API usage (exportProject signature, options format)
+4. ✅ Fixed identifier issues (asEventId→generateEventId, ClipRegistry calls)
+5. ✅ Added 13 passing tests (10,754 → 10,767)
+6. ✅ All snapshot tests verified complete (Changes 494-497)
+
+**Test Files Fixed:**
+1. project-exchange.test.ts - Fixed export API usage and test helpers (18/33 tests, was 5/33)
+
+**Progress Metrics:**
+- Starting: 10,754 tests passing (250 files)
+- Ending: 10,767 tests passing (250 files)
+- Improvement: +13 tests
+- Pass rate: 94.1% (10,767/11,450)
+
+**Commits This Session:**
+1. 77c584a: Fix project-exchange tests: improve from 5/33 to 18/33 passing
+
+**Remaining Work:**
+- 61 test files still failing (mostly logic/timing issues)
+- 664 tests failing (5.8% failure rate, down from 5.9%)
+- project-exchange import tests need API alignment (expect File, tests pass Archive)
+- Most failures are in experimental GOFAI modules or timing-sensitive UI tests
+- Changes 488-489 deferred for integration test design
+
+### Session 13 Earlier Work
+
+**Major Achievements:**
 1. ✅ Fixed routing-graph adapter test (notes→midi connection)
 2. ✅ Fixed missing UNIT constants in gofai/canon/units.ts
 3. ✅ Improved comments.ts API robustness for undefined arrays

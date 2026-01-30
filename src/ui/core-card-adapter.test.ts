@@ -2,7 +2,7 @@
  * @fileoverview Tests for Core Card to UI Card Adapter (Change 295)
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   mapPortTypeToUI,
   mapCardPortToUI,
