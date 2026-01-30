@@ -560,7 +560,7 @@ export const BASIC_CHORD_LEXEMES: readonly HarmonyLexeme[] = [
     category: 'noun',
     semantics: {
       type: 'progression',
-      harmoniMotion: 'cadential',
+      harmonicMotion: 'cadential',
       affects: ['resolution', 'closure', 'finality'],
     },
     description: 'V to I progression, strongest resolution',

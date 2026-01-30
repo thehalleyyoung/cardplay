@@ -841,13 +841,3 @@ export const DOMAIN_NOUNS_BATCH_30: readonly GestureLexeme[] = [
 ];
 
 export const BATCH_30_COUNT = DOMAIN_NOUNS_BATCH_30.length;
-
-// Export individual categories
-export {
-  BUILD_RELEASE_GESTURES,
-  FILL_GESTURES,
-  RHYTHMIC_GESTURES,
-  MELODIC_GESTURES,
-  HARMONIC_GESTURES,
-  TEXTURAL_GESTURES,
-};

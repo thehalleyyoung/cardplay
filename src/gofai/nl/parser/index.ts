@@ -9,3 +9,4 @@ export * from './parse-forest';
 export * from './parse-scoring';
 export * from './parse-diagnostics';
 export * from './incremental';
+export * from './parse-visualizer';

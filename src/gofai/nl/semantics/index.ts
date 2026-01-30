@@ -35,3 +35,6 @@ export * from './quantifier-semantics';
 
 // Scope ambiguity — MRS-style (Step 138)
 export * from './scope-ambiguity';
+
+// Pragmatic bias layer (Step 139)
+export * from './pragmatic-bias';

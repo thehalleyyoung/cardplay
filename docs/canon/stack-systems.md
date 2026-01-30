@@ -1,67 +1,83 @@
 # Stack Systems
 
-**Status:** implemented  
-**Canonical terms used:** Stack, StackMode, StackComponent, DeckCardLayout  
-**Primary code references:** `cardplay/src/cards/stack.ts`, `cardplay/src/ui/components/stack-component.ts`, `cardplay/src/boards/types.ts`  
-**Analogy:** "Combo chains" for composition vs "list containers" for layout.  
-**SSOT:** This document distinguishes composition Stack from UI StackComponent.
+**Status:** Maintained (auto-generated)
+**Last Updated:** 2026-01-30
+
+This document tracks Stack-related type exports across composition and UI systems.
+CardPlay has two distinct "Stack" concepts that serve different purposes.
 
 ---
 
-## Stack Systems Overview
+## Overview
 
-| Stack System | Canonical Name | Location | Purpose |
-|---|---|---|---|
-| Composition semantics | `Stack` | `cardplay/src/cards/stack.ts` | Serial/parallel card composition |
-| UI layout container | `StackComponent` | `cardplay/src/ui/components/stack-component.ts` | Vertical list of UI cards |
-| Deck layout mode | `DeckCardLayout = 'stack'` | `cardplay/src/boards/types.ts` | How cards display in a deck |
+The term "Stack" appears in two subsystems:
 
----
-
-## 1. Composition Stack
-
-**Location:** `cardplay/src/cards/stack.ts`
-
-**Purpose:** Compose multiple `Card<A,B>` transforms.
-
-```ts
-type StackMode = 'serial' | 'parallel' | 'layer' | 'tabs';
-
-interface Stack<A, B> {
-  readonly cards: readonly Card<any, any>[];
-  readonly mode: StackMode;
-  compose(): Card<A, B>;
-}
-```
-
-**Analogy:** A "combo chain" of rule cards.
+1. **Core Stacks** (`src/cards/stack.ts`): Composable card stacks
+2. **UI Layout Stacks** (`src/ui/components/stack-component.ts`): Visual stacking layouts
 
 ---
 
-## 2. UI StackComponent
+## Core Stacks (Composition)
 
-**Location:** `cardplay/src/ui/components/stack-component.ts`
+These types support card composition and signal flow:
 
-**Purpose:** Vertical list container for UI card elements.
+| Name | Type | Description |
+|------|------|-------------|
+| `createStack` | function | N/A |
+| `generateStackId` | function | N/A |
+| `graphToStack` | function | N/A |
+| `inferStackPorts` | function | N/A |
+| `Stack` | interface | N/A |
+| `stackBypassCard` | function | N/A |
+| `stackDiff` | function | N/A |
+| `StackDiff` | interface | N/A |
+| `StackEntry` | interface | N/A |
+| `StackEntryState` | interface | N/A |
+| `StackGraph` | interface | N/A |
+| `StackGraphEdge` | interface | N/A |
+| `StackGraphNode` | interface | N/A |
+| `stackInsertCard` | function | N/A |
+| `stackMerge` | function | N/A |
+| `StackMeta` | interface | N/A |
+| `StackMode` | type | N/A |
+| `stackRemoveCard` | function | N/A |
+| `stackReorderCards` | function | N/A |
+| `stackRestore` | function | N/A |
+| `stackSnapshot` | function | N/A |
+| `StackSnapshot` | interface | N/A |
+| `stackSoloCard` | function | N/A |
+| `stackToCard` | function | N/A |
+| `stackToGraph` | function | N/A |
+| `StackValidation` | interface | N/A |
+| `validateStack` | function | N/A |
 
-**Naming rule:** Call this `StackComponent (UI vertical list)` in docs.
+**Location:** `src/cards/stack.ts`
+
+## UI Layout Stacks
+
+These types support visual layout and arrangement:
+
+| Name | Type | Description |
+|------|------|-------------|
+| `createStack` | function | N/A |
+| `createUIStack` | function | N/A |
+| `StackComponent` | type | N/A |
+| `StackEvent` | interface | N/A |
+| `StackLifecycle` | interface | N/A |
+| `StackOptions` | interface | N/A |
+| `StackOrientation` | type | N/A |
+| `StackOverflow` | type | N/A |
+| `StackState` | type | N/A |
+| `UIStackComponent` | class | N/A |
+
+**Location:** `src/ui/components/stack-component.ts`
 
 ---
 
-## 3. DeckCardLayout
+## Disambiguation Rules
 
-**Location:** `cardplay/src/boards/types.ts`
+1. Composition stacks use `Stack<A,B>` (from `src/cards/stack.ts`)
+2. UI layout stacks use `UIStackComponent` or `UILayoutStackMode`
+3. Avoid exporting bare `Stack` from barrel files
 
-```ts
-type DeckCardLayout = 'stack' | 'tabs' | 'split' | 'floating' | 'grid';
-```
-
-This is a **layout mode**, not computation semantics.
-
----
-
-## Usage Rules
-
-- Use `Stack` for card composition logic
-- Use `StackComponent (UI vertical list)` for UI containers
-- Don't confuse `StackMode = 'tabs'` with `DeckCardLayout = 'tabs'`
+To regenerate this document: `npm run docs:sync-stack-systems`

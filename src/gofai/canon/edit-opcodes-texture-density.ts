@@ -20,7 +20,7 @@
  */
 
 import type { EditOpcode, OpcodeId } from './types';
-import { createOpcodeId } from './types';
+import { createOpcodeId, createAxisId } from './types';
 
 // =============================================================================
 // Texture Density Opcodes
@@ -92,7 +92,7 @@ export const OP_THIN_TEXTURE: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'medium',
-  relatedAxes: ['busyness', 'density', 'clarity', 'airiness'],
+  affectsAxes: [createAxisId('busyness'), createAxisId('density'), createAxisId('clarity'), createAxisId('airiness')],
 };
 
 /**
@@ -168,7 +168,7 @@ export const OP_DENSIFY_TEXTURE: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'medium',
-  relatedAxes: ['busyness', 'density', 'energy', 'richness'],
+  affectsAxes: [createAxisId('busyness'), createAxisId('density'), createAxisId('energy'), createAxisId('richness')],
 };
 
 /**
@@ -220,7 +220,7 @@ export const OP_ADJUST_NOTE_DENSITY: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'medium',
-  relatedAxes: ['density', 'busyness'],
+  affectsAxes: [createAxisId('density'), createAxisId('busyness')],
 };
 
 /**
@@ -277,7 +277,7 @@ export const OP_ADD_RHYTHMIC_SUBDIVISION: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'low',
-  relatedAxes: ['energy', 'motion', 'busyness'],
+  affectsAxes: [createAxisId('energy'), createAxisId('motion'), createAxisId('busyness')],
 };
 
 /**
@@ -325,7 +325,7 @@ export const OP_SIMPLIFY_RHYTHM: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'low',
-  relatedAxes: ['simplicity', 'clarity', 'groove'],
+  affectsAxes: [createAxisId('simplicity'), createAxisId('clarity'), createAxisId('groove')],
 };
 
 /**
@@ -343,7 +343,7 @@ export const OP_DOUBLE_LAYER: EditOpcode = {
   params: [
     {
       name: 'source_layer',
-      type: 'layer_ref',
+      type: 'entity_ref',
       required: true,
       description: 'Layer to double',
     },
@@ -381,7 +381,7 @@ export const OP_DOUBLE_LAYER: EditOpcode = {
   affects: ['event', 'card'],
   effectType: 'mutate',
   cost: 'medium',
-  relatedAxes: ['thickness', 'richness', 'prominence'],
+  affectsAxes: [createAxisId('thickness'), createAxisId('richness'), createAxisId('prominence')],
 };
 
 /**
@@ -436,7 +436,7 @@ export const OP_THIN_VOICING: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'medium',
-  relatedAxes: ['clarity', 'simplicity', 'intimacy'],
+  affectsAxes: [createAxisId('clarity'), createAxisId('simplicity'), createAxisId('intimacy')],
 };
 
 /**
@@ -492,7 +492,7 @@ export const OP_FATTEN_VOICING: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'medium',
-  relatedAxes: ['richness', 'lushness', 'sophistication'],
+  affectsAxes: [createAxisId('richness'), createAxisId('lushness'), createAxisId('sophistication')],
 };
 
 /**
@@ -510,9 +510,9 @@ export const OP_ADJUST_LAYER_DENSITY: EditOpcode = {
   params: [
     {
       name: 'layer_adjustments',
-      type: 'array',
+      type: 'string',
       required: true,
-      description: 'Array of {layer, density_change} objects',
+      description: 'JSON string of {layer, density_change} objects array',
     },
     {
       name: 'scope',
@@ -537,7 +537,7 @@ export const OP_ADJUST_LAYER_DENSITY: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'high',
-  relatedAxes: ['texture', 'arrangement', 'orchestration'],
+  affectsAxes: [createAxisId('texture'), createAxisId('arrangement'), createAxisId('orchestration')],
 };
 
 /**
@@ -593,7 +593,7 @@ export const OP_SPARSE_TO_FULL_TRANSITION: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'high',
-  relatedAxes: ['build', 'energy', 'momentum'],
+  affectsAxes: [createAxisId('build'), createAxisId('energy'), createAxisId('momentum')],
 };
 
 /**
@@ -649,7 +649,7 @@ export const OP_FULL_TO_SPARSE_TRANSITION: EditOpcode = {
   affects: ['event'],
   effectType: 'mutate',
   cost: 'high',
-  relatedAxes: ['breakdown', 'release', 'space'],
+  affectsAxes: [createAxisId('breakdown'), createAxisId('release'), createAxisId('space')],
 };
 
 // =============================================================================

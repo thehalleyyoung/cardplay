@@ -7,7 +7,7 @@ See:
 
 - `cardplay/src/extensions/capabilities.ts` (capability definitions and risk levels)
 - `cardplay/src/registry/v2/policy.ts` (risk classification and enforcement)
-- `cardplay/src/cardscript/sandbox.ts` (CardScript sandbox with capability checks)
+- `cardplay/src/user-cards/cardscript/sandbox.ts` (CardScript sandbox with capability checks)
 
 ## Risk tiers (policy)
 

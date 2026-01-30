@@ -1,66 +1,63 @@
 # Legacy Type Aliases
 
-**Status:** implemented  
-**SSOT:** This document maps duplicate type names to canonical names.
+**Status:** Maintained (auto-generated)
+**Last Updated:** 2026-01-30
+
+This document tracks deprecated type aliases, value aliases, and function aliases in the codebase.
+All legacy symbols should be migrated to their canonical equivalents.
 
 ---
 
-## Purpose
+## Type Aliases
 
-The codebase has evolved and contains duplicate or conflicting type names. This document maps them to canonical versions.
+### Multiple Meanings (Ambiguous Symbols)
 
----
+These symbols are exported from multiple locations with different meanings:
 
-## Type Alias Mappings
+| Symbol | Context | Canonical Name | Location | Notes |
+|--------|---------|----------------|----------|-------|
+| `CardState` (UI surface) | UI card surface state | `CardSurfaceState` | `src/ui/cards.ts` | Deprecated alias |
+| `CardState` (core) | Core card state (generic) | `CardState<A,B>` | `src/cards/card.ts` | Generic card state |
+| `CardState` (component) | Component state | `CardState` | `src/ui/components/card-component.ts` | Component-specific |
+| `PortType` (canonical) | Canonical port type enum | `CanonicalPortType` | `src/canon/ids.ts` | Enum of port types |
+| `PortType` (registry) | Core port type registry string | `PortType` | `src/cards/card.ts` | Runtime registry string |
+| `Track` (freeze) | Freeze/bounce track model | `FreezeTrackModel` | `src/tracks/clip-operations.ts` | Audio freeze operations |
+| `Track` (arrangement) | Arrangement UI track | `ArrangementTrack` | `src/ui/components/arrangement-panel.ts` | UI arrangement track |
+| `Track` (project) | GOFAI project API track | `Track` | `gofai/infra/project-world-api.ts` | Project world API |
 
-### Card-Related
+### Single Meaning (Deprecated Aliases)
 
-| Legacy/Duplicate | Canonical | Location |
-|---|---|---|
-| `CardCategory` (audio) | `AudioModuleCategory` | `cardplay/src/audio/instrument-cards.ts` |
-| `CardState` (audio) | `AudioModuleState` | `cardplay/src/audio/instrument-cards.ts` |
-| `CardState` (UI) | `CardState` (UI-level) | `cardplay/src/ui/components/card-component.ts` |
-| `CardState` (core) | `CardState<S>` (generic) | `cardplay/src/cards/card.ts` |
-| `CardDefinition` (editor) | `EditorCardDefinition` | `cardplay/src/user-cards/card-editor-panel.ts` |
-| `CardDefinition` (visuals) | `CardDefinition` | `cardplay/src/cards/card-visuals.ts` |
+| Legacy Name | Canonical Name | Location |
+|-------------|---------------|----------|
+| `CardSize` | `CardSurfaceSize` | `src/ui/cards.ts` |
+| `CardStyle` | `CardSurfaceStyle` | `src/ui/cards.ts` |
+| `GeneratorConfig` | `Partial` | `src/cards/generator-mixin.ts` |
+| `HostAction` | `AdvisorHostAction` | `src/ai/advisor/advisor-interface.ts` |
+| `NoteRectangle` | `NoteRect` | `src/ui/components/piano-roll-store-adapter.ts` |
+| `ParameterSourceType` | `ParameterSource` | `src/state/parameter-resolver.ts` |
+| `RoutingNodeId` | `string` | `src/state/types.ts` |
+| `SessionScene` | `SceneHeader` | `src/ui/session-clip-adapter.ts` |
+| `StackComponent` | `UIStackComponent` | `src/ui/components/stack-component.ts` |
+| `StackMode` | `UILayoutStackMode` | `src/ui/cards.ts` |
 
-### HostAction-Related
+## Value Aliases
 
-| Legacy/Duplicate | Canonical | Location |
-|---|---|---|
-| `HostAction` (adapter) | Use for parsing only | `cardplay/src/ai/engine/prolog-adapter.ts` |
-| `HostAction` (advisor) | Use for UI | `cardplay/src/ai/advisor/advisor-interface.ts` |
-| **`HostAction`** | **Canonical** | `cardplay/src/ai/theory/host-actions.ts` |
+| Legacy Name | Canonical Name | Location |
+|-------------|---------------|----------|
+| `parseChord` | `parseChordSymbol` | `src/containers/chord-track.ts` |
 
-### PortType-Related
+## Function Aliases
 
-| Legacy/Duplicate | Canonical | Location |
-|---|---|---|
-| `PortType` (UI) | `UIPortType` | `cardplay/src/ui/components/card-component.ts` |
-| `PortType` (ui/cards) | `UISurfacePortType` | `cardplay/src/ui/cards.ts` |
-| `PortType` (visuals) | `VisualPortType` | `cardplay/src/cards/card-visuals.ts` |
-| **`PortType`** | **Canonical** | `cardplay/src/cards/card.ts` |
-
-### CadenceType-Related
-
-| Legacy/Duplicate | Canonical | Notes |
-|---|---|---|
-| `CadenceType` (harmony) | Legacy, maps to canonical | `cardplay/src/ai/theory/harmony-cadence-integration.ts` |
-| **`CadenceType`** | **Canonical** | `cardplay/src/ai/theory/music-spec.ts` |
-
-### Track-Related
-
-| Legacy/Duplicate | Canonical | Notes |
-|---|---|---|
-| `Track` (arrangement) | `ArrangementTrack` | `cardplay/src/ui/components/arrangement-panel.ts` |
-| `Track` (freeze) | `FreezeTrackModel` | `cardplay/src/tracks/clip-operations.ts` |
-| `Track` (lens concept) | Aspirational | Not yet implemented |
+| Legacy Name | Canonical Name | Location |
+|-------------|---------------|----------|
 
 ---
 
-## Usage in Docs
+## Migration Guidelines
 
-When referencing these types:
-1. Use the canonical version
-2. If referencing a legacy version, add `(legacy)` qualifier
-3. Link to this doc when converting old content
+1. Replace all uses of legacy names with canonical names
+2. Run `npm run typecheck` to verify changes
+3. Update tests to use canonical names
+4. Once all uses are migrated, the deprecated exports can be removed
+
+To regenerate this document: `npm run docs:sync-aliases`

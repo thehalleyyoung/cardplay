@@ -66,9 +66,9 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 ## Phase 5 — Planning: Goals → Levers → Plans (Steps 251–300)
 
-- [ ] Step 251 [Type][Sem] — Define CPL-Plan as a sequence of typed opcodes with explicit scopes, preconditions, and postconditions.
-- [ ] Step 252 [Type] — Define plan opcodes for core musical edits (thin_texture, densify, raise_register, halftime, insert_break, etc.).
-- [ ] Step 253 [Sem] — Define lever mappings from perceptual axes to candidate opcodes (lift → register+voicing+density; intimacy → thin+close+reduce width).
+- [x] Step 251 [Type][Sem] — Define CPL-Plan as a sequence of typed opcodes with explicit scopes, preconditions, and postconditions.
+- [x] Step 252 [Type] — Define plan opcodes for core musical edits (thin_texture, densify, raise_register, halftime, insert_break, etc.).
+- [x] Step 253 [Sem] — Define lever mappings from perceptual axes to candidate opcodes (lift → register+voicing+density; intimacy → thin+close+reduce width).
 - [ ] Step 254 [Type] — Define a plan scoring model (goal satisfaction + edit cost + constraint risk) with deterministic tie-breakers.
 - [ ] Step 255 [Type] — Define a cost hierarchy aligned with user expectations (melody changes expensive; voicing changes cheap).
 - [ ] Step 256 [Sem] — Implement a constraint satisfaction layer: candidate plans must be validated against preserve/only-change constraints.
