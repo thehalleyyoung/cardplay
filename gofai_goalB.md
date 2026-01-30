@@ -37,7 +37,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 ## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)
 
-- [ ] Step 052 [Type] — Define `GofaiId` as a namespaced ID type that composes with `CardPlayId` rules; reject non-namespaced extension entries.
+- [x] Step 052 [Type] — Define `GofaiId` as a namespaced ID type that composes with `CardPlayId` rules; reject non-namespaced extension entries.
 - [ ] Step 053 [Infra] — Build a “canon check” script for GOFAI (like existing canon checks) that validates all vocab tables and IDs.
 - [x] Step 061 [Type] — Create a single “unit system” type layer: `Bpm`, `Semitones`, `Bars`, `Beats`, `Ticks`, with conversion rules and refinements.
 - [ ] Step 062 [Infra] — Add a stable, human-readable ID pretty-printer and parser for all GOFAI entity references.
