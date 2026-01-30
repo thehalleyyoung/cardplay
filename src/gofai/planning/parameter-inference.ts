@@ -24,22 +24,27 @@
  */
 
 import type {
-  GofaiId,
   AxisId,
   OpcodeId,
   LexemeId,
 } from '../canon/types.js';
 import type {
-  CPLIntent,
   CPLGoal,
-  Amount,
-  Degree,
 } from '../canon/cpl-types.js';
 import type { PlanSkeleton, OpenParameter } from './plan-skeleton.js';
 
 // =============================================================================
 // Core Types
 // =============================================================================
+
+/**
+ * Degree specification for magnitude.
+ */
+export interface Degree {
+  readonly modifier?: string;
+  readonly phrase?: string;
+  readonly explicitValue?: number;
+}
 
 /**
  * Magnitude with provenance and confidence.
@@ -639,12 +644,16 @@ export function inferAllParameters(
   const results = new Map<string, InferenceResult>();
 
   for (const param of skeleton.openParameters) {
+    // Extract goals from intent
+    const goals = skeleton.intent.goals || [];
+    if (goals.length === 0) continue; // Skip if no goals
+    
     const fullContext: InferenceContext = {
       ...context,
       parameter: param,
-      goal: skeleton.goals[0], // Use first goal as primary
-      axis: skeleton.levers[0]?.lever, // Use first lever's axis
-      opcode: skeleton.levers[0]?.candidates[0]?.opcodeId, // Use first candidate
+      goal: goals[0], // Use first goal as primary
+      axis: skeleton.levers[0]?.lever ?? undefined, // Use first lever's axis
+      opcode: skeleton.levers[0]?.candidates[0]?.opcodeId ?? undefined, // Use first candidate
     };
 
     const degree = param.hint as Degree | undefined;

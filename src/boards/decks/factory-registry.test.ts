@@ -4,7 +4,7 @@
  * B127: Tests for factory registration.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DeckFactoryRegistry, validateBoardFactories } from './factory-registry';
 import type { DeckFactory } from './factory-types';
 import type { Board, DeckType } from '../types';
@@ -271,10 +271,9 @@ describe('validateBoardFactories', () => {
       registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
       registry.registerFactory('piano-roll-deck', createMockFactory('piano-roll-deck'));
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(true);
-      expect(result.missingFactories).toEqual([]);
+      expect(missingFactories).toEqual([]);
     });
 
     it('should detect missing factories', () => {
@@ -284,20 +283,19 @@ describe('validateBoardFactories', () => {
       registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
       // piano-roll-deck and notation-deck not registered
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(false);
-      expect(result.missingFactories).toContain('piano-roll-deck');
-      expect(result.missingFactories).toContain('notation-deck');
+      expect(missingFactories).toContain('piano-roll-deck');
+      expect(missingFactories).toContain('notation-deck');
+      expect(missingFactories.length).toBe(2);
     });
 
     it('should return empty array for board with no decks', () => {
       const board = createTestBoard([]);
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(true);
-      expect(result.missingFactories).toEqual([]);
+      expect(missingFactories).toEqual([]);
     });
 
     it('should handle duplicate deck types in board', () => {
@@ -306,10 +304,9 @@ describe('validateBoardFactories', () => {
       
       registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(true);
-      expect(result.missingFactories).toEqual([]);
+      expect(missingFactories).toEqual([]);
     });
 
     it('should detect all missing factories', () => {
@@ -323,10 +320,9 @@ describe('validateBoardFactories', () => {
       
       // Register none
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(false);
-      expect(result.missingFactories.length).toBe(4);
+      expect(missingFactories.length).toBe(4);
     });
 
     it('should validate partially registered factories', () => {
@@ -339,12 +335,11 @@ describe('validateBoardFactories', () => {
       
       registry.registerFactory('piano-roll-deck', createMockFactory('piano-roll-deck'));
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(false);
-      expect(result.missingFactories).toContain('pattern-deck');
-      expect(result.missingFactories).toContain('notation-deck');
-      expect(result.missingFactories).not.toContain('piano-roll-deck');
+      expect(missingFactories).toContain('pattern-deck');
+      expect(missingFactories).toContain('notation-deck');
+      expect(missingFactories).not.toContain('piano-roll-deck');
     });
   });
 
@@ -353,33 +348,32 @@ describe('validateBoardFactories', () => {
       // Change 154: Use canonical DeckType
       const board = createTestBoard(['pattern-deck']);
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(false);
-      expect(result.message).toBeTruthy();
-      expect(result.message).toContain('pattern-deck');
+      expect(missingFactories.length).toBeGreaterThan(0);
+      expect(missingFactories).toContain('pattern-deck');
     });
 
-    it('should list all missing factories in message', () => {
+    it('should list all missing factories', () => {
       // Change 154: Use canonical DeckTypes
       const board = createTestBoard(['pattern-deck', 'piano-roll-deck']);
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.message).toContain('pattern-deck');
-      expect(result.message).toContain('piano-roll-deck');
+      expect(missingFactories).toContain('pattern-deck');
+      expect(missingFactories).toContain('piano-roll-deck');
+      expect(missingFactories.length).toBe(2);
     });
 
-    it('should provide success message when valid', () => {
+    it('should return empty array when valid', () => {
       // Change 154: Use canonical DeckType
       const board = createTestBoard(['pattern-deck']);
       
       registry.registerFactory('pattern-deck', createMockFactory('pattern-deck'));
       
-      const result = validateBoardFactories(board, registry);
+      const missingFactories = validateBoardFactories(board, registry);
       
-      expect(result.valid).toBe(true);
-      expect(result.message).toBeTruthy();
+      expect(missingFactories).toEqual([]);
     });
   });
 });
