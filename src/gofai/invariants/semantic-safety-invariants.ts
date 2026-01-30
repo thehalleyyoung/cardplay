@@ -541,7 +541,7 @@ interface ParseCandidate {
 }
 
 function checkAmbiguityThreshold(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -563,21 +563,24 @@ function checkAmbiguityThreshold(
 
   // If scores are too close AND meanings differ, this is ambiguous
   if (
+    best &&
+    secondBest &&
     secondBest.score / best.score >= AMBIGUITY_THRESHOLD &&
     secondBest.meaningDiffers
   ) {
     return {
       ok: false,
       evidence: {
-        type: 'ambiguity',
-        details: {
+        expected: `Single unambiguous parse with score ratio < ${AMBIGUITY_THRESHOLD}`,
+        actual: `Two competing parses with ratio ${(secondBest.score / best.score).toFixed(2)}`,
+        location: op.utteranceSource || 'unknown',
+        context: {
           bestScore: best.score,
           secondBestScore: secondBest.score,
           ratio: secondBest.score / best.score,
           threshold: AMBIGUITY_THRESHOLD,
           candidateCount: candidates.length,
         },
-        context: op.utteranceSource || 'unknown',
       },
     };
   }
@@ -592,7 +595,7 @@ interface ConstraintDefinition {
 }
 
 function checkConstraintExecutability(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -618,12 +621,13 @@ function checkConstraintExecutability(
     return {
       ok: false,
       evidence: {
-        type: 'missing-verifier',
-        details: {
+        expected: 'All constraints must have verifier functions',
+        actual: `${unverifiable.length} constraint(s) without verifiers: ${unverifiable.join(', ')}`,
+        location: 'constraint-verification',
+        context: {
           unverifiableConstraints: unverifiable,
           count: unverifiable.length,
         },
-        context: 'constraint-verification',
       },
     };
   }
@@ -639,7 +643,7 @@ interface ReferentBinding {
 }
 
 function checkReferentResolution(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -670,12 +674,13 @@ function checkReferentResolution(
     return {
       ok: false,
       evidence: {
-        type: 'referent-resolution-failure',
-        details: {
+        expected: 'All referential expressions must resolve to unique entities',
+        actual: `${unresolved.length} unresolved, ${ambiguous.length} ambiguous`,
+        location: 'referent-binding',
+        context: {
           unresolved,
           ambiguous,
         },
-        context: 'referent-binding',
       },
     };
   }
@@ -691,7 +696,7 @@ interface ScopeReference {
 }
 
 function checkScopeVisibility(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -702,14 +707,14 @@ function checkScopeVisibility(
   }
 
   const scopes = Array.isArray(op.scope) ? op.scope : [op.scope];
-  const nonExistent: Array<{ type: string; id: string; name?: string }> = [];
+  const nonExistent: Array<{ type: string; id: string; name: string | undefined }> = [];
 
   for (const scope of scopes as ScopeReference[]) {
     if (!scope.exists && scope.type !== 'global') {
       nonExistent.push({
         type: scope.type,
         id: scope.id,
-        name: scope.name,
+        name: scope.name ?? undefined,
       });
     }
   }
@@ -718,12 +723,13 @@ function checkScopeVisibility(
     return {
       ok: false,
       evidence: {
-        type: 'scope-not-found',
-        details: {
+        expected: 'All scope references must exist in project',
+        actual: `${nonExistent.length} non-existent scope(s)`,
+        location: 'scope-validation',
+        context: {
           nonExistentScopes: nonExistent,
           count: nonExistent.length,
         },
-        context: 'scope-validation',
       },
     };
   }
@@ -739,7 +745,7 @@ interface Presupposition {
 }
 
 function checkPresuppositions(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -753,7 +759,7 @@ function checkPresuppositions(
   const unsatisfied: Array<{
     type: string;
     entity: string;
-    reason?: string;
+    reason: string | undefined;
   }> = [];
 
   for (const presup of presuppositions) {
@@ -761,7 +767,7 @@ function checkPresuppositions(
       unsatisfied.push({
         type: presup.type,
         entity: presup.entity,
-        reason: presup.reason,
+        reason: presup.reason ?? undefined,
       });
     }
   }
@@ -770,12 +776,13 @@ function checkPresuppositions(
     return {
       ok: false,
       evidence: {
-        type: 'presupposition-failure',
-        details: {
+        expected: 'All presuppositions must be satisfied',
+        actual: `${unsatisfied.length} unsatisfied presupposition(s)`,
+        location: 'presupposition-checking',
+        context: {
           unsatisfiedPresuppositions: unsatisfied,
           count: unsatisfied.length,
         },
-        context: 'presupposition-checking',
       },
     };
   }
@@ -790,7 +797,7 @@ interface EffectType {
 }
 
 function checkEffectTypePolicy(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -806,13 +813,13 @@ function checkEffectTypePolicy(
     return {
       ok: false,
       evidence: {
-        type: 'effect-policy-violation',
-        details: {
+        expected: `Effect type must be allowed by board policy '${effectInfo.boardPolicy}'`,
+        actual: `Effect type '${effectInfo.effect}' is not allowed`,
+        location: 'effect-type-checking',
+        context: {
           requestedEffect: effectInfo.effect,
           boardPolicy: effectInfo.boardPolicy,
-          reason: `Effect type '${effectInfo.effect}' not allowed by board policy '${effectInfo.boardPolicy}'`,
         },
-        context: 'effect-type-checking',
       },
     };
   }
@@ -829,7 +836,7 @@ interface PreservationConstraint {
 }
 
 function checkPreservationConstraints(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -862,12 +869,13 @@ function checkPreservationConstraints(
     return {
       ok: false,
       evidence: {
-        type: 'preservation-violation',
-        details: {
+        expected: 'All preserved aspects must remain unchanged',
+        actual: `${violations.length} preservation violation(s)`,
+        location: 'preservation-verification',
+        context: {
           violations,
           count: violations.length,
         },
-        context: 'preservation-verification',
       },
     };
   }
@@ -884,7 +892,7 @@ interface DeterminismCheck {
 }
 
 function checkDeterminism(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -918,12 +926,13 @@ function checkDeterminism(
     return {
       ok: false,
       evidence: {
-        type: 'non-determinism',
-        details: {
+        expected: 'Compilation must be deterministic',
+        actual: `${violations.length} determinism violation(s): ${violations.join('; ')}`,
+        location: 'determinism-checking',
+        context: {
           violations,
           count: violations.length,
         },
-        context: 'determinism-checking',
       },
     };
   }
@@ -938,7 +947,7 @@ interface UndoInfo {
 }
 
 function checkUndoability(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -953,11 +962,9 @@ function checkUndoability(
     return {
       ok: false,
       evidence: {
-        type: 'no-undo-token',
-        details: {
-          reason: 'Mutation operation missing undo information',
-        },
-        context: 'undo-checking',
+        expected: 'Mutation operations must have undo information',
+        actual: 'Mutation operation missing undo information',
+        location: 'undo-checking',
       },
     };
   }
@@ -968,11 +975,9 @@ function checkUndoability(
     return {
       ok: false,
       evidence: {
-        type: 'no-undo-token',
-        details: {
-          reason: 'Undo token not generated for mutation',
-        },
-        context: 'undo-checking',
+        expected: 'Mutation must generate undo token',
+        actual: 'Undo token not generated for mutation',
+        location: 'undo-checking',
       },
     };
   }
@@ -981,12 +986,12 @@ function checkUndoability(
     return {
       ok: false,
       evidence: {
-        type: 'irreversible-mutation',
-        details: {
+        expected: 'All mutations must be reversible',
+        actual: `Mutation marked as irreversible (token: ${undoInfo.tokenId || 'unknown'})`,
+        location: 'undo-checking',
+        context: {
           tokenId: undoInfo.tokenId,
-          reason: 'Mutation marked as irreversible',
         },
-        context: 'undo-checking',
       },
     };
   }
@@ -1002,7 +1007,7 @@ interface ExplanationProvenance {
 }
 
 function checkExplainability(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -1012,11 +1017,9 @@ function checkExplainability(
     return {
       ok: false,
       evidence: {
-        type: 'missing-explanation',
-        details: {
-          reason: 'Operation lacks explanation provenance',
-        },
-        context: 'explainability-checking',
+        expected: 'Operations must have explanation provenance',
+        actual: 'Operation lacks explanation provenance',
+        location: 'explainability-checking',
       },
     };
   }
@@ -1038,13 +1041,14 @@ function checkExplainability(
     return {
       ok: false,
       evidence: {
-        type: 'incomplete-explanation',
-        details: {
+        expected: 'Complete explanation with provenance, goal link, and reason',
+        actual: `Incomplete: ${issues.join(', ')}`,
+        location: 'explainability-checking',
+        context: {
           issues,
           count: issues.length,
           steps: explanation.steps,
         },
-        context: 'explainability-checking',
       },
     };
   }
@@ -1060,7 +1064,7 @@ interface ConstraintPair {
 }
 
 function checkConstraintCompatibility(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -1080,8 +1084,10 @@ function checkConstraintCompatibility(
     return {
       ok: false,
       evidence: {
-        type: 'constraint-conflict',
-        details: {
+        expected: 'Constraints must be compatible',
+        actual: `${conflicts.length} constraint conflict(s) detected`,
+        location: 'constraint-compatibility',
+        context: {
           conflicts: conflicts.map((c) => ({
             constraint1: c.c1.type,
             constraint2: c.c2.type,
@@ -1091,7 +1097,6 @@ function checkConstraintCompatibility(
           })),
           count: conflicts.length,
         },
-        context: 'constraint-compatibility',
       },
     };
   }
@@ -1107,7 +1112,7 @@ interface ExtensionIsolationInfo {
 }
 
 function checkExtensionIsolation(
-  state: unknown,
+  _state: unknown,
   operation: unknown
 ): { ok: true } | { ok: false; evidence: ViolationEvidence } {
   const op = operation as any;
@@ -1139,13 +1144,14 @@ function checkExtensionIsolation(
     return {
       ok: false,
       evidence: {
-        type: 'extension-isolation-violation',
-        details: {
+        expected: 'Extensions must operate within isolation sandbox',
+        actual: `Extension '${extensionInfo.namespace}' violated isolation: ${violations.join('; ')}`,
+        location: 'extension-isolation',
+        context: {
           namespace: extensionInfo.namespace,
           violations,
           count: violations.length,
         },
-        context: 'extension-isolation',
       },
     };
   }
