@@ -101,8 +101,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 283 [Type] — Define a deterministic “plan-to-diff summary” mapping for UI (what changed by layer/section).
 - [x] Step 284 [HCI] — Design a “plan preview timeline” that visually marks where edits apply (bar ranges highlighted).
 - [x] Step 285 [HCI] — Design “confidence UI”: show confidence as “ready / needs clarification / risky” derived from hole count + cost.
-- [ ] Step 286 [Eval] — Build a planning golden suite: given CPL-Intent and a fixture, expected top plan(s) are stable and deterministic.
-- [ ] Step 287 [Eval] — Add constraint violation tests: planner must never output a plan that violates hard constraints in the fixture.
+- [x] Step 286 [Eval] — Build a planning golden suite: given CPL-Intent and a fixture, expected top plan(s) are stable and deterministic.
+- [x] Step 287 [Eval] — Add constraint violation tests: planner must never output a plan that violates hard constraints in the fixture.
 - [ ] Step 288 [Eval] — Add least-change tests: given two satisfying plans, system picks lower cost unless user requests otherwise.
 - [ ] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
 - [ ] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).

@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { BoardStateStore } from './store';
 import type { BoardState } from './types';
 
-// Mock localStorage
+// Mock localStorage and window
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
@@ -20,6 +20,11 @@ const localStorageMock = (() => {
 })();
 
 global.localStorage = localStorageMock as Storage;
+
+// Mock window if it doesn't exist
+if (typeof window === 'undefined') {
+  (global as any).window = { localStorage: localStorageMock };
+}
 
 describe('BoardState Migrations', () => {
   beforeEach(() => {
@@ -211,8 +216,9 @@ describe('BoardState Migrations', () => {
         currentBoardId: 'my-board',
         recentBoardIds: ['board-1', 'board-2'],
         favoriteBoardIds: ['fav-1'],
-        perBoardLayout: { 'my-board': { panelSizes: {}, collapsedPanels: [], activeTabIds: {} } },
-        perBoardDeckState: { 'my-board': { activeTabs: {}, scrollPositions: {}, focusedItems: {}, filters: {} } },
+        perBoardLayout: { 'my-board': { panelSizes: {}, collapsedPanels: [], panelTabOrder: {}, panelActiveTab: {} } },
+        perBoardDeckState: { 'my-board': { activeCards: {}, scrollPositions: {}, focusedItems: {}, filterState: {}, deckSettings: {} } },
+        perBoardTrackControlLevels: {},
         firstRunCompleted: true,
         lastOpenedAt: 123456,
       };
