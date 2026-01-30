@@ -27,6 +27,44 @@ import { composerBoard } from './composer-board';
 import { livePerformanceBoard } from './live-performance-board';
 
 /**
+ * Get all builtin board definitions.
+ *
+ * @returns Array of all builtin board definitions
+ */
+export function getAllBuiltinBoards() {
+  return [
+    // Phase F: Manual Boards
+    basicTrackerBoard,
+    pianoRollProducerBoard,
+    notationBoardManual,
+    basicSessionBoard,
+    basicSamplerBoard,
+    
+    // M147: Live Performance Board (tracker-based)
+    livePerformanceTrackerBoard,
+    
+    // M177: Modular Routing Board
+    modularRoutingBoard,
+    
+    // Phase G: Assisted Boards
+    trackerPhrasesBoard,
+    trackerHarmonyBoard,
+    sessionGeneratorsBoard,
+    notationHarmonyBoard,
+    
+    // Phase H: Generative Boards
+    aiArrangerBoard,
+    aiCompositionBoard,
+    generativeAmbientBoard,
+    
+    // Phase I: Hybrid Boards
+    composerBoard,
+    producerBoard,
+    livePerformanceBoard,
+  ];
+}
+
+/**
  * Register all builtin boards.
  *
  * Call this once during app initialization to populate the board registry
@@ -47,32 +85,8 @@ export function registerBuiltinBoards(): void {
     }
   };
 
-  // Phase F: Manual Boards
-  safeRegister(basicTrackerBoard);          // F031-F060
-  safeRegister(pianoRollProducerBoard);
-  safeRegister(notationBoardManual);        // F001-F030
-  safeRegister(basicSessionBoard);          // F091-F120
-  safeRegister(basicSamplerBoard);          // F061-F090
-
-  // M147: Live Performance Board (tracker-based)
-  safeRegister(livePerformanceTrackerBoard);
-
-  // M177: Modular Routing Board
-  safeRegister(modularRoutingBoard);
-
-  // Phase G: Assisted Boards
-  safeRegister(trackerPhrasesBoard);        // G031-G060: Tracker + Phrases
-  safeRegister(trackerHarmonyBoard);        // G001-G030: Tracker + Harmony
-  safeRegister(sessionGeneratorsBoard);     // G061-G090: Session + Generators
-  safeRegister(notationHarmonyBoard);       // G091-G120: Notation + Harmony
-
-  // Phase H: Generative Boards
-  safeRegister(aiArrangerBoard);            // H001-H025: AI Arranger
-  safeRegister(aiCompositionBoard);         // H026-H050: AI Composition
-  safeRegister(generativeAmbientBoard);     // H051-H075: Generative Ambient
-
-  // Phase I: Hybrid Boards
-  safeRegister(composerBoard);              // I001-I025: Composer Board (Hybrid)
-  safeRegister(producerBoard);              // I026-I050: Producer Board (Hybrid)
-  safeRegister(livePerformanceBoard);       // I051-I075: Live Performance Board (Hybrid)
+  // Register all builtin boards
+  for (const board of getAllBuiltinBoards()) {
+    safeRegister(board);
+  }
 }

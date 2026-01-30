@@ -13,7 +13,7 @@
  * @module @cardplay/ui/components/stack-component
  */
 
-import { CardComponent } from './card-component';
+import { UICardComponent } from './card-component';
 
 // ============================================================================
 // TYPES
@@ -29,10 +29,10 @@ export type StackOrientation = 'horizontal' | 'vertical';
 export type StackOverflow = 'scroll' | 'wrap' | 'hidden';
 
 /** Card filter function */
-export type CardFilter = (card: CardComponent) => boolean;
+export type CardFilter = (card: UICardComponent) => boolean;
 
 /** Stack sort function */
-export type CardSort = (a: CardComponent, b: CardComponent) => number;
+export type CardSort = (a: UICardComponent, b: UICardComponent) => number;
 
 /** Stack event */
 export interface StackEvent {
@@ -48,9 +48,9 @@ export interface StackLifecycle {
   onUnmount?: () => void;
   onCollapse?: () => void;
   onExpand?: () => void;
-  onCardAdd?: (card: CardComponent, index: number) => void;
-  onCardRemove?: (card: CardComponent, index: number) => void;
-  onCardMove?: (card: CardComponent, fromIndex: number, toIndex: number) => void;
+  onCardAdd?: (card: UICardComponent, index: number) => void;
+  onCardRemove?: (card: UICardComponent, index: number) => void;
+  onCardMove?: (card: UICardComponent, fromIndex: number, toIndex: number) => void;
   onReorder?: (newIndex: number) => void;
   onContextMenu?: (e: MouseEvent) => void;
   onDragStart?: (e: PointerEvent) => void;
@@ -148,8 +148,8 @@ export class UIStackComponent {
   private _loading: boolean = false;
   
   // Cards
-  private cards: CardComponent[] = [];
-  private filteredCards: CardComponent[] = [];
+  private cards: UICardComponent[] = [];
+  private filteredCards: UICardComponent[] = [];
   private cardElements: Map<string, HTMLElement> = new Map();
   
   // Filter/Search
@@ -587,7 +587,7 @@ export class UIStackComponent {
   /**
    * Add a card to the stack
    */
-  addCard(card: CardComponent, index?: number): boolean {
+  addCard(card: UICardComponent, index?: number): boolean {
     if (this._locked) return false;
     
     // Check capacity
@@ -640,7 +640,7 @@ export class UIStackComponent {
   /**
    * Remove a card from the stack
    */
-  removeCard(card: CardComponent): boolean {
+  removeCard(card: UICardComponent): boolean {
     return this.removeCardById(card.id);
   }
   
@@ -722,28 +722,28 @@ export class UIStackComponent {
   /**
    * Get card at index
    */
-  getCardAt(index: number): CardComponent | null {
+  getCardAt(index: number): UICardComponent | null {
     return this.cards[index] ?? null;
   }
   
   /**
    * Get card by ID
    */
-  getCardById(cardId: string): CardComponent | null {
+  getCardById(cardId: string): UICardComponent | null {
     return this.cards.find(c => c.id === cardId) ?? null;
   }
   
   /**
    * Get all cards
    */
-  getCards(): CardComponent[] {
+  getCards(): UICardComponent[] {
     return [...this.cards];
   }
   
   /**
    * Get filtered cards
    */
-  getFilteredCards(): CardComponent[] {
+  getFilteredCards(): UICardComponent[] {
     return [...this.filteredCards];
   }
   

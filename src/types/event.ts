@@ -26,18 +26,10 @@ export interface Event<P> {
   readonly id: EventId;
   /** Event kind/type */
   readonly kind: EventKind;
-  /** @deprecated legacy alias for kind */
-  readonly type?: EventKind;
   /** Start position in ticks */
   readonly start: Tick;
-  /** @deprecated legacy alias for start */
-  readonly tick?: Tick;
-  /** @deprecated legacy alias for start */
-  readonly startTick?: Tick;
   /** Duration in ticks */
   readonly duration: TickDuration;
-  /** @deprecated legacy alias for duration */
-  readonly durationTick?: TickDuration;
   /** Type-safe payload */
   readonly payload: P;
   /** Sub-event triggers */
@@ -106,12 +98,6 @@ export function createEvent<P>(options: CreateEventOptions<P>): Event<P> {
     duration,
     payload: options.payload,
   };
-
-  // Legacy aliases for older callsites across the repo.
-  (event as { type: EventKind }).type = event.kind;
-  (event as { tick: Tick }).tick = event.start;
-  (event as { startTick: Tick }).startTick = event.start;
-  (event as { durationTick: TickDuration }).durationTick = event.duration;
   
   if (options.triggers !== undefined && options.triggers.length > 0) {
     (event as { triggers: readonly Trigger<P>[] }).triggers = [...options.triggers];
@@ -293,7 +279,12 @@ export function hasEventTag<P>(event: Event<P>, tag: string): boolean {
 
 /**
  * Legacy event shape (uses `type`, `tick`, etc.)
+ * 
  * Change 075: Define legacy shape for ingestion.
+ * Change 477: Deprecated fields removed from Event<P> interface.
+ * 
+ * This type preserves the old shape for migration/deserialization purposes.
+ * New code should use Event<P> directly with canonical fields.
  */
 export interface LegacyEventShape<P> {
   id?: string;
@@ -356,17 +347,30 @@ export function normalizeEvent<P>(legacy: LegacyEventShape<P>): Event<P> {
     throw new Error('normalizeEvent: payload is required');
   }
   
-  return createEvent({
-    id: legacy.id as EventId | undefined,
+  const options: CreateEventOptions<P> = {
     kind,
     start,
     duration,
     payload: legacy.payload,
-    triggers: legacy.triggers,
-    automation: legacy.automation,
-    tags: legacy.tags,
-    meta: legacy.meta,
-  });
+  };
+  
+  if (legacy.id !== undefined) {
+    options.id = legacy.id as EventId;
+  }
+  if (legacy.triggers !== undefined) {
+    options.triggers = legacy.triggers;
+  }
+  if (legacy.automation !== undefined) {
+    options.automation = legacy.automation;
+  }
+  if (legacy.tags !== undefined) {
+    options.tags = legacy.tags;
+  }
+  if (legacy.meta !== undefined) {
+    options.meta = legacy.meta;
+  }
+  
+  return createEvent(options);
 }
 
 /**

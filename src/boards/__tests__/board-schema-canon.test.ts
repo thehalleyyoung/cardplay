@@ -56,10 +56,13 @@ describe('Board Schema Canon Compliance', () => {
   it('all decks have panelId', () => {
     for (const board of boards) {
       for (const deck of board.decks) {
-        expect(
-          deck.panelId,
-          `Board ${board.id}, deck ${deck.id} must have panelId`
-        ).toBeDefined();
+        // Floating decks may not have panelId
+        if (deck.cardLayout !== 'floating') {
+          expect(
+            deck.panelId,
+            `Board ${board.id}, deck ${deck.id} must have panelId (unless floating)`
+          ).toBeDefined();
+        }
       }
     }
   });
@@ -69,10 +72,13 @@ describe('Board Schema Canon Compliance', () => {
       const panelIds = new Set(board.layout.panels.map(p => p.id));
       
       for (const deck of board.decks) {
-        expect(
-          panelIds.has(deck.panelId!),
-          `Board ${board.id}, deck ${deck.id} panelId "${deck.panelId}" must exist in layout.panels`
-        ).toBe(true);
+        // Skip floating decks or decks without panelId
+        if (deck.panelId && deck.cardLayout !== 'floating') {
+          expect(
+            panelIds.has(deck.panelId!),
+            `Board ${board.id}, deck ${deck.id} panelId "${deck.panelId}" must exist in layout.panels`
+          ).toBe(true);
+        }
       }
     }
   });
@@ -145,11 +151,12 @@ describe('Board Schema Canon Compliance', () => {
   
   it('boards have valid control levels', () => {
     const validLevels = new Set([
-      'full-auto',
-      'auto-with-confirmation', 
-      'suggestion-only',
-      'manual-with-hints',
-      'full-manual'
+      'full-manual',
+      'manual-with-hints', 
+      'assisted',
+      'collaborative',
+      'directed',
+      'generative'
     ]);
     
     for (const board of boards) {

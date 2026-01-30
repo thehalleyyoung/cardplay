@@ -315,7 +315,7 @@ export class PropertiesPanel {
     section.appendChild(this.createField('ID', event.id, true));
 
     // Event Type (read-only)
-    section.appendChild(this.createField('Type', event.kind || event.type || 'unknown', true));
+    section.appendChild(this.createField('Type', event.kind, true));
 
     // Start Time (editable)
     const startInput = this.createNumberField('Start', event.start, (value) => {
@@ -330,7 +330,7 @@ export class PropertiesPanel {
     section.appendChild(durationInput);
 
     // Payload fields (type-specific)
-    if (event.type === 'note' && typeof event.payload === 'object' && event.payload !== null) {
+    if (event.kind === 'note' && typeof event.payload === 'object' && event.payload !== null) {
       const payload = event.payload as { note?: number; velocity?: number };
       
       if (typeof payload.note === 'number') {

@@ -206,9 +206,9 @@ export interface CardOptions {
   badges?: CardBadge[];
   
   // Content
-  renderHeader?: (card: CardComponent) => HTMLElement | null;
-  renderBody?: (card: CardComponent) => HTMLElement | null;
-  renderFooter?: (card: CardComponent) => HTMLElement | null;
+  renderHeader?: (card: UICardComponent) => HTMLElement | null;
+  renderBody?: (card: UICardComponent) => HTMLElement | null;
+  renderFooter?: (card: UICardComponent) => HTMLElement | null;
   
   // Lifecycle
   lifecycle?: CardLifecycle;
@@ -479,7 +479,7 @@ export class UICardComponent {
     return el;
   }
   
-  private positionPort(el: HTMLElement, port: PortDefinition): void {
+  private positionPort(el: HTMLElement, port: PortDefinition | PortDefinitionV2): void {
     el.classList.add(`card-port-${port.position}`);
     
     switch (port.position) {
@@ -1271,7 +1271,7 @@ export class UICardComponent {
 // FACTORY
 // ============================================================================
 
-export function createCard(options: CardOptions): CardComponent {
+export function createCard(options: CardOptions): UICardComponent {
   return new CardComponent(options);
 }
 

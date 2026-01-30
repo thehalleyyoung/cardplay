@@ -336,7 +336,7 @@ export class EventFlattenerStoreBridge {
       if (!stream) continue;
       
       for (const event of stream.events) {
-        const start = event.startTick as number;
+        const start = event.start as number;
         const end = start + (event.duration as number);
         
         minTick = Math.min(minTick, start);
@@ -408,7 +408,7 @@ export class EventFlattenerStoreBridge {
       }
       
       for (const event of stream.events) {
-        const absoluteTick = asTick((event.startTick as number) + (clipOffset as number));
+        const absoluteTick = asTick((event.start as number) + (clipOffset as number));
         
         // Range filter
         if ((absoluteTick as number) >= (range.end as number)) continue;

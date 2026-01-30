@@ -191,6 +191,7 @@ export const producerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'timeline',
     },
   ],
 

@@ -54,7 +54,7 @@ export type { SharedEventStore, ClipRegistry, RoutingGraphStore as RoutingGraph 
 export interface SSOTStores {
   readonly events: SharedEventStore;
   readonly clips: ClipRegistry;
-  readonly routing: RoutingGraph;
+  readonly routing: RoutingGraphStore;
 }
 
 /**

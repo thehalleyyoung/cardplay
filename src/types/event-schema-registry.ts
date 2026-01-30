@@ -9,7 +9,12 @@
  */
 
 import type { EventKind } from './event-kind';
-import type { EventPayload } from './event';
+
+/**
+ * Generic event payload type.
+ * All payloads must be objects.
+ */
+export type EventPayload = Record<string, unknown>;
 
 // ============================================================================
 // TYPES

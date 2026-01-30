@@ -12,7 +12,7 @@
  * @module registry/v2/policy
  */
 
-import type { RegistryEntry, RegistryEntryProvenance } from './types';
+import type { RegistryEntry } from './types';
 
 /**
  * Risk levels for capabilities and registry entries.

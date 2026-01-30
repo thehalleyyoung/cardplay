@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Board Registry Snapshots > should match board deck type usage snapshot 1`] = `[]`;
+
+exports[`Board Registry Snapshots > should match board metadata completeness snapshot 1`] = `[]`;
+
+exports[`Board Registry Snapshots > should match board registry snapshot 1`] = `[]`;
+
+exports[`Board Registry Snapshots > should match builtin board IDs snapshot 1`] = `[]`;

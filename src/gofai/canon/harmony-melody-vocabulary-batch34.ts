@@ -166,7 +166,9 @@ export const CHORD_QUALITY_ADJECTIVES: readonly Lexeme[] = [
       type: 'voicing-style',
       style: 'open',
       implies: [
-        { type: 'voice-leading', style: 'open', spread: 'wide' },
+        { type: 'concept',
+      domain: 'harmony',
+      aspect: 'voice-leading', style: 'open', spread: 'wide' },
         { type: 'increase-register-span' },
       ],
     },
@@ -181,7 +183,9 @@ export const CHORD_QUALITY_ADJECTIVES: readonly Lexeme[] = [
       type: 'voicing-style',
       style: 'close',
       implies: [
-        { type: 'voice-leading', style: 'close', spread: 'narrow' },
+        { type: 'concept',
+      domain: 'harmony',
+      aspect: 'voice-leading', style: 'close', spread: 'narrow' },
         { type: 'decrease-register-span' },
       ],
     },
@@ -489,7 +493,9 @@ export const MELODIC_ORNAMENTATION_TERMS: readonly Lexeme[] = [
     variants: ['rapid-alternation', 'shake'],
     category: 'noun',
     semantics: {
-      type: 'ornament',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'ornament',
       ornament: 'trill',
       implies: [
         { type: 'rapid-neighbor-alternation' },
@@ -504,7 +510,9 @@ export const MELODIC_ORNAMENTATION_TERMS: readonly Lexeme[] = [
     variants: ['quick-turn', 'brief-embellishment'],
     category: 'noun',
     semantics: {
-      type: 'ornament',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'ornament',
       ornament: 'mordent',
       implies: [
         { type: 'quick-neighbor-and-return' },
@@ -519,7 +527,9 @@ export const MELODIC_ORNAMENTATION_TERMS: readonly Lexeme[] = [
     variants: ['gruppetto', 'four-note-figure'],
     category: 'noun',
     semantics: {
-      type: 'ornament',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'ornament',
       ornament: 'turn',
       implies: [
         { type: 'upper-lower-neighbor-sequence' },
@@ -534,7 +544,9 @@ export const MELODIC_ORNAMENTATION_TERMS: readonly Lexeme[] = [
     variants: ['acciaccatura', 'quick-ornament'],
     category: 'noun',
     semantics: {
-      type: 'ornament',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'ornament',
       ornament: 'grace-note',
       implies: [
         { type: 'unmetered-short-note' },

@@ -9,14 +9,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { 
-  getRegisteredOntologies,
-  getOntologyPack,
+  getOntologyRegistry,
   BUILTIN_ONTOLOGIES,
 } from '../../ai/theory/ontologies';
 
 describe('Ontology Pack Registry Snapshots', () => {
   it('should match registered ontology IDs snapshot', () => {
-    const ontologyIds = getRegisteredOntologies().sort();
+    const ontologies = getOntologyRegistry();
+    const ontologyIds = ontologies.map(o => o.pack.id).sort();
 
     expect(ontologyIds).toMatchSnapshot();
   });
@@ -28,10 +28,10 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should match ontology pack metadata snapshot', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
 
-    const metadata = ontologyIds.map(id => {
-      const pack = getOntologyPack(id);
+    const metadata = ontologies.map(({ pack }) => {
+      const id = pack.id;
       
       return {
         id,
@@ -54,7 +54,8 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should validate all ontology IDs are properly formatted', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
+    const ontologyIds = ontologies.map(o => o.pack.id);
 
     const invalidIds = ontologyIds.filter(id => {
       // Builtin ontologies can be un-namespaced
@@ -76,17 +77,18 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should validate ontology IDs are unique', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
+    const ontologyIds = ontologies.map(o => o.pack.id);
     const uniqueIds = [...new Set(ontologyIds)];
 
     expect(ontologyIds.length).toBe(uniqueIds.length);
   });
 
   it('should match ontology custom constraint types snapshot', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
 
-    const constraintsByOntology = ontologyIds.map(id => {
-      const pack = getOntologyPack(id);
+    const constraintsByOntology = ontologies.map(({ pack }) => {
+      const id = pack.id;
       
       const constraints = pack && 'customConstraints' in pack
         ? ((pack as any).customConstraints as string[] | undefined) ?? []
@@ -102,12 +104,12 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should validate custom constraint naming', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
 
     const invalidConstraints: string[] = [];
     
-    for (const id of ontologyIds) {
-      const pack = getOntologyPack(id);
+    for (const { pack } of ontologies) {
+      const id = pack.id;
       
       if (pack && 'customConstraints' in pack) {
         const constraints = (pack as any).customConstraints as string[] | undefined;
@@ -140,10 +142,10 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should match ontology bridge rules snapshot', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
 
-    const bridgesByOntology = ontologyIds.map(id => {
-      const pack = getOntologyPack(id);
+    const bridgesByOntology = ontologies.map(({ pack }) => {
+      const id = pack.id;
       
       const bridges = pack && 'bridgeRules' in pack
         ? ((pack as any).bridgeRules as any[] | undefined) ?? []
@@ -160,7 +162,8 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should validate builtin ontologies are registered', () => {
-    const registeredIds = new Set(getRegisteredOntologies());
+    const ontologies = getOntologyRegistry();
+    const registeredIds = new Set(ontologies.map(o => o.pack.id));
     
     const missingBuiltins = Array.from(BUILTIN_ONTOLOGIES).filter(
       id => !registeredIds.has(id)
@@ -171,10 +174,10 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should match ontology culture tags snapshot', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
 
-    const cultures = ontologyIds.map(id => {
-      const pack = getOntologyPack(id);
+    const cultures = ontologies.map(({ pack }) => {
+      const id = pack.id;
       
       const culture = pack && 'culture' in pack
         ? (pack as any).culture
@@ -191,11 +194,11 @@ describe('Ontology Pack Registry Snapshots', () => {
   });
 
   it('should match ontology compatibility matrix snapshot', () => {
-    const ontologyIds = getRegisteredOntologies();
+    const ontologies = getOntologyRegistry();
 
     // Build a simple compatibility matrix (which ontologies can coexist)
-    const compatibilityMatrix = ontologyIds.map(id => {
-      const pack = getOntologyPack(id);
+    const compatibilityMatrix = ontologies.map(({ pack }) => {
+      const id = pack.id;
       
       // Check if pack has explicit compatibility info
       const compatibleWith = pack && 'compatibleWith' in pack

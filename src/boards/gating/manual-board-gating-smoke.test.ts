@@ -41,7 +41,7 @@ describe('Manual Board Gating Smoke Tests', () => {
 
     it('notation-board-manual should hide generative decks', () => {
       const registry = getBoardRegistry();
-      const board = registry.get('notation-board-manual');
+      const board = registry.get('notation-manual');
       expect(board).toBeDefined();
       
       const visibleDecks = computeVisibleDeckTypes(board!);
@@ -225,7 +225,7 @@ describe('Manual Board Gating Smoke Tests', () => {
       
       const manualBoardIds = [
         'basic-tracker',
-        'notation-board-manual',
+        'notation-manual',
         'basic-sampler',
         'basic-session',
       ];

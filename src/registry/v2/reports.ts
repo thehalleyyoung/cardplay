@@ -10,7 +10,7 @@
  * @module registry/v2/reports
  */
 
-import type { RegistrySnapshot, RegistryEntryType, TypedRegistryEntry } from './types';
+import type { RegistrySnapshot, RegistryEntryType } from './types';
 import { calculateRiskLevel, RiskLevel } from './policy';
 import { validateSnapshot } from './validate';
 
@@ -82,7 +82,7 @@ export function generateHealthReport(snapshot: RegistrySnapshot): HealthReport {
   let builtin = 0;
   let thirdParty = 0;
   
-  const riskByLevel: Record<string, number> = {
+  const riskByLevel: Record<RiskLevel, number> = {
     [RiskLevel.SAFE]: 0,
     [RiskLevel.LOW]: 0,
     [RiskLevel.MEDIUM]: 0,
@@ -113,20 +113,22 @@ export function generateHealthReport(snapshot: RegistrySnapshot): HealthReport {
       }
       
       // Risk analysis
-      const capabilities = entry.provenance.requiredCapabilities ?? [];
+      const capabilities = entry.provenance?.requiredCapabilities ?? [];
       const risk = calculateRiskLevel(capabilities);
       riskByLevel[risk]++;
       
       if (risk === RiskLevel.HIGH || risk === RiskLevel.CRITICAL) {
-        highRisk.push({ id: entry.provenance.id, type, risk });
+        if (entry.provenance) {
+          highRisk.push({ id: entry.provenance.id, type, risk });
         
-        if (!entry.provenance.trust?.verified && !entry.provenance.builtin) {
-          unverifiedHighRisk++;
+          if (!entry.provenance.trust?.verified && !entry.provenance.builtin) {
+            unverifiedHighRisk++;
+          }
         }
       }
       
       // Trust analysis
-      if (entry.provenance.trust?.verified) {
+      if (entry.provenance?.trust?.verified) {
         verified++;
       } else if (!entry.provenance.builtin) {
         unverified++;

@@ -23,7 +23,7 @@ export function uiPortTypeToCanonical(uiType: UIPortType): CanonicalPortType {
   // Extract the base type from legacy format like 'audio_in'
   const baseType = uiType.split('_')[0] || uiType;
   
-  const mapping: Record<string, PortType> = {
+  const mapping: Record<string, CanonicalPortType> = {
     'audio': 'audio',
     'midi': 'midi',
     'mod': 'control',
@@ -37,7 +37,7 @@ export function uiPortTypeToCanonical(uiType: UIPortType): CanonicalPortType {
  * Maps UI canonical port type to canonical PortType.
  */
 export function uiCanonicalToPortType(uiCanonical: UICanonicalPortType): CanonicalPortType {
-  const mapping: Record<UICanonicalPortType, PortType> = {
+  const mapping: Record<UICanonicalPortType, CanonicalPortType> = {
     'audio': 'audio',
     'midi': 'midi',
     'notes': 'notes',
@@ -69,7 +69,7 @@ export function portSpecToCanonical(spec: PortSpec): CanonicalPortType {
  * Maps canonical PortType to UI canonical port type.
  */
 export function canonicalToUICanonical(portType: CanonicalPortType): UICanonicalPortType {
-  const mapping: Record<PortType, UICanonicalPortType> = {
+  const mapping: Record<CanonicalPortType, UICanonicalPortType> = {
     'audio': 'audio',
     'midi': 'midi',
     'notes': 'notes',
@@ -98,7 +98,7 @@ export function createPortSpec(portType: CanonicalPortType, direction: UIPortDir
  * Used for backward compatibility with CSS classes and legacy code.
  */
 export function canonicalToLegacyUIPortType(portType: CanonicalPortType, direction: UIPortDirection): UIPortType {
-  const typeMap: Record<PortType, string> = {
+  const typeMap: Record<CanonicalPortType, string> = {
     'audio': 'audio',
     'midi': 'midi',
     'notes': 'midi',
@@ -120,7 +120,7 @@ export function canonicalToLegacyUIPortType(portType: CanonicalPortType, directi
 /**
  * Checks if a string is a valid canonical PortType.
  */
-export function isValidCanonicalPortType(type: string): type is PortType {
+export function isValidCanonicalPortType(type: string): type is CanonicalPortType {
   const validTypes = ['audio', 'midi', 'notes', 'control', 'trigger', 'gate', 'clock', 'transport'];
   return validTypes.includes(type);
 }
@@ -145,7 +145,7 @@ export function normalizeToCanonicalPortType(type: string): CanonicalPortType {
   }
   
   // Legacy type mappings
-  const legacyMappings: Record<string, PortType> = {
+  const legacyMappings: Record<string, CanonicalPortType> = {
     'modulation': 'control',
     'mod': 'control',
     'cv': 'control',

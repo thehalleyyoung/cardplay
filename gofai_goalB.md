@@ -24,14 +24,14 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 024 [Infra] — Establish a policy for deterministic output ordering (stable sorting for entities, stable tie-breakers for parsing/planning).
 - [ ] Step 025 [Infra] — Create a dedicated docs entrypoint for GOFAI (index + architecture + vocabulary + extension spec).
 - [ ] Step 027 [Infra] — Define a minimal “song fixture” format for tests (small project state snapshots that can be diffed deterministically).
-- [ ] Step 031 [Infra] — Decide on naming conventions and folder layout for GOFAI modules (canon, nl, semantics, pragmatics, planning, execution, ui).
-- [ ] Step 032 [Type] — Define “CPL as a public interface”: stable TS types + JSON schema; discourage leaking parse-tree internals.
-- [ ] Step 033 [Infra] — Define “compiler determinism rules” (no random choices; if multiple plans tie, show options).
+- [x] Step 031 [Infra] — Decide on naming conventions and folder layout for GOFAI modules (canon, nl, semantics, pragmatics, planning, execution, ui).
+- [x] Step 032 [Type] — Define “CPL as a public interface”: stable TS types + JSON schema; discourage leaking parse-tree internals.
+- [x] Step 033 [Infra] — Define “compiler determinism rules” (no random choices; if multiple plans tie, show options).
 - [ ] Step 035 [Type] — Define “undo tokens” as linear resources: every `apply` yields a token that can be consumed by `undo` deterministically.
-- [ ] Step 045 [Type] — Define refinement constraints for axis values (e.g., width ∈ [0,1], BPM > 0), with validators.
-- [ ] Step 046 [Infra] — Establish a local-only telemetry plan (optional) to capture anonymized parse/clarification failures for iterative improvement.
-- [ ] Step 047 [Eval] — Decide on an evaluation harness that can replay a conversation against fixed fixtures and assert deterministic outputs.
-- [ ] Step 048 [Infra] — Define a “migration policy” for language behavior changes (how to handle old CPL in edit history after upgrades).
+- [x] Step 045 [Type] — Define refinement constraints for axis values (e.g., width ∈ [0,1], BPM > 0), with validators.
+- [x] Step 046 [Infra] — Establish a local-only telemetry plan (optional) to capture anonymized parse/clarification failures for iterative improvement.
+- [x] Step 047 [Eval] — Decide on an evaluation harness that can replay a conversation against fixed fixtures and assert deterministic outputs.
+- [x] Step 048 [Infra] — Define a “migration policy” for language behavior changes (how to handle old CPL in edit history after upgrades).
 - [ ] Step 050 [Infra] — Create a final checklist for “shipping offline compiler”: no network calls in runtime path; deterministic builds; audit logs.
 ---
 
@@ -69,10 +69,10 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 251 [Type][Sem] — Define CPL-Plan as a sequence of typed opcodes with explicit scopes, preconditions, and postconditions.
 - [x] Step 252 [Type] — Define plan opcodes for core musical edits (thin_texture, densify, raise_register, halftime, insert_break, etc.).
 - [x] Step 253 [Sem] — Define lever mappings from perceptual axes to candidate opcodes (lift → register+voicing+density; intimacy → thin+close+reduce width).
-- [ ] Step 254 [Type] — Define a plan scoring model (goal satisfaction + edit cost + constraint risk) with deterministic tie-breakers.
-- [ ] Step 255 [Type] — Define a cost hierarchy aligned with user expectations (melody changes expensive; voicing changes cheap).
-- [ ] Step 256 [Sem] — Implement a constraint satisfaction layer: candidate plans must be validated against preserve/only-change constraints.
-- [ ] Step 257 [Sem] — Implement plan generation as bounded search over opcodes (depth limit, beam size) to keep runtime predictable offline.
+- [x] Step 254 [Type] — Define a plan scoring model (goal satisfaction + edit cost + constraint risk) with deterministic tie-breakers.
+- [x] Step 255 [Type] — Define a cost hierarchy aligned with user expectations (melody changes expensive; voicing changes cheap).
+- [x] Step 256 [Sem] — Implement a constraint satisfaction layer: candidate plans must be validated against preserve/only-change constraints.
+- [x] Step 257 [Sem] — Implement plan generation as bounded search over opcodes (depth limit, beam size) to keep runtime predictable offline.
 - [ ] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
 - [ ] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
 - [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.

@@ -1,0 +1,93 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Ontology Pack Registry Snapshots > should match builtin ontology IDs snapshot 1`] = `
+[
+  "just",
+  "western",
+]
+`;
+
+exports[`Ontology Pack Registry Snapshots > should match ontology bridge rules snapshot 1`] = `
+[
+  {
+    "bridgeRulesCount": 0,
+    "ontologyId": "just",
+  },
+  {
+    "bridgeRulesCount": 0,
+    "ontologyId": "western",
+  },
+]
+`;
+
+exports[`Ontology Pack Registry Snapshots > should match ontology compatibility matrix snapshot 1`] = `
+[
+  {
+    "compatibleWith": [],
+    "incompatibleWith": [],
+    "ontologyId": "just",
+  },
+  {
+    "compatibleWith": [],
+    "incompatibleWith": [],
+    "ontologyId": "western",
+  },
+]
+`;
+
+exports[`Ontology Pack Registry Snapshots > should match ontology culture tags snapshot 1`] = `[]`;
+
+exports[`Ontology Pack Registry Snapshots > should match ontology custom constraint types snapshot 1`] = `
+[
+  {
+    "customConstraints": [],
+    "ontologyId": "just",
+  },
+  {
+    "customConstraints": [],
+    "ontologyId": "western",
+  },
+]
+`;
+
+exports[`Ontology Pack Registry Snapshots > should match ontology pack metadata snapshot 1`] = `
+[
+  {
+    "bridgeRulesCount": 0,
+    "customConstraintsCount": 0,
+    "hasBridgeRules": false,
+    "hasCulture": false,
+    "hasCustomConstraints": false,
+    "hasDescription": true,
+    "hasName": true,
+    "hasNamespace": false,
+    "hasPack": true,
+    "hasRhythmSystems": false,
+    "hasScaleSystems": false,
+    "id": "just",
+    "namespace": null,
+  },
+  {
+    "bridgeRulesCount": 0,
+    "customConstraintsCount": 0,
+    "hasBridgeRules": false,
+    "hasCulture": false,
+    "hasCustomConstraints": false,
+    "hasDescription": true,
+    "hasName": true,
+    "hasNamespace": false,
+    "hasPack": true,
+    "hasRhythmSystems": false,
+    "hasScaleSystems": false,
+    "id": "western",
+    "namespace": null,
+  },
+]
+`;
+
+exports[`Ontology Pack Registry Snapshots > should match registered ontology IDs snapshot 1`] = `
+[
+  "just",
+  "western",
+]
+`;

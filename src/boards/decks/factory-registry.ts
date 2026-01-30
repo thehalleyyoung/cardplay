@@ -80,6 +80,15 @@ export class DeckFactoryRegistry {
 
   /**
    * Gets all registered deck types.
+   *
+   * @returns Array of registered deck types
+   */
+  getRegisteredDeckTypes(): DeckType[] {
+    return Array.from(this.factories.keys());
+  }
+
+  /**
+   * Gets all registered deck types.
    */
   getRegisteredTypes(): DeckType[] {
     return Array.from(this.factories.keys()) as DeckType[];

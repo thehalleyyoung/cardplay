@@ -161,6 +161,7 @@ export const livePerformanceBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
+      panelId: 'arranger-strip',
     },
     // I062: Performance macros (8 knobs) - optional deck
     {

@@ -131,40 +131,40 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 159 [Sem] — Add a typed representation for "constraints" that can be checked against diffs (preserve melody exact, keep chords functional).
 - [x] Step 160 [Sem] — Add a typed representation for "preferences" (least-change, no-new-layers) as weighted soft constraints.
 - [x] Step 161 [Sem] — Implement contrast semantics for "but" (SDRT cue): represent as goal+constraint pairing with discourse relation `Contrast`.
-- [ ] Step 162 [Sem] — Implement sequencing semantics for “then/after/before” as plan composition constraints (order in CPL-Plan).
-- [ ] Step 163 [Sem] — Implement “only” semantics: a focus-sensitive operator that restricts the allowed change targets.
-- [ ] Step 164 [Sem] — Implement “still” and “again” semantics as presuppositions about prior states/edits (ties into edit history).
-- [ ] Step 165 [Sem] — Implement “keep X the same” as `preserve(X, exact)` by default, with optional relaxation to functional/recognizable modes.
-- [ ] Step 166 [Sem][Type] — Define `PreservationMode` = exact | functional | recognizable, and specify validation checks for each (pitch equality vs contour fingerprint).
-- [ ] Step 167 [Sem] — Add motif identity semantics: define motif fingerprints (interval/rhythm) and “recognizable” thresholds.
-- [ ] Step 168 [Sem] — Add harmony identity semantics: define chord skeleton vs extensions vs substitutions; map “keep chords” to an explicit tier.
-- [ ] Step 169 [Sem] — Add rhythm identity semantics: define “keep rhythm” as onset grid equality or tolerance-based equivalence.
-- [ ] Step 170 [Sem] — Add arrangement identity semantics: define “keep instrumentation” vs “keep roles” vs “keep layers” as distinct constraints.
-- [ ] Step 171 [Sem][Type] — Implement “semantic typing” for scopes: section scopes accept section refs; bar-range scopes accept typed ranges; selectors accept predicates.
-- [ ] Step 172 [Sem][Type] — Implement “semantic typing” for targets: axis modifiers must attach to axes or to entities with known axis bindings.
-- [ ] Step 173 [Sem] — Implement semantics for “make it feel X” as mapping from affective adjectives to axis bundles + candidate levers (explicitly namespaced).
-- [ ] Step 174 [Sem] — Implement semantics for “hit harder”/“more punch” as mapping to impact axis + candidate levers (density, transients, dynamics).
-- [ ] Step 175 [Sem] — Implement semantics for “more hopeful” as mapping to tension/release + brightness + register (with explicit constraints interaction).
-- [ ] Step 176 [Sem] — Build a “meaning provenance graph” that can explain which words mapped to which CPL nodes and why.
-- [ ] Step 177 [Sem] — Implement MRS-like underspecification for scope ambiguities; keep an explicit set of constraints instead of choosing prematurely.
-- [ ] Step 178 [Sem] — Implement a scope resolution phase that either (a) resolves safely by rules or (b) produces a clarification question.
-- [ ] Step 179 [Sem] — Implement typed ellipsis templates (“same but bigger”, “do that again”) as transformations over prior CPL/plan nodes.
-- [ ] Step 180 [Sem] — Implement typed metonymy handling for music talk (“the chorus” can mean section events, harmony, or arrangement) as a hole with candidates.
-- [ ] Step 181 [Type] — Define a “CPL well-formedness checker” that rejects missing required fields and unknown tags/opcodes/axes.
-- [ ] Step 182 [Type] — Define a “CPL effect checker” that ensures `inspect` requests cannot compile to mutation actions.
-- [ ] Step 183 [Type] — Define a “CPL capability checker” that blocks compilation requiring disabled capabilities (e.g., production edits on non-production boards).
-- [ ] Step 184 [Type] — Add refinement validations for numeric fields (BPM, semitones, amount) with consistent error messages.
-- [ ] Step 185 [Type] — Implement bidirectional typechecking between grammar semantics and CPL AST types (catch lexeme mapping errors early).
-- [ ] Step 186 [NLP][Sem] — Add support for quoted programmatic references (“the track called ‘Glass Pad’”) and ensure they bind deterministically.
-- [ ] Step 187 [NLP][Sem] — Add support for adjectival stacks (“brighter and wider and less busy”) as conjunction of goals with shared scope.
-- [ ] Step 188 [NLP][Sem] — Add support for nested scopes (“in the chorus, on the drums, only for two bars”) producing compositional scope nodes.
-- [ ] Step 189 [NLP][Sem] — Add support for numeric qualifiers (“raise it 2 semitones”, “reduce density by 20%”) with typed units.
-- [ ] Step 190 [NLP][Sem] — Add support for range expressions (“bars 33–40”, “last 2 bars”) with inclusive/exclusive rules documented.
-- [ ] Step 191 [Eval] — Add golden tests for CPL-Intent construction for 200 utterances with explicit expected holes where ambiguity exists.
-- [ ] Step 192 [Eval] — Add “semantic diff” tests: ensure changes to lexicon mappings don’t silently change CPL outputs without updating goldens.
-- [ ] Step 193 [Eval] — Add “scope safety” tests: utterances with scoping must always bind to the same range given the same fixture.
-- [ ] Step 194 [Eval] — Add “operator interaction” tests for negation/only/quantifiers, ensuring MRS underspecification behaves predictably.
-- [ ] Step 195 [Eval] — Add tests ensuring presupposition triggers create expected “requires prior referent” holes when history lacks support.
+- [x] Step 162 [Sem] — Implement sequencing semantics for "then/after/before" as plan composition constraints (order in CPL-Plan).
+- [x] Step 163 [Sem] — Implement "only" semantics: a focus-sensitive operator that restricts the allowed change targets.
+- [x] Step 164 [Sem] — Implement "still" and "again" semantics as presuppositions about prior states/edits (ties into edit history).
+- [x] Step 165 [Sem] — Implement "keep X the same" as `preserve(X, exact)` by default, with optional relaxation to functional/recognizable modes.
+- [x] Step 166 [Sem][Type] — Define `PreservationMode` = exact | functional | recognizable, and specify validation checks for each (pitch equality vs contour fingerprint).
+- [x] Step 167 [Sem] — Add motif identity semantics: define motif fingerprints (interval/rhythm) and "recognizable" thresholds.
+- [x] Step 168 [Sem] — Add harmony identity semantics: define chord skeleton vs extensions vs substitutions; map "keep chords" to an explicit tier.
+- [x] Step 169 [Sem] — Add rhythm identity semantics: define "keep rhythm" as onset grid equality or tolerance-based equivalence.
+- [x] Step 170 [Sem] — Add arrangement identity semantics: define "keep instrumentation" vs "keep roles" vs "keep layers" as distinct constraints.
+- [x] Step 171 [Sem][Type] — Implement "semantic typing" for scopes: section scopes accept section refs; bar-range scopes accept typed ranges; selectors accept predicates.
+- [x] Step 172 [Sem][Type] — Implement "semantic typing" for targets: axis modifiers must attach to axes or to entities with known axis bindings.
+- [x] Step 173 [Sem] — Implement semantics for "make it feel X" as mapping from affective adjectives to axis bundles + candidate levers (explicitly namespaced).
+- [x] Step 174 [Sem] — Implement semantics for "hit harder"/"more punch" as mapping to impact axis + candidate levers (density, transients, dynamics).
+- [x] Step 175 [Sem] — Implement semantics for "more hopeful" as mapping to tension/release + brightness + register (with explicit constraints interaction).
+- [x] Step 176 [Sem] — Build a "meaning provenance graph" that can explain which words mapped to which CPL nodes and why.
+- [x] Step 177 [Sem] — Implement MRS-like underspecification for scope ambiguities; keep an explicit set of constraints instead of choosing prematurely.
+- [x] Step 178 [Sem] — Implement a scope resolution phase that either (a) resolves safely by rules or (b) produces a clarification question.
+- [x] Step 179 [Sem] — Implement typed ellipsis templates ("same but bigger", "do that again") as transformations over prior CPL/plan nodes.
+- [x] Step 180 [Sem] — Implement typed metonymy handling for music talk ("the chorus" can mean section events, harmony, or arrangement) as a hole with candidates.
+- [x] Step 181 [Type] — Define a "CPL well-formedness checker" that rejects missing required fields and unknown tags/opcodes/axes.
+- [x] Step 182 [Type] — Define a "CPL effect checker" that ensures `inspect` requests cannot compile to mutation actions.
+- [x] Step 183 [Type] — Define a "CPL capability checker" that blocks compilation requiring disabled capabilities (e.g., production edits on non-production boards).
+- [x] Step 184 [Type] — Add refinement validations for numeric fields (BPM, semitones, amount) with consistent error messages.
+- [x] Step 185 [Type] — Implement bidirectional typechecking between grammar semantics and CPL AST types (catch lexeme mapping errors early).
+- [x] Step 186 [NLP][Sem] — Add support for quoted programmatic references ("the track called 'Glass Pad'") and ensure they bind deterministically.
+- [x] Step 187 [NLP][Sem] — Add support for adjectival stacks ("brighter and wider and less busy") as conjunction of goals with shared scope.
+- [x] Step 188 [NLP][Sem] — Add support for nested scopes ("in the chorus, on the drums, only for two bars") producing compositional scope nodes.
+- [x] Step 189 [NLP][Sem] — Add support for numeric qualifiers ("raise it 2 semitones", "reduce density by 20%") with typed units.
+- [x] Step 190 [NLP][Sem] — Add support for range expressions ("bars 33–40", "last 2 bars") with inclusive/exclusive rules documented.
+- [x] Step 191 [Eval] — Add golden tests for CPL-Intent construction for 200 utterances with explicit expected holes where ambiguity exists.
+- [x] Step 192 [Eval] — Add "semantic diff" tests: ensure changes to lexicon mappings don't silently change CPL outputs without updating goldens.
+- [x] Step 193 [Eval] — Add "scope safety" tests: utterances with scoping must always bind to the same range given the same fixture.
+- [x] Step 194 [Eval] — Add "operator interaction" tests for negation/only/quantifiers, ensuring MRS underspecification behaves predictably.
+- [x] Step 195 [Eval] — Add tests ensuring presupposition triggers create expected "requires prior referent" holes when history lacks support.
 - [ ] Step 196 [HCI] — Define a CPL viewer UX: collapsible tree, colored tags (goal/constraint/scope), and clickable spans back to original text.
 - [ ] Step 197 [HCI] — Add an “ambiguity UI” pattern: show candidate meanings side-by-side with consequences; allow default selection.
 - [ ] Step 198 [HCI] — Add a “semantic provenance UI” pattern: hover on CPL node to show source words + rule IDs in developer mode.

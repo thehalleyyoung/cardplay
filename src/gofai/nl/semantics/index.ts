@@ -62,3 +62,24 @@ export * from './musical-preferences';
 
 // Discourse relations — SDRT-inspired contrast semantics (Step 161)
 export * from './discourse-relations';
+
+// Discourse operators — sequencing, focus, presupposition, preservation (Steps 162–165)
+export * from './discourse-operators';
+
+// Preservation identity — modes, motif/harmonic/rhythmic/arrangement fingerprints (Steps 166–170)
+export * from './preservation-identity';
+
+// Semantic typing & affective adjective mappings (Steps 171–175)
+export * from './semantic-typing';
+
+// Meaning provenance, MRS, scope resolution, ellipsis, metonymy (Steps 176–180)
+export * from './meaning-provenance';
+
+// CPL type checking & validation (Steps 181–185)
+export * from './cpl-typechecking';
+
+// NLP semantic support features (Steps 186–190)
+export * from './nlp-semantic-support';
+
+// Evaluation framework: golden tests, semantic diffs, scope safety (Steps 191–195)
+export * from './eval-golden-tests';

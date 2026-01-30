@@ -15,9 +15,9 @@
  * @see Change 295
  */
 
-import type { Card as CoreCard, CardPort } from '../cards/card';
+import type { Card as CoreCard, Port } from '../cards/card';
 import type { CardSurfaceConfig, UISurfacePortType, PortDirection } from './cards';
-import type { PortType } from '../canon/port-types';
+import type { CanonicalPortType } from '../canon/port-types';
 
 // ============================================================================
 // PORT MAPPING
@@ -27,7 +27,7 @@ import type { PortType } from '../canon/port-types';
  * Map canonical PortType to UI surface port type.
  * UI layer uses a simplified type system for visual representation.
  */
-export function mapPortTypeToUI(portType: PortType): UISurfacePortType {
+export function mapPortTypeToUI(portType: CanonicalPortType | string): UISurfacePortType {
   // Direct mappings
   switch (portType) {
     case 'audio':
@@ -47,7 +47,7 @@ export function mapPortTypeToUI(portType: PortType): UISurfacePortType {
     // Default for extensions
     default:
       // Namespaced extensions default to 'data' in UI
-      if (portType.includes(':')) {
+      if (typeof portType === 'string' && portType.includes(':')) {
         return 'data';
       }
       // Unknown types
@@ -59,16 +59,16 @@ export function mapPortTypeToUI(portType: PortType): UISurfacePortType {
 /**
  * Map a core card port to UI port representation.
  */
-export function mapCardPortToUI(port: CardPort, direction: PortDirection): {
+export function mapCardPortToUI(port: Port, direction: PortDirection): {
   id: string;
   name: string;
   type: UISurfacePortType;
   direction: PortDirection;
 } {
   return {
-    id: port.id,
-    name: port.name || port.id,
-    type: mapPortTypeToUI(port.type as PortType),
+    id: port.name,
+    name: port.name,
+    type: mapPortTypeToUI(port.type as CanonicalPortType),
     direction,
   };
 }
@@ -101,29 +101,32 @@ export function coreCardToUI<A = unknown, B = unknown>(
     id: card.meta.id,
     type: card.meta.category,
     title: card.meta.name,
-    description: card.meta.description,
     
-    // Ports
-    inputs: (card.inputs || []).map(port => mapCardPortToUI(port, 'input')),
-    outputs: (card.outputs || []).map(port => mapCardPortToUI(port, 'output')),
+    // TODO: CardSurfaceConfig needs ports - extend interface or create wrapper
+    // inputs: (card.signature.inputs || []).map(port => mapCardPortToUI(port, 'input')),
+    // outputs: (card.signature.outputs || []).map(port => mapCardPortToUI(port, 'output')),
     
     // Visual properties
     size: options.size || 'medium',
     width: 0, // Will be set by createCardSurfaceState
     height: 0,
+    minWidth: 100,
+    minHeight: 100,
+    maxWidth: 800,
+    maxHeight: 600,
     style: options.style || 'default',
-    color: card.meta.color || '#4a90e2',
-    icon: card.meta.icon,
     
     // Capabilities
     draggable: true,
     resizable: true,
     minimizable: true,
+    maximizable: true,
     closable: true,
     
-    // Initial state
-    minimized: false,
-    maximized: false,
+    // Color (default hue/saturation)
+    hue: 210,
+    saturation: 60,
+    zIndex: 0,
   };
   
   return config;
@@ -232,13 +235,13 @@ export function applyUIParameterChange<A = unknown, B = unknown>(
 /**
  * Subscribe to core card state changes and update UI.
  * 
- * @param card - Core card instance
- * @param onUpdate - Callback when card state changes
+ * @param _card - Core card instance (unused in placeholder)
+ * @param _onUpdate - Callback when card state changes (unused in placeholder)
  * @returns Unsubscribe function
  */
 export function subscribeToCardState<A = unknown, B = unknown>(
-  card: CoreCard<A, B>,
-  onUpdate: (state: B) => void
+  _card: CoreCard<A, B>,
+  _onUpdate: (state: B) => void
 ): () => void {
   // Implementation would depend on how core cards expose state changes
   // This is a placeholder for the pattern

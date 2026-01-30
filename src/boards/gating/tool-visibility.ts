@@ -65,8 +65,7 @@ export function computeVisibleDeckTypes(board: Board): readonly DeckType[] {
   
   // Arranger deck (part of arrangerCard tool)
   if (tools.arrangerCard.enabled && tools.arrangerCard.mode !== 'hidden') {
-    // Arranger visibility is implicit in arrangement-deck
-    // No separate deck type needed
+    visible.push('arranger-deck');
   }
   
   // AI composer deck

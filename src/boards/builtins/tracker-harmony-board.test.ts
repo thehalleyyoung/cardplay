@@ -132,9 +132,9 @@ describe('Tracker + Harmony Board (G001-G030)', () => {
     it('G023: can be registered in board registry', () => {
       const registry = getBoardRegistry();
       
-      // Should not throw
+      // Should not throw when marked as builtin
       expect(() => {
-        registry.register(trackerHarmonyBoard);
+        registry.register(trackerHarmonyBoard, { isBuiltin: true });
       }).not.toThrow();
       
       // Should be retrievable

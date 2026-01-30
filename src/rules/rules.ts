@@ -7,7 +7,7 @@
  * @module @cardplay/core/rules
  */
 
-import type { Tick, TickDuration } from '../types/primitives';
+import type { Tick } from '../types/primitives';
 import type { Event } from '../types/event';
 import { createEvent } from '../types/event';
 import { EventKinds } from '../types/event-kind';

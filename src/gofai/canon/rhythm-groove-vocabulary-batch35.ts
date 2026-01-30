@@ -292,7 +292,9 @@ export const ARTICULATION_ATTACK_TERMS: readonly Lexeme[] = [
     variants: ['short', 'detached', 'clipped'],
     category: 'adj',
     semantics: {
-      type: 'articulation',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'articulation',
       articulation: 'staccato',
       implies: [
         { type: 'shorten-note-duration', percentage: 0.5 },
@@ -308,7 +310,9 @@ export const ARTICULATION_ATTACK_TERMS: readonly Lexeme[] = [
     variants: ['smooth', 'connected', 'flowing'],
     category: 'adj',
     semantics: {
-      type: 'articulation',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'articulation',
       articulation: 'legato',
       implies: [
         { type: 'extend-note-duration', overlap: 0.1 },
@@ -324,7 +328,9 @@ export const ARTICULATION_ATTACK_TERMS: readonly Lexeme[] = [
     variants: ['marked', 'emphasized', 'accented'],
     category: 'adj',
     semantics: {
-      type: 'articulation',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'articulation',
       articulation: 'marcato',
       implies: [
         { type: 'increase-accent' },
@@ -340,7 +346,9 @@ export const ARTICULATION_ATTACK_TERMS: readonly Lexeme[] = [
     variants: ['held', 'sustained', 'full-value'],
     category: 'adj',
     semantics: {
-      type: 'articulation',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'articulation',
       articulation: 'tenuto',
       implies: [
         { type: 'hold-full-duration' },
@@ -355,7 +363,9 @@ export const ARTICULATION_ATTACK_TERMS: readonly Lexeme[] = [
     variants: ['carried', 'lightly-detached', 'semi-staccato'],
     category: 'adj',
     semantics: {
-      type: 'articulation',
+      type: 'concept',
+      domain: 'expression',
+      aspect: 'articulation',
       articulation: 'portato',
       implies: [
         { type: 'medium-separation' },

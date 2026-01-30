@@ -48,7 +48,7 @@ export function createUnknownCardInfo(
   reason?: UnknownCardInfo['reason'],
   details?: string
 ): UnknownCardInfo {
-  const { namespace, name } = parseCardId(id);
+  const { namespace } = parseCardId(id);
   
   const suggestions: string[] = [];
   
@@ -65,12 +65,13 @@ export function createUnknownCardInfo(
     suggestions.push('Check the card ID format');
   }
   
+  // Build object with only defined properties to satisfy exactOptionalPropertyTypes
   return {
     id,
-    context,
-    namespace,
-    reason,
-    details,
+    ...(context !== undefined && { context }),
+    ...(namespace !== undefined && { namespace }),
+    ...(reason !== undefined && { reason }),
+    ...(details !== undefined && { details }),
     suggestions,
   };
 }

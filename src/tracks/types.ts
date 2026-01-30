@@ -14,10 +14,10 @@
  */
 
 // Re-export arrangement track types
-export { ArrangementTrack, TrackType } from '../ui/components/arrangement-panel';
+export type { ArrangementTrack, TrackType } from '../ui/components/arrangement-panel';
 
 // Re-export freeze track model
-export { FreezeTrackModel } from './clip-operations';
+export type { FreezeTrackModel } from './clip-operations';
 
 /**
  * Common track identifier type.

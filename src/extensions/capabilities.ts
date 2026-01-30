@@ -63,6 +63,54 @@ export const CAPABILITIES = {
     description: 'Modify music specification',
     riskLevel: 'safe' as CapabilityRiskLevel,
   },
+  'read:spec': {
+    description: 'Read music specification',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'read:events': {
+    description: 'Read event data',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'read:routing': {
+    description: 'Read routing graph',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'read:clips': {
+    description: 'Read clip data',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'write:events': {
+    description: 'Create and modify events',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'write:routing': {
+    description: 'Modify routing graph',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'read-project': {
+    description: 'Read project data',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'write-project': {
+    description: 'Write project data',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'register-cards': {
+    description: 'Register new card types',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'register-deck-templates': {
+    description: 'Register deck templates',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'register-event-kinds': {
+    description: 'Register event kind types',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
+  'local-storage': {
+    description: 'Access browser local storage',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
   
   // -------------------------------------------------------------------------
   // ELEVATED CAPABILITIES

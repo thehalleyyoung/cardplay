@@ -271,7 +271,7 @@ registerValidator('event-kind', validateEventKindEntry);
 export function validateSnapshot(snapshot: { entries: Record<string, TypedRegistryEntry[]> }): ValidationResult {
   const messages: ValidationMessage[] = [];
   
-  for (const [entryType, entries] of Object.entries(snapshot.entries)) {
+  for (const [, entries] of Object.entries(snapshot.entries)) {
     for (const entry of entries) {
       const result = validateEntry(entry);
       messages.push(...result.messages);

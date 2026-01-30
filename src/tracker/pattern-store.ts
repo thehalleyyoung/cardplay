@@ -1079,7 +1079,7 @@ export class PatternStore {
     );
     
     for (const event of stream.events) {
-      const rowIdx = Math.floor((event.startTick as number) / ticksPerRow);
+      const rowIdx = Math.floor((event.start as number) / ticksPerRow);
       if (rowIdx >= 0 && rowIdx < rows.length) {
         const row = rows[rowIdx];
         if (!row) continue;
@@ -1090,7 +1090,7 @@ export class PatternStore {
           ...(payload.velocity === undefined ? {} : { volume: asVelocity(Number(payload.velocity)) }),
           ...(typeof payload.pan === 'number' ? { pan: payload.pan } : {}),
           ...(payload.instrument === undefined ? {} : { instrument: payload.instrument as any }),
-          delay: (event.startTick as number) % ticksPerRow,
+          delay: (event.start as number) % ticksPerRow,
         };
 
         rows[rowIdx] = { ...row, note: noteCell };

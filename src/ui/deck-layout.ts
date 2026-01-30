@@ -18,7 +18,7 @@ import type {
 import {
   getSharedEventStore,
 } from '../state';
-import type { PortRef, ConnectionId } from '../types/port-ref';
+import type { PortRef } from '../types/port-ref';
 
 // ============================================================================
 // TYPES

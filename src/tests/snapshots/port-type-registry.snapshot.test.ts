@@ -14,7 +14,7 @@ import { CanonicalPortType } from '../../canon/port-types';
 describe('Port Type Registry Snapshots', () => {
   it('should match registered port types snapshot', () => {
     const registry = getPortTypeRegistry();
-    const portTypes = registry.getRegisteredPortTypes().sort();
+    const portTypes = Array.from(registry.keys()).sort();
 
     expect(portTypes).toMatchSnapshot();
   });
@@ -36,10 +36,10 @@ describe('Port Type Registry Snapshots', () => {
 
   it('should match port type metadata snapshot', () => {
     const registry = getPortTypeRegistry();
-    const portTypes = registry.getRegisteredPortTypes();
+    const portTypes = Array.from(registry.keys());
 
     const metadata = portTypes.map(portType => {
-      const entry = registry.getPortTypeEntry(portType);
+      const entry = registry.get(portType);
       
       return {
         portType,
@@ -57,7 +57,7 @@ describe('Port Type Registry Snapshots', () => {
 
   it('should validate no legacy directional port types', () => {
     const registry = getPortTypeRegistry();
-    const portTypes = registry.getRegisteredPortTypes();
+    const portTypes = Array.from(registry.keys());
 
     const directionalPatterns = [
       /_in$/,
@@ -76,7 +76,7 @@ describe('Port Type Registry Snapshots', () => {
 
   it('should validate canonical builtin port types are registered', () => {
     const registry = getPortTypeRegistry();
-    const registeredTypes = registry.getRegisteredPortTypes();
+    const registeredTypes = Array.from(registry.keys());
 
     const requiredBuiltins: readonly CanonicalPortType[] = [
       'audio',

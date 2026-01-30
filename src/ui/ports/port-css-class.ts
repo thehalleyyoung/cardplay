@@ -6,7 +6,7 @@
  * @module @cardplay/ui/ports/port-css-class
  */
 
-import type { UIPortDirection, UICanonicalPortType, PortSpec, UIPortType } from '../components/card-component';
+import type { UIPortDirection, UICanonicalPortType, PortSpec } from '../components/card-component';
 
 // ============================================================================
 // CSS CLASS GENERATION

@@ -409,6 +409,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('texture', 'modify_roughness'),
+      role: 'main',
       actionType: 'modify_axis',
       axis: 'texture',
       quality: 'rough',
@@ -421,6 +423,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('texture', 'add_grit'),
+      role: 'main',
       actionType: 'modify_axis',
       axis: 'texture',
       quality: 'gritty',
@@ -433,6 +437,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('texture', 'polish'),
+      role: 'main',
       actionType: 'modify_axis',
       axis: 'texture',
       quality: 'polished',
@@ -447,6 +453,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('event', 'synthesize'),
+      role: 'main',
       actionType: 'generate',
       method: 'synthesis',
     },
@@ -458,6 +466,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('event', 'sample'),
+      role: 'main',
       actionType: 'generate',
       method: 'sampling',
     },
@@ -469,6 +479,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('event', 'resample'),
+      role: 'main',
       actionType: 'transform',
       technique: 'resampling',
     },
@@ -480,6 +492,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'granulate'),
+      role: 'main',
       actionType: 'apply_effect',
       effect: 'granular',
     },
@@ -493,6 +507,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('melody', 'detune'),
+      role: 'main',
       actionType: 'modify_pitch',
       technique: 'detune',
     },
@@ -504,6 +520,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('melody', 'retune'),
+      role: 'main',
       actionType: 'modify_pitch',
       technique: 'retune',
     },
@@ -515,6 +533,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('melody', 'pitch_bend'),
+      role: 'main',
       actionType: 'modify_pitch',
       technique: 'bend',
     },
@@ -526,6 +546,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('melody', 'glide'),
+      role: 'main',
       actionType: 'modify_pitch',
       technique: 'glide',
     },
@@ -539,6 +561,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'color_timbre'),
+      role: 'main',
       actionType: 'modify_timbre',
       aspect: 'color',
     },
@@ -550,6 +574,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('harmony', 'revoice'),
+      role: 'main',
       actionType: 'modify_timbre',
       aspect: 'voicing',
     },
@@ -561,6 +587,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'add_character'),
+      role: 'main',
       actionType: 'modify_timbre',
       aspect: 'character',
     },
@@ -572,6 +600,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('texture', 'modify_texture'),
+      role: 'main',
       actionType: 'modify_timbre',
       aspect: 'texture',
     },
@@ -585,6 +615,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'clip'),
+      role: 'main',
       actionType: 'apply_effect',
       effect: 'clipping',
     },
@@ -596,6 +628,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'wavefold'),
+      role: 'main',
       actionType: 'apply_effect',
       effect: 'wavefolding',
     },
@@ -607,6 +641,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'waveshape'),
+      role: 'main',
       actionType: 'apply_effect',
       effect: 'waveshaping',
     },
@@ -618,6 +654,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'rectify'),
+      role: 'main',
       actionType: 'apply_effect',
       effect: 'rectification',
     },
@@ -631,6 +669,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'formant'),
+      role: 'main',
       actionType: 'apply_effect',
       effect: 'formant',
     },
@@ -642,6 +682,8 @@ export const TIMBRE_SOUND_DESIGN_ACTION_VERBS: readonly Lexeme[] = [
     category: 'verb',
     semantics: {
       type: 'action',
+      opcode: createOpcodeId('production', 'vocalize'),
+      role: 'main',
       actionType: 'apply_effect',
       effect: 'vocalization',
     },

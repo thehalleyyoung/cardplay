@@ -221,7 +221,7 @@ export class TrackerEventSync {
     
     for (const event of stream.events) {
       const payload = event.payload as TrackerEventPayload;
-      const tick = event.startTick as number;
+      const tick = event.start as number;
       
       // Calculate row and sub-row delay
       const exactRow = tick / ticksPerRow;
@@ -358,7 +358,7 @@ export class TrackerEventSync {
       const payload = event.payload as TrackerEventPayload;
       if (payload.type !== 'note') continue;
       
-      const startTick = event.startTick as number;
+      const startTick = event.start as number;
       const duration = event.duration as number;
       const endTick = startTick + duration;
       

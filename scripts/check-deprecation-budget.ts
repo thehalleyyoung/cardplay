@@ -17,7 +17,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import glob from 'glob';
 
 // ============================================================================
 // CONFIGURATION
@@ -71,10 +71,14 @@ interface BudgetReport {
  * Find all @deprecated tags in source files.
  */
 async function findDeprecatedItems(): Promise<readonly DeprecatedItem[]> {
-  const files = await glob(SOURCE_PATHS, { cwd: process.cwd() });
+  const allFiles: string[] = [];
+  for (const pattern of SOURCE_PATHS) {
+    const files = glob.sync(pattern, { cwd: process.cwd() });
+    allFiles.push(...files);
+  }
   const items: DeprecatedItem[] = [];
 
-  for (const file of files) {
+  for (const file of allFiles) {
     const content = fs.readFileSync(file, 'utf-8');
     const lines = content.split('\n');
 
@@ -263,11 +267,9 @@ async function main(): Promise<void> {
   process.exit(0);
 }
 
-if (require.main === module) {
-  main().catch(error => {
-    console.error('Error:', error);
-    process.exit(1);
-  });
-}
+main().catch(error => {
+  console.error('Error:', error);
+  process.exit(1);
+});
 
 export { generateReport, findDeprecatedItems };

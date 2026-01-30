@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Deck Factory Registry Snapshots > should match factory capabilities snapshot 1`] = `[]`;
+
+exports[`Deck Factory Registry Snapshots > should match factory metadata snapshot 1`] = `[]`;
+
+exports[`Deck Factory Registry Snapshots > should match registered deck types snapshot 1`] = `[]`;

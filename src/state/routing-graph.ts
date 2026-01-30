@@ -776,15 +776,15 @@ export function serializeRoutingGraph(state: RoutingGraphState): SerializableRou
     version: 1,
     nodes: Array.from(state.nodes.values()).map(node => ({
       id: node.id,
-      cardId: node.cardId,
       type: node.type,
       name: node.name,
-      position: node.position,
       inputs: node.inputs.map(p => ({ ...p })),
       outputs: node.outputs.map(p => ({ ...p })),
-      bypassed: node.bypassed,
-      enabled: node.enabled,
-      metadata: node.metadata,
+      ...(node.cardId !== undefined && { cardId: node.cardId }),
+      ...(node.position !== undefined && { position: node.position }),
+      ...(node.bypassed !== undefined && { bypassed: node.bypassed }),
+      ...(node.enabled !== undefined && { enabled: node.enabled }),
+      ...(node.metadata !== undefined && { metadata: node.metadata }),
     })),
     edges: state.edges.map(edge => ({
       id: edge.id,
@@ -793,9 +793,9 @@ export function serializeRoutingGraph(state: RoutingGraphState): SerializableRou
       type: edge.type,
       sourcePort: edge.sourcePort,
       targetPort: edge.targetPort,
-      gain: edge.gain,
-      active: edge.active,
-      ...(edge.adapterId ? { adapterId: edge.adapterId } : {}),
+      ...(edge.gain !== undefined && { gain: edge.gain }),
+      ...(edge.active !== undefined && { active: edge.active }),
+      ...(edge.adapterId !== undefined && { adapterId: edge.adapterId }),
     })),
   };
 }
@@ -821,7 +821,7 @@ interface LegacyConnection {
  * @returns Normalized edge info or null if invalid
  */
 export function migrateLegacyConnection(legacyConnection: LegacyConnection): Partial<RoutingEdgeInfo> | null {
-  const { sourceNodeId, targetNodeId, sourcePort, targetPort, type, sourcePortType, targetPortType } = legacyConnection;
+  const { sourceNodeId, targetNodeId, sourcePort, targetPort, type, sourcePortType } = legacyConnection;
   
   if (!sourceNodeId || !targetNodeId) {
     return null;
@@ -911,7 +911,7 @@ export function deserializeRoutingGraph(data: SerializableRoutingGraph): Routing
     const node: RoutingNodeInfo = {
       ...nodeData,
       bypassed: nodeData.bypassed ?? false,
-      enabled: nodeData.enabled,
+      ...(nodeData.enabled !== undefined && { enabled: nodeData.enabled }),
     };
     store.addNode(node);
   }

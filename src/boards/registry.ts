@@ -136,6 +136,14 @@ export class BoardRegistry {
   }
   
   /**
+   * Gets all boards (alias for list()).
+   * Used by tests and devtools.
+   */
+  getAll(): Board[] {
+    return this.list();
+  }
+  
+  /**
    * Filters boards by control level.
    */
   getByControlLevel(level: ControlLevel): Board[] {

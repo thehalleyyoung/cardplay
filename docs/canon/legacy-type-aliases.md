@@ -15,6 +15,9 @@ These are NOT legacy aliases—they represent different concepts that happen to 
 
 | Symbol | Context | Description | Location |
 |--------|---------|-------------|----------|
+| `Card` (core) | Core card system | Generic card interface Card<A,B> | `src/cards/card.ts` |
+| `Card` (audio) | Audio module cards | Audio module card interface | `src/audio/instrument-cards.ts` (as AudioModuleCard) |
+| `Card` (GOFAI) | Knowledge graph | Entity card in knowledge representation | `src/gofai/execution/transactional-execution.ts` |
 | `CardState` (core) | Core card state | Generic interface for card state management | `src/cards/card.ts` |
 | `CardState` (UI enum) | UI render state | Type alias for CardSurfaceStateEnum | `src/ui/cards.ts` |
 | `CardState` (UI union) | Component state | Union type for card component states | `src/ui/components/card-component.ts` |
@@ -24,6 +27,7 @@ These are NOT legacy aliases—they represent different concepts that happen to 
 | `Track` (arrangement) | **DEPRECATED** | Use `ArrangementTrack` instead | `src/ui/components/arrangement-panel.ts` |
 
 **Guidance:**
+- **Card:** Import from the appropriate module. Core cards use `Card<A,B>`, audio uses `AudioModuleCard`, GOFAI uses entity cards.
 - **CardState:** Import from the appropriate module for your use case. Core cards use the generic version; UI code uses the enum.
 - **PortType:** Use `canon/ids.ts` for validation/documentation; use `cards/card.ts` for runtime port operations and registry.
 - **Track:** These ARE legacy aliases and should be migrated to their canonical names.

@@ -26,7 +26,7 @@ export interface MissingPackInfo {
   /** Expected provenance (if known) */
   expectedProvenance?: string;
   /** Suggested action for the user */
-  suggestedAction?: string;
+  suggestedAction: string;
 }
 
 // ============================================================================
@@ -44,19 +44,28 @@ export function createMissingPackInfo(
     expectedProvenance?: string;
   }
 ): MissingPackInfo {
-  return {
+  const info: MissingPackInfo = {
     packId,
-    error,
-    referencedBy: context?.referencedBy,
-    expectedProvenance: context?.expectedProvenance,
     suggestedAction: getSuggestedAction(packId, error),
   };
+  
+  if (error !== undefined) {
+    info.error = error;
+  }
+  if (context?.referencedBy !== undefined) {
+    info.referencedBy = context.referencedBy;
+  }
+  if (context?.expectedProvenance !== undefined) {
+    info.expectedProvenance = context.expectedProvenance;
+  }
+  
+  return info;
 }
 
 /**
  * Gets a suggested action for a missing pack.
  */
-function getSuggestedAction(packId: string, error?: PackNotFoundError): string {
+function getSuggestedAction(packId: string, _error?: PackNotFoundError): string {
   // Built-in packs should never be missing
   if (!packId.includes(':')) {
     return 'This is a built-in pack and should not be missing. Please report this bug.';

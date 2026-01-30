@@ -101,6 +101,7 @@ export const pianoRollProducerBoard: Board = {
     {
       id: 'timeline',
       type: 'arrangement-deck',
+      panelId: 'arrangement',
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false
@@ -109,6 +110,7 @@ export const pianoRollProducerBoard: Board = {
     {
       id: 'piano-roll',
       type: 'piano-roll-deck',
+      panelId: 'arrangement',
       cardLayout: 'tabs',
       allowReordering: false,
       allowDragOut: false
@@ -117,6 +119,7 @@ export const pianoRollProducerBoard: Board = {
     {
       id: 'instruments',
       type: 'instruments-deck',
+      panelId: 'browser',
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: true
@@ -125,6 +128,7 @@ export const pianoRollProducerBoard: Board = {
     {
       id: 'samples',
       type: 'samples-deck',
+      panelId: 'browser',
       cardLayout: 'tabs',
       allowReordering: true,
       allowDragOut: true
@@ -133,6 +137,7 @@ export const pianoRollProducerBoard: Board = {
     {
       id: 'mixer',
       type: 'mixer-deck',
+      panelId: 'mixer',
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false
@@ -141,6 +146,7 @@ export const pianoRollProducerBoard: Board = {
     {
       id: 'dsp-chain',
       type: 'dsp-chain',
+      panelId: 'inspector',
       cardLayout: 'stack',
       allowReordering: true,
       allowDragOut: false
@@ -149,6 +155,7 @@ export const pianoRollProducerBoard: Board = {
     {
       id: 'properties',
       type: 'properties-deck',
+      panelId: 'inspector',
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false

@@ -287,6 +287,11 @@ class OntologyRegistry {
 export const ontologyRegistry = new OntologyRegistry();
 
 /**
+ * Set of builtin ontology IDs.
+ */
+export const BUILTIN_ONTOLOGIES = new Set<OntologyId>(['western' as OntologyId, 'just' as OntologyId]);
+
+/**
  * Get ontology registry for devtools inspection.
  */
 export function getOntologyRegistry(): readonly RegisteredOntology[] {
