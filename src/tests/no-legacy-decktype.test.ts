@@ -45,6 +45,7 @@ describe('No Legacy DeckType Strings (Change 467)', () => {
       cwd: srcDir,
       ignore: [
         '**/node_modules/**',
+        '**/dist/**', // Exclude compiled output
         '**/*.test.ts',
         '**/*.spec.ts',
         '**/canon/legacy-aliases.ts', // Allowed to define the mappings
@@ -52,6 +53,7 @@ describe('No Legacy DeckType Strings (Change 467)', () => {
         '**/audio/deck-routing-store-bridge.ts', // Uses DeckNodeType, not DeckType
         '**/state/routing-graph.ts', // Uses node types
         '**/ui/demo-decks.ts', // Demo/test code
+        '**/gofai/canon/ui-only-vs-mutation-actions.ts', // Uses timeline/piano-roll as view type discriminants, not DeckType
       ],
     });
     

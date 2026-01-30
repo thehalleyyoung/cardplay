@@ -243,7 +243,7 @@ describe('Vocabulary Policy: Reserved Namespaces', () => {
   it('should allow non-reserved namespaces', () => {
     expect(() => createLexemeId('dark', 'mypack')).not.toThrow();
     expect(() => createLexemeId('dark', 'custom-pack')).not.toThrow();
-    expect(() => createLexemeId('dark', 'user_pack')).not.toThrow();
+    expect(() => createLexemeId('dark', 'user-pack')).not.toThrow();
   });
 });
 
@@ -442,8 +442,8 @@ describe('Vocabulary Policy: Integration with CardPlay ID System', () => {
   });
 
   it('should allow same namespace rules for consistency', () => {
-    // Valid CardPlay namespace = valid GOFAI namespace
-    const validNamespaces = ['mypack', 'my-pack', 'my_pack', 'mypack2'];
+    // Valid CardPlay namespace = valid GOFAI namespace (kebab-case)
+    const validNamespaces = ['mypack', 'my-pack', 'my-pack-2', 'mypack2'];
     
     validNamespaces.forEach((ns) => {
       expect(() => createLexemeId('test', ns)).not.toThrow();

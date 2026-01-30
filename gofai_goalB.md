@@ -61,7 +61,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 091 [Type] — Define a typed “reference to historical edit package” to support “undo that”, “redo the chorus widening”.
 - [x] Step 098 [Infra] — Add a “vocab coverage report” script: which cards/boards/decks have no language bindings or weak bindings.
 - [x] Step 099 [Eval] — Add regression tests asserting entity bindings remain stable across refactors (ID-based, not display-name fragile).
-- [ ] Step 100 [Infra] — Define the “GOFAI docs SSOT rule”: canonical vocab lives in code; docs are generated or validated from that code.
+- [x] Step 100 [Infra] — Define the “GOFAI docs SSOT rule”: canonical vocab lives in code; docs are generated or validated from that code.
 ---
 
 ## Phase 5 — Planning: Goals → Levers → Plans (Steps 251–300)
@@ -73,8 +73,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 255 [Type] — Define a cost hierarchy aligned with user expectations (melody changes expensive; voicing changes cheap).
 - [x] Step 256 [Sem] — Implement a constraint satisfaction layer: candidate plans must be validated against preserve/only-change constraints.
 - [x] Step 257 [Sem] — Implement plan generation as bounded search over opcodes (depth limit, beam size) to keep runtime predictable offline.
-- [ ] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
-- [ ] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
+- [x] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
+- [x] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
 - [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
 - [x] Step 261 [Sem][Type] — Implement a “plan skeleton” step that maps from CPL-Intent to a set of lever candidates with open parameters.
 - [ ] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.

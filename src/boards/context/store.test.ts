@@ -251,7 +251,7 @@ describe('BoardContextStore', () => {
     });
 
     it('should save only once after burst of updates', () => {
-      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const setItemSpy = vi.spyOn(localStorageMock, 'setItem');
       
       // Clear any pending saves from beforeEach
       vi.runAllTimers();
@@ -263,6 +263,7 @@ describe('BoardContextStore', () => {
 
       // Advance exactly to the debounce time (500ms)
       vi.advanceTimersByTime(500);
+      vi.runAllTimers(); // Execute the debounced callback
 
       // Should have called setItem only once (debounced)
       const contextCalls = setItemSpy.mock.calls.filter(

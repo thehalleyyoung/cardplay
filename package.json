@@ -51,6 +51,10 @@
     "theme:lint": "npx tsx scripts/theme-visual-only-lint.ts",
     "validate:card-ids": "npx tsx scripts/validate-card-ids.ts",
     "check:deprecation": "npx tsx scripts/check-deprecation-budget.ts",
+    "gofai:canon-check": "npx tsx scripts/gofai-canon-check.ts",
+    "gofai:drift-check": "npx tsx scripts/gofai-drift-check.ts",
+    "gofai:vocab-coverage": "node scripts/gofai-vocab-coverage.js",
+    "gofai:check": "npm run gofai:canon-check && npm run gofai:drift-check",
     "check": "npm run typecheck && npm run lint && npm run test && npm run docs:lint && npm run theme:lint && npm run validate:card-ids && npm run check:deprecation && npm run build"
   },
   "devDependencies": {

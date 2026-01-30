@@ -510,3 +510,404 @@ export function formatOptionSet(options: readonly PlanDistinction[]): string {
 
   return lines.join('\n');
 }
+
+// ============================================================================
+// User Override Handling (Step 258 - Allow explicit overrides)
+// ============================================================================
+
+/**
+ * User override for least-change preference.
+ */
+export interface LeastChangeOverride {
+  /** Type of override */
+  readonly type: 'disable_least_change' | 'rewrite' | 'comprehensive' | 'custom_threshold';
+
+  /** Custom magnitude threshold (if type is custom_threshold) */
+  readonly customThreshold?: number;
+
+  /** Rationale for override */
+  readonly rationale?: string;
+
+  /** Whether to ask for confirmation before applying */
+  readonly requireConfirmation?: boolean;
+}
+
+/**
+ * Apply user override to planning preferences.
+ *
+ * This allows users to say things like:
+ * - "rewrite the harmony" (disable least-change for harmony)
+ * - "do a comprehensive edit" (allow large magnitude)
+ * - "just do what you need" (no magnitude restrictions)
+ */
+export function applyLeastChangeOverride(
+  basePreferences: readonly Preference[],
+  override: LeastChangeOverride,
+): readonly Preference[] {
+  const newPrefs = [...basePreferences];
+
+  // Remove existing magnitude preferences
+  const filtered = newPrefs.filter(
+    (p) => p.type !== 'edit-style' && p.type !== 'magnitude-limit'
+  );
+
+  // Add new preference based on override
+  switch (override.type) {
+    case 'disable_least_change':
+      filtered.push({
+        type: 'edit-style',
+        style: 'rewrite',
+        weight: 1.0,
+      } as any);
+      break;
+
+    case 'rewrite':
+      filtered.push({
+        type: 'edit-style',
+        style: 'rewrite',
+        weight: 1.0,
+      } as any);
+      filtered.push({
+        type: 'magnitude-limit',
+        maxMagnitude: 10.0,
+      } as any);
+      break;
+
+    case 'comprehensive':
+      filtered.push({
+        type: 'edit-style',
+        style: 'comprehensive',
+        weight: 1.0,
+      } as any);
+      filtered.push({
+        type: 'magnitude-limit',
+        maxMagnitude: 8.0,
+      } as any);
+      break;
+
+    case 'custom_threshold':
+      if (override.customThreshold !== undefined) {
+        filtered.push({
+          type: 'magnitude-limit',
+          maxMagnitude: override.customThreshold,
+        } as any);
+      }
+      break;
+  }
+
+  return filtered;
+}
+
+/**
+ * Detect override intent from user utterance.
+ *
+ * Looks for phrases like:
+ * - "rewrite", "overhaul", "completely change"
+ * - "don't hold back", "do what you need"
+ * - "comprehensive edit", "deep restructure"
+ */
+export function detectOverrideIntent(utterance: string): LeastChangeOverride | null {
+  const lower = utterance.toLowerCase();
+
+  // Rewrite intent
+  if (
+    lower.includes('rewrite') ||
+    lower.includes('completely change') ||
+    lower.includes('overhaul') ||
+    lower.includes('from scratch')
+  ) {
+    return {
+      type: 'rewrite',
+      rationale: 'User explicitly requested rewrite',
+      requireConfirmation: true,
+    };
+  }
+
+  // Comprehensive intent
+  if (
+    lower.includes('comprehensive') ||
+    lower.includes('thorough') ||
+    lower.includes('deep restructure') ||
+    lower.includes('major changes')
+  ) {
+    return {
+      type: 'comprehensive',
+      rationale: 'User requested comprehensive changes',
+      requireConfirmation: false,
+    };
+  }
+
+  // Disable least-change intent
+  if (
+    lower.includes("don't hold back") ||
+    lower.includes('do what you need') ||
+    lower.includes('whatever it takes') ||
+    lower.includes('just fix it')
+  ) {
+    return {
+      type: 'disable_least_change',
+      rationale: 'User disabled least-change constraint',
+      requireConfirmation: false,
+    };
+  }
+
+  return null;
+}
+
+// ============================================================================
+// Magnitude-Based Filtering
+// ============================================================================
+
+/**
+ * Filter plans by magnitude acceptability.
+ *
+ * Removes plans that exceed magnitude preferences unless explicitly overridden.
+ */
+export function filterPlansByMagnitude(
+  plans: readonly CPLPlan[],
+  world: ProjectWorldAPI,
+  preferences: readonly Preference[],
+  override?: LeastChangeOverride,
+): readonly CPLPlan[] {
+  // If override disables least-change, return all plans
+  if (override?.type === 'disable_least_change' || override?.type === 'rewrite') {
+    return plans;
+  }
+
+  // Apply override preferences if present
+  const effectivePrefs = override
+    ? applyLeastChangeOverride(preferences, override)
+    : preferences;
+
+  // Filter plans
+  return plans.filter((plan) =>
+    isPlanMagnitudeAcceptable(plan, world, effectivePrefs)
+  );
+}
+
+/**
+ * Rank plans by least-change preference.
+ *
+ * Primary sort: magnitude (smallest first)
+ * Secondary sort: cost (lowest first)
+ * Tertiary sort: goal satisfaction (highest first)
+ */
+export function rankPlansByLeastChange(
+  plans: readonly CPLPlan[],
+  world: ProjectWorldAPI,
+  goals: readonly Goal[],
+): readonly CPLPlan[] {
+  const ranked = plans.map((plan) => ({
+    plan,
+    magnitude: analyzeEditMagnitude(plan, world),
+    score: scorePlan(plan, goals, [], world),
+  }));
+
+  ranked.sort((a, b) => {
+    // Primary: magnitude (smaller is better)
+    const magDiff = a.magnitude.overall - b.magnitude.overall;
+    if (Math.abs(magDiff) > 0.5) return magDiff;
+
+    // Secondary: cost (lower is better)
+    const costDiff = a.plan.totalCost - b.plan.totalCost;
+    if (Math.abs(costDiff) > 5) return costDiff;
+
+    // Tertiary: goal satisfaction (higher is better)
+    const scoreDiff = b.score.overall - a.score.overall;
+    if (Math.abs(scoreDiff) > 0.1) return scoreDiff;
+
+    // Final: deterministic tie-break by ID
+    return compareById(a.plan, b.plan);
+  });
+
+  return ranked.map((item) => item.plan);
+}
+
+// ============================================================================
+// Confidence Scoring for Least-Change Plans
+// ============================================================================
+
+/**
+ * Confidence assessment for a least-change plan.
+ */
+export interface LeastChangeConfidence {
+  /** Overall confidence (0-1) */
+  readonly overall: number;
+
+  /** Confidence that this is the minimal acceptable change */
+  readonly isMinimal: number;
+
+  /** Confidence that goals are satisfied */
+  readonly goalsSatisfied: number;
+
+  /** Confidence that magnitude is acceptable to user */
+  readonly magnitudeAcceptable: number;
+
+  /** Confidence that there are no better alternatives */
+  readonly noOversight: number;
+
+  /** Reasons for confidence level */
+  readonly reasons: readonly string[];
+}
+
+/**
+ * Assess confidence in a least-change plan selection.
+ *
+ * High confidence when:
+ * - Plan is significantly smaller than alternatives
+ * - Goals are clearly satisfied
+ * - No close alternatives with different strategies
+ * - Magnitude aligns with user's typical preferences
+ */
+export function assessLeastChangeConfidence(
+  selectedPlan: CPLPlan,
+  allPlans: readonly CPLPlan[],
+  world: ProjectWorldAPI,
+  goals: readonly Goal[],
+): LeastChangeConfidence {
+  const selectedMag = analyzeEditMagnitude(selectedPlan, world);
+  const selectedScore = scorePlan(selectedPlan, goals, [], world);
+
+  const reasons: string[] = [];
+  let isMinimal = 1.0;
+  let goalsSatisfied = selectedScore.overall;
+  let magnitudeAcceptable = 1.0;
+  let noOversight = 1.0;
+
+  // Check if this is clearly minimal
+  const otherPlans = allPlans.filter((p) => p !== selectedPlan);
+  const otherMagnitudes = otherPlans.map((p) => analyzeEditMagnitude(p, world));
+
+  const avgOtherMag =
+    otherMagnitudes.reduce((sum, m) => sum + m.overall, 0) / otherMagnitudes.length;
+
+  if (selectedMag.overall < avgOtherMag - 2.0) {
+    reasons.push('Significantly smaller than alternatives');
+    isMinimal = 1.0;
+  } else if (selectedMag.overall < avgOtherMag - 1.0) {
+    reasons.push('Smaller than alternatives');
+    isMinimal = 0.9;
+  } else {
+    reasons.push('Similar magnitude to alternatives');
+    isMinimal = 0.7;
+    noOversight = 0.8;
+  }
+
+  // Check goal satisfaction
+  if (selectedScore.overall > 0.9) {
+    reasons.push('Goals clearly satisfied');
+    goalsSatisfied = 1.0;
+  } else if (selectedScore.overall > 0.7) {
+    reasons.push('Goals mostly satisfied');
+    goalsSatisfied = 0.8;
+  } else {
+    reasons.push('Goals partially satisfied');
+    goalsSatisfied = 0.6;
+  }
+
+  // Check magnitude acceptability (heuristic)
+  if (selectedMag.overall < 3.0) {
+    reasons.push('Very small changes');
+    magnitudeAcceptable = 1.0;
+  } else if (selectedMag.overall < 5.0) {
+    reasons.push('Moderate changes');
+    magnitudeAcceptable = 0.9;
+  } else if (selectedMag.overall < 7.0) {
+    reasons.push('Significant changes');
+    magnitudeAcceptable = 0.7;
+  } else {
+    reasons.push('Large changes - may need confirmation');
+    magnitudeAcceptable = 0.5;
+  }
+
+  const overall = (isMinimal + goalsSatisfied + magnitudeAcceptable + noOversight) / 4;
+
+  return {
+    overall,
+    isMinimal,
+    goalsSatisfied,
+    magnitudeAcceptable,
+    noOversight,
+    reasons,
+  };
+}
+
+// ============================================================================
+// Explanation Generation for Least-Change Decisions
+// ============================================================================
+
+/**
+ * Generate human-readable explanation of why a plan was selected under least-change.
+ */
+export function explainLeastChangeSelection(
+  selectedPlan: CPLPlan,
+  allPlans: readonly CPLPlan[],
+  world: ProjectWorldAPI,
+  goals: readonly Goal[],
+): string {
+  const magnitude = analyzeEditMagnitude(selectedPlan, world);
+  const confidence = assessLeastChangeConfidence(selectedPlan, allPlans, world, goals);
+
+  const lines: string[] = [];
+
+  lines.push('Selected Plan (Least-Change Preference):');
+  lines.push('');
+  lines.push(`Magnitude: ${magnitude.overall.toFixed(1)}/10`);
+  lines.push(`  - Event changes: ${(magnitude.eventChangeRatio * 100).toFixed(1)}%`);
+  lines.push(`  - Structural depth: ${magnitude.structuralDepth.toFixed(1)}/10`);
+  lines.push(`  - Reversibility: ${(10 - magnitude.reversibility).toFixed(1)}/10`);
+  lines.push(`  - Audibility: ${magnitude.audibility.toFixed(1)}/10`);
+  lines.push('');
+  lines.push(`Confidence: ${(confidence.overall * 100).toFixed(0)}%`);
+  lines.push('Reasons:');
+  for (const reason of confidence.reasons) {
+    lines.push(`  - ${reason}`);
+  }
+  lines.push('');
+
+  if (allPlans.length > 1) {
+    lines.push(`Alternatives considered: ${allPlans.length - 1}`);
+    lines.push('This plan was chosen because it minimizes changes while satisfying goals.');
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Generate warning if plan exceeds typical magnitude expectations.
+ */
+export function generateMagnitudeWarning(
+  plan: CPLPlan,
+  world: ProjectWorldAPI,
+  preferences: readonly Preference[],
+): string | null {
+  const magnitude = analyzeEditMagnitude(plan, world);
+  const preference = getMagnitudePreference(preferences);
+
+  const thresholds: Record<MagnitudePreference, number> = {
+    minimal: 2.0,
+    small: 4.0,
+    moderate: 6.0,
+    large: 8.0,
+    rewrite: 10.0,
+  };
+
+  const threshold = thresholds[preference];
+
+  if (magnitude.overall > threshold) {
+    return (
+      `⚠️  Warning: This plan's magnitude (${magnitude.overall.toFixed(1)}/10) exceeds ` +
+      `your ${preference} preference threshold (${threshold.toFixed(1)}/10).\n` +
+      `Consider using explicit "rewrite" or "comprehensive" phrasing if you want larger changes.`
+    );
+  }
+
+  if (magnitude.overall > 7.0) {
+    return (
+      `⚠️  Note: This plan involves significant changes (magnitude ${magnitude.overall.toFixed(1)}/10).\n` +
+      `If this is too much, try adding "keep it subtle" or "minimal changes" to your request.`
+    );
+  }
+
+  return null;
+}
