@@ -99,12 +99,17 @@ describe('Harmony Analysis', () => {
       const streamId = store.createStream({ name: 'test' }).id;
       
       // Add some notes
-      const event1 = store.addEvents(streamId, [{
+      store.addEvents(streamId, [{
         kind: EventKinds.NOTE,
         start: asTick(0),
         duration: asTickDuration(96),
         payload: { note: 61, velocity: 80 } // C#
-      }])[0];
+      }]);
+      
+      // Get the added event
+      const stream = store.getStream(streamId);
+      const event1 = stream?.events[0];
+      expect(event1).toBeDefined();
       
       const cMajor: Chord = {
         root: 0,
@@ -116,8 +121,8 @@ describe('Harmony Analysis', () => {
       snapToChordTones(streamId, [event1!.id], cMajor);
       
       // Check that note was snapped
-      const stream = store.getStream(streamId);
-      const snappedEvent = stream?.events[0];
+      const streamAfter = store.getStream(streamId);
+      const snappedEvent = streamAfter?.events[0];
       expect(snappedEvent).toBeDefined();
       const snappedNote = (snappedEvent!.payload as { note: number }).note;
       expect([0, 4, 7]).toContain(snappedNote % 12);
@@ -129,12 +134,17 @@ describe('Harmony Analysis', () => {
       const streamId = store.createStream({ name: 'test' }).id;
       
       const originalNote = 61;
-      const event1 = store.addEvents(streamId, [{
+      store.addEvents(streamId, [{
         kind: EventKinds.NOTE,
         start: asTick(0),
         duration: asTickDuration(96),
         payload: { note: originalNote, velocity: 80 }
-      }])[0];
+      }]);
+      
+      // Get the added event
+      const stream = store.getStream(streamId);
+      const event1 = stream?.events[0];
+      expect(event1).toBeDefined();
       
       const cMajor: Chord = {
         root: 0,
@@ -149,8 +159,8 @@ describe('Harmony Analysis', () => {
       undoStack.undo();
       
       // Check that note was restored
-      const stream = store.getStream(streamId);
-      const restoredEvent = stream?.events[0];
+      const streamAfter = store.getStream(streamId);
+      const restoredEvent = streamAfter?.events[0];
       expect(restoredEvent).toBeDefined();
       const restoredNote = (restoredEvent!.payload as { note: number }).note;
       expect(restoredNote).toBe(originalNote);
@@ -162,12 +172,17 @@ describe('Harmony Analysis', () => {
       const store = getSharedEventStore();
       const streamId = store.createStream({ name: 'test' }).id;
       
-      const melodyEvent = store.addEvents(streamId, [{
+      store.addEvents(streamId, [{
         kind: EventKinds.NOTE,
         start: asTick(0),
         duration: asTickDuration(96),
         payload: { note: 64, velocity: 80 } // E
-      }])[0];
+      }]);
+      
+      // Get the added event
+      const stream = store.getStream(streamId);
+      const melodyEvent = stream?.events[0];
+      expect(melodyEvent).toBeDefined();
       
       const cMajor: Chord = {
         root: 0,
@@ -179,11 +194,11 @@ describe('Harmony Analysis', () => {
       harmonizeMelody(streamId, [melodyEvent!.id], cMajor);
       
       // Check that harmony note was added
-      const stream = store.getStream(streamId);
-      expect(stream?.events.length).toBeGreaterThan(1);
+      const streamAfter = store.getStream(streamId);
+      expect(streamAfter?.events.length).toBeGreaterThan(1);
       
       // Check harmony note is below melody
-      const harmonyEvent = stream?.events.find(e => e.id !== melodyEvent!.id);
+      const harmonyEvent = streamAfter?.events.find(e => e.id !== melodyEvent!.id);
       expect(harmonyEvent).toBeDefined();
       const harmonyNote = (harmonyEvent!.payload as { note: number }).note;
       expect(harmonyNote).toBeLessThan(64);
@@ -207,6 +222,14 @@ describe('Harmony Analysis', () => {
           start: asTick(96),
           duration: asTickDuration(96),
           payload: { note: 64, velocity: 80 }, // E
+          triggers: []
+        },
+        {
+          id: 'e3' as EventId,
+          kind: EventKinds.NOTE,
+          start: asTick(192),
+          duration: asTickDuration(96),
+          payload: { note: 67, velocity: 80 }, // G
           triggers: []
         }
       ];

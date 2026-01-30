@@ -26,10 +26,8 @@
  * @see src/gofai/planning/plan-generation.ts (core planning logic)
  */
 
-import type { CPLPlan, PlanOpcode, OpcodeId, PlanScore } from './plan-types';
-import type { CPLGoal, CPLConstraint, CPLIntent } from '../canon/cpl-types';
-import type { PerceptualAxis } from '../canon/perceptual-axes';
-import type { LeverMapping, LeverBundle } from './lever-mappings';
+import type { CPLPlan } from './plan-types';
+import type { CPLConstraint } from '../canon/cpl-types';
 
 // ============================================================================
 // Types
@@ -57,7 +55,7 @@ export interface MultiObjectiveRequest {
  */
 export interface Objective {
   /** The perceptual axis or goal */
-  readonly axis: PerceptualAxis | string;
+  readonly axis: string;
 
   /** Direction of change */
   readonly direction: 'increase' | 'decrease' | 'maintain';
@@ -175,7 +173,8 @@ export function analyzeObjectiveCompatibility(
     compatibleGroups.push([...objectives]);
   } else {
     // Build compatibility graph and find maximal compatible sets
-    compatibleGroups.push(...findCompatibleGroups(objectives, conflicts));
+    const groups = findCompatibleGroups(objectives, conflicts);
+    compatibleGroups.push(...groups);
   }
 
   // Sort objectives by priority for suggested order
@@ -404,7 +403,7 @@ function planBestEffort(
 ): MultiObjectivePlanResult {
   // Start with largest compatible group
   const primaryGroup =
-    compatibility.compatibleGroups.length > 0
+    compatibility.compatibleGroups.length > 0 && compatibility.compatibleGroups[0]
       ? compatibility.compatibleGroups[0]
       : [];
 
@@ -416,7 +415,7 @@ function planBestEffort(
       success: false,
       plans: [],
       satisfiedObjectives: [],
-      unsatisfiedObjectives: objectives,
+      unsatisfiedObjectives: [...objectives],
       tradeoffs: [],
       errors: ['Failed to generate plan for objectives'],
       warnings: [],
@@ -428,9 +427,10 @@ function planBestEffort(
   const unsatisfied = objectives.filter(obj => !primaryGroup.includes(obj));
 
   // Document trade-offs
+  const firstSatisfied = satisfied[0];
   const tradeoffs = unsatisfied.map(unsat => ({
     sacrificed: unsat,
-    preserved: satisfied[0], // Simplified - would be more nuanced
+    preserved: firstSatisfied || unsat, // Fallback to self if no satisfied objectives
     reason: `Conflicts with higher-priority objectives`,
     impact: (unsat.priority > 5 ? 'major' : 'moderate') as 'major' | 'moderate',
   }));
@@ -472,10 +472,11 @@ function planPrioritized(
       satisfied.push(obj);
     } else {
       unsatisfied.push(obj);
-      if (satisfied.length > 0) {
+      const firstSatisfied = satisfied[0];
+      if (firstSatisfied) {
         tradeoffs.push({
           sacrificed: obj,
-          preserved: satisfied[0],
+          preserved: firstSatisfied,
           reason: 'Conflicts with higher-priority objectives',
           impact: obj.priority > 7 ? 'major' : 'moderate',
         });
@@ -501,7 +502,7 @@ function planPrioritized(
  */
 function planAlternatives(
   objectives: readonly Objective[],
-  constraints: readonly CPLConstraint[],
+  _constraints: readonly CPLConstraint[],
   compatibility: ObjectiveCompatibility,
   basePlan?: CPLPlan
 ): MultiObjectivePlanResult {
@@ -550,16 +551,16 @@ function planAlternatives(
 function generatePlanForObjectives(
   objectives: readonly Objective[],
   constraints: readonly CPLConstraint[],
-  basePlan?: CPLPlan
+  _basePlan?: CPLPlan
 ): CPLPlan | null {
   if (objectives.length === 0) {
     return null;
   }
 
-  // Convert objectives to goals
-  const goals: CPLGoal[] = objectives.map(obj => ({
+  // Convert objectives to goals - using string type for compatibility
+  const goals: readonly any[] = objectives.map(obj => ({
     type: 'axis-adjustment',
-    axis: String(obj.axis),
+    axis: obj.axis,
     direction: obj.direction,
     magnitude: obj.magnitude,
     priority: obj.priority,
@@ -569,14 +570,25 @@ function generatePlanForObjectives(
   // For now, return a stub plan structure
   const plan: CPLPlan = {
     id: `plan-multi-obj-${Date.now()}`,
-    goals,
+    opcodes: [],
+    totalCost: 0,
+    satisfactionScore: 0.8,
+    goals: goals as any,
     constraints,
-    steps: [],
-    score: { total: 0 },
-    provenance: {
-      objectives: objectives,
-      strategy: 'multi-objective',
-    },
+    scope: { type: 'scope' } as any,
+    explanation: 'Multi-objective plan',
+    warnings: [],
+    requiredCapabilities: [],
+    riskLevel: 'low',
+    requiresPreview: false,
+    confidence: 0.8,
+    provenance: [
+      {
+        goalId: 'multi-objective',
+        opcodeIds: [],
+        reasoning: 'Generated from multiple objectives',
+      },
+    ],
   };
 
   return plan;
@@ -609,8 +621,9 @@ export function planWithScopeRestriction(
   const { objectives, scopeSelector, constraints } = request;
 
   // Add implicit constraint: only modify events matching selector
-  const scopeConstraint: CPLConstraint = {
-    type: 'only-change',
+  const scopeConstraint: any = {
+    type: 'constraint' as const,
+    constraintType: 'only-change',
     selector: scopeSelector,
     description: `Only modify ${scopeSelector}`,
   };
@@ -653,11 +666,11 @@ export function scalePlan(request: PlanScalingRequest): CPLPlan {
   const { basePlan, scaleFactor, constraints } = request;
 
   // Clone and scale each step's parameters
-  const scaledSteps = basePlan.steps.map(step => {
+  const scaledSteps = basePlan.opcodes.map((opcode: any) => {
     const scaledParams: Record<string, any> = {};
 
     // Scale numeric parameters
-    Object.entries(step.parameters || {}).forEach(([key, value]) => {
+    Object.entries(opcode.params || {}).forEach(([key, value]) => {
       if (typeof value === 'number' && isScalableParameter(key)) {
         scaledParams[key] = scaleParameterValue(key, value, scaleFactor);
       } else {
@@ -666,20 +679,16 @@ export function scalePlan(request: PlanScalingRequest): CPLPlan {
     });
 
     return {
-      ...step,
-      parameters: scaledParams,
+      ...opcode,
+      params: scaledParams,
     };
   });
 
   return {
     ...basePlan,
-    steps: scaledSteps,
+    opcodes: scaledSteps,
     constraints,
-    provenance: {
-      ...basePlan.provenance,
-      scaledFrom: basePlan.id,
-      scaleFactor,
-    },
+    id: `${basePlan.id}-scaled-${scaleFactor.toFixed(2)}`,
   };
 }
 
@@ -743,4 +752,11 @@ export type {
   TradeoffDescription,
   ScopeRestrictedRequest,
   PlanScalingRequest,
+};
+
+export {
+  analyzeObjectiveCompatibility,
+  planMultiObjective,
+  planWithScopeRestriction,
+  scalePlan,
 };

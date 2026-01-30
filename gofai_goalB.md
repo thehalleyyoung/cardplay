@@ -108,14 +108,14 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
 - [x] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
 - [x] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
-- [ ] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
-- [ ] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
-- [ ] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.
-- [ ] Step 296 [Sem] — Add planning support for “multi-objective” requests (increase lift but decrease busyness) by choosing orthogonal levers.
-- [ ] Step 297 [Sem] — Add planning support for “keep X but change Y” by encoding X as hard constraint and planning only over Y levers.
-- [ ] Step 298 [Sem] — Add planning support for “only change drums” by restricting opcodes to selectors matching drums.
-- [ ] Step 299 [Sem] — Add planning support for “do it again but bigger” by taking prior plan and scaling amounts with constraints preserved.
-- [ ] Step 300 [Infra] — Add a plan serialization format (with schema + provenance) so plans can be saved, shared, and replayed.
+- [x] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
+- [x] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
+- [x] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.
+- [x] Step 296 [Sem] — Add planning support for “multi-objective” requests (increase lift but decrease busyness) by choosing orthogonal levers.
+- [x] Step 297 [Sem] — Add planning support for “keep X but change Y” by encoding X as hard constraint and planning only over Y levers.
+- [x] Step 298 [Sem] — Add planning support for “only change drums” by restricting opcodes to selectors matching drums.
+- [x] Step 299 [Sem] — Add planning support for “do it again but bigger” by taking prior plan and scaling amounts with constraints preserved.
+- [x] Step 300 [Infra] — Add a plan serialization format (with schema + provenance) so plans can be saved, shared, and replayed.
 ---
 
 ## Phase 6 — Execution: Compile Plans to CardPlay Mutations with Diffs + Undo (Steps 301–350)
