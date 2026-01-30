@@ -24,11 +24,8 @@
  */
 
 import type { GofaiId } from '../canon/gofai-id';
-import type { CPLPlan, PlanOpcode, PlanScore } from './plan-types';
-import type { Lever, LeverBundle } from './lever-mappings';
-import type { AxisName } from '../canon/perceptual-axes';
-import type { Constraint } from '../canon/goals-constraints-preferences';
-import type { EventSelector } from '../canon/event-selector';
+import type { CPLPlan, Opcode } from './plan-types';
+import type { CPLConstraint as Constraint, CPLScope } from '../canon/cpl-types';
 
 // ============================================================================
 // Negotiation Types
@@ -371,6 +368,15 @@ function handleModifyLever(
   
   const mod = feedback.modifications[0]; // Handle first modification
   
+  if (!mod) {
+    return {
+      newState: { ...state, feedbackHistory, turnCount },
+      systemMessage: 'Invalid modification',
+      isComplete: false,
+      validationPassed: false,
+    };
+  }
+  
   // Clone and modify plan
   const modifiedPlan = applyLeverModification(state.currentPlan, mod);
   
@@ -434,6 +440,15 @@ function handleModifyConstraint(
   
   const mod = feedback.modifications[0];
   
+  if (!mod) {
+    return {
+      newState: { ...state, feedbackHistory, turnCount },
+      systemMessage: 'Invalid modification',
+      isComplete: false,
+      validationPassed: false,
+    };
+  }
+  
   // Apply constraint modification
   const modifiedPlan = applyConstraintModification(state.currentPlan, mod);
   
@@ -483,6 +498,15 @@ function handleModifyScope(
   
   const mod = feedback.modifications[0];
   
+  if (!mod) {
+    return {
+      newState: { ...state, feedbackHistory, turnCount },
+      systemMessage: 'Invalid modification',
+      isComplete: false,
+      validationPassed: false,
+    };
+  }
+  
   // Apply scope modification
   const modifiedPlan = applyScopeModification(state.currentPlan, mod);
   
@@ -517,7 +541,7 @@ function handleModifyScope(
  */
 function handleRequestExplanation(
   state: NegotiationState,
-  feedback: PlanFeedback,
+  _feedback: PlanFeedback,
   feedbackHistory: readonly PlanFeedback[],
   turnCount: number
 ): NegotiationResult {
@@ -558,6 +582,15 @@ function handleRequestAlternative(
   }
   
   const altPlan = state.candidatePlans[requestedIndex];
+  
+  if (!altPlan) {
+    return {
+      newState: { ...state, feedbackHistory, turnCount },
+      systemMessage: 'Invalid alternative index',
+      isComplete: false,
+      validationPassed: false,
+    };
+  }
   
   const newState: NegotiationState = {
     ...state,
@@ -615,21 +648,24 @@ function applyLeverModification(
   mod: PlanModificationRequest
 ): CPLPlan | null {
   // Find opcodes that use this lever
-  const modifiedOpcodes: PlanOpcode[] = [];
+  const modifiedOpcodes: Opcode[] = [];
   let modified = false;
   
   for (const opcode of plan.opcodes) {
-    if (opcode.lever === mod.target) {
+    // Check if this opcode is associated with the lever (via metadata or params)
+    const opcodeMetadata = (opcode as any).metadata;
+    if (opcodeMetadata?.lever === mod.target) {
       // Modify this opcode
-      let newAmount = opcode.amount;
+      const opcodeParams = opcode.params as any;
+      let newAmount = opcodeParams.amount ?? 0.5;
       
       switch (mod.action) {
         case 'strengthen':
-          newAmount = Math.min(1.0, opcode.amount * 1.5);
+          newAmount = Math.min(1.0, newAmount * 1.5);
           modified = true;
           break;
         case 'weaken':
-          newAmount = Math.max(0.1, opcode.amount * 0.6);
+          newAmount = Math.max(0.1, newAmount * 0.6);
           modified = true;
           break;
         case 'remove':
@@ -645,13 +681,11 @@ function applyLeverModification(
       
       modifiedOpcodes.push({
         ...opcode,
-        amount: newAmount,
-        metadata: {
-          ...opcode.metadata,
-          userModified: true,
-          modificationReason: mod.rationale ?? 'User requested change',
+        params: {
+          ...opcode.params,
+          amount: newAmount,
         },
-      });
+      } as Opcode);
     } else {
       modifiedOpcodes.push(opcode);
     }
@@ -664,14 +698,8 @@ function applyLeverModification(
   // Create new plan
   return {
     ...plan,
-    id: `${plan.id}:modified:${Date.now()}` as GofaiId,
+    id: `${plan.id}:modified:${Date.now()}`,
     opcodes: modifiedOpcodes,
-    metadata: {
-      ...plan.metadata,
-      parentPlanId: plan.id,
-      modificationType: 'lever_adjustment',
-      modificationTimestamp: new Date().toISOString(),
-    },
   };
 }
 
@@ -708,14 +736,8 @@ function applyConstraintModification(
   
   return {
     ...plan,
-    id: `${plan.id}:modified:${Date.now()}` as GofaiId,
+    id: `${plan.id}:modified:${Date.now()}`,
     constraints: newConstraints,
-    metadata: {
-      ...plan.metadata,
-      parentPlanId: plan.id,
-      modificationType: 'constraint_adjustment',
-      modificationTimestamp: new Date().toISOString(),
-    },
   };
 }
 
@@ -724,28 +746,19 @@ function applyConstraintModification(
  */
 function applyScopeModification(
   plan: CPLPlan,
-  mod: PlanModificationRequest
+  _mod: PlanModificationRequest
 ): CPLPlan | null {
-  // Modify scope in opcodes
-  const modifiedOpcodes = plan.opcodes.map(opcode => ({
-    ...opcode,
-    selector: {
-      ...opcode.selector,
-      // Apply scope modification logic here
-      // This would depend on the specific scope modification
-    },
-  }));
+  // Modify scope in plan
+  const modifiedScope: CPLScope = {
+    ...plan.scope,
+    // Apply scope modification logic here
+    // This would depend on the specific scope modification
+  };
   
   return {
     ...plan,
-    id: `${plan.id}:modified:${Date.now()}` as GofaiId,
-    opcodes: modifiedOpcodes,
-    metadata: {
-      ...plan.metadata,
-      parentPlanId: plan.id,
-      modificationType: 'scope_adjustment',
-      modificationTimestamp: new Date().toISOString(),
-    },
+    id: `${plan.id}:modified:${Date.now()}`,
+    scope: modifiedScope,
   };
 }
 
@@ -775,8 +788,9 @@ function validateModifiedPlan(plan: CPLPlan): ValidationResult {
   
   // Check opcodes are valid
   for (const opcode of plan.opcodes) {
-    if (opcode.amount < 0 || opcode.amount > 1) {
-      errors.push(`Invalid amount for opcode ${opcode.id}: ${opcode.amount}`);
+    const opcodeParams = opcode.params as any;
+    if (opcodeParams.amount !== undefined && (opcodeParams.amount < 0 || opcodeParams.amount > 1)) {
+      errors.push(`Invalid amount for opcode ${opcode.id}: ${opcodeParams.amount}`);
     }
   }
   
@@ -794,7 +808,7 @@ function validateModifiedPlan(plan: CPLPlan): ValidationResult {
  * Describe a lever modification in natural language.
  */
 function describeLeverModification(mod: PlanModificationRequest): string {
-  const leverName = mod.target;
+  const leverName = String(mod.target);
   
   switch (mod.action) {
     case 'strengthen':
@@ -840,7 +854,7 @@ function generatePlanExplanation(plan: CPLPlan): string {
   parts.push(`This plan will make ${plan.opcodes.length} changes:`);
   
   for (const opcode of plan.opcodes.slice(0, 3)) {
-    parts.push(`- ${opcode.description || opcode.type}`);
+    parts.push(`- ${opcode.description ?? opcode.name}`);
   }
   
   if (plan.opcodes.length > 3) {
@@ -877,7 +891,8 @@ function getNextAlternativeIndex(state: NegotiationState): number {
   ]);
   
   for (let i = 0; i < state.candidatePlans.length; i++) {
-    if (!shownPlanIds.has(state.candidatePlans[i].id)) {
+    const plan = state.candidatePlans[i];
+    if (plan && !shownPlanIds.has(plan.id)) {
       return i;
     }
   }
@@ -925,15 +940,17 @@ export function analyzeNegotiationHistory(
           modCounts.set(key, (modCounts.get(key) ?? 0) + 1);
           
           if (mod.type === 'lever' && mod.action === 'remove') {
-            rejectedLevers.set(mod.target.toString(), (rejectedLevers.get(mod.target.toString()) ?? 0) + 1);
+            rejectedLevers.set(String(mod.target), (rejectedLevers.get(String(mod.target)) ?? 0) + 1);
           }
         }
       }
     }
     
-    if (session.acceptedPlan) {
-      for (const constraint of session.acceptedPlan.constraints) {
-        constraintCounts.set(constraint.id, (constraintCounts.get(constraint.id) ?? 0) + 1);
+    const acceptedPlan = session.acceptedPlan;
+    if (acceptedPlan) {
+      for (const constraint of acceptedPlan.constraints) {
+        const constraintId = typeof constraint === 'object' && 'id' in constraint ? (constraint as any).id as GofaiId : constraint as GofaiId;
+        constraintCounts.set(constraintId, (constraintCounts.get(constraintId) ?? 0) + 1);
       }
     }
   }

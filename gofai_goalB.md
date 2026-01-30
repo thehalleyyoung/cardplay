@@ -106,8 +106,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 288 [Eval] — Add least-change tests: given two satisfying plans, system picks lower cost unless user requests otherwise.
 - [x] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
 - [x] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
-- [ ] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
-- [ ] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
+- [x] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
+- [x] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
 - [ ] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).
 - [ ] Step 294 [HCI] — Add UI for “plan patching”: user can remove a step from the plan and revalidate.
 - [ ] Step 295 [Type] — Ensure plan patching re-runs constraint checks and displays violations before allowing apply.

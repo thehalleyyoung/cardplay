@@ -24,8 +24,8 @@
  */
 
 import type { GofaiId } from '../canon/gofai-id';
-import type { AxisName, PerceptualAxis } from '../canon/perceptual-axes';
-import type { Lever, LeverBundle } from './lever-mappings';
+import type { AxisId } from '../canon/types';
+import type { Lever } from './lever-mappings';
 
 // ============================================================================
 // Profile Types
@@ -60,7 +60,7 @@ export type PreferenceWeight =
  * based on user's aesthetic preferences.
  */
 export interface AxisInterpretation {
-  readonly axis: AxisName;
+  readonly axis: AxisId;
   
   /**
    * Preferred levers for increasing this axis.
@@ -109,7 +109,7 @@ export interface ParameterScalingPreference {
   /**
    * Per-axis multipliers.
    */
-  readonly axisScales: ReadonlyMap<AxisName, number>;
+  readonly axisScales: ReadonlyMap<AxisId, number>;
   
   /**
    * Per-parameter-type multipliers (e.g., prefer larger filter changes).
@@ -179,7 +179,7 @@ export interface GenreVocabularyProfile {
    * Genre-specific term meanings.
    * E.g., "tight" in EDM = quantize hard, in jazz = sync time feel
    */
-  readonly termMappings: ReadonlyMap<string, LeverBundle>;
+  readonly termMappings: ReadonlyMap<string, Lever>;
   
   /**
    * Typical constraints for this genre.
@@ -264,7 +264,7 @@ export interface ResolvedPreferences {
   /**
    * Final axis interpretations after merging.
    */
-  readonly axisInterpretations: ReadonlyMap<AxisName, AxisInterpretation>;
+  readonly axisInterpretations: ReadonlyMap<AxisId, AxisInterpretation>;
   
   /**
    * Final parameter scaling.
@@ -302,10 +302,10 @@ export function resolvePreferences(
   availableProfiles: readonly UserPreferenceProfile[]
 ): ResolvedPreferences {
   // Sort profiles by priority
-  const orderedProfiles = prioritizeProfiles(availableProfiles, context);
+  const orderedProfiles = [...prioritizeProfiles(availableProfiles, context)];
   
   // Merge axis interpretations
-  const axisMap = new Map<AxisName, AxisInterpretation>();
+  const axisMap = new Map<AxisId, AxisInterpretation>();
   const provenance = new Map<string, GofaiId>();
   
   for (const profile of orderedProfiles.reverse()) {
@@ -318,8 +318,8 @@ export function resolvePreferences(
   // Merge genre-specific interpretations if genre is known
   const genre = context.userSpecifiedGenre ?? context.detectedGenre;
   if (genre) {
-    for (const profile of orderedProfiles.reverse()) {
-      const genreProfile = profile.genreProfiles.find(gp => gp.genre === genre);
+    for (const profile of [...orderedProfiles].reverse()) {
+      const genreProfile = profile.genreProfiles.find((gp: GenreVocabularyProfile) => gp.genre === genre);
       if (genreProfile) {
         for (const interp of genreProfile.axisInterpretations) {
           // Genre-specific overrides general interpretation
@@ -399,7 +399,7 @@ function mergeParameterScaling(
     sum + p.parameterScaling.globalScale, 0) / profiles.length;
   
   // Merge axis scales (take most recent non-1.0 value)
-  const axisScales = new Map<AxisName, number>();
+  const axisScales = new Map<AxisId, number>();
   for (const profile of profiles) {
     for (const [axis, scale] of profile.parameterScaling.axisScales) {
       if (!axisScales.has(axis) || scale !== 1.0) {
@@ -450,7 +450,14 @@ function mergeConstraints(
     if (forbiddenSet === null) {
       forbiddenSet = ops;
     } else {
-      forbiddenSet = new Set([...forbiddenSet].filter(op => ops.has(op)));
+      // Create intersection
+      const intersection = new Set<string>();
+      for (const op of Array.from(forbiddenSet)) {
+        if (ops.has(op)) {
+          intersection.add(op);
+        }
+      }
+      forbiddenSet = intersection;
     }
   }
   
@@ -532,7 +539,7 @@ function mergePlanningStyle(
  */
 export function applyPreferencesToLeverWeights(
   levers: readonly Lever[],
-  axis: AxisName,
+  axis: AxisId,
   preferences: ResolvedPreferences
 ): Map<Lever, number> {
   const weights = new Map<Lever, number>();
@@ -562,7 +569,7 @@ export function applyPreferencesToLeverWeights(
 export function scaleParameterByPreferences(
   paramName: string,
   paramType: string,
-  axis: AxisName,
+  axis: AxisId,
   baseAmount: number,
   preferences: ResolvedPreferences
 ): number {
@@ -590,7 +597,7 @@ export function scaleParameterByPreferences(
  * Get default amount for an axis based on user preferences.
  */
 export function getDefaultAmountForAxis(
-  axis: AxisName,
+  axis: AxisId,
   preferences: ResolvedPreferences
 ): number {
   const interpretation = preferences.axisInterpretations.get(axis);
@@ -634,7 +641,7 @@ export function getImplicitConstraints(
  * Evidence from user's editing behavior to update preferences.
  */
 export interface EditBehaviorEvidence {
-  readonly axis: AxisName;
+  readonly axis: AxisId;
   readonly chosenLever: Lever;
   readonly amount: number;
   readonly genre?: string;
@@ -650,7 +657,7 @@ export function learnFromEditBehavior(
   currentProfile: UserPreferenceProfile
 ): readonly AxisInterpretation[] {
   // Group evidence by axis
-  const byAxis = new Map<AxisName, EditBehaviorEvidence[]>();
+  const byAxis = new Map<AxisId, EditBehaviorEvidence[]>();
   for (const ev of evidence) {
     const existing = byAxis.get(ev.axis) ?? [];
     byAxis.set(ev.axis, [...existing, ev]);

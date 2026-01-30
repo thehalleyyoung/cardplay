@@ -217,18 +217,19 @@ describe('entity-binding-stability (Step 099)', () => {
       }
     });
 
-    it('should maintain opcode ID format (op:name)', () => {
+    it('should maintain opcode ID format (opcode:name)', () => {
       for (const opcode of CORE_OPCODES) {
         const id = opcode.id as string;
-        expect(id).toMatch(/^(op:|[a-z_]+:op:)/);
+        // Format: opcode:name or opcode:namespace:name
+        expect(id).toMatch(/^opcode:([a-z_]+:)?[a-z_]+$/);
       }
     });
 
-    it('should maintain lexeme ID format (lex:category:name)', () => {
+    it('should maintain lexeme ID format (lexeme:category:name)', () => {
       for (const lexeme of CORE_LEXEMES) {
         const id = lexeme.id as string;
-        // Core lexemes should start with lex: or have namespace:lex: pattern
-        expect(id).toMatch(/^(lex:|[a-z_]+:lex:)/);
+        // Format: lexeme:category:name or lexeme:namespace:category:name
+        expect(id).toMatch(/^lexeme:([a-z_]+:)?[a-z_]+:[a-z_]+$/);
       }
     });
   });
