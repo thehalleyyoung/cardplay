@@ -557,43 +557,52 @@ Notes:
 - ✅ **Test files:** 268/311 passing (86.2%) ← UPDATED Session 18!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 20 Summary (2026-01-30)
+### Session 20 Summary (2026-01-30) - FINAL
 
 **Major Achievements:**
 1. ✅ Fixed 156 require() import paths in spec-event-bus.test.ts
 2. ✅ Exported CATEGORY_KEYWORDS and PLUGIN_KEYWORDS from auto-coloring.ts
 3. ✅ Fixed auto-coloring test expectations (scheme id vs name, percussion vs drums)
-4. ✅ Test results improved: 595 → 592 failing (-3 failures)
-5. ✅ Tests passing: 10,822 → 10,826 (+4 tests)
+4. ✅ Fixed id-system tests (removed duplicate isValidNamespace, added exports)
+5. ✅ Test results improved: 595 → 588 failing (-7 failures total)
+6. ✅ Tests passing: 10,822 → 10,830 (+8 tests total)
 
 **Test Files Fixed:**
 1. spec-event-bus.test.ts - Fixed 156 import paths (../queries → ../../queries)
    - Changed require('../queries/spec-queries') to require('../../queries/spec-queries')
    - Changed import('../queries/spec-queries') to import('../../queries/spec-queries')
    - Many tests still fail due to require() not working with ES modules in vitest
-   - 190/395 tests passing (was 190/395, imports fixed but logic issues remain)
+   - 190/395 tests passing (import paths fixed but logic issues remain)
+
 2. auto-coloring.test.ts - Fixed exports and test expectations:
-   - Exported CATEGORY_KEYWORDS from auto-coloring.ts
-   - Exported PLUGIN_KEYWORDS from auto-coloring.ts
+   - Exported CATEGORY_KEYWORDS and PLUGIN_KEYWORDS from auto-coloring.ts
    - Fixed scheme test to check 'id' field instead of 'name'
    - Fixed 'Percussion' expectation (correctly returns 'percussion' not 'drums')
    - Added dedicated percussion detection test
-   - Tests: 12/49 passing (was 8/48)
+   - Tests: 12/49 passing (was 8/48, +4 tests)
+
+3. id-system.test.ts - Fixed namespace validation:
+   - Removed duplicate isValidNamespace function from gofai-id.ts (line 337)
+   - Kept exported version on line 148
+   - Added re-exports to types.ts for isValidNamespace and RESERVED_NAMESPACES
+   - Tests: 56/58 passing (was 52/58, +4 tests)
 
 **Progress Metrics:**
 - Starting: 10,822 tests passing (269 files), 595 failing
-- Ending: 10,826 tests passing (269 files), 592 failing
-- Pass rate: 94.8% (10,826/11,451)
-- Improvement: +4 tests, -3 failures
+- Ending: 10,830 tests passing (269 files), 588 failing
+- Pass rate: 94.9% (10,830/11,451)
+- Improvement: +8 tests, -7 failures
 
 **Commits:**
 1. 86af3b0: Fix test issues: spec-event-bus import paths, auto-coloring exports and test expectations
+2. 4f4bb3c: Fix id-system tests: remove duplicate isValidNamespace, export from types.ts
 
 **Remaining Work:**
 - 42 test files still failing (mostly integration tests and GOFAI experiments)
-- 592 tests failing (5.2% failure rate)
+- 588 tests failing (5.1% failure rate, down from 5.2%)
 - spec-event-bus.test.ts: 205 tests still failing (require() doesn't work with ES modules)
 - auto-coloring.test.ts: 37 tests still failing (return type issues)
+- id-system.test.ts: 2 tests still failing (minor edge cases)
 - Most failures are in:
   - Integration tests requiring design work (Changes 488-489 - intentionally deferred)
   - Experimental GOFAI modules (not blocking production)
