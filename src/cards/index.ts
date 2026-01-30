@@ -830,6 +830,12 @@ export {
   generateConnectionCSS,
 } from './card-visuals';
 
+// Card Editor exports (Change 271)
+export {
+  type EditorCardDefinition,
+  createDefaultCardDefinition,
+} from '../user-cards/card-editor-panel';
+
 // Generator Card UI exports
 export {
   // Drum Machine

@@ -297,7 +297,7 @@ Notes:
 - [x] Change 268 — Consolidate CardDefinition schemas: pick `cardplay/src/cards/card-visuals.ts` as canonical and rename editor schema in `cardplay/src/user-cards/card-editor-panel.ts`. [Done: EditorCardDefinition exists]
 - [x] Change 269 — Rename `export interface CardDefinition` in `cardplay/src/user-cards/card-editor-panel.ts` to `EditorCardDefinition`. [Done]
 - [x] Change 270 — Update all references in `cardplay/src/user-cards/card-editor-panel.ts` and related files to use `EditorCardDefinition`. [Done]
-- [ ] Change 271 — Ensure `cardplay/src/cards/index.ts` exports `CardDefinition` (visuals) and `EditorCardDefinition` (editor) with explicit names.
+- [x] Change 271 — Ensure `cardplay/src/cards/index.ts` exports `CardDefinition` (visuals) and `EditorCardDefinition` (editor) with explicit names.
 - [ ] Change 272 — Update `cardplay/docs/card-definition-format.md` to reference the canonical schema location and remove phantom `src/core/card.ts` references (or mark as legacy alias).
 - [x] Change 273 — Rename `cardplay/src/cards/card-visuals.ts` `PortType` export to `VisualPortType` and stop colliding with canonical `PortType`. [Done in Change 203]
 - [x] Change 274 — Update `cardplay/src/cards/index.ts` to export `VisualPortType` only (don't leak `PortType` under ambiguous name). [Done: VisualPortType exported]

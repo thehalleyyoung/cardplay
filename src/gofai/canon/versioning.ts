@@ -466,6 +466,544 @@ class MigrationRegistry {
 export const gofaiMigrationRegistry = new MigrationRegistry();
 
 // =============================================================================
+// CPL Schema Definitions (following CardPlay canon discipline)
+// =============================================================================
+
+/**
+ * CPL schema compatibility policy.
+ *
+ * Aligned with CardPlay's canon serialization/versioning:
+ * - MAJOR: Breaking changes to core semantics
+ * - MINOR: Additive changes (new node types, new fields with defaults)
+ * - PATCH: Bug fixes, clarifications, internal refactoring
+ */
+export const CPL_COMPATIBILITY_POLICY = {
+  /**
+   * Breaking changes requiring major version bump:
+   * - Remove or rename required fields
+   * - Change type of existing fields
+   * - Change semantics of existing constructs
+   * - Remove support for previously valid CPL
+   */
+  MAJOR_BREAKING: [
+    'field-removal',
+    'field-rename',
+    'type-change',
+    'semantic-change',
+    'construct-removal',
+  ] as const,
+
+  /**
+   * Additive changes requiring minor version bump:
+   * - Add new optional fields (with defaults)
+   * - Add new node types
+   * - Add new constraint types
+   * - Add new opcodes
+   * - Extend enums with new values
+   */
+  MINOR_ADDITIVE: [
+    'field-addition',
+    'node-type-addition',
+    'constraint-addition',
+    'opcode-addition',
+    'enum-extension',
+  ] as const,
+
+  /**
+   * Non-breaking changes requiring patch version bump:
+   * - Documentation improvements
+   * - Internal implementation changes
+   * - Performance improvements
+   * - Bug fixes that don't change CPL interpretation
+   */
+  PATCH_COMPATIBLE: [
+    'documentation',
+    'implementation',
+    'performance',
+    'bugfix-nonbreaking',
+  ] as const,
+} as const;
+
+/**
+ * Schema change record for audit trail.
+ */
+export interface SchemaChangeRecord {
+  /** Version after the change */
+  readonly version: SemanticVersion;
+
+  /** Type of change */
+  readonly changeType:
+    | (typeof CPL_COMPATIBILITY_POLICY.MAJOR_BREAKING)[number]
+    | (typeof CPL_COMPATIBILITY_POLICY.MINOR_ADDITIVE)[number]
+    | (typeof CPL_COMPATIBILITY_POLICY.PATCH_COMPATIBLE)[number];
+
+  /** Human-readable description */
+  readonly description: string;
+
+  /** Date of change */
+  readonly date: string;
+
+  /** Migration function name (if applicable) */
+  readonly migrationFunction?: string;
+
+  /** Deprecation warnings (if applicable) */
+  readonly deprecations?: readonly string[];
+}
+
+/**
+ * CPL schema changelog.
+ *
+ * This is the SSOT for CPL version history and migration paths.
+ */
+export const CPL_SCHEMA_CHANGELOG: readonly SchemaChangeRecord[] = [
+  {
+    version: { major: 1, minor: 0, patch: 0 },
+    changeType: 'documentation',
+    description: 'Initial CPL schema definition',
+    date: '2024-01-01',
+  },
+] as const;
+
+/**
+ * Get changelog for a specific schema.
+ */
+export function getSchemaChangelog(
+  schemaId: string
+): readonly SchemaChangeRecord[] {
+  // For now, all schemas share the same changelog
+  // In the future, this could be schema-specific
+  return CPL_SCHEMA_CHANGELOG;
+}
+
+/**
+ * Get changes between two versions.
+ */
+export function getChangesBetweenVersions(
+  from: SemanticVersion,
+  to: SemanticVersion
+): readonly SchemaChangeRecord[] {
+  return CPL_SCHEMA_CHANGELOG.filter(record => {
+    const recordVersion = record.version;
+    return (
+      compareSemanticVersions(recordVersion, from) > 0 &&
+      compareSemanticVersions(recordVersion, to) <= 0
+    );
+  });
+}
+
+/**
+ * Check if changes between versions are breaking.
+ */
+export function hasBreakingChanges(
+  from: SemanticVersion,
+  to: SemanticVersion
+): boolean {
+  const changes = getChangesBetweenVersions(from, to);
+  return changes.some(change =>
+    CPL_COMPATIBILITY_POLICY.MAJOR_BREAKING.includes(change.changeType as any)
+  );
+}
+
+// =============================================================================
+// Serialization/Deserialization with Versioning
+// =============================================================================
+
+/**
+ * Serialization options.
+ */
+export interface SerializationOptions {
+  /** Include migration history */
+  readonly includeMigrations?: boolean;
+
+  /** Include provenance metadata */
+  readonly includeProvenance?: boolean;
+
+  /** Compact format (no pretty-printing) */
+  readonly compact?: boolean;
+
+  /** Schema version to target (for backward compatibility) */
+  readonly targetVersion?: SemanticVersion;
+}
+
+/**
+ * Deserialization options.
+ */
+export interface DeserializationOptions {
+  /** Auto-migrate to current version */
+  readonly autoMigrate?: boolean;
+
+  /** Strict mode (fail on unknown fields) */
+  readonly strict?: boolean;
+
+  /** Allow deprecated constructs */
+  readonly allowDeprecated?: boolean;
+}
+
+/**
+ * Serialization result.
+ */
+export interface SerializationResult {
+  /** Serialized JSON string */
+  readonly json: string;
+
+  /** Version used */
+  readonly version: SemanticVersion;
+
+  /** Schema ID */
+  readonly schema: string;
+
+  /** Warnings (if any) */
+  readonly warnings: readonly string[];
+}
+
+/**
+ * Deserialization result.
+ */
+export interface DeserializationResult<T> {
+  /** Deserialized data */
+  readonly data: T;
+
+  /** Original version */
+  readonly originalVersion: SemanticVersion;
+
+  /** Current version (after migration if applicable) */
+  readonly currentVersion: SemanticVersion;
+
+  /** Migrations applied (if any) */
+  readonly migrations: readonly MigrationRecord[];
+
+  /** Warnings (if any) */
+  readonly warnings: readonly string[];
+
+  /** Was migration required? */
+  readonly wasMigrated: boolean;
+}
+
+/**
+ * Serialize data with version envelope.
+ */
+export function serializeWithVersion<T>(
+  schemaId: string,
+  version: SemanticVersion,
+  data: T,
+  options: SerializationOptions = {}
+): SerializationResult {
+  const warnings: string[] = [];
+
+  // Create envelope
+  const envelope = createVersionEnvelope(schemaId, version, data);
+
+  // Serialize
+  const json = options.compact
+    ? JSON.stringify(envelope)
+    : JSON.stringify(envelope, null, 2);
+
+  return {
+    json,
+    version,
+    schema: schemaId,
+    warnings,
+  };
+}
+
+/**
+ * Deserialize data with version checking and migration.
+ */
+export function deserializeWithVersion<T>(
+  schemaId: string,
+  json: string,
+  currentVersion: SemanticVersion,
+  options: DeserializationOptions = {}
+): DeserializationResult<T> {
+  const warnings: string[] = [];
+
+  // Parse JSON
+  let envelope: unknown;
+  try {
+    envelope = JSON.parse(json);
+  } catch (error) {
+    throw new Error(
+      `Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Validate envelope
+  if (!validateVersionEnvelope(envelope, schemaId)) {
+    throw new Error(`Invalid version envelope for schema ${schemaId}`);
+  }
+
+  const typedEnvelope = envelope as VersionEnvelope<T>;
+  const originalVersion = typedEnvelope.version;
+  let data = typedEnvelope.data;
+  let migrations = typedEnvelope.migrations ?? [];
+  let wasMigrated = false;
+
+  // Check if migration is needed
+  if (requiresMigration(originalVersion, currentVersion)) {
+    if (!options.autoMigrate) {
+      warnings.push(
+        `Data is version ${formatSemanticVersion(originalVersion)}, ` +
+          `current version is ${formatSemanticVersion(currentVersion)}. ` +
+          `Consider enabling autoMigrate.`
+      );
+    } else {
+      // Apply migrations
+      const result = gofaiMigrationRegistry.applyMigrations<T>(
+        schemaId,
+        data,
+        originalVersion,
+        currentVersion
+      );
+
+      if (!result) {
+        throw new Error(
+          `No migration path found from ${formatSemanticVersion(originalVersion)} ` +
+            `to ${formatSemanticVersion(currentVersion)} for schema ${schemaId}`
+        );
+      }
+
+      data = result.data;
+      migrations = [...migrations, ...result.records];
+      wasMigrated = true;
+
+      warnings.push(
+        `Migrated from ${formatSemanticVersion(originalVersion)} ` +
+          `to ${formatSemanticVersion(currentVersion)}`
+      );
+    }
+  }
+
+  // Check for breaking changes
+  if (hasBreakingChanges(originalVersion, currentVersion)) {
+    warnings.push(
+      `Breaking changes exist between ${formatSemanticVersion(originalVersion)} ` +
+        `and ${formatSemanticVersion(currentVersion)}. Verify behavior.`
+    );
+  }
+
+  return {
+    data,
+    originalVersion,
+    currentVersion,
+    migrations,
+    warnings,
+    wasMigrated,
+  };
+}
+
+// =============================================================================
+// Edit Package Versioning
+// =============================================================================
+
+/**
+ * Edit package version metadata.
+ *
+ * Stored with every applied edit to enable reproducibility.
+ */
+export interface EditPackageVersion {
+  /** CPL schema versions used */
+  readonly cplVersions: {
+    readonly intent: SemanticVersion;
+    readonly plan: SemanticVersion;
+    readonly host: SemanticVersion;
+  };
+
+  /** Compiler version that produced this edit */
+  readonly compiler: CompilerVersion;
+
+  /** Extension namespaces and versions used */
+  readonly extensions: readonly {
+    readonly namespace: string;
+    readonly version: SemanticVersion;
+  }[];
+
+  /** Prolog KB modules used */
+  readonly prologModules: readonly string[];
+
+  /** Creation timestamp */
+  readonly timestamp: string;
+}
+
+/**
+ * Create edit package version metadata.
+ */
+export function createEditPackageVersion(
+  extensions: readonly { namespace: string; version: SemanticVersion }[],
+  prologModules: readonly string[]
+): EditPackageVersion {
+  return {
+    cplVersions: {
+      intent: GOFAI_SCHEMA_VERSIONS.CPL_INTENT,
+      plan: GOFAI_SCHEMA_VERSIONS.CPL_PLAN,
+      host: GOFAI_SCHEMA_VERSIONS.CPL_HOST,
+    },
+    compiler: CURRENT_COMPILER_VERSION,
+    extensions,
+    prologModules,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+/**
+ * Check edit package version compatibility.
+ */
+export function checkEditPackageCompatibility(
+  packageVersion: EditPackageVersion,
+  currentCompilerVersion: CompilerVersion
+): {
+  compatible: boolean;
+  warnings: readonly string[];
+  blockers: readonly string[];
+} {
+  const warnings: string[] = [];
+  const blockers: string[] = [];
+
+  // Check compiler version
+  const compilerCheck = areCompilerVersionsCompatible(
+    packageVersion.compiler,
+    currentCompilerVersion
+  );
+  if (!compilerCheck.compatible) {
+    blockers.push(
+      `Compiler version incompatible: ${formatSemanticVersion(packageVersion.compiler.version)} ` +
+        `vs ${formatSemanticVersion(currentCompilerVersion.version)}`
+    );
+  }
+  warnings.push(...compilerCheck.warnings);
+
+  // Check CPL schema versions
+  if (
+    !isVersionCompatible(
+      packageVersion.cplVersions.intent,
+      GOFAI_SCHEMA_VERSIONS.CPL_INTENT
+    )
+  ) {
+    blockers.push(
+      `CPL-Intent schema incompatible: ${formatSemanticVersion(packageVersion.cplVersions.intent)} ` +
+        `vs ${formatSemanticVersion(GOFAI_SCHEMA_VERSIONS.CPL_INTENT)}`
+    );
+  }
+
+  if (
+    !isVersionCompatible(
+      packageVersion.cplVersions.plan,
+      GOFAI_SCHEMA_VERSIONS.CPL_PLAN
+    )
+  ) {
+    blockers.push(
+      `CPL-Plan schema incompatible: ${formatSemanticVersion(packageVersion.cplVersions.plan)} ` +
+        `vs ${formatSemanticVersion(GOFAI_SCHEMA_VERSIONS.CPL_PLAN)}`
+    );
+  }
+
+  // Check for missing extensions
+  for (const ext of packageVersion.extensions) {
+    warnings.push(
+      `Edit package requires extension: ${ext.namespace}@${formatSemanticVersion(ext.version)}`
+    );
+  }
+
+  return {
+    compatible: blockers.length === 0,
+    warnings,
+    blockers,
+  };
+}
+
+// =============================================================================
+// Backward Compatibility Helpers
+// =============================================================================
+
+/**
+ * Deprecated field mapping for backward compatibility.
+ */
+export interface DeprecatedFieldMapping {
+  /** Old field name */
+  readonly oldName: string;
+
+  /** New field name */
+  readonly newName: string;
+
+  /** Version when deprecated */
+  readonly deprecatedIn: SemanticVersion;
+
+  /** Version when removed (if planned) */
+  readonly removedIn?: SemanticVersion;
+
+  /** Migration function (if field transformation is needed) */
+  readonly transform?: (oldValue: unknown) => unknown;
+}
+
+/**
+ * Registry of deprecated fields for backward compatibility warnings.
+ */
+export const DEPRECATED_FIELDS = new Map<string, DeprecatedFieldMapping[]>();
+
+/**
+ * Register a deprecated field.
+ */
+export function registerDeprecatedField(
+  schemaId: string,
+  mapping: DeprecatedFieldMapping
+): void {
+  if (!DEPRECATED_FIELDS.has(schemaId)) {
+    DEPRECATED_FIELDS.set(schemaId, []);
+  }
+  DEPRECATED_FIELDS.get(schemaId)!.push(mapping);
+}
+
+/**
+ * Check for deprecated fields in data.
+ */
+export function checkForDeprecatedFields(
+  schemaId: string,
+  data: Record<string, unknown>
+): readonly string[] {
+  const warnings: string[] = [];
+  const mappings = DEPRECATED_FIELDS.get(schemaId) ?? [];
+
+  for (const mapping of mappings) {
+    if (mapping.oldName in data) {
+      const msg = `Field '${mapping.oldName}' is deprecated (since ${formatSemanticVersion(mapping.deprecatedIn)})`;
+      const replacement = mapping.removedIn
+        ? ` and will be removed in ${formatSemanticVersion(mapping.removedIn)}. Use '${mapping.newName}' instead.`
+        : `. Use '${mapping.newName}' instead.`;
+      warnings.push(msg + replacement);
+    }
+  }
+
+  return warnings;
+}
+
+// =============================================================================
+// Version Fingerprinting for Reproducibility
+// =============================================================================
+
+/**
+ * Compute a fingerprint of the entire compiler state.
+ *
+ * This is used to ensure exact reproducibility of edit packages.
+ */
+export function computeCompilerFingerprint(
+  compilerVersion: CompilerVersion
+): string {
+  const components = [
+    formatSemanticVersion(compilerVersion.version),
+    compilerVersion.lexiconHash,
+    compilerVersion.grammarHash,
+    compilerVersion.prologHash,
+  ];
+  return computeHash(components.join('|'));
+}
+
+/**
+ * Check if two compiler fingerprints match (exact reproducibility).
+ */
+export function doFingerprintsMatch(a: string, b: string): boolean {
+  return a === b;
+}
+
+// =============================================================================
 // Initial Migrations (placeholders for future versions)
 // =============================================================================
 
@@ -475,8 +1013,9 @@ export const gofaiMigrationRegistry = new MigrationRegistry();
 //   schema: GOFAI_SCHEMA_IDS.CPL_INTENT,
 //   from: { major: 1, minor: 0, patch: 0 },
 //   to: { major: 1, minor: 1, patch: 0 },
-//   description: 'Add support for X',
+//   description: 'Add support for multi-objective goals',
 //   migrate: (data: CPLIntentV1_0_0) => {
-//     return { ...data, newField: defaultValue } as CPLIntentV1_1_0;
+//     // Add new optional field with default
+//     return { ...data, multiObjective: false } as CPLIntentV1_1_0;
 //   },
 // });
