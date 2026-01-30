@@ -48,6 +48,7 @@ export const DECK_TYPE_TITLES: Readonly<Record<DeckType, string>> = {
   'reference-track-deck': 'Reference Track',
   'spectrum-analyzer-deck': 'Spectrum Analyzer',
   'waveform-editor-deck': 'Waveform Editor',
+  'registry-devtool-deck': 'Registry DevTool',
 } as Record<DeckType, string>;
 
 /**
@@ -80,6 +81,7 @@ export const DECK_TYPE_ICONS: Readonly<Record<DeckType, string>> = {
   'reference-track-deck': '👂',
   'spectrum-analyzer-deck': '📊',
   'waveform-editor-deck': '〰️',
+  'registry-devtool-deck': '🔍',
 } as Record<DeckType, string>;
 
 /**
@@ -113,6 +115,7 @@ export const DECK_SUPPORTS_SLOT_GRID: Readonly<Record<DeckType, boolean>> = {
   'reference-track-deck': false,
   'spectrum-analyzer-deck': false,
   'waveform-editor-deck': false,
+  'registry-devtool-deck': false,
 } as Record<DeckType, boolean>;
 
 /**

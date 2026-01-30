@@ -203,6 +203,18 @@ type ModeName =
   | 'blues' | 'whole_tone' | 'diminished';
 ```
 
+#### Legacy Mode Aliases
+
+| Code Alias | Canonical ModeName | Notes |
+|---|---|---|
+| `major` | `ionian` | Common name for major scale |
+| `minor` | `aeolian` | Common name for natural minor |
+| `natural_minor` | `aeolian` | Explicit natural minor |
+| `octatonic` | `diminished` | Symmetric diminished scale |
+| `chromatic` | (extended) | All 12 semitones - code-only |
+
+**Implementation:** `cardplay/src/canon/mode-aliases.ts` provides `normalizeModeName()`.
+
 ### CadenceType
 
 ```ts

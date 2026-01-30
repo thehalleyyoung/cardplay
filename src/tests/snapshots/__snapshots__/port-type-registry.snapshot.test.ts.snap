@@ -1,0 +1,85 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Port Type Registry Snapshots > should match builtin port types snapshot 1`] = `
+[
+  "audio",
+  "clock",
+  "control",
+  "gate",
+  "midi",
+  "notes",
+  "transport",
+  "trigger",
+]
+`;
+
+exports[`Port Type Registry Snapshots > should match port compatibility matrix snapshot 1`] = `
+[
+  {
+    "compatible": true,
+    "from": "audio",
+    "to": "audio",
+  },
+  {
+    "compatible": true,
+    "from": "midi",
+    "to": "midi",
+  },
+  {
+    "compatible": true,
+    "from": "notes",
+    "requiresAdapter": true,
+    "to": "midi",
+  },
+  {
+    "compatible": true,
+    "from": "notes",
+    "to": "notes",
+  },
+  {
+    "compatible": true,
+    "from": "control",
+    "to": "control",
+  },
+  {
+    "compatible": true,
+    "from": "trigger",
+    "to": "trigger",
+  },
+  {
+    "compatible": true,
+    "from": "gate",
+    "to": "gate",
+  },
+  {
+    "compatible": true,
+    "from": "clock",
+    "to": "clock",
+  },
+  {
+    "compatible": true,
+    "from": "transport",
+    "to": "transport",
+  },
+  {
+    "compatible": false,
+    "from": "audio",
+    "to": "midi",
+  },
+  {
+    "compatible": false,
+    "from": "midi",
+    "to": "audio",
+  },
+  {
+    "compatible": true,
+    "from": "trigger",
+    "to": "gate",
+  },
+  {
+    "compatible": true,
+    "from": "gate",
+    "to": "trigger",
+  },
+]
+`;

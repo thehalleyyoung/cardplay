@@ -504,3 +504,395 @@ export function parseDuration(input: string): ParsedValue | undefined {
 
   return undefined;
 }
+
+// =============================================================================
+// Unit Refinement Constraints (Step 061 - Extended)
+// =============================================================================
+
+/**
+ * Refinement constraints for unit values.
+ * These define valid ranges and validation rules (Step 045 from gofai_goalB.md).
+ */
+export interface UnitRefinement {
+  readonly unitId: UnitId;
+  readonly minValue?: number;
+  readonly maxValue?: number;
+  readonly allowZero: boolean;
+  readonly allowNegative: boolean;
+  readonly precision?: number;
+  readonly validator?: (value: number) => UnitValidationResult;
+}
+
+export type UnitValidationResult =
+  | { readonly valid: true }
+  | { readonly valid: false; readonly reason: string; readonly suggestion?: string };
+
+/**
+ * Tempo refinements: BPM must be positive and within reasonable range.
+ */
+export const BPM_REFINEMENT: UnitRefinement = {
+  unitId: createUnitId('bpm'),
+  minValue: 20,
+  maxValue: 300,
+  allowZero: false,
+  allowNegative: false,
+  precision: 2,
+  validator: (value: number): UnitValidationResult => {
+    if (value <= 0) {
+      return {
+        valid: false,
+        reason: 'BPM must be positive',
+        suggestion: 'Use a tempo between 20 and 300 BPM'
+      };
+    }
+    if (value < 20) {
+      return {
+        valid: false,
+        reason: 'BPM too slow for typical music',
+        suggestion: 'Consider using 20-300 BPM range'
+      };
+    }
+    if (value > 300) {
+      return {
+        valid: false,
+        reason: 'BPM too fast for typical music',
+        suggestion: 'Consider using 20-300 BPM range'
+      };
+    }
+    return { valid: true };
+  }
+};
+
+/**
+ * Stereo width refinements: 0-1 normalized range.
+ */
+export const WIDTH_REFINEMENT: UnitRefinement = {
+  unitId: createUnitId('ratio'),
+  minValue: 0,
+  maxValue: 1,
+  allowZero: true,
+  allowNegative: false,
+  precision: 3,
+  validator: (value: number): UnitValidationResult => {
+    if (value < 0 || value > 1) {
+      return {
+        valid: false,
+        reason: 'Width must be between 0 and 1',
+        suggestion: 'Use 0 for mono, 1 for full stereo'
+      };
+    }
+    return { valid: true };
+  }
+};
+
+/**
+ * Decibel refinements: typical range -96 to +12 dB.
+ */
+export const DECIBEL_REFINEMENT: UnitRefinement = {
+  unitId: createUnitId('decibel'),
+  minValue: -96,
+  maxValue: 12,
+  allowZero: true,
+  allowNegative: true,
+  precision: 1,
+  validator: (value: number): UnitValidationResult => {
+    if (value < -96) {
+      return {
+        valid: false,
+        reason: 'Volume too low (below -96 dB)',
+        suggestion: 'Use -96 dB for silence'
+      };
+    }
+    if (value > 12) {
+      return {
+        valid: false,
+        reason: 'Volume too high (above +12 dB)',
+        suggestion: 'Avoid clipping by staying below +12 dB'
+      };
+    }
+    return { valid: true };
+  }
+};
+
+/**
+ * Percentage refinements: 0-100% standard range.
+ */
+export const PERCENTAGE_REFINEMENT: UnitRefinement = {
+  unitId: createUnitId('percentage'),
+  minValue: 0,
+  maxValue: 100,
+  allowZero: true,
+  allowNegative: false,
+  precision: 1,
+  validator: (value: number): UnitValidationResult => {
+    if (value < 0 || value > 100) {
+      return {
+        valid: false,
+        reason: 'Percentage must be between 0 and 100',
+        suggestion: 'Use 0-100% range'
+      };
+    }
+    return { valid: true };
+  }
+};
+
+/**
+ * Frequency refinements: 20 Hz - 20 kHz for audio.
+ */
+export const FREQUENCY_REFINEMENT: UnitRefinement = {
+  unitId: createUnitId('hertz'),
+  minValue: 20,
+  maxValue: 20000,
+  allowZero: false,
+  allowNegative: false,
+  precision: 1,
+  validator: (value: number): UnitValidationResult => {
+    if (value <= 0) {
+      return {
+        valid: false,
+        reason: 'Frequency must be positive',
+        suggestion: 'Use 20-20000 Hz for audible range'
+      };
+    }
+    if (value < 20) {
+      return {
+        valid: false,
+        reason: 'Frequency below human hearing range',
+        suggestion: 'Use frequencies above 20 Hz'
+      };
+    }
+    if (value > 20000) {
+      return {
+        valid: false,
+        reason: 'Frequency above human hearing range',
+        suggestion: 'Use frequencies below 20 kHz'
+      };
+    }
+    return { valid: true };
+  }
+};
+
+/**
+ * Semitone refinements: typical range -24 to +24.
+ */
+export const SEMITONE_REFINEMENT: UnitRefinement = {
+  unitId: createUnitId('semitone'),
+  minValue: -24,
+  maxValue: 24,
+  allowZero: true,
+  allowNegative: true,
+  precision: 2,
+  validator: (value: number): UnitValidationResult => {
+    if (Math.abs(value) > 24) {
+      return {
+        valid: false,
+        reason: 'Pitch shift beyond typical range',
+        suggestion: 'Keep within ±24 semitones (2 octaves)'
+      };
+    }
+    return { valid: true };
+  }
+};
+
+/**
+ * Bar position refinements: must be positive.
+ */
+export const BAR_REFINEMENT: UnitRefinement = {
+  unitId: createUnitId('bar'),
+  minValue: 1,
+  maxValue: 9999,
+  allowZero: false,
+  allowNegative: false,
+  precision: 3,
+  validator: (value: number): UnitValidationResult => {
+    if (value < 1) {
+      return {
+        valid: false,
+        reason: 'Bar numbers start at 1',
+        suggestion: 'Use bar 1 or higher'
+      };
+    }
+    if (value > 9999) {
+      return {
+        valid: false,
+        reason: 'Bar number unreasonably large',
+        suggestion: 'Check if this is the intended bar number'
+      };
+    }
+    return { valid: true };
+  }
+};
+
+/**
+ * Registry of all unit refinements.
+ */
+export const UNIT_REFINEMENTS: ReadonlyMap<UnitId, UnitRefinement> = new Map([
+  [createUnitId('bpm'), BPM_REFINEMENT],
+  [createUnitId('ratio'), WIDTH_REFINEMENT],
+  [createUnitId('decibel'), DECIBEL_REFINEMENT],
+  [createUnitId('percentage'), PERCENTAGE_REFINEMENT],
+  [createUnitId('hertz'), FREQUENCY_REFINEMENT],
+  [createUnitId('semitone'), SEMITONE_REFINEMENT],
+  [createUnitId('bar'), BAR_REFINEMENT],
+]);
+
+/**
+ * Get refinement constraints for a unit.
+ */
+export function getUnitRefinement(unitId: UnitId): UnitRefinement | undefined {
+  return UNIT_REFINEMENTS.get(unitId);
+}
+
+/**
+ * Validate a value against unit refinements.
+ */
+export function validateUnitValue(unitId: UnitId, value: number): UnitValidationResult {
+  const refinement = getUnitRefinement(unitId);
+  if (!refinement) {
+    return { valid: true };
+  }
+
+  if (value === 0 && !refinement.allowZero) {
+    return {
+      valid: false,
+      reason: `${unitId} cannot be zero`,
+      suggestion: 'Use a non-zero value'
+    };
+  }
+
+  if (value < 0 && !refinement.allowNegative) {
+    return {
+      valid: false,
+      reason: `${unitId} cannot be negative`,
+      suggestion: 'Use a positive value'
+    };
+  }
+
+  if (refinement.minValue !== undefined && value < refinement.minValue) {
+    return {
+      valid: false,
+      reason: `${unitId} value ${value} is below minimum ${refinement.minValue}`,
+      suggestion: `Use a value >= ${refinement.minValue}`
+    };
+  }
+
+  if (refinement.maxValue !== undefined && value > refinement.maxValue) {
+    return {
+      valid: false,
+      reason: `${unitId} value ${value} exceeds maximum ${refinement.maxValue}`,
+      suggestion: `Use a value <= ${refinement.maxValue}`
+    };
+  }
+
+  if (refinement.validator) {
+    return refinement.validator(value);
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Round value to unit precision.
+ */
+export function roundToUnitPrecision(unitId: UnitId, value: number): number {
+  const refinement = getUnitRefinement(unitId);
+  if (!refinement || refinement.precision === undefined) {
+    return value;
+  }
+
+  const factor = Math.pow(10, refinement.precision);
+  return Math.round(value * factor) / factor;
+}
+
+/**
+ * Check if two units are compatible for conversion.
+ */
+export function areUnitsCompatible(unit1: UnitId, unit2: UnitId): boolean {
+  const u1 = ALL_UNITS_FLAT.find(u => u.id === unit1);
+  const u2 = ALL_UNITS_FLAT.find(u => u.id === unit2);
+  
+  if (!u1 || !u2) {
+    return false;
+  }
+
+  return u1.category === u2.category;
+}
+
+/**
+ * Get the base unit for a given unit.
+ */
+export function getBaseUnit(unitId: UnitId): UnitId {
+  const unit = ALL_UNITS_FLAT.find(u => u.id === unitId);
+  if (!unit) {
+    return unitId;
+  }
+
+  if (unit.baseUnit) {
+    return getBaseUnit(unit.baseUnit);
+  }
+
+  return unitId;
+}
+
+/**
+ * Format a value with its unit for display.
+ */
+export function formatUnitValue(value: number, unitId: UnitId): string {
+  const unit = ALL_UNITS_FLAT.find(u => u.id === unitId);
+  if (!unit) {
+    return `${value}`;
+  }
+
+  const rounded = roundToUnitPrecision(unitId, value);
+  const abbrev = unit.abbreviations[0] || unit.name;
+  
+  return `${rounded} ${abbrev}`;
+}
+
+/**
+ * Parse a string value with unit.
+ */
+export function parseUnitValueString(input: string): { value: number; unitId: UnitId } | undefined {
+  const match = input.match(/^([-+]?[0-9]*\.?[0-9]+)\s*([a-zA-Z%]+)$/);
+  if (!match) {
+    return undefined;
+  }
+
+  const value = parseFloat(match[1]);
+  const unitStr = match[2].toLowerCase();
+
+  const unit = ALL_UNITS_FLAT.find(u => 
+    u.abbreviations.some(abbr => abbr.toLowerCase() === unitStr) ||
+    u.name.toLowerCase() === unitStr
+  );
+
+  if (!unit) {
+    return undefined;
+  }
+
+  return { value, unitId: unit.id };
+}
+
+/**
+ * All units flattened for lookup.
+ */
+const ALL_UNITS_FLAT: readonly MeasurementUnit[] = [
+  UNIT_BAR,
+  UNIT_BEAT,
+  UNIT_TICK,
+  UNIT_SECOND,
+  UNIT_MILLISECOND,
+  UNIT_SEMITONE,
+  UNIT_CENT,
+  UNIT_OCTAVE,
+  UNIT_TONE,
+  UNIT_BPM,
+  UNIT_BPM_CHANGE,
+  UNIT_DECIBEL,
+  UNIT_PERCENT,
+  UNIT_LEVEL,
+  UNIT_HERTZ,
+  UNIT_KILOHERTZ,
+  UNIT_RATIO,
+  UNIT_PERCENTAGE,
+];

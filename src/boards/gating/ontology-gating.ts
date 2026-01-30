@@ -123,13 +123,20 @@ export function checkOntologyGate(
         ? ontologyRegistry.getBridgeWarning(requestedOntology)
         : undefined;
       
-      return {
+      const result: OntologyGateResult = {
         allowed: true,
         requiresBridging,
-        warning: warning || (requiresBridging
-          ? `Bridging required from ${allowedOntology} to ${requestedOntology}`
-          : undefined),
       };
+      
+      const finalWarning = warning || (requiresBridging
+        ? `Bridging required from ${allowedOntology} to ${requestedOntology}`
+        : undefined);
+      
+      if (finalWarning) {
+        return { ...result, warning: finalWarning };
+      }
+      
+      return result;
     }
   }
   

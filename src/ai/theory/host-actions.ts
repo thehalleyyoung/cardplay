@@ -47,6 +47,22 @@ export interface HostActionEnvelope<T = HostAction> {
 // ============================================================================
 
 /**
+ * Namespaced extension action.
+ * Allows third-party packs to define custom HostAction types.
+ * 
+ * Change 394: Support namespaced extension actions in discriminant union.
+ * 
+ * Action names must follow the format: `namespace:action_name`
+ * Example: 'mypack:apply_custom_transform'
+ */
+export interface ExtensionAction {
+  readonly action: `${string}:${string}`; // Namespaced action name
+  readonly payload: unknown; // Extension-specific data
+  readonly confidence: number;
+  readonly reasons: readonly string[];
+}
+
+/**
  * Discriminated union of all possible host actions.
  * These represent side effects that Prolog recommends the host (TS) perform.
  */
@@ -64,7 +80,8 @@ export type HostAction =
   | SetStyleAction
   | SwitchBoardAction
   | AddDeckAction
-  | ShowWarningAction;
+  | ShowWarningAction
+  | ExtensionAction; // Change 394: Allow namespaced extension actions
 
 /** Set a card parameter */
 export interface SetParamAction {

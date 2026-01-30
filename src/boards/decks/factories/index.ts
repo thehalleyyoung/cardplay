@@ -32,6 +32,7 @@ export { referenceTrackDeckFactory } from './reference-track-factory';
 // export { spectrumAnalyzerDeckFactory } from './spectrum-analyzer-factory'; // TODO: implement
 // export { waveformEditorDeckFactory } from './waveform-editor-factory'; // TODO: implement
 export { aiAdvisorFactory } from './ai-advisor-factory';
+export { registryDevtoolDeckFactory } from './registry-devtool-factory';
 
 import { getDeckFactoryRegistry } from '../factory-registry';
 import { patternEditorFactory } from './pattern-deck-factory';
@@ -60,6 +61,7 @@ import { referenceTrackDeckFactory } from './reference-track-factory';
 // import { spectrumAnalyzerDeckFactory } from './spectrum-analyzer-factory'; // TODO: implement
 // import { waveformEditorDeckFactory } from './waveform-editor-factory'; // TODO: implement
 import { aiAdvisorFactory } from './ai-advisor-factory';
+import { registryDevtoolDeckFactory } from './registry-devtool-factory';
 
 /**
  * Registers all builtin deck factories.
@@ -93,4 +95,5 @@ export function registerBuiltinDeckFactories(): void {
   // registry.registerFactory('spectrum-analyzer-deck', spectrumAnalyzerDeckFactory); // TODO: implement
   // registry.registerFactory('waveform-editor-deck', waveformEditorDeckFactory); // TODO: implement
   registry.registerFactory('ai-advisor-deck', aiAdvisorFactory);
+  registry.registerFactory('registry-devtool-deck', registryDevtoolDeckFactory);
 }

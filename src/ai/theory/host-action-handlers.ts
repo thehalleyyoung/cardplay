@@ -10,7 +10,7 @@
 
 import type { HostAction } from './host-actions';
 import type { MusicSpec } from './music-spec';
-import type { CapabilityId } from '../../extensions/capabilities';
+import type { Capability } from '../../extensions/capabilities';
 
 // ============================================================================
 // TYPES
@@ -47,7 +47,7 @@ export interface HostActionHandlerEntry {
   /** Handler function */
   readonly handler: HostActionHandler;
   /** Required capabilities */
-  readonly requiredCapabilities?: readonly CapabilityId[];
+  readonly requiredCapabilities?: readonly Capability[];
   /** Handler version */
   readonly version: string;
   /** Handler description */
@@ -127,9 +127,16 @@ export function hasHostActionHandler(actionType: string): boolean {
  * Change 436: Get required capabilities for an action.
  * Returns empty array if no handler registered.
  */
-export function getRequiredCapabilities(actionType: string): readonly CapabilityId[] {
+export function getRequiredCapabilities(actionType: string): readonly Capability[] {
   const entry = handlerRegistry.get(actionType);
   return entry?.requiredCapabilities ?? [];
+}
+
+/**
+ * Clear all registered handlers (for testing).
+ */
+export function clearHostActionHandlers(): void {
+  handlerRegistry.clear();
 }
 
 // ============================================================================

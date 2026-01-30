@@ -287,6 +287,13 @@ class OntologyRegistry {
 export const ontologyRegistry = new OntologyRegistry();
 
 /**
+ * Get ontology registry for devtools inspection.
+ */
+export function getOntologyRegistry(): readonly RegisteredOntology[] {
+  return ontologyRegistry.getAll();
+}
+
+/**
  * Creates an ontology ID from a string.
  */
 export function createOntologyId(id: string): OntologyId {

@@ -561,7 +561,7 @@ export class ExtensionGrammarRuleRegistry {
   markTestsValidated(ruleId: string, validated: boolean): boolean {
     const registered = this.byId.get(ruleId);
     if (!registered) return false;
-    registered.provenance.testsValidated = validated;
+    (registered.provenance as { testsValidated: boolean }).testsValidated = validated;
     return true;
   }
 

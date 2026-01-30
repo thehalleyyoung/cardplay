@@ -2636,7 +2636,7 @@ export function getUnknownConstraintInfo(type: string): UnknownConstraintInfo {
   
   return {
     type,
-    namespace: isNamespaced ? namespace : undefined,
+    ...(isNamespaced && namespace ? { namespace } : {}),
     localName,
     isNamespaced,
     suggestions,

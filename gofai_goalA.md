@@ -93,16 +93,16 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 125 [NLP][Sem] — Add a grammar for "preservation" ("keep the chords", "don't change the melody") generating explicit CPL preserve constraints.
 - [x] Step 126 [NLP] — Add a robust "unknown token" strategy that preserves unknown terms as candidate entity names rather than failing parsing.
 - [x] Step 127 [NLP][Ext] — Add a mechanism for extensions to register additional lexemes and lexical variants into the parser at runtime.
-- [ ] Step 128 [NLP][Ext] — Add a mechanism for extensions to register new grammar rules with rule IDs, priorities, and required tests.
-- [ ] Step 129 [NLP][Infra] — Add a grammar regression harness that can snapshot parse forests and detect unintended ambiguity explosions.
-- [ ] Step 130 [NLP][HCI] — Add a user-facing “I didn’t understand” error formatter that pinpoints spans and suggests known terms.
-- [ ] Step 131 [Sem] — Implement argument structure constraints: ensure verbs like “widen” modify width-like targets, not arbitrary nouns (selectional restrictions).
-- [ ] Step 132 [Sem] — Implement type-directed disambiguation (bidirectional typing): use expected CPL node types to prune parse candidates.
-- [ ] Step 133 [Sem] — Implement compositional semantics hooks per grammar rule to produce intermediate meaning (CPL holes allowed).
-- [ ] Step 134 [Sem] — Implement “construction grammar” style templates for music-specific phrasings (“make it hit harder”, “bring it in earlier”).
-- [ ] Step 135 [Sem] — Implement degree semantics for vague adjectives (“warmer”, “darker”) as axis changes with candidate interpretations.
-- [ ] Step 136 [Sem] — Implement event semantics for actions (“add”, “remove”, “change”) to uniformly represent edit events and their arguments.
-- [ ] Step 137 [Sem] — Implement generalized quantifier semantics for “all/some/most” when needed for selectors (“all choruses”).
+- [x] Step 128 [NLP][Ext] — Add a mechanism for extensions to register new grammar rules with rule IDs, priorities, and required tests.
+- [x] Step 129 [NLP][Infra] — Add a grammar regression harness that can snapshot parse forests and detect unintended ambiguity explosions.
+- [x] Step 130 [NLP][HCI] — Add a user-facing "I didn't understand" error formatter that pinpoints spans and suggests known terms.
+- [x] Step 131 [Sem] — Implement argument structure constraints: ensure verbs like "widen" modify width-like targets, not arbitrary nouns (selectional restrictions).
+- [x] Step 132 [Sem] — Implement type-directed disambiguation (bidirectional typing): use expected CPL node types to prune parse candidates.
+- [x] Step 133 [Sem] — Implement compositional semantics hooks per grammar rule to produce intermediate meaning (CPL holes allowed).
+- [x] Step 134 [Sem] — Implement "construction grammar" style templates for music-specific phrasings ("make it hit harder", "bring it in earlier").
+- [x] Step 135 [Sem] — Implement degree semantics for vague adjectives ("warmer", "darker") as axis changes with candidate interpretations.
+- [x] Step 136 [Sem] — Implement event semantics for actions ("add", "remove", "change") to uniformly represent edit events and their arguments.
+- [x] Step 137 [Sem] — Implement generalized quantifier semantics for "all/some/most" when needed for selectors ("all choruses").
 - [ ] Step 138 [Sem] — Implement a representation for scope ambiguity (MRS-style) when quantifiers, negation, and “only” interact.
 - [ ] Step 139 [Prag] — Implement a “pragmatic bias” layer that pushes ambiguous parses into clarification rather than unsafe execution.
 - [ ] Step 140 [Infra] — Add developer tooling to visualize parse forest + semantic composition for a given utterance.

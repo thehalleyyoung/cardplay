@@ -18,3 +18,6 @@ export * from './edit-locality';
 export * from './preservation';
 export * from './unknown-tokens';
 export * from './extension-lexemes';
+export * from './extension-rules';
+export * from './regression-harness';
+export * from './error-formatter';

@@ -138,6 +138,13 @@ export function listEventKinds(): readonly EventKindEntry[] {
 }
 
 /**
+ * Get event kind registry for devtools inspection (Change 444).
+ */
+export function getEventKindRegistry(): ReadonlyMap<string, EventKindEntry> {
+  return kindRegistry;
+}
+
+/**
  * Checks if an event kind is registered.
  */
 export function isRegisteredKind(kind: EventKind): boolean {

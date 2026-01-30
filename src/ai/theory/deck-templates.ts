@@ -40,6 +40,8 @@ export interface DeckTemplate {
   readonly category: 'theory' | 'phrase' | 'harmony' | 'arranger' | 'tracker' | 'world';
   /** Board types this template is designed for */
   readonly boardTypes: readonly ('arranger' | 'tracker' | 'notation' | 'phrase' | 'harmony')[];
+  /** DeckType(s) this template applies to (canonical DeckType values) */
+  readonly deckTypes?: readonly string[];
   /** Culture affinities (which cultures this template serves) */
   readonly cultures: readonly CultureTag[];
   /** Style affinities */
@@ -78,6 +80,7 @@ export const THEORY_DECK_TEMPLATE: DeckTemplate = {
   description: 'Core theory tools: tonality model, meter/accent, grouping, and style constraints',
   category: 'theory',
   boardTypes: ['arranger', 'tracker', 'notation', 'phrase', 'harmony'],
+  deckTypes: ['harmony-deck', 'generators-deck', 'properties-deck'],
   cultures: ['western', 'hybrid'],
   styles: ['galant', 'baroque', 'classical', 'romantic', 'cinematic', 'trailer', 'underscore', 'pop', 'jazz', 'custom'],
   cardIds: [
@@ -107,6 +110,7 @@ export const PHRASE_DECK_TEMPLATE: DeckTemplate = {
   description: 'Phrase browsing, generation, variation, and schema-driven composition',
   category: 'phrase',
   boardTypes: ['phrase', 'tracker', 'notation'],
+  deckTypes: ['phrases-deck', 'phrase-deck', 'generators-deck'],
   cultures: ['western', 'hybrid'],
   styles: ['galant', 'classical', 'romantic', 'cinematic', 'pop', 'custom'],
   cardIds: [
@@ -133,6 +137,7 @@ export const HARMONY_DECK_TEMPLATE: DeckTemplate = {
   description: 'Harmony exploration, tonality analysis, and cadence tools',
   category: 'harmony',
   boardTypes: ['harmony', 'arranger', 'notation'],
+  deckTypes: ['harmony-deck'],
   cultures: ['western', 'hybrid'],
   styles: ['galant', 'baroque', 'classical', 'romantic', 'cinematic', 'jazz', 'custom'],
   cardIds: [
@@ -562,6 +567,13 @@ export function unregisterDeckTemplate(templateId: string): boolean {
  */
 export function getAllDeckTemplates(): DeckTemplate[] {
   return [...BUILTIN_TEMPLATES, ...extensionTemplates.values()];
+}
+
+/**
+ * Get the deck template registry for devtools inspection.
+ */
+export function getDeckTemplateRegistry(): DeckTemplate[] {
+  return getAllDeckTemplates();
 }
 
 /**

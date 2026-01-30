@@ -490,3 +490,54 @@ export class ExtensionRegistry {
  * Global extension registry singleton.
  */
 export const extensionRegistry = new ExtensionRegistry();
+
+// ============================================================================
+// HELPER FUNCTIONS FOR DEVTOOLS
+// ============================================================================
+
+export interface PackInfo {
+  name: string;
+  version?: string;
+  namespace: string;
+  capabilities?: string[];
+  author?: string;
+}
+
+export interface RegisteredEntity {
+  id: string;
+  type: string;
+  namespace?: string;
+}
+
+/**
+ * Get all loaded packs for devtool inspection.
+ */
+export function getLoadedPacks(): PackInfo[] {
+  return extensionRegistry.listExtensions()
+    .filter(ext => ext.state === 'enabled')
+    .map(ext => ({
+      name: ext.manifest.name,
+      version: ext.manifest.version,
+      namespace: ext.manifest.id,
+      capabilities: ext.manifest.permissions as string[],
+      author: ext.manifest.author
+    }));
+}
+
+/**
+ * Get all registered entities across all registries for devtool inspection.
+ */
+export function getAllRegisteredEntities(): RegisteredEntity[] {
+  const entities: RegisteredEntity[] = [];
+  
+  // Add extension entities
+  extensionRegistry.listExtensions().forEach(ext => {
+    entities.push({
+      id: ext.manifest.id,
+      type: 'extension',
+      namespace: ext.manifest.id
+    });
+  });
+  
+  return entities;
+}

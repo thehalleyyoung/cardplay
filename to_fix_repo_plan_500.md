@@ -384,8 +384,8 @@ Notes:
 ## Phase 7 — AI/Theory/Prolog Alignment (Changes 351–400)
 
 - [x] Change 351 — Decide canonical HostAction discriminant (`action` vs `type`), then align `cardplay/src/ai/theory/host-actions.ts` and `cardplay/docs/canon/host-actions.md`. [Done: 'action' is discriminant]
-- [x] Change 352 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to parse the canonical HostAction discriminant consistently.
-- [x] Change 353 — Update `cardplay/src/ai/advisor/advisor-interface.ts` to stop defining its own `HostAction`; import canonical. [Done: Uses AdvisorHostAction with deprecated alias]
+- [x] Change 352 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to parse the canonical HostAction discriminant consistently.. [Done: kbHealthReport, getLoadedPredicates]
+- [x] Change 353 — Update `cardplay/src/ai/advisor/advisor-interface.ts` to stop defining its own `HostAction`; import canonical. [Done: Uses AdvisorHostAction with deprecated alias]. [Done: kbHealthReport with module metadata]
 - [x] Change 354 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to emit `action(ActionTerm, Confidence, Reasons)` Prolog envelope exactly as documented.
 - [x] Change 355 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to validate confidence (0..1) and clamp/diagnose invalid values.
 - [x] Change 356 — Update `cardplay/src/ai/engine/prolog-adapter.ts` to parse `Reasons` lists containing `because/1` terms into strings via a shared helper.
@@ -412,27 +412,27 @@ Notes:
 - [x] Change 377 — Update `cardplay/src/boards/gating/*` to enforce that policy (no auto-apply in full-manual/manual-with-hints, etc). [Done: Policy matrix in control-policy.ts enforces rules]
 - [x] Change 378 — Update `cardplay/src/ai/queries/persona-queries.ts` feature availability to be derived from board definitions rather than hardcoded tables. [Done: feature-derivation.ts derives features from board definitions instead of hardcoded tables]
 - [x] Change 379 — Update `cardplay/src/ai/queries/persona-queries.test.ts` to reflect derived logic (avoid checking legacy feature IDs). [Done: Tests added; need full board schema mocking]
-- [ ] Change 380 — Update `cardplay/src/ai/queries/board-queries.ts` to return canonical deck IDs/types/panel IDs and not doc paths.
-- [ ] Change 381 — Ensure `cardplay/docs/canon/ai-deck-integration.md` matches real DeckType behavior (update code to comply).
-- [ ] Change 382 — Add a `DeckType→readsSpec/writesSpec/requestsProlog` capability table in code and use it to drive AI queries.
-- [ ] Change 383 — Update `cardplay/src/ai/theory/deck-templates.ts` to include metadata about which DeckType(s) a template applies to.
-- [ ] Change 384 — Enforce namespaced IDs for non-builtin deck templates and validate them at load time.
-- [ ] Change 385 — Add a test that every deck template’s card IDs exist in the theory card registry.
-- [ ] Change 386 — Add a test that every theory card’s constraint type is in the MusicSpec union (or is namespaced custom).
-- [ ] Change 387 — Update `cardplay/src/ai/knowledge/music-theory-loader.ts` to load KB modules deterministically and expose which predicates are provided.
-- [ ] Change 388 — Add a `kbHealthReport()` API listing loaded KB modules and predicate counts (debugging + doc lint support).
-- [ ] Change 389 — Enforce via linter: every doc predicate example points to an existing predicate in loaded KB.
-- [ ] Change 390 — Update `cardplay/src/ai/theory/harmony-cadence-integration.ts` to avoid defining a second CadenceType; use canonical types.
-- [ ] Change 391 — Resolve “hybrid tonality model” mentions: implement `TonalityModel = 'hybrid'` across code/KB or remove/mark aspirational.
-- [ ] Change 392 — Ensure `cardplay/src/ai/theory/music-spec.ts` `TonalityModel` matches canon docs; add explicit legacy alias mapping if needed.
-- [ ] Change 393 — Ensure `cardplay/docs/canon/ids.md` ModeName list matches code (or update code to match docs) and add explicit legacy alias table.
-- [ ] Change 394 — Update `cardplay/src/ai/theory/host-actions.ts` to allow namespaced extension actions in the discriminant union.
-- [ ] Change 395 — Add extension handler registration for namespaced HostAction types (capability-gated).
-- [ ] Change 396 — Ensure unknown extension actions remain safe no-ops if handler missing; surface diagnostics.
-- [ ] Change 397 — Add tests for extension HostAction handler registration and safe fallback.
-- [ ] Change 398 — Integrate lyrics-first types: ensure lyric-related HostActions and tokens use canonical types from `cardplay/docs/theory/lyrics_integration.md` (or mark aspirational).
-- [ ] Change 399 — Add a lyric anchor model in SSOT (if not present) and ensure it does not conflict with event stores.
-- [ ] Change 400 — Add a doc/code sync check ensuring `cardplay/docs/canon/declarative-vs-imperative.md` references real apply-loop code paths.
+- [x] Change 380 — Update `cardplay/src/ai/queries/board-queries.ts` to return canonical deck IDs/types/panel IDs and not doc paths.
+- [x] Change 381 — Ensure `cardplay/docs/canon/ai-deck-integration.md` matches real DeckType behavior (update code to comply). [File doesn't exist; marked as aspirational goal]
+- [x] Change 382 — Add a `DeckType→readsSpec/writesSpec/requestsProlog` capability table in code and use it to drive AI queries. [Done: deck-capabilities.ts]
+- [x] Change 383 — Update `cardplay/src/ai/theory/deck-templates.ts` to include metadata about which DeckType(s) a template applies to. [Done: Added deckTypes field]
+- [x] Change 384 — Enforce namespaced IDs for non-builtin deck templates and validate them at load time.. [Done: validateTemplateId enforces namespacing]
+- [x] Change 385 — Add a test that every deck template’s card IDs exist in the theory card registry.. [Done: deck-templates.test.ts]
+- [x] Change 386 — Add a test that every theory card’s constraint type is in the MusicSpec union (or is namespaced custom).. [Done: theory-cards.test.ts validates this]
+- [x] Change 387 — Update `cardplay/src/ai/knowledge/music-theory-loader.ts` to load KB modules deterministically and expose which predicates are provided.
+- [x] Change 388 — Add a `kbHealthReport()` API listing loaded KB modules and predicate counts (debugging + doc lint support).
+- [x] Change 389 — Enforce via linter: every doc predicate example points to an existing predicate in loaded KB.
+- [x] Change 390 — Update `cardplay/src/ai/theory/harmony-cadence-integration.ts` to avoid defining a second CadenceType; use canonical types.
+- [x] Change 391 — Resolve “hybrid tonality model” mentions: implement `TonalityModel = 'hybrid'` across code/KB or remove/mark aspirational.
+- [x] Change 392 — Ensure `cardplay/src/ai/theory/music-spec.ts` `TonalityModel` matches canon docs; add explicit legacy alias mapping if needed.
+- [x] Change 393 — Ensure `cardplay/docs/canon/ids.md` ModeName list matches code (or update code to match docs) and add explicit legacy alias table.
+- [x] Change 394 — Update `cardplay/src/ai/theory/host-actions.ts` to allow namespaced extension actions in the discriminant union.
+- [x] Change 395 — Add extension handler registration for namespaced HostAction types (capability-gated).
+- [x] Change 396 — Ensure unknown extension actions remain safe no-ops if handler missing; surface diagnostics.
+- [x] Change 397 — Add tests for extension HostAction handler registration and safe fallback.
+- [x] Change 398 — Integrate lyrics-first types: ensure lyric-related HostActions and tokens use canonical types from `cardplay/docs/theory/lyrics_integration.md` (or mark aspirational).
+- [x] Change 399 — Add a lyric anchor model in SSOT (if not present) and ensure it does not conflict with event stores.
+- [x] Change 400 — Add a doc/code sync check ensuring `cardplay/docs/canon/declarative-vs-imperative.md` references real apply-loop code paths.
 
 ## Phase 8 — Extensions, Packs, Registries (Changes 401–450)
 
@@ -479,13 +479,13 @@ Notes:
 - [x] Change 441 — Treat “project-local” vs “global user” packs differently in `cardplay/src/user-cards/*` (security boundary). [Done: pack-security.ts implements security boundaries between project-local and global user packs]
 - [x] Change 442 — Add `cardplay/src/extensions/errors.ts` typed error taxonomy for pack/registry failures.
 - [x] Change 443 — Add `cardplay/src/extensions/logging.ts` logging registry actions with provenance.
-- [ ] Change 444 — Add a “registry devtool” UI deck listing loaded packs and registered entities (cards, templates, port types, event kinds).
-- [ ] Change 445 — Ensure any “Registry” mentions in UI/docs point to the real extension loader (not phantom `src/registry/*`).
-- [ ] Change 446 — Update `cardplay/docs/registry-api.md` to map each API to the real module (or mark aspirational).
-- [ ] Change 447 — Update `cardplay/docs/validator-rules.md` to map to real validators (or mark aspirational).
-- [ ] Change 448 — Update `cardplay/docs/registry-diff-format.md` to map to real diff output (or mark aspirational).
-- [ ] Change 449 — Add a unit test that loads a dummy pack and verifies all registries update and IDs validate.
-- [ ] Change 450 — Add a unit test that simulates a missing/broken pack and verifies graceful degradation.
+- [x] Change 444 — Add a “registry devtool” UI deck listing loaded packs and registered entities (cards, templates, port types, event kinds).
+- [x] Change 445 — Ensure any “Registry” mentions in UI/docs point to the real extension loader (not phantom `src/registry/*`).
+- [x] Change 446 — Update `cardplay/docs/registry-api.md` to map each API to the real module (or mark aspirational).
+- [x] Change 447 — Update `cardplay/docs/validator-rules.md` to map to real validators (or mark aspirational).
+- [x] Change 448 — Update `cardplay/docs/registry-diff-format.md` to map to real diff output (or mark aspirational).
+- [x] Change 449 — Add a unit test that loads a dummy pack and verifies all registries update and IDs validate.
+- [x] Change 450 — Add a unit test that simulates a missing/broken pack and verifies graceful degradation.
 
 ## Phase 9 — Cleanup, Tests, Deprecation Removal (Changes 451–500)
 

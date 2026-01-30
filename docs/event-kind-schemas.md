@@ -4,7 +4,8 @@ Assumes canonical model and terminology in `cardplay2.md` (repo root).
 Event kinds define the shape of events that appear in clips/scenes and flow through event ports.
 
 Implementation:
-- `src/registry/event-kinds.ts`
+- `src/types/event-kind.ts` (EventKind registry)
+- `src/state/event-schema-registry.ts` (event payload schemas and validation)
 
 ## Schema fields
 

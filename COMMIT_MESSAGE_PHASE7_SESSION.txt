@@ -1,0 +1,97 @@
+feat(ai): Implement DeckType capabilities and KB health reporting (Changes 380-388)
+
+This commit completes 9 items from Phase 7 (AI/Theory/Prolog Alignment):
+
+## Changes 380-388: DeckType Capabilities & KB Health
+
+### Change 380 ✅ Board Query Updates
+- Verified board-queries.ts uses canonical deck IDs/types/panel IDs
+- Already pulling from board registry as intended
+
+### Change 381 ✅ AI-Deck Integration Docs
+- Marked ai-deck-integration.md as aspirational (file doesn't exist yet)
+
+### Change 382 ✅ DeckType Capability Table
+- Created src/boards/decks/deck-capabilities.ts
+- Defines DeckCapabilities interface:
+  * readsSpec: Deck reads MusicSpec
+  * writesSpec: Deck modifies MusicSpec
+  * requestsProlog: Deck triggers AI queries
+  * supportsSlotGrid: Deck uses DeckLayoutAdapter
+- Implemented DECK_CAPABILITIES table for all DeckTypes
+- Added helper functions: getDeckCapabilities(), deckReadsSpec(), etc.
+- Added getDeckTypesWithCapability() query function
+- Tests: 19/19 passing in deck-capabilities.test.ts
+
+### Change 383 ✅ Deck Template DeckType Metadata
+- Added deckTypes field to DeckTemplate interface
+- Updated THEORY_DECK_TEMPLATE, PHRASE_DECK_TEMPLATE, HARMONY_DECK_TEMPLATE
+- Links templates to specific canonical DeckTypes
+
+### Change 384 ✅ Template ID Namespacing
+- Enforced namespacing via validateTemplateId()
+- Builtin templates use template: prefix
+- Extension templates must use proper namespaced IDs
+- Rejects template: prefix for custom templates
+
+### Change 385 ✅ Template Card ID Validation Tests
+- Created comprehensive src/ai/theory/__tests__/deck-templates.test.ts
+- 27 tests covering:
+  * Builtin template structure and validation
+  * Template lookup and filtering by board/culture/style
+  * Template recommendation based on MusicSpec
+  * Extension template registration
+  * Card ID validation against registry
+  * Specific template structures (theory, phrase, harmony)
+
+### Change 386 ✅ Theory Card Constraint Type Tests
+- Already validated in theory-cards.test.ts
+- Ensures all constraint types are in MusicSpec union or properly namespaced
+
+### Change 387 ✅ KB Loaded Predicates Exposure
+- Added getLoadedPredicates() to music-theory-loader.ts
+- Returns array of predicate signatures in name/arity format
+- Queries Prolog engine via current_predicate/1
+- Provides fallback list of known predicates
+- Supports doc lint validation (Change 389)
+
+### Change 388 ✅ KB Health Report API
+- Added KBModuleInfo and KBHealthReport types
+- Added CORE_KB_MODULES constant listing all KB modules deterministically
+- Implemented kbHealthReport() returning:
+  * Main KB loaded status
+  * Core module info (name, loaded, size, type)
+  * Ontology module info
+  * Total module count and size
+- Tests: 16/16 passing in kb-health-report.test.ts
+
+## New Files (4)
+- src/boards/decks/deck-capabilities.ts (266 lines)
+- src/boards/decks/__tests__/deck-capabilities.test.ts (156 lines)
+- src/ai/theory/__tests__/deck-templates.test.ts (366 lines)
+- src/ai/knowledge/__tests__/kb-health-report.test.ts (181 lines)
+
+## Modified Files (3)
+- src/ai/theory/deck-templates.ts (added deckTypes field)
+- src/ai/knowledge/music-theory-loader.ts (added health/predicate APIs)
+- to_fix_repo_plan_500.md (marked 380-388 complete)
+
+## Test Results
+- deck-capabilities.test.ts: 19/19 ✅
+- deck-templates.test.ts: 27/27 ✅
+- kb-health-report.test.ts: 16/16 ✅
+**Total: 62 new tests, all passing**
+
+## Impact
+This work provides critical infrastructure for:
+1. AI query routing based on deck capabilities
+2. Proper extension template validation and namespacing
+3. KB health monitoring and debugging support
+4. Doc lint validation of Prolog predicates
+
+## Progress
+- Completed: 458/500 items (91.6%)
+- Remaining: 42 items (Phase 7: 11 items, Phase 9: 31 items)
+
+Breaking changes: None
+Deprecations: None

@@ -109,6 +109,13 @@ export function getAllPortTypeEntries(): readonly PortTypeEntry[] {
   return Array.from(portTypeRegistry.values());
 }
 
+/**
+ * Get port type registry for devtools inspection (Change 444).
+ */
+export function getPortTypeRegistry(): ReadonlyMap<string, PortTypeEntry> {
+  return portTypeRegistry;
+}
+
 // Register built-in types
 const builtInPortTypes: PortTypeEntry[] = [
   // Change 232-233: Builtin port types with metadata for UI rendering

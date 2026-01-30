@@ -4,10 +4,10 @@ Assumes canonical model and terminology in `cardplay2.md` (repo root).
 Adapters are edges `fromType → toType` labeled with a conversion card and a numeric `cost`. Port types follow the parametric vocabulary from cardplay2.md §2.0.1 (e.g., `EventStream<E>` is `Stream<Event<any>>`).
 
 Implementation:
-- `src/registry/adapters.ts`
 - `src/boards/gating/port-conversion.ts` (canonical adapter registry)
 - `src/boards/gating/validate-connection.ts` (connection validation)
-- `src/registry/v2/reports.ts` (coverage matrix) - *aspirational*
+- `src/cards/adapter.ts` (adapter models)
+- `src/registry/v2/reports.ts` (coverage matrix)
 
 ## Interpretation
 

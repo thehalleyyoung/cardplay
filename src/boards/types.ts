@@ -232,7 +232,8 @@ export type DeckType =
   | 'mix-bus-deck'          // Mix bus for group processing (M259)
   | 'reference-track-deck'  // Reference track A/B comparison (M260)
   | 'spectrum-analyzer-deck' // Spectrum analyzer (M179)
-  | 'waveform-editor-deck'; // Waveform editor (M180)
+  | 'waveform-editor-deck'  // Waveform editor (M180)
+  | 'registry-devtool-deck'; // Registry devtool inspector (Change 444)
 
 /**
  * Deck card layout style.

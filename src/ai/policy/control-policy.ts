@@ -63,7 +63,7 @@ export interface ControlPolicyConfig {
  * Change 376: Implements capability-gated auto-apply rules.
  */
 const CONTROL_POLICY_MATRIX: Record<ControlLevel, Record<ToolMode, ControlPolicyConfig>> = {
-  beginner: {
+  'full-manual': {
     auto: {
       autoApply: AutoApplyPermission.NEVER,
       showPreview: true,
@@ -94,7 +94,7 @@ const CONTROL_POLICY_MATRIX: Record<ControlLevel, Record<ToolMode, ControlPolicy
     },
   },
   
-  standard: {
+  'manual-with-hints': {
     auto: {
       autoApply: AutoApplyPermission.WITH_NOTIFICATION,
       showPreview: false,
@@ -125,7 +125,7 @@ const CONTROL_POLICY_MATRIX: Record<ControlLevel, Record<ToolMode, ControlPolicy
     },
   },
   
-  advanced: {
+  'assisted': {
     auto: {
       autoApply: AutoApplyPermission.SILENT,
       showPreview: false,
@@ -156,13 +156,13 @@ const CONTROL_POLICY_MATRIX: Record<ControlLevel, Record<ToolMode, ControlPolicy
     },
   },
   
-  expert: {
+  'collaborative': {
     auto: {
-      autoApply: AutoApplyPermission.SILENT,
-      showPreview: false,
+      autoApply: AutoApplyPermission.WITH_NOTIFICATION,
+      showPreview: true,
       requireConfirmation: false,
       recordHistory: true,
-      minConfidenceForAutoApply: 0.6,
+      minConfidenceForAutoApply: 0.7,
     },
     suggest: {
       autoApply: AutoApplyPermission.NEVER,
@@ -183,7 +183,69 @@ const CONTROL_POLICY_MATRIX: Record<ControlLevel, Record<ToolMode, ControlPolicy
       showPreview: false,
       requireConfirmation: false,
       recordHistory: false,
+      minConfidenceForAutoApply: 0.75,
+    },
+  },
+  
+  'directed': {
+    auto: {
+      autoApply: AutoApplyPermission.SILENT,
+      showPreview: false,
+      requireConfirmation: false,
+      recordHistory: true,
+      minConfidenceForAutoApply: 0.6,
+    },
+    suggest: {
+      autoApply: AutoApplyPermission.WITH_NOTIFICATION,
+      showPreview: true,
+      requireConfirmation: false,
+      recordHistory: true,
+      minConfidenceForAutoApply: 0.8,
+    },
+    manual: {
+      autoApply: AutoApplyPermission.NEVER,
+      showPreview: false,
+      requireConfirmation: false,
+      recordHistory: true,
+      minConfidenceForAutoApply: 1.0,
+    },
+    live: {
+      autoApply: AutoApplyPermission.SILENT,
+      showPreview: false,
+      requireConfirmation: false,
+      recordHistory: false,
       minConfidenceForAutoApply: 0.7,
+    },
+  },
+  
+  'generative': {
+    auto: {
+      autoApply: AutoApplyPermission.SILENT,
+      showPreview: false,
+      requireConfirmation: false,
+      recordHistory: true,
+      minConfidenceForAutoApply: 0.5,
+    },
+    suggest: {
+      autoApply: AutoApplyPermission.SILENT,
+      showPreview: false,
+      requireConfirmation: false,
+      recordHistory: true,
+      minConfidenceForAutoApply: 0.6,
+    },
+    manual: {
+      autoApply: AutoApplyPermission.NEVER,
+      showPreview: false,
+      requireConfirmation: false,
+      recordHistory: true,
+      minConfidenceForAutoApply: 1.0,
+    },
+    live: {
+      autoApply: AutoApplyPermission.SILENT,
+      showPreview: false,
+      requireConfirmation: false,
+      recordHistory: false,
+      minConfidenceForAutoApply: 0.6,
     },
   },
 };

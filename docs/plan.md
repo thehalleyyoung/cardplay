@@ -33,11 +33,11 @@ Goals:
 - Build minimal serialization for events and containers.
 
 Deliverables:
-- `src/core/event.ts`: Event types, normalization, invariants.
-- `src/core/container.ts`: Pattern/Scene/Clip/Score/Take interfaces.
-- `src/registry/event-kinds.ts`: registerEventKind, schemas.
-- `src/registry/port-types.ts`: registerPortType, unification rules.
-- `src/core/serialization.ts`: JSON/DSL skeleton for Events.
+- `src/types/event.ts`: Event types, normalization, invariants.
+- `src/types/event-kind.ts`: registerEventKind, EventKind registry.
+- `src/state/event-schema-registry.ts`: Event payload schemas and validation.
+- `src/cards/card.ts`: registerPortType, port type registry.
+- `src/canon/serialization.ts`: JSON serialization for canonical types.
 - Unit tests for event CRUD and invariants.
 
 Exit criteria:
