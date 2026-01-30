@@ -138,7 +138,7 @@ export type SuggestedAction =
  */
 export function assessPlanRisk(
   plan: CPLPlan,
-  goals: readonly Goal[],
+  _goals: readonly Goal[],
   constraints: readonly Constraint[],
   policy: BoardPolicy
 ): PlanRiskAssessment {
@@ -351,7 +351,7 @@ function getOpcodeRequiredCapability(opcode: Opcode): CapabilityId {
  * Assess constraint-related risks.
  */
 function assessConstraintRisks(
-  plan: CPLPlan,
+  _plan: CPLPlan,
   constraints: readonly Constraint[]
 ): readonly RiskFactor[] {
   const risks: RiskFactor[] = [];
@@ -379,7 +379,7 @@ function assessConstraintRisks(
  */
 function determineSuggestedAction(
   riskLevel: RiskLevel,
-  policy: BoardPolicy
+  _policy: BoardPolicy
 ): SuggestedAction {
   if (riskLevel === 'forbidden') {
     return 'clarify-intent';
@@ -474,7 +474,7 @@ export function selectPlanningStrategy(
 
   // Single candidate
   if (allowedCandidates.length === 1) {
-    const candidate = allowedCandidates[0];
+    const candidate = allowedCandidates[0]!; // Length check ensures this exists
 
     if (candidate.risk.overallRisk === 'safe') {
       return {
@@ -505,8 +505,8 @@ export function selectPlanningStrategy(
 
   // Multiple candidates - check if one is clearly best
   const sorted = [...allowedCandidates].sort((a, b) => b.score.totalScore - a.score.totalScore);
-  const best = sorted[0];
-  const secondBest = sorted[1];
+  const best = sorted[0]!; // Must exist since allowedCandidates.length > 1
+  const secondBest = sorted[1]!; // Must exist since allowedCandidates.length > 1
 
   const scoreGap = best.score.totalScore - secondBest.score.totalScore;
   const significantGap = scoreGap > 0.2; // 20% better
