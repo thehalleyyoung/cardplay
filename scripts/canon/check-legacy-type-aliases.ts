@@ -53,11 +53,10 @@ const KNOWN_DUPLICATES: DuplicateSymbol[] = [
   {
     name: 'CardState',
     locations: [
-      'src/audio/instrument-cards.ts', // Audio module state
-      'src/ui/cards.ts',               // UI card state
+      'src/ui/cards.ts',               // UI card state (now CardSurfaceStateEnum with deprecated alias)
     ],
-    expectedAliases: ['AudioModuleState', 'CardSurfaceState'],
-    status: 'needs-rename',
+    expectedAliases: ['CardSurfaceStateEnum', 'CardSurfaceState'],  // Both enum and interface
+    status: 'resolved',  // Audio already uses AudioModuleState
   },
   {
     name: 'PortType',

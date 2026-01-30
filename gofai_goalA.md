@@ -111,11 +111,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 143 [Eval] — Add fuzz tests for tokenizer and unit parsing (random punctuation, unicode, spacing) to ensure robustness.
 - [x] Step 144 [Eval] — Add ambiguity tests ensuring known ambiguous utterances do not collapse to a single meaning without clarification.
 - [x] Step 145 [Eval] — Add performance tests for parsing latency under incremental typing (budget targets per input length).
-- [ ] Step 146 [HCI] — Define a “typing UX” spec: parse status indicator, suggestions dropdown, and how/when to interrupt with clarification.
-- [ ] Step 147 [HCI] — Define an error recovery UX: user can edit the utterance, accept suggested rephrasing, or choose from interpreted candidates.
-- [ ] Step 148 [HCI] — Add UI copy templates for clarification questions (“By ‘darker’ do you mean timbre, harmony, register, or texture?”).
-- [ ] Step 149 [HCI] — Add a rule that every clarification UI must show a default and “why this matters” in one line.
-- [ ] Step 150 [Infra] — Establish a “grammar authorship workflow” (PR checklist: add lexeme, add grammar rule, add golden tests, add docs entry).
+- [x] Step 146 [HCI] — Define a "typing UX" spec: parse status indicator, suggestions dropdown, and how/when to interrupt with clarification.
+- [x] Step 147 [HCI] — Define an error recovery UX: user can edit the utterance, accept suggested rephrasing, or choose from interpreted candidates.
+- [x] Step 148 [HCI] — Add UI copy templates for clarification questions ("By 'darker' do you mean timbre, harmony, register, or texture?").
+- [x] Step 149 [HCI] — Add a rule that every clarification UI must show a default and "why this matters" in one line.
+- [x] Step 150 [Infra] — Establish a "grammar authorship workflow" (PR checklist: add lexeme, add grammar rule, add golden tests, add docs entry).
 ---
 
 ## Phase 3 — Deep Semantics: From Syntax to CPL (Steps 151–200)

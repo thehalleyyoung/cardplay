@@ -93,6 +93,12 @@ export interface Stack<_A = unknown, _B = unknown> {
 }
 
 /**
+ * Alias for Stack to clarify this is card composition, not UI layout.
+ * @deprecated Use Stack directly; kept for explicit type disambiguation.
+ */
+export type CardStack<A = unknown, B = unknown> = Stack<A, B>;
+
+/**
  * Stack metadata.
  */
 export interface StackMeta {

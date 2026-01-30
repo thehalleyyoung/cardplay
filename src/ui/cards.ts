@@ -28,12 +28,12 @@ export type CardSurfaceStyle = 'default' | 'minimal' | 'rounded' | 'sharp' | 'gr
 export type CardStyle = CardSurfaceStyle;
 
 /**
- * Card state.
- * Change 258: Canonical name is CardSurfaceState; CardState kept for compat.
+ * Card state enum.
+ * Change 258: Canonical name is CardSurfaceStateEnum; CardState kept for compat.
  */
-export type CardSurfaceState = 'normal' | 'selected' | 'focused' | 'disabled' | 'error' | 'loading';
-/** @deprecated Use CardSurfaceState instead (Change 258). */
-export type CardState = CardSurfaceState;
+export type CardSurfaceStateEnum = 'normal' | 'selected' | 'focused' | 'disabled' | 'error' | 'loading';
+/** @deprecated Use CardSurfaceStateEnum instead (Change 258). */
+export type CardState = CardSurfaceStateEnum;
 
 /**
  * Card port direction.
@@ -140,7 +140,7 @@ export function getCardDimensions(
  */
 export interface CardSurfaceState {
   /** Current state */
-  readonly state: CardState;
+  readonly state: CardSurfaceStateEnum;
   /** Position */
   readonly x: number;
   readonly y: number;

@@ -20,7 +20,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import glob from 'glob';
 
 // ============================================================================
 // ONTOLOGY MARKERS
@@ -181,17 +180,50 @@ function validateDocument(filePath: string): ValidationResult {
 }
 
 // ============================================================================
+// FILE UTILITIES
+// ============================================================================
+
+/**
+ * Recursively find all markdown files in a directory
+ */
+function findMarkdownFiles(dir: string): string[] {
+  const results: string[] = [];
+  
+  function walk(currentDir: string) {
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+      
+      if (entry.isDirectory()) {
+        // Skip node_modules and other common excluded dirs
+        if (!['node_modules', '.git', 'dist', 'coverage'].includes(entry.name)) {
+          walk(fullPath);
+        }
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        results.push(fullPath);
+      }
+    }
+  }
+  
+  walk(dir);
+  return results;
+}
+
+// ============================================================================
 // MAIN
 // ============================================================================
 
 async function main(): Promise<void> {
   const docsPath = path.join(process.cwd(), 'docs');
   
+  if (!fs.existsSync(docsPath)) {
+    console.log('No docs directory found, skipping ontology mixing check.');
+    return;
+  }
+  
   // Find all markdown files
-  const files = await glob('**/*.md', {
-    cwd: docsPath,
-    absolute: true,
-  });
+  const files = findMarkdownFiles(docsPath);
 
   console.log(`Checking ${files.length} docs for ontology mixing...\n`);
 

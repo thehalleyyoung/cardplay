@@ -204,3 +204,57 @@ export {
   default as PRODUCTION_TERM_BATCH1,
   getProductionTermBatch1Stats,
 } from './production-terms-batch1';
+
+// Domain verb vocabulary batch 37: Comprehensive editing operations
+export {
+  DOMAIN_VERBS_BATCH_37,
+  BATCH_37_COUNT,
+  STRUCTURAL_EDITING_VERBS,
+  PARAMETER_ADJUSTMENT_VERBS,
+  LAYER_CONTROL_VERBS,
+  TIME_MANIPULATION_VERBS,
+  CONTENT_GENERATION_VERBS,
+  ANALYSIS_INSPECTION_VERBS,
+  CREATIVE_TRANSFORMATION_VERBS,
+} from './domain-verbs-batch37-editing-operations';
+
+// Adjectives batch 38: Comprehensive audio descriptors
+export {
+  AUDIO_DESCRIPTOR_ADJECTIVES_BATCH_38,
+  BATCH_38_COUNT,
+  FREQUENCY_ADJECTIVES,
+  TIME_DOMAIN_ADJECTIVES,
+  SPATIAL_ADJECTIVES,
+  DYNAMIC_ADJECTIVES,
+  TIMBRAL_ADJECTIVES,
+  TEXTURAL_ADJECTIVES,
+  ENERGY_MOVEMENT_ADJECTIVES,
+} from './adjectives-audio-descriptors-batch38';
+
+// Domain nouns batch 39: Music theory comprehensive
+export {
+  MUSIC_THEORY_NOUNS_BATCH_39,
+  BATCH_39_COUNT,
+  TRIAD_NOUNS,
+  SEVENTH_CHORD_NOUNS,
+  CHORD_EXTENSION_NOUNS,
+  DIATONIC_MODE_NOUNS,
+  MINOR_SCALE_VARIANT_NOUNS,
+  PENTATONIC_BLUES_NOUNS,
+  SYNTHETIC_SCALE_NOUNS,
+  HARMONIC_FUNCTION_NOUNS,
+  CADENCE_NOUNS,
+  VOICE_LEADING_NOUNS,
+} from './domain-nouns-music-theory-batch39';
+
+// Domain nouns batch 40: Production effects and processing
+export {
+  PRODUCTION_EFFECTS_NOUNS_BATCH_40,
+  BATCH_40_COUNT,
+  DYNAMIC_PROCESSOR_NOUNS,
+  TIME_BASED_EFFECTS_NOUNS,
+  DISTORTION_SATURATION_NOUNS,
+  FILTER_EQ_NOUNS,
+  SPATIAL_EFFECTS_NOUNS,
+  CREATIVE_PROCESSORS_NOUNS,
+} from './domain-nouns-production-effects-batch40';

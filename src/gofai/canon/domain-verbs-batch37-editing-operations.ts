@@ -16,8 +16,8 @@
  * @module gofai/canon/domain-verbs-batch37-editing-operations
  */
 
-import type { Lexeme, LexemeId } from './types';
-import { createLexemeId, createOpcodeId, createAxisId } from './types';
+import type { Lexeme } from './types';
+import { createLexemeId, createOpcodeId } from './types';
 
 // =============================================================================
 // Structural Editing Verbs
