@@ -55,6 +55,9 @@ export interface PerformanceModeConfig {
   
   /** Show keyboard shortcuts */
   keyboardShortcuts?: boolean;
+  
+  /** Enable panic button shortcut */
+  enablePanicShortcut?: boolean;
 }
 
 /** Feature that can be disabled in performance mode */
@@ -141,6 +144,7 @@ export const DEFAULT_PERFORMANCE_CONFIG: PerformanceModeConfig = {
   showPerformanceHUD: true,
   hudPosition: 'top-right',
   keyboardShortcuts: true,
+  enablePanicShortcut: true,
 };
 
 // --------------------------------------------------------------------------
@@ -235,7 +239,8 @@ export class PerformanceModeStore {
   }
   
   getHighCPUFeatures(): PerformanceFeature[] {
-    return Array.from(this.features.values()).filter(f => f.cpuImpact === 'high');
+    // Only return non-essential high CPU features that can be disabled
+    return Array.from(this.features.values()).filter(f => f.cpuImpact === 'high' && !f.essential);
   }
   
   // Performance mode control
@@ -423,7 +428,7 @@ export class PerformanceModeStore {
   
   // Stability score (0-1, 1 is best)
   getStabilityScore(): number {
-    if (this.metricsHistory.length === 0) return 1.0;
+    if (this.metricsHistory.length === 0) return 100;
     
     // Calculate stability based on recent metrics
     const recent = this.metricsHistory.slice(-10);
@@ -446,7 +451,8 @@ export class PerformanceModeStore {
       totalScore += Math.max(0, score);
     }
     
-    return totalScore / recent.length;
+    // Return as percentage (0-100)
+    return (totalScore / recent.length) * 100;
   }
   
   // Precheck validation
