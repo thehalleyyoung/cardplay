@@ -5,8 +5,9 @@ Adapters are edges `fromType → toType` labeled with a conversion card and a nu
 
 Implementation:
 - `src/registry/adapters.ts`
-- `src/core/port-conversion.ts`
-- `src/registry/v2/reports.ts` (coverage matrix)
+- `src/boards/gating/port-conversion.ts` (canonical adapter registry)
+- `src/boards/gating/validate-connection.ts` (connection validation)
+- `src/registry/v2/reports.ts` (coverage matrix) - *aspirational*
 
 ## Interpretation
 

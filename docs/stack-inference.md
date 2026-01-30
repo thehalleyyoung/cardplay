@@ -57,7 +57,8 @@ Tabs/switch behavior is treated as “one of N active cards”.
 
 When a mismatch is detected, inference can compute adapter paths using the adapter registry and port type compatibility:
 
-- `src/core/port-conversion.ts`
+- `src/boards/gating/port-conversion.ts` (canonical adapter implementation)
+- `src/boards/gating/validate-connection.ts` (connection validation and compatibility)
 - `src/registry/adapters.ts`
 
 These paths are used by:

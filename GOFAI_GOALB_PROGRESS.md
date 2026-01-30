@@ -23,8 +23,14 @@
     - Magnitude preference system (minimal → rewrite)
     - Distinct plan detection (30% difference thresholds)
     - Option set generation with distinction explanations
+- ✅ **Domain Nouns Batch 12 — Advanced Techniques (620 LOC)**
+  - 30 high-quality terms: extended techniques, textural concepts, rhythmic concepts
+  - col legno, sul ponticello, Bartók pizzicato, multiphonics, flutter tongue, harmonics
+  - micropolyphony, klangfarbenmelodie, pointillism, sonic mass, stratification
+  - additive rhythm, metric modulation, isorhythm, polymeter, cross-rhythm
 - ✅ **Phase 5 Planning now 18% complete (9 of 50 steps)**
-- ✅ **Total session code: 4,010 LOC (including Part 7)**
+- ✅ **Phase 1 Vocabulary now 71% complete (~14,193 LOC)**
+- ✅ **Total session code: 2,340 LOC**
 
 Previous session (Part 7):
 - Steps 251-255: CPL-Plan types, lever mappings, cost model (2,290 LOC)
