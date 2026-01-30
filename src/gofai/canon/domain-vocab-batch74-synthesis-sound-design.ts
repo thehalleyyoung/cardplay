@@ -18,13 +18,13 @@
  * @see docs/gofai/vocabulary-coverage.md
  */
 
-import type { LexemeEntry } from './types.js';
+import type { Lexeme } from './types.js';
 
 // ============================================================================
 // SYNTHESIS TYPES AND METHODS
 // ============================================================================
 
-export const SYNTHESIS_TYPES_LEXEMES: readonly LexemeEntry[] = [
+export const SYNTHESIS_TYPES_LEXEMES: readonly Lexeme[] = [
   {
     id: 'lex:noun:subtractive_synthesis',
     surface: ['subtractive synthesis', 'subtractive', 'analog synthesis', 'filter synthesis'],
@@ -111,7 +111,7 @@ export const SYNTHESIS_TYPES_LEXEMES: readonly LexemeEntry[] = [
 // OSCILLATOR TYPES AND WAVEFORMS
 // ============================================================================
 
-export const OSCILLATOR_LEXEMES: readonly LexemeEntry[] = [
+export const OSCILLATOR_LEXEMES: readonly Lexeme[] = [
   {
     id: 'lex:noun:oscillator',
     surface: ['oscillator', 'osc', 'tone generator', 'voice'],
@@ -230,7 +230,7 @@ export const OSCILLATOR_LEXEMES: readonly LexemeEntry[] = [
 // FILTER TYPES AND PARAMETERS
 // ============================================================================
 
-export const FILTER_LEXEMES: readonly LexemeEntry[] = [
+export const FILTER_LEXEMES: readonly Lexeme[] = [
   {
     id: 'lex:noun:low_pass_filter',
     surface: ['low pass filter', 'low-pass', 'LPF', 'highcut filter'],
@@ -341,7 +341,7 @@ export const FILTER_LEXEMES: readonly LexemeEntry[] = [
 // ENVELOPE PARAMETERS AND SHAPES
 // ============================================================================
 
-export const ENVELOPE_LEXEMES: readonly LexemeEntry[] = [
+export const ENVELOPE_LEXEMES: readonly Lexeme[] = [
   {
     id: 'lex:noun:adsr',
     surface: ['ADSR', 'envelope', 'ADSR envelope', 'amplitude envelope'],
@@ -428,7 +428,7 @@ export const ENVELOPE_LEXEMES: readonly LexemeEntry[] = [
 // MODULATION SOURCES AND ROUTING
 // ============================================================================
 
-export const MODULATION_LEXEMES: readonly LexemeEntry[] = [
+export const MODULATION_LEXEMES: readonly Lexeme[] = [
   {
     id: 'lex:noun:lfo',
     surface: ['LFO', 'low frequency oscillator', 'modulator', 'LFO source'],
@@ -523,7 +523,7 @@ export const MODULATION_LEXEMES: readonly LexemeEntry[] = [
 // SOUND DESIGN TECHNIQUES
 // ============================================================================
 
-export const SOUND_DESIGN_LEXEMES: readonly LexemeEntry[] = [
+export const SOUND_DESIGN_LEXEMES: readonly Lexeme[] = [
   {
     id: 'lex:noun:layering',
     surface: ['layering', 'sound layering', 'multi-layer', 'stacking sounds'],
@@ -642,7 +642,7 @@ export const SOUND_DESIGN_LEXEMES: readonly LexemeEntry[] = [
 // TIMBRE AND CHARACTER DESCRIPTORS
 // ============================================================================
 
-export const TIMBRE_DESCRIPTORS_LEXEMES: readonly LexemeEntry[] = [
+export const TIMBRE_DESCRIPTORS_LEXEME: readonly Lexeme[] = [
   {
     id: 'lex:adj:analog',
     surface: ['analog', 'analogue', 'analog-style', 'vintage analog'],
@@ -745,14 +745,14 @@ export const TIMBRE_DESCRIPTORS_LEXEMES: readonly LexemeEntry[] = [
 // Export combined vocabulary
 // ============================================================================
 
-export const SYNTHESIS_SOUND_DESIGN_LEXEMES: readonly LexemeEntry[] = [
+export const SYNTHESIS_SOUND_DESIGN_LEXEMES: readonly Lexeme[] = [
   ...SYNTHESIS_TYPES_LEXEMES,
   ...OSCILLATOR_LEXEMES,
   ...FILTER_LEXEMES,
   ...ENVELOPE_LEXEMES,
   ...MODULATION_LEXEMES,
   ...SOUND_DESIGN_LEXEMES,
-  ...TIMBRE_DESCRIPTORS_LEXEMES,
+  ...TIMBRE_DESCRIPTORS_LEXEME,
 ];
 
 // Batch metadata

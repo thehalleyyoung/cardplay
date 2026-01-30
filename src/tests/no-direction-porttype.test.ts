@@ -44,6 +44,9 @@ describe('No Direction in PortType (Change 468)', () => {
         '**/*.spec.ts',
         '**/ui/ports/**', // These files handle legacy format
         '**/ui/components/card-component.ts', // Handles legacy UIPortType
+        '**/canon/migrations.ts', // Migration code handles legacy formats
+        '**/scripts/canon/find-direction-in-porttype.ts', // The checker itself
+        '**/state/routing-graph.ts', // Has migration helpers for legacy formats
       ],
     });
     

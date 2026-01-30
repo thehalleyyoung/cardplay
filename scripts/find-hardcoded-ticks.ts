@@ -9,7 +9,9 @@
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
-const PPQ = 960;
+// Reference value for pattern matching (canonical PPQ is 960)
+const CANONICAL_PPQ = 960;
+
 const SUSPICIOUS_PATTERNS = [
   /PPQ\s*[=:]\s*(?!960)\d+/gi,  // PPQ = something other than 960
   /ppq\s*[=:]\s*(?!960)\d+/gi,  // ppq = something other than 960
@@ -50,7 +52,7 @@ function scanFile(filePath: string): void {
             file: filePath,
             line: idx + 1,
             content: line.trim(),
-            reason: `Potentially incorrect PPQ assumption (expecting PPQ=${PPQ})`,
+            reason: `Potentially incorrect PPQ assumption (expecting PPQ=${CANONICAL_PPQ})`,
           });
         }
       }
@@ -89,7 +91,7 @@ function scanDirectory(dir: string, extensions: string[] = ['.ts', '.tsx', '.js'
 
 // Main execution
 const srcDir = join(process.cwd(), 'src');
-console.log(`Scanning for hardcoded tick assumptions (PPQ=${PPQ})...\n`);
+console.log(`Scanning for hardcoded tick assumptions (PPQ=${CANONICAL_PPQ})...\n`);
 
 scanDirectory(srcDir);
 
