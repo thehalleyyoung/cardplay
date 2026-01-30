@@ -32,7 +32,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 046 [Infra] — Establish a local-only telemetry plan (optional) to capture anonymized parse/clarification failures for iterative improvement.
 - [x] Step 047 [Eval] — Decide on an evaluation harness that can replay a conversation against fixed fixtures and assert deterministic outputs.
 - [x] Step 048 [Infra] — Define a “migration policy” for language behavior changes (how to handle old CPL in edit history after upgrades).
-- [ ] Step 050 [Infra] — Create a final checklist for “shipping offline compiler”: no network calls in runtime path; deterministic builds; audit logs.
+- [x] Step 050 [Infra] — Create a final checklist for “shipping offline compiler”: no network calls in runtime path; deterministic builds; audit logs.
 ---
 
 ## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)

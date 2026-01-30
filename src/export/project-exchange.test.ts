@@ -5,12 +5,46 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { exportProject, type ProjectExportOptions } from './project-export';
-import { importProjectFromArchive, type ProjectImportOptions } from './project-import';
+import { exportProject, type ProjectExportOptions, type ProjectMetadata, type ProjectArchive } from './project-export';
+import { importProject, type ProjectImportOptions } from './project-import';
 import { getSharedEventStore } from '../state/event-store';
 import { getClipRegistry } from '../state/clip-registry';
 import { asTick, asTickDuration, generateEventId } from '../types/index';
 import { EventKinds } from '../types/event-kind';
+
+// Helper function to export and parse in one call for tests
+async function exportAndParse(options: ProjectExportOptions | any, metadata?: Partial<ProjectMetadata>): Promise<ProjectArchive> {
+  // Convert old test options format to actual API format if needed
+  let actualOptions: ProjectExportOptions;
+  
+  if ('includeStreams' in options || 'includeClips' in options) {
+    // Old format - convert it
+    actualOptions = {
+      includeSamples: false,
+      includePresets: false,
+      includeAudioFiles: false,
+      includeVideos: false,
+      compress: options.compress ?? false,
+      compressionLevel: 1,
+      includeMetadata: true,
+    };
+  } else {
+    actualOptions = options;
+  }
+  
+  const fullMetadata: ProjectMetadata = {
+    projectName: options.name || 'Test Project',
+    createdAt: Date.now(),
+    modifiedAt: Date.now(),
+    version: '1.0',
+    cardplayVersion: '0.1.0',
+    ...metadata,
+  };
+  
+  const blob = await exportProject(actualOptions, fullMetadata);
+  const text = await blob.text();
+  return JSON.parse(text);
+}
 
 describe('Project Export/Import (O056-O058)', () => {
   beforeEach(() => {
@@ -37,7 +71,7 @@ describe('Project Export/Import (O056-O058)', () => {
       ]);
       
       // Export project
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -69,7 +103,7 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       // Export
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -85,7 +119,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('exports with metadata', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -107,7 +141,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('exports board state', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -124,7 +158,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('exports active context', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -141,7 +175,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('validates archive structure', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -174,7 +208,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('exports with all optional fields', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: true,
         includePresets: true,
         includeAudioFiles: true,
@@ -237,7 +271,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('validates stream data integrity', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -256,7 +290,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('validates clip references', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -278,7 +312,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('validates board state structure', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -297,7 +331,7 @@ describe('Project Export/Import (O056-O058)', () => {
 
   describe('O058: Archive Serialization', () => {
     it('serializes to JSON successfully', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -314,7 +348,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('round-trips through JSON', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -334,7 +368,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('has reasonable file size', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -352,7 +386,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('preserves all data types', async () => {
-      const archive = await exportProject({
+      const archive = await exportAndParse({
         includeSamples: false,
         includePresets: false,
         includeAudioFiles: false,
@@ -383,8 +417,8 @@ describe('Project Export/Import (O056-O058)', () => {
 describe('Project Export/Import (O056-O058)', () => {
   beforeEach(() => {
     // Reset stores
-    // Reset not supported for singleton;
-    ClipRegistry.reset();
+    // Reset not supported for singletons in tests without mocking
+    // ClipRegistry.reset();
   });
 
   describe('O056: Export Creates Valid Archives', () => {
@@ -397,7 +431,7 @@ describe('Project Export/Import (O056-O058)', () => {
       
       eventStore.addEvents(stream1.id, [
         {
-          id: asEventId('event-1'),
+          id: generateEventId(),
           kind: EventKinds.NOTE,
           start: asTick(0),
           duration: asTickDuration(480),
@@ -406,7 +440,7 @@ describe('Project Export/Import (O056-O058)', () => {
       ]);
       
       // Export project
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Test Project',
         includeStreams: true,
         includeClips: true,
@@ -414,7 +448,7 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       expect(archive).toBeDefined();
-      expect(archive.metadata.name).toBe('Test Project');
+      expect(archive.metadata.projectName).toBe('Test Project');
       expect(archive.streams).toBeDefined();
       expect(archive.streams.length).toBeGreaterThanOrEqual(2);
       
@@ -426,7 +460,7 @@ describe('Project Export/Import (O056-O058)', () => {
 
     it('exports project with clips', async () => {
       const eventStore = getSharedEventStore();
-      const clipRegistry = ClipRegistry;
+      const clipRegistry = getClipRegistry();
       
       // Create stream and clip
       const stream = eventStore.createStream({ name: 'Main' });
@@ -438,7 +472,7 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       // Export
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Test Project',
         includeStreams: true,
         includeClips: true,
@@ -459,7 +493,7 @@ describe('Project Export/Import (O056-O058)', () => {
       // Create large stream
       const stream = eventStore.createStream({ name: 'Big Stream' });
       const events = Array.from({ length: 100 }, (_, i) => ({
-        id: asEventId(`event-${i}`),
+        id: generateEventId(),
         kind: EventKinds.NOTE,
         start: asTick(i * 480),
         duration: asTickDuration(480),
@@ -469,7 +503,7 @@ describe('Project Export/Import (O056-O058)', () => {
       eventStore.addEvents(stream.id, events);
       
       // Export with compression
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Big Project',
         includeStreams: true,
         includeClips: false,
@@ -493,7 +527,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const stream2 = eventStore.createStream({ name: 'Skip' });
       
       // Export only specific streams
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Selective Export',
         includeStreams: true,
         includeClips: false,
@@ -507,7 +541,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('exports metadata with timestamp and version', async () => {
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Metadata Test',
         includeStreams: false,
         includeClips: false,
@@ -515,7 +549,7 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       expect(archive.metadata).toBeDefined();
-      expect(archive.metadata.name).toBe('Metadata Test');
+      expect(archive.metadata.projectName).toBe('Metadata Test');
       expect(archive.metadata.version).toBeDefined();
       expect(archive.metadata.exportedAt).toBeDefined();
       
@@ -528,7 +562,7 @@ describe('Project Export/Import (O056-O058)', () => {
     });
 
     it('exports with project settings', async () => {
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Settings Test',
         includeStreams: false,
         includeClips: false,
@@ -549,7 +583,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const eventStore = getSharedEventStore();
       const stream = eventStore.createStream({ name: 'Test' });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Validation Test',
         includeStreams: true,
         includeClips: false,
@@ -579,7 +613,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const originalStream = eventStore.createStream({ name: 'Original' });
       eventStore.addEvents(originalStream.id, [
         {
-          id: asEventId('event-1'),
+          id: generateEventId(),
           kind: EventKinds.NOTE,
           start: asTick(0),
           duration: asTickDuration(480),
@@ -587,7 +621,7 @@ describe('Project Export/Import (O056-O058)', () => {
         },
       ]);
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Import Test',
         includeStreams: true,
         includeClips: false,
@@ -597,7 +631,7 @@ describe('Project Export/Import (O056-O058)', () => {
       // Reset and import
       // Reset not supported for singleton;
       
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
       });
@@ -621,7 +655,7 @@ describe('Project Export/Import (O056-O058)', () => {
     it('imports clips correctly', async () => {
       // Create and export
       const eventStore = getSharedEventStore();
-      const clipRegistry = ClipRegistry;
+      const clipRegistry = getClipRegistry();
       
       const stream = eventStore.createStream({ name: 'Stream' });
       const clip = clipRegistry.createClip({
@@ -631,7 +665,7 @@ describe('Project Export/Import (O056-O058)', () => {
         loop: true,
       });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Clip Test',
         includeStreams: true,
         includeClips: true,
@@ -642,7 +676,7 @@ describe('Project Export/Import (O056-O058)', () => {
       // Reset not supported for singleton;
       ClipRegistry.reset();
       
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
       });
@@ -662,7 +696,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const eventStore = getSharedEventStore();
       const stream = eventStore.createStream({ name: 'Compressed' });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Compressed Test',
         includeStreams: true,
         includeClips: false,
@@ -672,7 +706,7 @@ describe('Project Export/Import (O056-O058)', () => {
       // Reset and import
       // Reset not supported for singleton;
       
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
       });
@@ -699,7 +733,7 @@ describe('Project Export/Import (O056-O058)', () => {
       
       eventStore.addEvents(stream.id, [originalEvent]);
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Integrity Test',
         includeStreams: true,
         includeClips: false,
@@ -708,7 +742,7 @@ describe('Project Export/Import (O056-O058)', () => {
       
       // Reset not supported for singleton;
       
-      await importProjectFromArchive(archive, {
+      await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
       });
@@ -732,7 +766,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const eventStore = getSharedEventStore();
       const stream = eventStore.createStream({ name: 'Progress Test' });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Progress Test',
         includeStreams: true,
         includeClips: false,
@@ -743,7 +777,7 @@ describe('Project Export/Import (O056-O058)', () => {
       
       const progressUpdates: Array<{ stage: string; progress: number }> = [];
       
-      await importProjectFromArchive(archive, {
+      await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
         onProgress: (stage, progress) => {
@@ -773,7 +807,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const otherStore = SharedEventStore;
       const conflicting = otherStore.createStream({ name: 'Conflict' });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Conflict Test',
         includeStreams: true,
         includeClips: false,
@@ -781,7 +815,7 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       // Import with rename strategy
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
       });
@@ -802,7 +836,7 @@ describe('Project Export/Import (O056-O058)', () => {
       // Create existing stream
       eventStore.createStream({ name: 'Skip Me' });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Skip Test',
         includeStreams: true,
         includeClips: false,
@@ -812,7 +846,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const streamCountBefore = eventStore.getAllStreams().length;
       
       // Import with skip strategy
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'skip',
         onClipConflict: 'skip',
       });
@@ -832,7 +866,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const existing = eventStore.createStream({ name: 'Overwrite' });
       eventStore.addEvents(existing.id, [
         {
-          id: asEventId('old-event'),
+          id: generateEventId(),
           kind: EventKinds.NOTE,
           start: asTick(0),
           duration: asTickDuration(480),
@@ -844,7 +878,7 @@ describe('Project Export/Import (O056-O058)', () => {
       const newStream = eventStore.createStream({ name: 'Overwrite' });
       eventStore.addEvents(newStream.id, [
         {
-          id: asEventId('new-event'),
+          id: generateEventId(),
           kind: EventKinds.NOTE,
           start: asTick(0),
           duration: asTickDuration(480),
@@ -852,7 +886,7 @@ describe('Project Export/Import (O056-O058)', () => {
         },
       ]);
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Overwrite Test',
         includeStreams: true,
         includeClips: false,
@@ -860,7 +894,7 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       // Import with overwrite strategy
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'overwrite',
         onClipConflict: 'overwrite',
       });
@@ -881,7 +915,7 @@ describe('Project Export/Import (O056-O058)', () => {
 
     it('handles clip conflicts with rename', async () => {
       const eventStore = getSharedEventStore();
-      const clipRegistry = ClipRegistry;
+      const clipRegistry = getClipRegistry();
       
       // Create existing clip
       const stream = eventStore.createStream({ name: 'Stream' });
@@ -892,7 +926,7 @@ describe('Project Export/Import (O056-O058)', () => {
         loop: false,
       });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Clip Conflict',
         includeStreams: true,
         includeClips: true,
@@ -900,7 +934,7 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       // Import with rename
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
       });
@@ -920,14 +954,14 @@ describe('Project Export/Import (O056-O058)', () => {
       eventStore.createStream({ name: 'Conflict 1' });
       eventStore.createStream({ name: 'Conflict 2' });
       
-      const archive = await exportProjectToArchive({
+      const archive = await exportAndParse({
         name: 'Report Conflicts',
         includeStreams: true,
         includeClips: false,
         compress: false,
       });
       
-      const result = await importProjectFromArchive(archive, {
+      const result = await importProject(archive, {
         onStreamConflict: 'rename',
         onClipConflict: 'rename',
       });
