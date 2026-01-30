@@ -38,17 +38,17 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 ## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)
 
 - [x] Step 051 [Type][Infra] — Create a GOFAI canon layer: a single SSOT module exporting lexeme IDs, axis IDs, opcode IDs, and normalization rules.
-- [ ] Step 054 [Type] — Define `EntityRef` types (SectionRef, RangeRef, LayerRef, CardRef, ParamRef, DeckRef, BoardRef) with branded IDs.
-- [ ] Step 055 [Type] — Define `EventSelector` as a typed predicate language over `Event<P>` (kind, tags, role, pitch range, time range).
-- [ ] Step 056 [Infra] — Implement a project “symbol table builder” that indexes sections, tracks/layers, cards, decks, and boards by IDs and display names.
-- [ ] Step 057 [Prag][Type] — Add salience tracking to symbol tables (last-focused section, last-edited layer, current selection) for reference resolution.
+- [x] Step 054 [Type] — Define `EntityRef` types (SectionRef, RangeRef, LayerRef, CardRef, ParamRef, DeckRef, BoardRef) with branded IDs.
+- [x] Step 055 [Type] — Define `EventSelector` as a typed predicate language over `Event<P>` (kind, tags, role, pitch range, time range).
+- [x] Step 056 [Infra] — Implement a project "symbol table builder" that indexes sections, tracks/layers, cards, decks, and boards by IDs and display names.
+- [x] Step 057 [Prag][Type] — Add salience tracking to symbol tables (last-focused section, last-edited layer, current selection) for reference resolution.
 - [x] Step 058 [NLP][Sem] — Define a canonical section vocabulary: intro/verse/chorus/bridge/outro + numbered variants + user-defined labels.
 - [x] Step 059 [NLP][Sem] — Define a canonical layer vocabulary: drums/kick/snare/hats/bass/pad/lead/vocal + role mappings.
-- [ ] Step 060 [NLP][Sem] — Define a canonical time vocabulary: bars/beats/ticks, relative phrases (“two bars before”), and timepoint references (“at bar 49”).
-- [ ] Step 071 [Infra] — Document the “entity binding precedence”: selection > explicit reference > salience > defaults; add tests for resolution order.
-- [ ] Step 072 [Prag] — Encode deictic resolution rules (“this section”, “these notes”) and require a UI selection context for them.
-- [ ] Step 074 [Sem] — Specify how event-level references surface in language (“the last note”, “the downbeats”, “every other bar”).
-- [ ] Step 075 [HCI] — Add UI copy guidelines for showing entity bindings (“‘that chorus’ → Chorus 2 (bars 49–65)”).
+- [x] Step 060 [NLP][Sem] — Define a canonical time vocabulary: bars/beats/ticks, relative phrases ("two bars before"), and timepoint references ("at bar 49").
+- [x] Step 071 [Infra] — Document the "entity binding precedence": selection > explicit reference > salience > defaults; add tests for resolution order.
+- [x] Step 072 [Prag] — Encode deictic resolution rules ("this section", "these notes") and require a UI selection context for them.
+- [x] Step 074 [Sem] — Specify how event-level references surface in language ("the last note", "the downbeats", "every other bar").
+- [x] Step 075 [HCI] — Add UI copy guidelines for showing entity bindings ("'that chorus' → Chorus 2 (bars 49–65)").
 - [x] Step 076 [Infra] — Create a canonical “domain noun inventory” (bars, hook, motif, voicing, groove, drop, build) with definitions and examples.  Note that it should include nouns from as many music theories and traditions as possible.
 - [x] Step 077 [Sem] — Define a “musical object ontology” that distinguishes structure, harmony, rhythm, timbre/production, performance.  Note that it should include ontological objects from as many music theories and traditions as possible.
 - [ ] Step 078 [Type] — Define typed “targets” for preserve-only-change constraints (preserve melody exact vs functional harmony vs recognizable hook), again aiming for wide scope.

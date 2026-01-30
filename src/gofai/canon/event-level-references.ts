@@ -23,7 +23,6 @@
  * @see gofaimusicplus.md §3.3 — Scope is a selector over Event<P>
  */
 
-import type { EventSelector } from './event-selector';
 
 // =============================================================================
 // EVENT REFERENCE PATTERN TYPES

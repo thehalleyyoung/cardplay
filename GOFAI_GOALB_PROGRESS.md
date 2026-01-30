@@ -759,12 +759,21 @@ checkEffect(effect, policy): EffectCheckResult
 - Complete jazz timeline from origins to avant-garde
 - Contemporary electronic music from 1980s to present
 
+#### ✅ Domain Nouns - Advanced Techniques and Textures (Batch 12) (620 LOC) — NEW 2026-01-30 Part 8
+**File**: `src/gofai/canon/domain-nouns-batch12.ts`
+- 30 domain noun lexemes across 3 major categories
+- **Extended Techniques** (12): col legno, sul ponticello, sul tasto, Bartók pizzicato, multiphonics, flutter tongue, prepared piano, harmonics, bisbigliando, breath tone, key clicks, glissando
+- **Textural Concepts** (10): micropolyphony, klangfarbenmelodie, pointillism, cluster, sonic mass, stratification, heterophony, static harmony, wash, carpet
+- **Rhythmic Concepts** (8): additive rhythm, metric modulation, isorhythm, polymeter, groove displacement, cross-rhythm, aksak, bell pattern
+- Advanced 20th century techniques and contemporary concepts
+- Full definitions and semantic bindings for each term
+
 ### Vocabulary Statistics
-- **Total Lexeme Files**: 14 (11 domain noun batches + adjectives + verbs + core)
-- **Total Vocabulary LOC**: 13,573 lines (68% toward 20K goal)
+- **Total Lexeme Files**: 15 (12 domain noun batches + adjectives + verbs + core)
+- **Total Vocabulary LOC**: 14,193 lines (71% toward 20K goal)
 - **Total Adjectives**: 175 unique lexemes across 15 axes
 - **Total Verbs**: 44 unique lexemes across 4 categories
-- **Total Domain Nouns**: 419 unique lexemes across batch files
+- **Total Domain Nouns**: 449 unique lexemes across batch files
   - Batch 2 (Instruments): 40 terms
   - Batch 3 (Techniques): 47 terms  
   - Batch 5 (Form/Structure): 50 terms
@@ -774,7 +783,8 @@ checkEffect(effect, policy): EffectCheckResult
   - Batch 9 (Melody): 43 terms
   - Batch 10 (Dynamics/Articulation): 41 terms
   - Batch 11 (Styles/Genres): 35 terms
-- **Progress toward 20K goal**: 68%
+  - Batch 12 (Advanced Techniques): 30 terms
+- **Progress toward 20K goal**: 71%
 
 ### Each Lexeme Includes
 - Unique namespaced ID
@@ -1034,11 +1044,12 @@ Phase 5 is 10% complete (5 of 50 steps done). Next priorities:
 ## Statistics
 
 ### Code Written (All Sessions)
-- **Total Lines of Code**: ~15,151 LOC (+1,720 this part)
-- **Session 2026-01-30 Part 8 Added**: 1,720 LOC (Constraint satisfaction, plan generation, least-change)
+- **Total Lines of Code**: ~17,491 LOC (+2,340 this part)
+- **Session 2026-01-30 Part 8 Added**: 2,340 LOC (Planning core + vocabulary)
   - constraint-satisfaction.ts: 600 LOC (Step 256)
   - plan-generation.ts: 550 LOC (Step 257)
   - least-change-strategy.ts: 570 LOC (Steps 258-259)
+  - domain-nouns-batch12.ts: 620 LOC (vocabulary)
 - **Session 2026-01-30 Parts 1-6**: ~11,141 LOC
   - Phase 0 infrastructure: ~7,400 LOC
   - Phase 1 vocabulary: ~3,741 LOC
@@ -1048,12 +1059,12 @@ Phase 5 is 10% complete (5 of 50 steps done). Next priorities:
   - Testing framework: 2 files (build-matrix, success-metrics)
   - Core infrastructure: 10 files (Phase 0)
   - Planning: 6 files (Phase 5)
-- Vocabulary: 14 files (~3,741 LOC)
+- Vocabulary: 15 files (~14,193 LOC)
 - Documentation: 6 comprehensive docs
 
 ### Phases Complete
 - **Phase 0** (Charter & Invariants): ✅ 100% (19/19 steps)
-- **Phase 1** (Vocabulary): 🔄 68% complete (~13,573 LOC vocabulary)
+- **Phase 1** (Vocabulary): 🔄 71% complete (~14,193 LOC vocabulary)
 - **Phase 5** (Planning): 🔄 18% complete (9/50 steps)
 
 ### Types Defined

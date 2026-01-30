@@ -323,7 +323,9 @@ export type LexemeSemantics =
   | { type: 'scope'; scopeType: ScopeType }
   | { type: 'quantity'; quantityType: QuantityType }
   | { type: 'coordination'; coordType: CoordinationType }
-  | { type: 'entity'; entityType: EntityType }
+  | { type: 'entity'; entityType: EntityType; [key: string]: any }
+  | { type: 'concept'; domain: string; aspect: string; [key: string]: any }
+  | { type: 'modifier'; modifierType: string; [key: string]: any }
   | { type: 'custom'; handler: string };
 
 /**
