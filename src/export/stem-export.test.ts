@@ -2,6 +2,7 @@
  * Tests for Stem Export System (M299-M306)
  */
 
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import {
   StemExportStore,
   StemExportConfig,
@@ -428,7 +429,7 @@ describe('StemExportStore', () => {
   
   describe('listeners', () => {
     test('notifies on session creation', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.subscribe(listener);
       
       store.createSession('TestProject', createTestConfig());
@@ -437,7 +438,7 @@ describe('StemExportStore', () => {
     });
     
     test('notifies on session deletion', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const { session } = store.createSession('TestProject', createTestConfig());
       
       store.subscribe(listener);
@@ -447,7 +448,7 @@ describe('StemExportStore', () => {
     });
     
     test('unsubscribe stops notifications', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = store.subscribe(listener);
       
       unsubscribe();

@@ -165,11 +165,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 193 [Eval] — Add "scope safety" tests: utterances with scoping must always bind to the same range given the same fixture.
 - [x] Step 194 [Eval] — Add "operator interaction" tests for negation/only/quantifiers, ensuring MRS underspecification behaves predictably.
 - [x] Step 195 [Eval] — Add tests ensuring presupposition triggers create expected "requires prior referent" holes when history lacks support.
-- [ ] Step 196 [HCI] — Define a CPL viewer UX: collapsible tree, colored tags (goal/constraint/scope), and clickable spans back to original text.
-- [ ] Step 197 [HCI] — Add an “ambiguity UI” pattern: show candidate meanings side-by-side with consequences; allow default selection.
-- [ ] Step 198 [HCI] — Add a “semantic provenance UI” pattern: hover on CPL node to show source words + rule IDs in developer mode.
-- [ ] Step 199 [HCI] — Add a “user vocabulary learning” UX: when user clarifies “dark means timbre”, offer to save as preference.
-- [ ] Step 200 [HCI] — Add a “teach mode” option: the system can explain the semantics in musical terms (education workflow).
+- [x] Step 196 [HCI] — Define a CPL viewer UX: collapsible tree, colored tags (goal/constraint/scope), and clickable spans back to original text.
+- [x] Step 197 [HCI] — Add an "ambiguity UI" pattern: show candidate meanings side-by-side with consequences; allow default selection.
+- [x] Step 198 [HCI] — Add a "semantic provenance UI" pattern: hover on CPL node to show source words + rule IDs in developer mode.
+- [x] Step 199 [HCI] — Add a "user vocabulary learning" UX: when user clarifies "dark means timbre", offer to save as preference.
+- [x] Step 200 [HCI] — Add a "teach mode" option: the system can explain the semantics in musical terms (education workflow).
 ---
 
 ## Phase 4 — Deep Pragmatics + Dialogue: Context, Anaphora, Presupposition, QUD (Steps 201–250)

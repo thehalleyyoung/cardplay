@@ -83,3 +83,6 @@ export * from './nlp-semantic-support';
 
 // Evaluation framework: golden tests, semantic diffs, scope safety (Steps 191–195)
 export * from './eval-golden-tests';
+
+// HCI patterns: CPL viewer, ambiguity UI, provenance UI, vocabulary learning, teach mode (Steps 196–200)
+export * from './hci-patterns';

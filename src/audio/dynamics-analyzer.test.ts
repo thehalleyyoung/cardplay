@@ -2,6 +2,7 @@
  * Tests for Dynamics Analyzer System
  */
 
+import { describe, test, it, expect, beforeEach, vi } from 'vitest';
 import {
   calculateRMS,
   calculatePeak,
@@ -378,7 +379,7 @@ describe('Dynamics Analyzer', () => {
     
     describe('subscriptions', () => {
       it('should notify on analysis', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         store.subscribe(listener);
         
         const samples = new Float32Array(1000).fill(0.5);
@@ -388,7 +389,7 @@ describe('Dynamics Analyzer', () => {
       });
       
       it('should support unsubscribe', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         const unsubscribe = store.subscribe(listener);
         
         unsubscribe();
@@ -400,7 +401,7 @@ describe('Dynamics Analyzer', () => {
       });
       
       it('should notify on reset', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         store.subscribe(listener);
         
         store.reset();

@@ -630,34 +630,6 @@ export function renderCPLTreeToText(
   const visibleSet = new Set(config.visibleTypes);
   const filterAll = visibleSet.size === 0;
 
-  function walk(node: CPLTreeNode, depth: number, prefix: string): void {
-    if (depth > effectiveMaxDepth) return;
-    if (!filterAll && !visibleSet.has(node.nodeType)) return;
-
-    const indent = prefix;
-    const tag = formatNodeLabel(node, config);
-    const confStr = config.showConfidence
-      ? ` [${(node.confidence * 100).toFixed(0)}%]`
-      : '';
-    const idStr = config.showNodeIds ? ` (${node.id})` : '';
-    lines.push(`${indent}${tag}${confStr}${idStr}`);
-
-    for (let i = 0; i < node.children.length; i++) {
-      const child = node.children[i];
-      if (child === undefined) continue;
-      const isLast = i === node.children.length - 1;
-      const connector = isLast ? '└─ ' : '├─ ';
-      const nextPrefix = prefix + (isLast ? '   ' : '│  ');
-      walk(child, depth + 1, indent + connector);
-      // Fix: use nextPrefix for grandchildren by re-calling walk properly
-      // Actually the recursive call above already passes the right prefix via indent + connector
-      // For children we need to use nextPrefix; let's restructure:
-      void nextPrefix; // consumed below
-    }
-  }
-
-  // Re-implement walk cleanly:
-  lines.length = 0;
   function walkClean(node: CPLTreeNode, depth: number, prefix: string, childPrefix: string): void {
     if (depth > effectiveMaxDepth) return;
     if (!filterAll && !visibleSet.has(node.nodeType)) return;
@@ -3175,5 +3147,814 @@ export function createEmptyPreferenceStore(userId: string): PreferenceStore {
     totalPreferences: 0,
     lastModified: Date.now(),
     version: 1,
+  };
+}
+
+
+// =============================================================================
+// STEP 200 [HCI] — Teach Mode
+// =============================================================================
+//
+// The system can explain the semantics in musical terms (education workflow).
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// 200 — Types
+// ---------------------------------------------------------------------------
+
+/** Explanation level for teach mode. */
+export type ExplanationLevel =
+  | 'beginner'
+  | 'intermediate'
+  | 'advanced'
+  | 'expert'
+  | 'developer';
+
+/** A musical analogy mapping a semantic concept to a musical term. */
+export interface MusicalAnalogy {
+  /** The semantic / CPL concept being explained. */
+  readonly concept: string;
+  /** The musical analogy. */
+  readonly musicalTerm: string;
+  /** A short explanation of the analogy. */
+  readonly explanation: string;
+  /** An example in context. */
+  readonly example: string;
+  /** Which explanation levels this analogy is appropriate for. */
+  readonly levels: readonly ExplanationLevel[];
+}
+
+/** An explanation of a CPL node at a given level. */
+export interface SemanticExplanation {
+  /** The node type being explained. */
+  readonly nodeType: CPLNodeType;
+  /** The explanation level. */
+  readonly level: ExplanationLevel;
+  /** The main explanation text. */
+  readonly text: string;
+  /** A musical analogy for this concept. */
+  readonly analogy: string;
+  /** A concrete example. */
+  readonly example: string;
+  /** Key takeaway (1 sentence). */
+  readonly takeaway: string;
+  /** Related concepts to explore next. */
+  readonly relatedConcepts: readonly string[];
+}
+
+/** Configuration for teach mode. */
+export interface TeachModeConfig {
+  /** Current explanation level. */
+  readonly level: ExplanationLevel;
+  /** Whether to auto-advance levels based on quiz performance. */
+  readonly autoAdvance: boolean;
+  /** Minimum quiz score (0-1) required to advance. */
+  readonly advanceThreshold: number;
+  /** Whether to show analogies inline. */
+  readonly showAnalogies: boolean;
+  /** Whether to show examples inline. */
+  readonly showExamples: boolean;
+  /** Whether to offer quizzes after explanations. */
+  readonly offerQuizzes: boolean;
+  /** Maximum explanations before suggesting a quiz. */
+  readonly explanationsBeforeQuiz: number;
+  /** Whether to track session progress. */
+  readonly trackProgress: boolean;
+}
+
+/** A quiz question for testing understanding. */
+export interface TeachModeQuizQuestion {
+  /** Unique question ID. */
+  readonly id: string;
+  /** The question text. */
+  readonly question: string;
+  /** Answer options. */
+  readonly options: readonly string[];
+  /** Index of the correct answer. */
+  readonly correctIndex: number;
+  /** Explanation shown after answering. */
+  readonly explanation: string;
+  /** Which concept this tests. */
+  readonly concept: string;
+  /** Which node type this relates to. */
+  readonly nodeType: CPLNodeType;
+  /** Difficulty level. */
+  readonly level: ExplanationLevel;
+}
+
+/** A teach-mode session tracking what has been explained and quiz results. */
+export interface TeachModeSession {
+  /** Unique session ID. */
+  readonly id: string;
+  /** When the session started. */
+  readonly startTime: number;
+  /** Current explanation level. */
+  readonly currentLevel: ExplanationLevel;
+  /** Node types that have been explained. */
+  readonly explainedNodeTypes: readonly CPLNodeType[];
+  /** Concepts that have been explained. */
+  readonly explainedConcepts: readonly string[];
+  /** Quiz questions asked. */
+  readonly quizHistory: readonly {
+    readonly questionId: string;
+    readonly selectedIndex: number;
+    readonly correct: boolean;
+    readonly timestamp: number;
+  }[];
+  /** Number of explanations given. */
+  readonly explanationCount: number;
+  /** Number of quizzes taken. */
+  readonly quizCount: number;
+  /** Number of correct quiz answers. */
+  readonly correctAnswers: number;
+  /** Total quiz questions answered. */
+  readonly totalAnswered: number;
+}
+
+// ---------------------------------------------------------------------------
+// 200 — Explanation Level Info
+// ---------------------------------------------------------------------------
+
+export const EXPLANATION_LEVEL_INFO: Readonly<Record<ExplanationLevel, {
+  readonly label: string;
+  readonly description: string;
+  readonly targetAudience: string;
+  readonly usesJargon: boolean;
+  readonly showsTechnicalDetails: boolean;
+  readonly order: number;
+}>> = {
+  beginner: {
+    label: 'Beginner',
+    description: 'Simple musical terms, everyday language, lots of analogies',
+    targetAudience: 'Someone new to music production or CPL',
+    usesJargon: false,
+    showsTechnicalDetails: false,
+    order: 0,
+  },
+  intermediate: {
+    label: 'Intermediate',
+    description: 'Standard music production vocabulary, moderate detail',
+    targetAudience: 'Someone with basic music production experience',
+    usesJargon: false,
+    showsTechnicalDetails: false,
+    order: 1,
+  },
+  advanced: {
+    label: 'Advanced',
+    description: 'Technical music terms, detailed explanations',
+    targetAudience: 'An experienced music producer',
+    usesJargon: true,
+    showsTechnicalDetails: false,
+    order: 2,
+  },
+  expert: {
+    label: 'Expert',
+    description: 'Full technical detail, semantic theory references',
+    targetAudience: 'A music technology expert or researcher',
+    usesJargon: true,
+    showsTechnicalDetails: true,
+    order: 3,
+  },
+  developer: {
+    label: 'Developer',
+    description: 'Implementation details, rule IDs, internal representations',
+    targetAudience: 'A developer working on the CPL system',
+    usesJargon: true,
+    showsTechnicalDetails: true,
+    order: 4,
+  },
+} as const;
+
+// ---------------------------------------------------------------------------
+// 200 — Musical Analogies (25+)
+// ---------------------------------------------------------------------------
+
+export const MUSICAL_ANALOGIES: readonly MusicalAnalogy[] = [
+  {
+    concept: 'scope',
+    musicalTerm: 'which part of the song',
+    explanation: 'Scope is like choosing whether a change applies to the whole song, one section, or just one instrument.',
+    example: '"Make it louder" — scope decides if the whole mix, or just the vocals, get louder.',
+    levels: ['beginner', 'intermediate'],
+  },
+  {
+    concept: 'constraint',
+    musicalTerm: 'a rule the music must follow',
+    explanation: 'A constraint is a hard rule — like saying "the bass must always be below 200Hz".',
+    example: '"Keep the tempo at 120 BPM" is a constraint — it cannot be broken.',
+    levels: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    concept: 'preference',
+    musicalTerm: 'something you would like but is not required',
+    explanation: 'A preference is a soft wish — like saying "I\'d prefer more reverb" (but it\'s OK if not).',
+    example: '"I\'d like it warmer" is a preference — the system tries but may compromise.',
+    levels: ['beginner', 'intermediate'],
+  },
+  {
+    concept: 'goal',
+    musicalTerm: 'the overall sound you are going for',
+    explanation: 'A goal is the big-picture target — like "make it sound like a 90s hip-hop track".',
+    example: '"Make it dreamy" is a goal — it guides many small decisions.',
+    levels: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    concept: 'intent',
+    musicalTerm: 'what you want the system to do',
+    explanation: 'Intent is the action — are you creating, editing, comparing, or undoing?',
+    example: '"Add reverb" has an "add" intent. "Remove the bass" has a "remove" intent.',
+    levels: ['beginner', 'intermediate'],
+  },
+  {
+    concept: 'selector',
+    musicalTerm: 'which instrument or element you are talking about',
+    explanation: 'A selector picks out a specific part of the mix — like "the drums" or "track 3".',
+    example: '"Make the vocals brighter" — "the vocals" is the selector.',
+    levels: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    concept: 'amount',
+    musicalTerm: 'how much to change',
+    explanation: 'Amount is the size of the change — a little, a lot, or an exact number.',
+    example: '"A bit more reverb" — "a bit" is the amount.',
+    levels: ['beginner', 'intermediate'],
+  },
+  {
+    concept: 'timeRange',
+    musicalTerm: 'when in the song',
+    explanation: 'Time range is which bars, beats, or sections the change applies to.',
+    example: '"In the chorus" or "at bar 32" — these define the time range.',
+    levels: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    concept: 'opcode',
+    musicalTerm: 'the specific edit operation',
+    explanation: 'An opcode is the exact technical operation — like "EQ boost at 3kHz" or "add delay".',
+    example: 'When you say "brighten", the opcode might be "high-shelf EQ boost".',
+    levels: ['intermediate', 'advanced', 'expert'],
+  },
+  {
+    concept: 'hole',
+    musicalTerm: 'a missing piece of information',
+    explanation: 'A hole is something the system needs to know but you did not say — like which track to edit.',
+    example: '"Make it louder" has a hole: louder by how much?',
+    levels: ['intermediate', 'advanced'],
+  },
+  {
+    concept: 'modifier',
+    musicalTerm: 'a descriptive word that shapes the edit',
+    explanation: 'Modifiers add colour to an instruction — "slightly", "extremely", "more like jazz".',
+    example: '"Slightly brighter" — "slightly" modifies the brightness edit.',
+    levels: ['beginner', 'intermediate'],
+  },
+  {
+    concept: 'reference',
+    musicalTerm: 'pointing back to something mentioned earlier',
+    explanation: 'A reference is when you say "it" or "that" to mean something you talked about before.',
+    example: '"Make the bass louder. Also add reverb to it." — "it" refers to the bass.',
+    levels: ['beginner', 'intermediate'],
+  },
+  {
+    concept: 'composition',
+    musicalTerm: 'combining multiple ideas into one instruction',
+    explanation: 'Composition is when the system combines "brighter" + "the vocals" + "in the chorus" into one edit.',
+    example: '"Brighter vocals in the chorus" composes three pieces of meaning.',
+    levels: ['intermediate', 'advanced', 'expert'],
+  },
+  {
+    concept: 'type-coercion',
+    musicalTerm: 'translating between different kinds of description',
+    explanation: 'Sometimes you say a colour ("dark") and the system needs a number (e.g. -3dB at 8kHz). That translation is type coercion.',
+    example: '"Dark" gets coerced from a mood word to a specific EQ curve.',
+    levels: ['advanced', 'expert', 'developer'],
+  },
+  {
+    concept: 'default-fill',
+    musicalTerm: 'the system guessing what you left out',
+    explanation: 'When you leave out details, the system fills in sensible defaults — like assuming "the whole track" if you do not specify.',
+    example: '"Add reverb" — the system defaults to a medium room reverb.',
+    levels: ['intermediate', 'advanced'],
+  },
+  {
+    concept: 'pragmatic-inference',
+    musicalTerm: 'reading between the lines',
+    explanation: 'The system infers things you implied but did not say explicitly.',
+    example: '"It\'s too quiet" implies you want it louder — that\'s a pragmatic inference.',
+    levels: ['advanced', 'expert'],
+  },
+  {
+    concept: 'frame-match',
+    musicalTerm: 'recognising a pattern in what you said',
+    explanation: 'The system recognises common patterns like "make X more Y" or "add X to Y".',
+    example: '"Make the drums punchier" matches the "make X more Y" frame.',
+    levels: ['advanced', 'expert', 'developer'],
+  },
+  {
+    concept: 'metaphor-resolution',
+    musicalTerm: 'understanding figurative language about sound',
+    explanation: 'When you use a non-musical word to describe sound, the system maps it to an audio parameter.',
+    example: '"Warm" is not a temperature — it means boosted low-mids and gentle saturation.',
+    levels: ['intermediate', 'advanced', 'expert'],
+  },
+  {
+    concept: 'ellipsis-resolution',
+    musicalTerm: 'figuring out what words you skipped',
+    explanation: 'When you leave out words (like saying "louder" instead of "make it louder"), the system fills them in.',
+    example: '"More reverb" is short for "add more reverb to the current selection".',
+    levels: ['intermediate', 'advanced'],
+  },
+  {
+    concept: 'scope-resolution',
+    musicalTerm: 'deciding what part of the music to change',
+    explanation: 'When it is ambiguous, the system decides which tracks, sections, or parameters your instruction targets.',
+    example: '"Brighten everything" — scope resolution decides if "everything" means all tracks or all frequencies.',
+    levels: ['advanced', 'expert'],
+  },
+  {
+    concept: 'confidence',
+    musicalTerm: 'how sure the system is about its interpretation',
+    explanation: 'Each interpretation has a confidence score. High confidence means the system is sure; low means it might ask you to clarify.',
+    example: '"Louder" has high confidence. "Make it more alive" has lower confidence.',
+    levels: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    concept: 'ambiguity',
+    musicalTerm: 'when your words could mean more than one thing',
+    explanation: 'Sometimes a word or phrase has multiple valid interpretations in a music context.',
+    example: '"Dark" could mean "less bright (timbre)" or "somber mood".',
+    levels: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    concept: 'provenance',
+    musicalTerm: 'where each part of the interpretation came from',
+    explanation: 'Provenance traces each piece of the interpretation back to the words you said and the rules that processed them.',
+    example: 'Hovering a CPL node shows: "vocals" came from lexicon, which produced a selector node.',
+    levels: ['advanced', 'expert', 'developer'],
+  },
+  {
+    concept: 'literal',
+    musicalTerm: 'an exact value you specified',
+    explanation: 'A literal is a concrete value like "120 BPM" or "3dB" — no interpretation needed.',
+    example: '"Set the tempo to 120" — 120 is a literal value.',
+    levels: ['beginner', 'intermediate'],
+  },
+  {
+    concept: 'group',
+    musicalTerm: 'a collection of related instructions',
+    explanation: 'A group bundles multiple edits together so they all happen as one logical change.',
+    example: '"Make the verse louder and add reverb" is a group of two edits.',
+    levels: ['intermediate', 'advanced'],
+  },
+  {
+    concept: 'negation',
+    musicalTerm: 'saying what you do NOT want',
+    explanation: 'Negation is when you tell the system to avoid or remove something.',
+    example: '"No reverb" or "don\'t change the bass" are negations.',
+    levels: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    concept: 'quantifier',
+    musicalTerm: 'how many things to change',
+    explanation: 'Quantifiers specify whether you mean all, some, or each of a set of elements.',
+    example: '"All the tracks" vs "each track" vs "some tracks" — different quantifiers.',
+    levels: ['intermediate', 'advanced'],
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
+// 200 — Explanation Templates (5 levels x 10+ node types = 50+)
+// ---------------------------------------------------------------------------
+
+/** All CPL node types for which we have explanations. */
+const EXPLAINED_NODE_TYPES: readonly CPLNodeType[] = [
+  'intent', 'goal', 'constraint', 'preference', 'scope',
+  'timeRange', 'selector', 'amount', 'hole', 'opcode',
+  'modifier', 'reference', 'literal', 'group',
+] as const;
+
+const EXPLANATION_DATABASE: readonly SemanticExplanation[] = [
+  // --- intent (5 levels) ---
+  { nodeType: 'intent', level: 'beginner', text: 'This tells the system what action to take — like "add", "remove", or "change".', analogy: 'Think of it as the verb in your sentence.', example: '"Add reverb" — the intent is "add".', takeaway: 'The intent is the action word.', relatedConcepts: ['goal', 'opcode'] },
+  { nodeType: 'intent', level: 'intermediate', text: 'The intent captures the high-level action: create, modify, delete, query, or undo. It determines which processing pipeline is used.', analogy: 'Like choosing between "record", "mix", and "master" workflows.', example: '"Compare the two mixes" — intent is "query/compare".', takeaway: 'Intent drives which tools the system reaches for.', relatedConcepts: ['goal', 'opcode', 'scope'] },
+  { nodeType: 'intent', level: 'advanced', text: 'Intent is the illocutionary force of the utterance mapped to a finite set of action types. Multiple intents can be composed via coordination.', analogy: 'The DAW command palette — each intent maps to a category of operations.', example: '"Add reverb and then compress it" — two composed intents: add, then modify.', takeaway: 'Intents can be composed and sequenced.', relatedConcepts: ['composition', 'opcode', 'group'] },
+  { nodeType: 'intent', level: 'expert', text: 'Intent classification uses speech-act theory: directives map to edit intents, questions to query intents, and commissives to goal-setting intents.', analogy: 'MIDI CC messages — different message types trigger different synth behaviours.', example: '"What if we added more bass?" — interrogative form but directive intent (hypothetical edit).', takeaway: 'Surface form and intent can diverge — pragmatic inference resolves this.', relatedConcepts: ['pragmatic-inference', 'speech-act', 'goal'] },
+  { nodeType: 'intent', level: 'developer', text: 'Intent node is produced by the speech-act classifier in the pragmatic-bias module. It carries an action enum and optional sub-action.', analogy: 'HTTP method (GET/POST/PUT/DELETE) in a REST API.', example: 'IntentNode { action: "modify", subAction: "increase", confidence: 0.92 }', takeaway: 'Check pragmatic-bias.ts for the classifier implementation.', relatedConcepts: ['pragmatic-inference', 'opcode', 'frame-match'] },
+
+  // --- goal (5 levels) ---
+  { nodeType: 'goal', level: 'beginner', text: 'A goal is the overall sound you are going for — the big picture.', analogy: 'Like saying "I want a summer vibe" to a DJ.', example: '"Make it sound dreamy" — the goal is a dreamy sound.', takeaway: 'Goals describe the destination, not the route.', relatedConcepts: ['intent', 'preference'] },
+  { nodeType: 'goal', level: 'intermediate', text: 'Goals are high-level musical targets that may require multiple edits to achieve.', analogy: 'A mix reference track — it defines the target sound but not the individual EQ moves.', example: '"Make it radio-ready" — goal that decomposes into loudness, EQ, and stereo width targets.', takeaway: 'One goal can produce many edits.', relatedConcepts: ['constraint', 'preference', 'opcode'] },
+  { nodeType: 'goal', level: 'advanced', text: 'Goals sit at the top of the CPL intent hierarchy. They constrain the solution space and may conflict, requiring priority resolution.', analogy: 'A mastering brief — it sets aesthetic targets that guide technical decisions.', example: '"Warm but clear" — two potentially conflicting goals requiring balance.', takeaway: 'Conflicting goals need explicit priority ordering.', relatedConcepts: ['constraint', 'preference', 'ambiguity'] },
+  { nodeType: 'goal', level: 'expert', text: 'Goals are represented as partial specifications of the target audio state. They are evaluated via perceptual distance metrics.', analogy: 'An objective function in optimisation — defines what "better" means.', example: 'GoalNode { target: "dreamy", perceptualAxes: [reverb: high, brightness: low, attack: soft] }', takeaway: 'Goals are operationalised into measurable perceptual targets.', relatedConcepts: ['frame-match', 'type-coercion', 'constraint'] },
+  { nodeType: 'goal', level: 'developer', text: 'GoalNode is emitted by musical-goals.ts. It contains a target descriptor, optional reference, and decomposition hints.', analogy: 'A declarative build target (like a Makefile target).', example: 'GoalNode { id: "g1", target: "radio-ready", decomposedInto: ["loudness", "eq", "width"] }', takeaway: 'See musical-goals.ts for goal extraction and decomposition logic.', relatedConcepts: ['opcode', 'constraint', 'frame-match'] },
+
+  // --- constraint (5 levels) ---
+  { nodeType: 'constraint', level: 'beginner', text: 'A constraint is a hard rule — something that must be true about the music.', analogy: 'Like a speed limit — you cannot go over it.', example: '"The bass cannot go above -6dB" is a constraint.', takeaway: 'Constraints are rules that cannot be broken.', relatedConcepts: ['preference', 'goal'] },
+  { nodeType: 'constraint', level: 'intermediate', text: 'Constraints are non-negotiable requirements. The system will refuse to violate them.', analogy: 'Like a noise ordinance — the venue has a maximum SPL regardless of what the band wants.', example: '"Keep the tempo exactly at 128 BPM" — this constrains the tempo parameter.', takeaway: 'When constraints conflict, the system asks which to relax.', relatedConcepts: ['preference', 'goal', 'ambiguity'] },
+  { nodeType: 'constraint', level: 'advanced', text: 'Constraints are hard bounds on the solution space. They are distinguished from preferences by modality markers (must, always, never).', analogy: 'Clipping protection — a hard limiter that never lets the signal exceed 0dBFS.', example: '"Never clip the master bus" — constraint on peak level.', takeaway: 'Constraints use modality analysis to distinguish from preferences.', relatedConcepts: ['modality', 'preference', 'negation'] },
+  { nodeType: 'constraint', level: 'expert', text: 'Constraints are first-order predicates over the audio state. They are compiled into checker functions that run after each edit.', analogy: 'Type constraints in a programming language — the compiler enforces them.', example: 'ConstraintNode { predicate: "peak(master) <= -1dBFS", enforcement: "hard" }', takeaway: 'Constraints are compiled to runtime checkers.', relatedConcepts: ['type-coercion', 'scope-resolution', 'goal'] },
+  { nodeType: 'constraint', level: 'developer', text: 'ConstraintNode is produced by musical-constraints.ts. It carries a predicate AST and enforcement level.', analogy: 'A database CHECK constraint.', example: 'ConstraintNode { id: "c1", predicate: { op: "<=", lhs: "peak(master)", rhs: -1 }, enforcement: "hard" }', takeaway: 'See musical-constraints.ts and custom-constraints.ts.', relatedConcepts: ['goal', 'preference', 'opcode'] },
+
+  // --- preference (5 levels) ---
+  { nodeType: 'preference', level: 'beginner', text: 'A preference is something you would like — but it is OK if the system cannot fully achieve it.', analogy: 'Like asking for a window seat on a plane — nice to have, but not a dealbreaker.', example: '"I\'d like it a bit warmer" is a preference.', takeaway: 'Preferences are wishes, not demands.', relatedConcepts: ['constraint', 'goal'] },
+  { nodeType: 'preference', level: 'intermediate', text: 'Preferences are soft targets. The system optimises for them but may compromise.', analogy: 'An EQ preference curve — the target shape, but the result might differ.', example: '"Prefer less compression on the vocals" — the system tries.', takeaway: 'Preferences can be overridden by constraints.', relatedConcepts: ['constraint', 'goal', 'modality'] },
+  { nodeType: 'preference', level: 'advanced', text: 'Preferences are weighted soft constraints. They use hedging language detected by modality analysis.', analogy: 'A weighted mix bus — preferences blend according to their weights.', example: '"Ideally keep the reverb short, but it\'s not critical" — low-weight preference.', takeaway: 'Preference weight comes from hedging language.', relatedConcepts: ['modality', 'degree', 'constraint'] },
+  { nodeType: 'preference', level: 'expert', text: 'Preferences are utility functions over the audio state. The planner maximises total utility subject to hard constraints.', analogy: 'A loss function in machine learning — guides optimisation but allows approximation.', example: 'PreferenceNode { utility: "warmth(mix) > 0.6", weight: 0.7 }', takeaway: 'Preferences are operationalised via the user vocabulary profile.', relatedConcepts: ['vocabulary-learning', 'goal', 'constraint'] },
+  { nodeType: 'preference', level: 'developer', text: 'PreferenceNode from musical-preferences.ts. Carries a utility expression and weight.', analogy: 'CSS "!important" vs normal cascade — preferences have weights.', example: 'PreferenceNode { id: "p1", utility: { axis: "warmth", target: 0.7 }, weight: 0.6 }', takeaway: 'See musical-preferences.ts for extraction logic.', relatedConcepts: ['goal', 'constraint', 'amount'] },
+
+  // --- scope (5 levels) ---
+  { nodeType: 'scope', level: 'beginner', text: 'Scope says which part of the music is affected by your instruction.', analogy: 'Like highlighting text before pressing delete — scope is what you select.', example: '"In the chorus" sets the scope to the chorus section.', takeaway: 'Always think about what part of the song you mean.', relatedConcepts: ['selector', 'timeRange'] },
+  { nodeType: 'scope', level: 'intermediate', text: 'Scope can be a time range, a track, a frequency band, or a combination.', analogy: 'Like selecting a region on multiple tracks in a DAW.', example: '"Brighten the high end of the vocals in the bridge" — combined scope.', takeaway: 'Scope can combine multiple dimensions.', relatedConcepts: ['selector', 'timeRange', 'ambiguity'] },
+  { nodeType: 'scope', level: 'advanced', text: 'Scope resolution is one of the most common sources of ambiguity. Nested scopes compose intersectively.', analogy: 'A multi-band compressor — each band is a scope within the full signal.', example: '"Everything except the vocals" — complement scope.', takeaway: 'Scope can use set operations: union, intersection, complement.', relatedConcepts: ['scope-resolution', 'ambiguity', 'negation'] },
+  { nodeType: 'scope', level: 'expert', text: 'ScopeNode represents a product of selector dimensions (track x time x frequency x spatial).', analogy: 'A tensor product of selection dimensions.', example: 'ScopeNode { track: "vocals", time: "chorus_1", freq: [2000, 20000] }', takeaway: 'Scopes are multi-dimensional selections with set algebra.', relatedConcepts: ['selector', 'timeRange', 'scope-resolution'] },
+  { nodeType: 'scope', level: 'developer', text: 'ScopeNode is built by composition in the compositional pipeline.', analogy: 'SQL WHERE clause with multiple conditions.', example: 'ScopeNode { dimensions: [{ type: "track", value: "vocals" }, { type: "time", range: [32, 64] }] }', takeaway: 'Scope composition is in compositional-pipeline.ts.', relatedConcepts: ['selector', 'timeRange', 'composition'] },
+
+  // --- timeRange (5 levels) ---
+  { nodeType: 'timeRange', level: 'beginner', text: 'A time range says when in the song something should happen.', analogy: 'Like setting the start and end point of a loop.', example: '"From bar 16 to bar 32" is a time range.', takeaway: 'Time range = start point + end point.', relatedConcepts: ['scope', 'selector'] },
+  { nodeType: 'timeRange', level: 'intermediate', text: 'Time ranges can be absolute, relative, or named sections.', analogy: 'Like setting loop markers or punch-in/punch-out points.', example: '"During the bridge" or "the first 30 seconds" are time ranges.', takeaway: 'Named sections resolve to bar ranges.', relatedConcepts: ['scope', 'selector', 'form'] },
+  { nodeType: 'timeRange', level: 'advanced', text: 'TimeRangeNode supports absolute, named, relative, and set-operation time references.', analogy: 'Playlist regions in a DAW.', example: '"Every chorus" — union of all chorus time ranges.', takeaway: 'Time ranges can be computed dynamically.', relatedConcepts: ['scope', 'quantifier', 'form'] },
+  { nodeType: 'timeRange', level: 'expert', text: 'TimeRangeNode carries an interval algebra representation with Allen interval relations.', analogy: 'Allen interval algebra from temporal reasoning.', example: 'TimeRangeNode { type: "named", section: "chorus", occurrence: "all" }', takeaway: 'Time range composition uses interval algebra.', relatedConcepts: ['scope', 'scope-resolution', 'form'] },
+  { nodeType: 'timeRange', level: 'developer', text: 'TimeRangeNode is produced by time-expressions.ts grammar rules.', analogy: 'An interval type in a temporal database.', example: 'TimeRangeNode { id: "tr1", bars: [16, 32], resolution: "named:chorus_1" }', takeaway: 'See time-expressions.ts for parsing.', relatedConcepts: ['scope', 'selector', 'grammar-rule'] },
+
+  // --- selector (5 levels) ---
+  { nodeType: 'selector', level: 'beginner', text: 'A selector picks out which instrument or element you are talking about.', analogy: 'Like clicking on a track name in your DAW.', example: '"The vocals" or "the kick drum" are selectors.', takeaway: 'The selector answers: "which part of the mix?"', relatedConcepts: ['scope', 'timeRange'] },
+  { nodeType: 'selector', level: 'intermediate', text: 'Selectors can target tracks by name, type, frequency, or position.', analogy: 'Like a send bus routing — selecting which signals to process.', example: '"All the synths" or "the high-frequency elements".', takeaway: 'Selectors can use categories, not just names.', relatedConcepts: ['scope', 'timeRange', 'quantifier'] },
+  { nodeType: 'selector', level: 'advanced', text: 'SelectorNode supports direct, descriptive, quantified, and relative references.', analogy: 'CSS selectors for audio.', example: '"The loudest element" — relative selector requiring runtime evaluation.', takeaway: 'Some selectors need runtime analysis.', relatedConcepts: ['reference', 'quantifier', 'scope'] },
+  { nodeType: 'selector', level: 'expert', text: 'SelectorNode is a typed expression evaluating to a set of audio regions.', analogy: 'XPath for audio structure.', example: 'SelectorNode { type: "property", property: "frequency", range: [20, 200] }', takeaway: 'Selectors compose into complex queries.', relatedConcepts: ['scope', 'reference', 'composition'] },
+  { nodeType: 'selector', level: 'developer', text: 'SelectorNode is produced by reference-expressions.ts and edit-locality.ts.', analogy: 'A DOM querySelector().', example: 'SelectorNode { id: "s1", type: "name", value: "vocals" }', takeaway: 'See reference-expressions.ts.', relatedConcepts: ['scope', 'timeRange', 'reference-resolution'] },
+
+  // --- amount (5 levels) ---
+  { nodeType: 'amount', level: 'beginner', text: 'Amount says how much to change something.', analogy: 'Like turning a knob — how far do you turn it?', example: '"A bit louder" = small amount. "Way more reverb" = large.', takeaway: 'Amount = the size of the change.', relatedConcepts: ['modifier', 'degree'] },
+  { nodeType: 'amount', level: 'intermediate', text: 'Amounts can be vague, relative, or absolute. Vague amounts are calibrated.', analogy: 'Like "a touch" vs "a lot" on a console.', example: '"Boost by 3dB" vs "make it a bit brighter".', takeaway: 'Vague amounts get calibrated from your vocabulary.', relatedConcepts: ['modifier', 'degree', 'vocabulary-learning'] },
+  { nodeType: 'amount', level: 'advanced', text: 'AmountNode carries a numeric range with confidence from degree-semantics.', analogy: 'A fader throw with a dead zone.', example: '"Slightly" maps to [0.05, 0.15] on a 0-1 scale.', takeaway: 'Degree words map to numeric intervals.', relatedConcepts: ['degree', 'type-coercion', 'modifier'] },
+  { nodeType: 'amount', level: 'expert', text: 'AmountNode is a scalar or vector quantity with units, range, and confidence.', analogy: 'A parametric control with range and curve type.', example: 'AmountNode { value: 3, unit: "dB", mode: "relative", confidence: 0.85 }', takeaway: 'Amounts carry units and ranges.', relatedConcepts: ['degree', 'modifier', 'type-coercion'] },
+  { nodeType: 'amount', level: 'developer', text: 'AmountNode is produced by degree-to-cpl.ts and number-parser.ts.', analogy: 'A normalized float with metadata.', example: 'AmountNode { id: "a1", value: 0.2, unit: "normalized", confidence: 0.7 }', takeaway: 'See degree-to-cpl.ts and degree-semantics.ts.', relatedConcepts: ['degree', 'vocabulary-learning', 'type-coercion'] },
+
+  // --- hole (5 levels) ---
+  { nodeType: 'hole', level: 'beginner', text: 'A hole means the system needs more information from you.', analogy: 'Like a fill-in-the-blank question.', example: '"Make it louder" — hole: how much louder?', takeaway: 'Holes are blanks the system needs you to fill.', relatedConcepts: ['default-fill', 'ambiguity'] },
+  { nodeType: 'hole', level: 'intermediate', text: 'Holes are missing parameters filled by defaults, context, or user input.', analogy: 'Optional plugin parameters.', example: '"Add reverb" — holes: decay time, pre-delay, wet/dry mix.', takeaway: 'Every hole has a default.', relatedConcepts: ['default-fill', 'preference', 'ambiguity'] },
+  { nodeType: 'hole', level: 'advanced', text: 'HoleNode is a typed placeholder. Filling strategies: default, context, prompt, inference.', analogy: 'Template parameters in a preset.', example: 'HoleNode { expectedType: "scalar<dB>", filledBy: "default-fill" }', takeaway: 'Holes are typed.', relatedConcepts: ['default-fill', 'type-coercion', 'pragmatic-inference'] },
+  { nodeType: 'hole', level: 'expert', text: 'Holes are prioritised by impact and confidence for filling order.', analogy: 'A metavariable in a proof.', example: 'HoleNode { expectedType: "Selector", impact: "high", defaultConfidence: 0.3 }', takeaway: 'High-impact, low-confidence holes trigger clarification.', relatedConcepts: ['ambiguity', 'default-fill', 'pragmatic-inference'] },
+  { nodeType: 'hole', level: 'developer', text: 'HoleNode from compositional-pipeline.ts. The clarification system generates prompts.', analogy: 'A null value with type information.', example: 'HoleNode { id: "h1", expectedType: "Selector", parent: "intent-1" }', takeaway: 'See compositional-pipeline.ts.', relatedConcepts: ['default-fill', 'ambiguity', 'composition'] },
+
+  // --- opcode (5 levels) ---
+  { nodeType: 'opcode', level: 'beginner', text: 'An opcode is the specific audio operation performed — like "boost EQ" or "add reverb".', analogy: 'Like the name of a plugin effect.', example: '"Brighten" becomes "high-shelf EQ boost".', takeaway: 'Opcodes are the actual audio operations.', relatedConcepts: ['intent', 'goal', 'amount'] },
+  { nodeType: 'opcode', level: 'intermediate', text: 'Opcodes map musical descriptions to concrete DSP operations.', analogy: 'Like a recipe step.', example: '"Punchier" becomes transient-enhance + parallel-compress.', takeaway: 'Musical descriptions decompose into technical operations.', relatedConcepts: ['intent', 'goal', 'type-coercion'] },
+  { nodeType: 'opcode', level: 'advanced', text: 'OpcodeNode carries a DSP operation type, parameter map, and execution order.', analogy: 'Assembly instructions — the lowest level of the edit program.', example: 'OpcodeNode { op: "eq-shelf", params: { type: "high", gain: 3, freq: 8000 } }', takeaway: 'Frame matching selects opcodes from the registry.', relatedConcepts: ['frame-match', 'type-coercion', 'goal'] },
+  { nodeType: 'opcode', level: 'expert', text: 'OpcodeNode is the terminal representation in the CPL-to-execution pipeline.', analogy: 'A microcode instruction with typed operands.', example: 'OpcodeNode { processor: "parametric-eq", params: { band: 3, gain: 3.0, freq: 8000 } }', takeaway: 'Opcodes are fully specified DSP operations.', relatedConcepts: ['frame-match', 'composition', 'amount'] },
+  { nodeType: 'opcode', level: 'developer', text: 'OpcodeNode is emitted by frame-semantics.ts. The registry is in canon/edit-opcodes-*.ts.', analogy: 'A fully-qualified function call.', example: 'OpcodeNode { registryKey: "eq.shelf.high", params: { gain: 3 } }', takeaway: 'See frame-semantics.ts and the edit-opcode registry.', relatedConcepts: ['frame-match', 'goal', 'intent'] },
+
+  // --- modifier (5 levels) ---
+  { nodeType: 'modifier', level: 'beginner', text: 'A modifier adds detail to an instruction — words like "slightly", "very", or "more like jazz".', analogy: 'Like adding adjectives to a sentence.', example: '"Slightly brighter" — "slightly" is the modifier.', takeaway: 'Modifiers shape the edit.', relatedConcepts: ['amount', 'degree'] },
+  { nodeType: 'modifier', level: 'intermediate', text: 'Modifiers adjust degree, style, or comparison. They interact with amount and type coercion.', analogy: 'Like a knob fine-tuning a parameter after the main fader is set.', example: '"Much more reverb, like a cathedral" — degree modifier + style comparison.', takeaway: 'Modifiers can stack and combine.', relatedConcepts: ['amount', 'comparison', 'metaphor'] },
+  { nodeType: 'modifier', level: 'advanced', text: 'ModifierNode is a typed adjunct that composes with the head node via function application or intersection.', analogy: 'A sidechain input that shapes the main signal.', example: 'ModifierNode { type: "degree", value: 0.3, compositionMode: "scalar-multiply" }', takeaway: 'Modifier composition follows formal semantics rules.', relatedConcepts: ['composition', 'degree', 'type-coercion'] },
+  { nodeType: 'modifier', level: 'expert', text: 'Modifiers are analysed by degree-semantics.ts and compositional-hooks.ts. They carry typing information for composition.', analogy: 'A transfer function applied to the control signal.', example: 'ModifierNode { type: "comparison", referent: "cathedral", dimension: "reverb-size" }', takeaway: 'Modifier typing determines composition strategy.', relatedConcepts: ['degree', 'composition', 'frame-match'] },
+  { nodeType: 'modifier', level: 'developer', text: 'ModifierNode from compositional-hooks.ts. Degree modifiers go through degree-semantics.ts for scalar mapping.', analogy: 'A higher-order function wrapping a value.', example: 'ModifierNode { id: "m1", type: "degree", scalarValue: 0.3, source: "degree-mapping" }', takeaway: 'See compositional-hooks.ts and degree-semantics.ts.', relatedConcepts: ['degree', 'amount', 'composition'] },
+
+  // --- reference (5 levels) ---
+  { nodeType: 'reference', level: 'beginner', text: 'A reference points back to something mentioned earlier — like "it" or "that".', analogy: 'Like pointing at something across the room.', example: '"Make the bass louder. Now add reverb to it." — "it" refers to the bass.', takeaway: 'References avoid repeating yourself.', relatedConcepts: ['selector', 'scope'] },
+  { nodeType: 'reference', level: 'intermediate', text: 'References can be pronouns ("it"), demonstratives ("that sound"), or descriptions ("the same one").', analogy: 'Like "ditto marks" in a table — they mean "same as above".', example: '"Edit the drums. Make them punchier." — "them" = the drums.', takeaway: 'The system tracks what you have mentioned recently.', relatedConcepts: ['selector', 'scope', 'ellipsis'] },
+  { nodeType: 'reference', level: 'advanced', text: 'ReferenceNode tracks discourse entities. Resolution uses recency, salience, and type compatibility.', analogy: 'A name resolution scope in programming.', example: '"Brighten the synth. Now do the same to the pad." — "the same" is a reference to the action.', takeaway: 'References can point to actions, not just objects.', relatedConcepts: ['reference-resolution', 'selector', 'discourse'] },
+  { nodeType: 'reference', level: 'expert', text: 'Reference resolution uses a discourse model with entity salience scores and type constraints.', analogy: 'Variable binding in a lambda calculus.', example: 'ReferenceNode { type: "pronoun", antecedentCandidates: ["bass", "drums"], selectedAntecedent: "bass" }', takeaway: 'The discourse model maintains a salience-ranked entity list.', relatedConcepts: ['reference-resolution', 'pragmatic-inference', 'selector'] },
+  { nodeType: 'reference', level: 'developer', text: 'ReferenceNode from reference-expressions.ts. Resolution in compositional-pipeline.ts against discourse state.', analogy: 'A pointer dereference.', example: 'ReferenceNode { id: "r1", type: "pronoun", form: "it", resolved: "bass_track" }', takeaway: 'See reference-expressions.ts.', relatedConcepts: ['selector', 'reference-resolution', 'composition'] },
+
+  // --- literal (5 levels) ---
+  { nodeType: 'literal', level: 'beginner', text: 'A literal is an exact value you specified — like "120 BPM" or "3dB".', analogy: 'Like typing a number into a field instead of using a slider.', example: '"Set the tempo to 120" — 120 is a literal.', takeaway: 'Literals are exact, no guessing needed.', relatedConcepts: ['amount', 'constraint'] },
+  { nodeType: 'literal', level: 'intermediate', text: 'Literals have units (dB, Hz, BPM, ms) and are parsed by the number-parser.', analogy: 'Like entering "3:30" for song length vs "about 3 and a half minutes".', example: '"Cut 5dB at 200Hz" — two literals: 5dB and 200Hz.', takeaway: 'Literals are unambiguous.', relatedConcepts: ['amount', 'constraint', 'opcode'] },
+  { nodeType: 'literal', level: 'advanced', text: 'LiteralNode carries value, unit, and precision. It bypasses degree-semantics entirely.', analogy: 'A fixed-point constant vs a floating-point estimate.', example: 'LiteralNode { value: 120, unit: "BPM", precision: "exact" }', takeaway: 'Literals bypass vague-amount processing.', relatedConcepts: ['amount', 'type-coercion', 'constraint'] },
+  { nodeType: 'literal', level: 'expert', text: 'LiteralNode is strongly typed with unit algebra. Unit conversion is automatic (e.g. ms to samples).', analogy: 'A dimensioned quantity in physics with unit tracking.', example: 'LiteralNode { value: 50, unit: "ms", convertedValue: 2205, convertedUnit: "samples" }', takeaway: 'Units are tracked and converted automatically.', relatedConcepts: ['amount', 'type-coercion', 'opcode'] },
+  { nodeType: 'literal', level: 'developer', text: 'LiteralNode from number-parser.ts and unit-parser.ts. Units are in the canon unit registry.', analogy: 'A typed constant with unit metadata.', example: 'LiteralNode { id: "l1", value: 120, unit: "BPM", parser: "number-parser" }', takeaway: 'See number-parser.ts and unit-parser.ts.', relatedConcepts: ['amount', 'constraint', 'opcode'] },
+
+  // --- group (5 levels) ---
+  { nodeType: 'group', level: 'beginner', text: 'A group bundles multiple edits together as one logical change.', analogy: 'Like selecting multiple tracks and moving them all at once.', example: '"Make the verse louder and add reverb" — a group of two edits.', takeaway: 'Groups keep related changes together.', relatedConcepts: ['intent', 'scope'] },
+  { nodeType: 'group', level: 'intermediate', text: 'Groups can be sequential (do A then B), parallel (do A and B together), or conditional.', analogy: 'Like a macro that runs multiple effects in order.', example: '"First boost the bass, then add compression" — sequential group.', takeaway: 'Groups have order: sequential or parallel.', relatedConcepts: ['intent', 'scope', 'coordination'] },
+  { nodeType: 'group', level: 'advanced', text: 'GroupNode represents discourse-level coordination. It tracks ordering, shared scope, and shared constraints.', analogy: 'An effects chain with series and parallel routing.', example: 'GroupNode { type: "sequential", children: [intent1, intent2], sharedScope: "verse" }', takeaway: 'Groups can share scope and constraints across children.', relatedConcepts: ['coordination', 'scope', 'constraint'] },
+  { nodeType: 'group', level: 'expert', text: 'GroupNode is produced by discourse-operators.ts. It handles coordination, sequencing, and conditional branching.', analogy: 'A control flow graph with blocks and edges.', example: 'GroupNode { type: "conditional", condition: "if possible", then: intent1, else: intent2 }', takeaway: 'Groups support conditional and iterative patterns.', relatedConcepts: ['discourse', 'coordination', 'modality'] },
+  { nodeType: 'group', level: 'developer', text: 'GroupNode from discourse-operators.ts and coordination.ts grammar module.', analogy: 'An AST block statement with child statements.', example: 'GroupNode { id: "grp1", type: "sequential", children: ["i1", "i2"], source: "coordination" }', takeaway: 'See discourse-operators.ts and coordination.ts.', relatedConcepts: ['coordination', 'discourse', 'composition'] },
+] as const;
+
+// ---------------------------------------------------------------------------
+// 200 — Quiz Question Templates (20+)
+// ---------------------------------------------------------------------------
+
+export const QUIZ_QUESTION_TEMPLATES: readonly TeachModeQuizQuestion[] = [
+  { id: 'Q001', question: 'What does a "goal" node represent in CPL?', options: ['A specific audio operation', 'The overall sound you are going for', 'A time range in the song', 'An instrument selector'], correctIndex: 1, explanation: 'A goal is the big-picture musical target.', concept: 'goal', nodeType: 'goal', level: 'beginner' },
+  { id: 'Q002', question: 'What is the difference between a constraint and a preference?', options: ['Constraints are hard rules; preferences are soft wishes', 'Preferences are more important', 'There is no difference', 'Constraints apply to timing only'], correctIndex: 0, explanation: 'Constraints must be satisfied; preferences are best-effort.', concept: 'constraint', nodeType: 'constraint', level: 'beginner' },
+  { id: 'Q003', question: 'What does "scope" determine?', options: ['How loud the change is', 'Which part of the music is affected', 'When to save the project', 'The genre of the music'], correctIndex: 1, explanation: 'Scope determines which tracks, sections, or frequency ranges are targeted.', concept: 'scope', nodeType: 'scope', level: 'beginner' },
+  { id: 'Q004', question: 'What is a "hole" in the CPL tree?', options: ['A gap in the audio', 'A missing piece of information', 'An error in the tree', 'A placeholder for silence'], correctIndex: 1, explanation: 'Holes represent missing parameters that need filling.', concept: 'hole', nodeType: 'hole', level: 'beginner' },
+  { id: 'Q005', question: 'If you say "make the vocals brighter", what is the selector?', options: ['make', 'brighter', 'the vocals', 'it'], correctIndex: 2, explanation: '"The vocals" picks which element to modify.', concept: 'selector', nodeType: 'selector', level: 'beginner' },
+  { id: 'Q006', question: 'What does "amount" specify?', options: ['The cost', 'How much to change a parameter', 'The number of tracks', 'The song length'], correctIndex: 1, explanation: 'Amount is the magnitude of the change.', concept: 'amount', nodeType: 'amount', level: 'beginner' },
+  { id: 'Q007', question: 'In "add reverb to the bridge", what is the time range?', options: ['add', 'reverb', 'the bridge', 'to'], correctIndex: 2, explanation: '"The bridge" defines when the reverb should apply.', concept: 'timeRange', nodeType: 'timeRange', level: 'beginner' },
+  { id: 'Q008', question: 'What is type coercion in the CPL pipeline?', options: ['Converting audio formats', 'Translating a descriptive word into a numeric parameter', 'Forcing the user to pick an option', 'Compressing audio'], correctIndex: 1, explanation: 'Type coercion maps descriptions like "warm" to audio parameters.', concept: 'type-coercion', nodeType: 'modifier', level: 'intermediate' },
+  { id: 'Q009', question: 'What is pragmatic inference?', options: ['A type of reverb', 'Reading between the lines', 'A compression technique', 'A mixing console'], correctIndex: 1, explanation: 'Pragmatic inference detects implied meanings.', concept: 'pragmatic-inference', nodeType: 'intent', level: 'intermediate' },
+  { id: 'Q010', question: 'When "dark" is used as a metaphor for timbre, what rule resolves it?', options: ['Grammar rule', 'Metaphor resolution', 'Quantifier scoping', 'Reference resolution'], correctIndex: 1, explanation: 'Metaphor resolution maps figurative language to audio parameters.', concept: 'metaphor-resolution', nodeType: 'modifier', level: 'intermediate' },
+  { id: 'Q011', question: 'What does "composition" mean in CPL semantics?', options: ['Writing a song', 'Combining pieces of meaning into one structure', 'Compressing audio', 'A genre'], correctIndex: 1, explanation: 'Composition combines words like "bright" + "vocals" + "chorus" into one instruction.', concept: 'composition', nodeType: 'group', level: 'intermediate' },
+  { id: 'Q012', question: 'What is a frame match?', options: ['Matching a video frame', 'Recognising a common instruction pattern', 'Aligning clips', 'A type of compression'], correctIndex: 1, explanation: 'Frame matching recognises patterns like "make X more Y".', concept: 'frame-match', nodeType: 'opcode', level: 'intermediate' },
+  { id: 'Q013', question: 'How does default-fill work?', options: ['It adds silence', 'It fills missing parameters with sensible defaults', 'It copies from another track', 'It deletes empty regions'], correctIndex: 1, explanation: 'Default-fill provides reasonable values for omitted details.', concept: 'default-fill', nodeType: 'hole', level: 'intermediate' },
+  { id: 'Q014', question: 'What does "provenance" tell you about a CPL node?', options: ['Its audio quality', 'Where it came from (source words + rules)', 'Its volume level', 'When it was created'], correctIndex: 1, explanation: 'Provenance traces each node to its source words and rules.', concept: 'provenance', nodeType: 'intent', level: 'advanced' },
+  { id: 'Q015', question: 'What happens when two constraints conflict?', options: ['System crashes', 'System picks randomly', 'System asks the user which to relax', 'Both are ignored'], correctIndex: 2, explanation: 'The system presents the conflict and asks for user guidance.', concept: 'constraint', nodeType: 'constraint', level: 'advanced' },
+  { id: 'Q016', question: 'What is scope algebra?', options: ['A math course', 'Set operations on scope selections', 'A reverb algorithm', 'An EQ technique'], correctIndex: 1, explanation: 'Scope algebra uses union, intersection, and complement on selections.', concept: 'scope-resolution', nodeType: 'scope', level: 'advanced' },
+  { id: 'Q017', question: 'How are vague amounts like "a bit" calibrated?', options: ['They are always 3dB', 'From the user vocabulary profile', 'They are ignored', 'From the BPM'], correctIndex: 1, explanation: 'The system learns your vocabulary to calibrate vague amounts.', concept: 'vocabulary-learning', nodeType: 'amount', level: 'advanced' },
+  { id: 'Q018', question: 'What is ellipsis resolution?', options: ['Deleting audio', 'Recovering omitted words', 'A reverb tail', 'Noise reduction'], correctIndex: 1, explanation: 'Ellipsis resolution fills in words the user left out.', concept: 'ellipsis-resolution', nodeType: 'hole', level: 'advanced' },
+  { id: 'Q019', question: 'What converts goals to opcodes in the pipeline?', options: ['The lexicon', 'The planner using frame decomposition', 'The reverb engine', 'The master bus'], correctIndex: 1, explanation: 'The planner decomposes goals into operation sequences.', concept: 'goal', nodeType: 'goal', level: 'expert' },
+  { id: 'Q020', question: 'What is the role of modality analysis?', options: ['Analysing major/minor modes', 'Distinguishing commands, wishes, and questions', 'Measuring loudness', 'Selecting output format'], correctIndex: 1, explanation: 'Modality analysis detects whether the user is commanding, wishing, or asking.', concept: 'modality', nodeType: 'intent', level: 'expert' },
+  { id: 'Q021', question: 'What is presupposition accommodation?', options: ['Accepting an implicit assumption', 'Adjusting the bass', 'Sidechain compression', 'Speaker placement'], correctIndex: 0, explanation: 'It accepts unstated assumptions into the context.', concept: 'presupposition-accommodation', nodeType: 'modifier', level: 'expert' },
+  { id: 'Q022', question: 'What does the confidence bottleneck indicate?', options: ['The loudest point', 'The weakest step in the derivation', 'The fastest CPU core', 'The most popular track'], correctIndex: 1, explanation: 'The bottleneck is the least confident step in the interpretation chain.', concept: 'provenance', nodeType: 'intent', level: 'expert' },
+] as const;
+
+// ---------------------------------------------------------------------------
+// 200 — Functions
+// ---------------------------------------------------------------------------
+
+/** Create a new teach-mode session. */
+export function createTeachSession(level: ExplanationLevel): TeachModeSession {
+  return {
+    id: `ts-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    startTime: Date.now(),
+    currentLevel: level,
+    explainedNodeTypes: [],
+    explainedConcepts: [],
+    quizHistory: [],
+    explanationCount: 0,
+    quizCount: 0,
+    correctAnswers: 0,
+    totalAnswered: 0,
+  };
+}
+
+/** Explain a CPL node at the session's current level. */
+export function explainNode(
+  nodeType: CPLNodeType,
+  session: TeachModeSession,
+): { readonly explanation: SemanticExplanation | null; readonly updatedSession: TeachModeSession } {
+  const explanation = EXPLANATION_DATABASE.find(
+    e => e.nodeType === nodeType && e.level === session.currentLevel,
+  );
+
+  if (explanation === undefined) {
+    return { explanation: null, updatedSession: session };
+  }
+
+  const updatedSession: TeachModeSession = {
+    ...session,
+    explainedNodeTypes: session.explainedNodeTypes.includes(nodeType)
+      ? session.explainedNodeTypes
+      : [...session.explainedNodeTypes, nodeType],
+    explainedConcepts: session.explainedConcepts.includes(nodeType)
+      ? session.explainedConcepts
+      : [...session.explainedConcepts, nodeType],
+    explanationCount: session.explanationCount + 1,
+  };
+
+  return { explanation, updatedSession };
+}
+
+/** Get a musical analogy for a concept. */
+export function getMusicalAnalogy(
+  concept: string,
+  level: ExplanationLevel,
+): MusicalAnalogy | null {
+  for (const analogy of MUSICAL_ANALOGIES) {
+    if (analogy.concept === concept && analogy.levels.includes(level)) {
+      return analogy;
+    }
+  }
+  // Fallback: any level
+  for (const analogy of MUSICAL_ANALOGIES) {
+    if (analogy.concept === concept) {
+      return analogy;
+    }
+  }
+  return null;
+}
+
+/** Generate a quiz for the current session. */
+export function generateQuiz(
+  session: TeachModeSession,
+  questionCount: number,
+): readonly TeachModeQuizQuestion[] {
+  const levelInfo = EXPLANATION_LEVEL_INFO[session.currentLevel];
+  const levelOrder = levelInfo.order;
+
+  // Filter questions at or below the current level
+  const eligible = QUIZ_QUESTION_TEMPLATES.filter(q => {
+    const qLevelInfo = EXPLANATION_LEVEL_INFO[q.level];
+    return qLevelInfo.order <= levelOrder;
+  });
+
+  // Prefer questions about explained concepts
+  const explained = new Set(session.explainedConcepts);
+  const preferred = eligible.filter(q => explained.has(q.concept) || explained.has(q.nodeType));
+  const fallback = eligible.filter(q => !explained.has(q.concept) && !explained.has(q.nodeType));
+
+  // Exclude already asked
+  const alreadyAsked = new Set(session.quizHistory.map(h => h.questionId));
+  const preferredNew = preferred.filter(q => !alreadyAsked.has(q.id));
+  const fallbackNew = fallback.filter(q => !alreadyAsked.has(q.id));
+
+  const pool = [...preferredNew, ...fallbackNew];
+  const selected: TeachModeQuizQuestion[] = [];
+  const count = Math.min(questionCount, pool.length);
+
+  // Simple shuffle-and-take
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = shuffled[i];
+    const swp = shuffled[j];
+    if (tmp !== undefined && swp !== undefined) {
+      shuffled[i] = swp;
+      shuffled[j] = tmp;
+    }
+  }
+
+  for (let i = 0; i < count; i++) {
+    const q = shuffled[i];
+    if (q !== undefined) {
+      selected.push(q);
+    }
+  }
+
+  return selected;
+}
+
+/** Check a quiz answer and update the session. */
+export function checkAnswer(
+  session: TeachModeSession,
+  questionId: string,
+  selectedIndex: number,
+): { readonly correct: boolean; readonly explanation: string; readonly updatedSession: TeachModeSession } {
+  const question = QUIZ_QUESTION_TEMPLATES.find(q => q.id === questionId);
+  if (question === undefined) {
+    return { correct: false, explanation: 'Question not found.', updatedSession: session };
+  }
+
+  const correct = selectedIndex === question.correctIndex;
+
+  const updatedSession: TeachModeSession = {
+    ...session,
+    quizHistory: [
+      ...session.quizHistory,
+      { questionId, selectedIndex, correct, timestamp: Date.now() },
+    ],
+    quizCount: session.quizCount + 1,
+    correctAnswers: session.correctAnswers + (correct ? 1 : 0),
+    totalAnswered: session.totalAnswered + 1,
+  };
+
+  return {
+    correct,
+    explanation: question.explanation,
+    updatedSession,
+  };
+}
+
+/** Get the explanation for a specific node type at a specific level. */
+export function getExplanationForLevel(
+  nodeType: CPLNodeType,
+  level: ExplanationLevel,
+): SemanticExplanation | null {
+  const found = EXPLANATION_DATABASE.find(
+    e => e.nodeType === nodeType && e.level === level,
+  );
+  return found ?? null;
+}
+
+/** Advance the session to the next level if quiz performance warrants it. */
+export function advanceLevel(
+  session: TeachModeSession,
+  threshold: number,
+): TeachModeSession {
+  if (session.totalAnswered === 0) return session;
+  const score = session.correctAnswers / session.totalAnswered;
+  if (score < threshold) return session;
+
+  const currentOrder = EXPLANATION_LEVEL_INFO[session.currentLevel].order;
+  const levels: ExplanationLevel[] = ['beginner', 'intermediate', 'advanced', 'expert', 'developer'];
+  const nextLevel = levels.find(l => EXPLANATION_LEVEL_INFO[l].order === currentOrder + 1);
+
+  if (nextLevel === undefined) return session; // already at max
+
+  return {
+    ...session,
+    currentLevel: nextLevel,
+    correctAnswers: 0,
+    totalAnswered: 0,
+  };
+}
+
+/** Get session progress metrics. */
+export function getSessionProgress(
+  session: TeachModeSession,
+): {
+  readonly level: ExplanationLevel;
+  readonly explanationsGiven: number;
+  readonly quizzesTaken: number;
+  readonly accuracy: number;
+  readonly conceptsCovered: number;
+  readonly totalConcepts: number;
+} {
+  return {
+    level: session.currentLevel,
+    explanationsGiven: session.explanationCount,
+    quizzesTaken: session.quizCount,
+    accuracy: session.totalAnswered > 0 ? session.correctAnswers / session.totalAnswered : 0,
+    conceptsCovered: session.explainedConcepts.length,
+    totalConcepts: EXPLAINED_NODE_TYPES.length,
+  };
+}
+
+/** Format a semantic explanation as a text block. */
+export function formatExplanation(
+  explanation: SemanticExplanation,
+): string {
+  const lines: string[] = [];
+  lines.push(`--- ${explanation.nodeType.toUpperCase()} (${explanation.level}) ---`);
+  lines.push('');
+  lines.push(explanation.text);
+  lines.push('');
+  lines.push(`Musical analogy: ${explanation.analogy}`);
+  lines.push(`Example: ${explanation.example}`);
+  lines.push('');
+  lines.push(`Key takeaway: ${explanation.takeaway}`);
+  if (explanation.relatedConcepts.length > 0) {
+    lines.push(`Related concepts: ${explanation.relatedConcepts.join(', ')}`);
+  }
+  return lines.join('\n');
+}
+
+/** Suggest the next topic to explain based on what has not been covered. */
+export function suggestNextTopic(
+  session: TeachModeSession,
+): CPLNodeType | null {
+  const explained = new Set(session.explainedNodeTypes);
+  for (const nt of EXPLAINED_NODE_TYPES) {
+    if (!explained.has(nt)) return nt;
+  }
+  return null;
+}
+
+/** Get the completion percentage for the current level. */
+export function getCompletionPercentage(
+  session: TeachModeSession,
+): number {
+  const total = EXPLAINED_NODE_TYPES.length;
+  if (total === 0) return 100;
+  const covered = session.explainedNodeTypes.length;
+  return Math.round((covered / total) * 100);
+}
+
+/** Reset the session to start fresh. */
+export function resetSession(
+  session: TeachModeSession,
+  level?: ExplanationLevel,
+): TeachModeSession {
+  return {
+    ...session,
+    currentLevel: level ?? session.currentLevel,
+    explainedNodeTypes: [],
+    explainedConcepts: [],
+    quizHistory: [],
+    explanationCount: 0,
+    quizCount: 0,
+    correctAnswers: 0,
+    totalAnswered: 0,
+  };
+}
+
+/** Export the session log as a portable object. */
+export function exportSessionLog(
+  session: TeachModeSession,
+): {
+  readonly sessionId: string;
+  readonly level: ExplanationLevel;
+  readonly explanationsGiven: number;
+  readonly quizResults: readonly { readonly questionId: string; readonly correct: boolean }[];
+  readonly accuracy: number;
+  readonly durationMs: number;
+} {
+  return {
+    sessionId: session.id,
+    level: session.currentLevel,
+    explanationsGiven: session.explanationCount,
+    quizResults: session.quizHistory.map(h => ({
+      questionId: h.questionId,
+      correct: h.correct,
+    })),
+    accuracy: session.totalAnswered > 0 ? session.correctAnswers / session.totalAnswered : 0,
+    durationMs: Date.now() - session.startTime,
+  };
+}
+
+/** Create a default teach-mode configuration. */
+export function createDefaultTeachModeConfig(): TeachModeConfig {
+  return {
+    level: 'beginner',
+    autoAdvance: true,
+    advanceThreshold: 0.8,
+    showAnalogies: true,
+    showExamples: true,
+    offerQuizzes: true,
+    explanationsBeforeQuiz: 5,
+    trackProgress: true,
   };
 }
