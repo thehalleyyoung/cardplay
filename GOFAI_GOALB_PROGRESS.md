@@ -19,9 +19,14 @@
 - ✅ **NEW: Added domain nouns - instruments** - 570 LOC (40 instruments)
 - ✅ **NEW: Added domain nouns - techniques** - 705 LOC (47 techniques)
 - ✅ **NEW: Added domain nouns - form/structure batch 5** - 622 LOC (50 form elements)
-- ✅ **Total new code this session: 7,377 LOC**
-- ✅ Total vocabulary now 8,043 LOC (40% toward 20K goal)
+- ✅ **NEW: Added domain nouns - production/mixing batch 6** - 582 LOC (60 production terms)
+- ✅ **NEW: Added domain nouns - rhythm/groove batch 7** - 576 LOC (52 rhythm terms)
+- ✅ **Total new code this session: 9,135 LOC**
+- ✅ Total vocabulary now 9,801 LOC (49% toward 20K goal)
+- ✅ **Total domain noun batches: 7 files covering 209 terms**
 - ✅ **Phase 0 now 84% complete (16 of 19 steps)**
+
+See [GOFAI_SESSION_2026-01-30_PART3.md](GOFAI_SESSION_2026-01-30_PART3.md) for detailed session report.
 
 See [GOFAI_SESSION_2026-01-30.md](GOFAI_SESSION_2026-01-30.md) for detailed session report.
 
@@ -506,12 +511,49 @@ Final checklist before release
 - **Movement Verbs** (9): move, shift, transpose, raise, lower, slide, swap, advance, delay
 - Each verb includes: ID, conjugations, category, description, synonyms, antonyms, examples, mapped opcodes
 
+#### ✅ Domain Nouns - Form and Structure (Batch 5) (622 LOC) — NEW 2026-01-30 Part 4
+**File**: `src/gofai/canon/domain-nouns-batch5.ts`
+- 50 domain noun lexemes across 5 major categories
+- **Form Sections** (10): intro, verse, pre-chorus, chorus, post-chorus, bridge, outro, interlude, solo, vamp
+- **Structural Elements** (10): phrase, period, motif, riff, ostinato, hook, cadence, pickup, turnaround, fill
+- **Transitions** (9): transition, build, drop, breakdown, lift, crash, rest, swell, fade
+- **Repetition Devices** (5): repeat, variation, sequence, development, contrast
+- **Texture Terms** (9): texture, layer, space, foreground, background, monophony, homophony, polyphony, heterophony
+- Each includes: ID, term, variants, category, definition, semantics, examples
+- Covers all essential form/structure concepts for natural language composition
+
+#### ✅ Domain Nouns - Production and Mixing (Batch 6) (582 LOC) — NEW 2026-01-30 Part 4
+**File**: `src/gofai/canon/domain-nouns-batch6.ts`
+- 60 domain noun lexemes across 6 major categories
+- **Mix Concepts** (9): mix, panning, level, headroom, clarity, depth, width, punch, glue
+- **Frequency Terms** (9): sub-bass, bass, low-mids, midrange, high-mids, highs, air, mud, harshness
+- **Effects** (11): reverb, delay, compression, eq, saturation, distortion, chorus, flanger, phaser, tremolo, vibrato
+- **Dynamics Processing** (6): limiter, gate, expansion, transient-shaper, sidechain, de-esser
+- **Spatial Processing** (4): stereo-widening, mid-side, haas-effect, binaural
+- **Mastering** (3): mastering, loudness, dithering
+- Comprehensive audio engineering vocabulary for production commands
+
+#### ✅ Domain Nouns - Rhythm and Groove (Batch 7) (576 LOC) — NEW 2026-01-30 Part 4
+**File**: `src/gofai/canon/domain-nouns-batch7.ts`
+- 52 domain noun lexemes across 6 major categories
+- **Rhythmic Units** (7): downbeat, upbeat, subdivision, triplet, sixteenth, eighth, quarter
+- **Groove Types** (8): groove, swing, straight, laid-back, pushed, bounce, half-time, double-time
+- **Rhythmic Devices** (7): syncopation, polyrhythm, hemiola, clave, tresillo, bembe, cascara
+- **Timing Concepts** (7): timing, quantization, humanization, rubato, ritardando, accelerando, fermata
+- **Groove Density** (5): sparsity, density, drive, momentum, pulse
+- **Meter Concepts** (7): meter, duple, triple, quadruple, compound, simple, irregular
+- Includes traditional Afro-Cuban and Latin rhythms with cultural attribution
+
 ### Vocabulary Statistics
-- **Total Lexeme Files**: 7 (6 existing + 1 new verbs file)
-- **Total Vocabulary LOC**: 6,146 lines
+- **Total Lexeme Files**: 10 (7 existing + 3 new batch files)
+- **Total Vocabulary LOC**: 9,801 lines (49% toward 20K goal)
 - **Total Adjectives**: 175 unique lexemes across 15 axes
 - **Total Verbs**: 44 unique lexemes across 4 categories
-- **Progress toward 20K goal**: 30%
+- **Total Domain Nouns**: 209+ unique lexemes across batch files
+  - Batch 5 (Form/Structure): 50 terms
+  - Batch 6 (Production/Mixing): 60 terms
+  - Batch 7 (Rhythm/Groove): 52 terms
+- **Progress toward 20K goal**: 49%
 
 ### Each Lexeme Includes
 - Unique namespaced ID
