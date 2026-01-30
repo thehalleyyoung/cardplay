@@ -5,12 +5,12 @@
  * Change 197 from to_fix_repo_plan_500.md
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { getDeckFactoryRegistry } from '../factory-registry.js';
 import type { DeckType } from '../../types.js';
 
 // Import to ensure factories are registered
-import '../factories/index.js';
+import { registerBuiltinDeckFactories } from '../factories/index.js';
 
 // Canonical DeckType values - must match types.ts
 const ALL_DECK_TYPES: Set<DeckType> = new Set([
@@ -44,12 +44,18 @@ const ALL_DECK_TYPES: Set<DeckType> = new Set([
 
 // DeckTypes that are explicitly not yet implemented
 const NOT_YET_IMPLEMENTED: Set<DeckType> = new Set([
+  // Only these 2 are actually not implemented:
   'spectrum-analyzer-deck',
   'waveform-editor-deck',
 ] as DeckType[]);
 
 describe('DeckType Factory Coverage', () => {
   const registry = getDeckFactoryRegistry();
+  
+  beforeAll(() => {
+    // Ensure all builtin factories are registered
+    registerBuiltinDeckFactories();
+  });
   
   it('every implemented DeckType has a registered factory', () => {
     const missingFactories: DeckType[] = [];
@@ -130,7 +136,7 @@ describe('DeckType Factory Coverage', () => {
     
     console.log(`\nDeckType factory coverage: ${registeredCount}/${totalCount} (${coverage.toFixed(1)}%)\n`);
     
-    // Expect at least 80% coverage
-    expect(coverage).toBeGreaterThanOrEqual(80);
+    // Expect at least 90% coverage (only 2 deck types are not yet implemented)
+    expect(coverage).toBeGreaterThanOrEqual(90);
   });
 });
