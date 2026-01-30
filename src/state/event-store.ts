@@ -1,10 +1,12 @@
 /**
  * @fileoverview SharedEventStore - Single source of truth for event streams.
  * 
+ * **SSOT:** This is the canonical store for all event streams and events.
  * All editors (Tracker, Piano Roll, Notation) read from and write to this store.
  * Changes are broadcast to all subscribers for real-time synchronization.
  * 
  * @module @cardplay/state/event-store
+ * @see cardplay/docs/canon/ssot-stores.md
  */
 
 import type { Event } from '../types/event';

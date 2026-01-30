@@ -22,6 +22,8 @@ import type {
 } from './types';
 import { generateSubscriptionId } from './types';
 import { getUndoStack } from './undo-stack';
+import { validateConnection } from '../boards/gating/validate-connection';
+import type { PortType } from '../cards/card';
 
 // ============================================================================
 // TYPES
@@ -378,7 +380,7 @@ export function createRoutingGraphStore(): RoutingGraphStore {
       targetPort: string,
       type: EdgeType = 'audio'
     ): RoutingEdgeInfo {
-      // Change 215: Validate connection at insertion time
+      // Change 215: Validate connection at insertion time (SSOT enforcement)
       const sourceNode = nodes.get(sourceId);
       const targetNode = nodes.get(targetId);
 
@@ -389,15 +391,47 @@ export function createRoutingGraphStore(): RoutingGraphStore {
         throw new Error(`Target node '${targetId}' not found in routing graph`);
       }
 
-      // Validate port types are compatible (same edge type)
+      // Find the ports
       const srcPort = sourceNode.outputs.find(p => p.id === sourcePort);
       const tgtPort = targetNode.inputs.find(p => p.id === targetPort);
 
-      // Change 216: Determine adapter requirement
+      if (!srcPort) {
+        throw new Error(`Source port '${sourcePort}' not found on node '${sourceId}'`);
+      }
+      if (!tgtPort) {
+        throw new Error(`Target port '${targetPort}' not found on node '${targetId}'`);
+      }
+
+      // Validate port type compatibility using canonical validation
+      const validation = validateConnection(srcPort.type as PortType, tgtPort.type as PortType);
+      if (!validation.allowed) {
+        throw new Error(validation.reason || 'Incompatible port types');
+      }
+
+      // Change 216: Record which adapter (if any) is used for a connection
       let adapterId: string | undefined;
-      if (srcPort && tgtPort && srcPort.type !== tgtPort.type) {
-        // Port types differ — an adapter is required
-        adapterId = `${srcPort.type}-to-${tgtPort.type}`;
+      if (srcPort.type !== tgtPort.type) {
+        // Port types differ but are compatible — an adapter is required
+        adapterId = `adapter:${srcPort.type}-to-${tgtPort.type}`;
+      }
+
+      // Check for cycles
+      if (this.wouldCreateCycle(sourceId, targetId)) {
+        throw new Error('Connection would create a cycle in the routing graph');
+      }
+
+      // Change 223: Deduplicate connections - check if identical connection already exists
+      const duplicate = edges.find(e => 
+        e.from === sourceId &&
+        e.to === targetId &&
+        e.sourcePort === sourcePort &&
+        e.targetPort === targetPort &&
+        e.type === type
+      );
+
+      if (duplicate) {
+        // Return existing edge instead of creating duplicate
+        return duplicate;
       }
 
       const edgeId = `edge-${++edgeIdCounter}`;
@@ -706,4 +740,201 @@ export function createMixerNode(
     ],
     bypassed: false,
   };
+}
+
+// ============================================================================
+// SERIALIZATION & MIGRATION (Changes 224-226)
+// ============================================================================
+
+/**
+ * Serializable routing graph state.
+ */
+export interface SerializableRoutingGraph {
+  version: number;
+  nodes: Array<Omit<RoutingNodeInfo, 'bypassed' | 'enabled'> & { bypassed?: boolean; enabled?: boolean }>;
+  edges: Array<{
+    id: string;
+    from: string;
+    to: string;
+    type: EdgeType;
+    sourcePort: string;
+    targetPort: string;
+    gain?: number;
+    active?: boolean;
+    adapterId?: string;
+  }>;
+}
+
+/**
+ * Change 224: Serialize routing graph with canonical port types and ConnectionId.
+ * 
+ * @param state - Current routing graph state
+ * @returns Serializable graph
+ */
+export function serializeRoutingGraph(state: RoutingGraphState): SerializableRoutingGraph {
+  return {
+    version: 1,
+    nodes: Array.from(state.nodes.values()).map(node => ({
+      id: node.id,
+      cardId: node.cardId,
+      type: node.type,
+      name: node.name,
+      position: node.position,
+      inputs: node.inputs.map(p => ({ ...p })),
+      outputs: node.outputs.map(p => ({ ...p })),
+      bypassed: node.bypassed,
+      enabled: node.enabled,
+      metadata: node.metadata,
+    })),
+    edges: state.edges.map(edge => ({
+      id: edge.id,
+      from: edge.from,
+      to: edge.to,
+      type: edge.type,
+      sourcePort: edge.sourcePort,
+      targetPort: edge.targetPort,
+      gain: edge.gain,
+      active: edge.active,
+      ...(edge.adapterId ? { adapterId: edge.adapterId } : {}),
+    })),
+  };
+}
+
+/**
+ * Legacy connection format (pre-canonical).
+ */
+interface LegacyConnection {
+  sourceNodeId: string;
+  targetNodeId: string;
+  sourcePort?: string;
+  targetPort?: string;
+  type?: string;
+  // Legacy formats may use direction-encoded port types
+  sourcePortType?: string; // e.g., 'audio_out'
+  targetPortType?: string; // e.g., 'audio_in'
+}
+
+/**
+ * Change 225: Migrate connections that used 'audio_in' style identifiers.
+ * 
+ * @param legacyConnection - Legacy connection format
+ * @returns Normalized edge info or null if invalid
+ */
+export function migrateLegacyConnection(legacyConnection: LegacyConnection): Partial<RoutingEdgeInfo> | null {
+  const { sourceNodeId, targetNodeId, sourcePort, targetPort, type, sourcePortType, targetPortType } = legacyConnection;
+  
+  if (!sourceNodeId || !targetNodeId) {
+    return null;
+  }
+  
+  // Normalize port types by stripping direction suffixes
+  const normalizePortType = (portType?: string): EdgeType => {
+    if (!portType) return 'audio';
+    
+    // Strip _in/_out suffixes
+    const baseType = portType.replace(/_in$|_out$/i, '');
+    
+    // Map to canonical EdgeType
+    switch (baseType.toLowerCase()) {
+      case 'audio':
+        return 'audio';
+      case 'midi':
+      case 'notes':
+        return 'midi';
+      case 'cv':
+      case 'control':
+      case 'modulation':
+        return 'cv';
+      case 'trigger':
+        return 'trigger';
+      default:
+        return 'audio';
+    }
+  };
+  
+  const edgeType = type ? normalizePortType(type) : normalizePortType(sourcePortType);
+  
+  return {
+    from: sourceNodeId,
+    to: targetNodeId,
+    type: edgeType,
+    sourcePort: sourcePort || 'out',
+    targetPort: targetPort || 'in',
+    gain: 1.0,
+    active: true,
+  };
+}
+
+/**
+ * Change 226: Migrate connections that used legacy port types (number, stream, etc).
+ * 
+ * @param portType - Legacy port type
+ * @returns Canonical port type
+ */
+export function migrateLegacyPortType(portType: string): 'audio' | 'midi' | 'cv' {
+  switch (portType.toLowerCase()) {
+    case 'number':
+    case 'control':
+    case 'cv':
+    case 'modulation':
+      return 'cv';
+    
+    case 'stream':
+    case 'any':
+    case 'audio':
+      return 'audio';
+    
+    case 'midi':
+    case 'notes':
+    case 'trigger':
+    case 'boolean':
+      return 'midi';
+    
+    default:
+      // Default to audio for unknown types
+      console.warn(`Unknown legacy port type: ${portType}, defaulting to audio`);
+      return 'audio';
+  }
+}
+
+/**
+ * Deserialize routing graph from saved state.
+ * 
+ * @param data - Serialized graph data
+ * @returns Routing graph store with loaded state
+ */
+export function deserializeRoutingGraph(data: SerializableRoutingGraph): RoutingGraphStore {
+  const store = createRoutingGraphStore();
+  
+  // Load nodes
+  for (const nodeData of data.nodes) {
+    const node: RoutingNodeInfo = {
+      ...nodeData,
+      bypassed: nodeData.bypassed ?? false,
+      enabled: nodeData.enabled,
+    };
+    store.addNode(node);
+  }
+  
+  // Load edges
+  for (const edgeData of data.edges) {
+    try {
+      store.connect(
+        edgeData.from,
+        edgeData.sourcePort,
+        edgeData.to,
+        edgeData.targetPort,
+        edgeData.type
+      );
+      
+      // Restore gain if different from default
+      if (edgeData.gain !== undefined && edgeData.gain !== 1.0) {
+        store.setEdgeGain(edgeData.id, edgeData.gain);
+      }
+    } catch (error) {
+      console.warn('Failed to restore connection:', edgeData, error);
+    }
+  }
+  
+  return store;
 }

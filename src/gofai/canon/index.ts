@@ -129,3 +129,6 @@ export {
   type OntologicalDomain,
   type OntologicalType,
 } from './musical-ontology';
+
+// Change-control rules for canon modifications
+export * from './change-control';

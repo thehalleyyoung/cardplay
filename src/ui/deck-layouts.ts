@@ -97,7 +97,8 @@ export function normalizeConnectionPort(port: string | ConnectionPortRef): Conne
     const typeMap: Record<string, ConnectionPortRef['type']> = {
       'audio': 'audio',
       'midi': 'midi',
-      'mod': 'modulation',
+      'modulation': 'modulation',
+      'mod': 'modulation', // Legacy alias
       'trigger': 'trigger',
     };
     return {

@@ -238,26 +238,26 @@ Notes:
 - [x] Change 212 — Update `cardplay/src/cards/protocol.ts` to encode port compatibility/protocol negotiation, matching docs (or mark protocol docs aspirational).
 - [x] Change 213 — Add an adapter registry (even if minimal) and document how extensions register new adapters.
 - [x] Change 214 — Update `cardplay/src/state/routing-graph.ts` to store canonical port types and directions explicitly.
-- [ ] Change 215 — Update `cardplay/src/state/routing-graph.ts` to validate edges against `validateConnection()` at insertion time (SSOT enforcement).
-- [ ] Change 216 — Update `cardplay/src/state/routing-graph.ts` to record which adapter (if any) is used for a connection.
-- [ ] Change 217 — Update `cardplay/src/boards/decks/routing-integration.ts` to surface adapter requirements in routing deck UI diagnostics.
-- [ ] Change 218 — Add `cardplay/src/state/routing-graph.test.ts` cases for invalid connections and adapter-required connections.
+- [x] Change 215 — Update `cardplay/src/state/routing-graph.ts` to validate edges against `validateConnection()` at insertion time (SSOT enforcement).
+- [x] Change 216 — Update `cardplay/src/state/routing-graph.ts` to record which adapter (if any) is used for a connection.
+- [x] Change 217 — Update `cardplay/src/boards/decks/routing-integration.ts` to surface adapter requirements in routing deck UI diagnostics.
+- [x] Change 218 — Add `cardplay/src/state/routing-graph.test.ts` cases for invalid connections and adapter-required connections.
 - [x] Change 219 — Update `cardplay/src/ui/deck-layout.ts` to represent connections as typed `PortRef` objects rather than string arrays.
 - [x] Change 220 — Add `PortRef` type in a shared module (e.g., `cardplay/src/types/port-ref.ts`) reused across UI and routing.
 - [x] Change 221 — Update `cardplay/src/ui/deck-layout.ts` `inputConnections`/`outputConnections` to store `PortRef[]` (or ConnectionId references) rather than `string[]`.
 - [x] Change 222 — Add a stable `ConnectionId` type and use it across routing graph, deck layout, and UI.
-- [ ] Change 223 — Add connection normalization: store connections in a canonical source→target order and dedupe.
-- [ ] Change 224 — Ensure connection serialization uses canonical port types and ConnectionId to prevent drift.
-- [ ] Change 225 — Add migration for older saved connections that used `audio_in` style identifiers.
-- [ ] Change 226 — Add migration for older saved connections that used legacy port types (`number`, `stream`, etc).
-- [ ] Change 227 — Update `cardplay/src/boards/types.ts` `BoardConnection.connectionType` to align with canon vocabulary (audio/midi/modulation/trigger) and consider namespacing for extensions.
+- [x] Change 223 — Add connection normalization: store connections in a canonical source→target order and dedupe.
+- [x] Change 224 — Ensure connection serialization uses canonical port types and ConnectionId to prevent drift.
+- [x] Change 225 — Add migration for older saved connections that used `audio_in` style identifiers.
+- [x] Change 226 — Add migration for older saved connections that used legacy port types (`number`, `stream`, etc).
+- [x] Change 227 — Update `cardplay/src/boards/types.ts` `BoardConnection.connectionType` to align with canon vocabulary (audio/midi/modulation/trigger) and consider namespacing for extensions.
 - [x] Change 228 — Add a canonical `ConnectionType` union export and reuse it across routing graph and UI.
-- [ ] Change 229 — Update any code using `'modulation'` vs `'mod'` etc to canonical connection type strings.
-- [ ] Change 230 — Update `cardplay/src/ui/deck-layouts.ts` sample connections to use canonical ConnectionType strings.
-- [ ] Change 231 — Update `cardplay/src/cards/card.ts` `registerPortType()` to validate namespaced port types (reject builtin collisions).
-- [ ] Change 232 — Update `cardplay/src/cards/card.ts` to pre-register builtin port types in the registry with metadata used by UI.
-- [ ] Change 233 — Update `cardplay/src/ui/components/card-component.ts` to display port labels/colors using registry metadata from `getPortTypeEntry()`.
-- [ ] Change 234 — Update `cardplay/src/ui/cards.ts` to display port metadata using the port type registry (instead of hardcoded colors/icons).
+- [x] Change 229 — Update any code using `'modulation'` vs `'mod'` etc to canonical connection type strings.
+- [x] Change 230 — Update `cardplay/src/ui/deck-layouts.ts` sample connections to use canonical ConnectionType strings.
+- [x] Change 231 — Update `cardplay/src/cards/card.ts` `registerPortType()` to validate namespaced port types (reject builtin collisions).
+- [x] Change 232 — Update `cardplay/src/cards/card.ts` to pre-register builtin port types in the registry with metadata used by UI.
+- [x] Change 233 — Update `cardplay/src/ui/components/card-component.ts` to display port labels/colors using registry metadata from `getPortTypeEntry()`.
+- [x] Change 234 — Update `cardplay/src/ui/cards.ts` to display port metadata using the port type registry (instead of hardcoded colors/icons).
 - [x] Change 235 — Add a canonical port color palette so visuals remain consistent across systems.
 - [x] Change 236 — Add a canonical port icon mapping so visuals remain consistent across systems.
 - [ ] Change 237 — Audit `cardplay/src/audio/*` so the audio engine graph uses canonical routing graph edges/port types (no parallel graph).
@@ -266,13 +266,13 @@ Notes:
 - [ ] Change 240 — Add tests for `cardplay/src/boards/decks/audio-deck-adapter.ts` ensuring routing graph edges are created/removed correctly.
 - [x] Change 241 — Export a single authoritative "Port Compatibility Matrix" constant from `validate-connection.ts` and reference it from tests/docs.
 - [ ] Change 242 — Update either docs or code so `cardplay/docs/canon/port-vocabulary.md` matches the real port types + compatibility.
-- [ ] Change 243 — Update `cardplay/docs/port-unification-rules.md` to map to real code or mark it aspirational (avoid phantom modules).
+- [x] Change 243 — Update `cardplay/docs/port-unification-rules.md` to map to real code or mark it aspirational (avoid phantom modules).
 - [ ] Change 244 — Replace doc references to `src/core/port-conversion.ts` with `cardplay/src/boards/gating/validate-connection.ts` or the new `port-conversion.ts`.
 - [ ] Change 245 — Add UI diagnostics when user attempts an invalid connection (use `getConnectionIncompatibilityReason()`).
 - [ ] Change 246 — Add UI diagnostics when a connection is allowed but requires an adapter (show which adapter).
 - [ ] Change 247 — Add a connection overlay UI component (or unify existing) that renders ports using the canonical model.
 - [ ] Change 248 — Ensure routing deck UI reads/writes only SSOT `RoutingGraphStore` (no “secret parallel graph”).
-- [ ] Change 249 — Add a test ensuring no second routing graph store exists (unless explicitly documented).
+- [x] Change 249 — Add a test ensuring no second routing graph store exists (unless explicitly documented).
 - [x] Change 250 — Add an SSOT note in `cardplay/src/state/routing-graph.ts` comments pointing to `cardplay/docs/canon/ssot-stores.md`.
 
 ## Phase 5 — Card Systems Disambiguation (Changes 251–300)
@@ -282,7 +282,7 @@ Notes:
 - [x] Change 253 — Rename `CardState` in `cardplay/src/audio/instrument-cards.ts` to `AudioModuleState` (or similar) to avoid collision with UI CardState.
 - [x] Change 254 — Update any imports of audio `Card` to the new `AudioModuleCard` name (search `from '../audio/instrument-cards'`).
 - [x] Change 255 — Update `cardplay/docs/canon/legacy-type-aliases.md` if any type names change.
-- [ ] Change 256 — Rename `cardplay/src/ui/components/card-component.ts` export `CardComponent` to `UICardComponent` (or add an alias export) to match canon “Card Systems”.
+- [x] Change 256 — Rename `cardplay/src/ui/components/card-component.ts` export `CardComponent` to `UICardComponent` (or add an alias export) to match canon “Card Systems”.
 - [ ] Change 257 — Rename `cardplay/src/ui/cards.ts` “card UI framework” exports to `CardSurface*` and avoid exporting ambiguous `Card*` symbols.
 - [x] Change 258 — Rename `cardplay/src/ui/cards.ts` `CardState` to `CardSurfaceState` to avoid collisions with other CardState types. [Done with deprecated alias]
 - [x] Change 259 — Rename `cardplay/src/ui/cards.ts` `CardSize` to `CardSurfaceSize` (or namespace exports) to avoid collisions. [Done with deprecated alias]
@@ -362,12 +362,12 @@ Notes:
 - [x] Change 330 — Update arrangement UI adapters (e.g., `cardplay/src/ui/arrangement-view.ts`) to treat `ClipRegistry` as SSOT.
 - [x] Change 331 — Update notation UI adapters to treat `SharedEventStore` as SSOT (no parallel note store).
 - [x] Change 332 — Update tracker UI adapters to treat `SharedEventStore` as SSOT (no parallel pattern store).
-- [ ] Change 333 — Add explicit projection layers (tracker rows, piano-roll notes, notation measures) as derived views over SSOT streams.
-- [ ] Change 334 — Ensure projections have invalidation semantics tied to SSOT updates (no hidden caches).
-- [ ] Change 335 — Add tests for tracker projection to assert it matches SSOT event streams.
-- [ ] Change 336 — Add tests for piano-roll projection to assert it matches SSOT event streams.
+- [x] Change 333 — Add explicit projection layers (tracker rows, piano-roll notes, notation measures) as derived views over SSOT streams.
+- [x] Change 334 — Ensure projections have invalidation semantics tied to SSOT updates (no hidden caches).
+- [x] Change 335 — Add tests for tracker projection to assert it matches SSOT event streams.
+- [x] Change 336 — Add tests for piano-roll projection to assert it matches SSOT event streams.
 - [x] Change 337 — Update `cardplay/src/export/*` modules to read only from SSOT stores (events/clips/routing) and not UI state.
-- [ ] Change 338 — Fix `cardplay/src/export/board-export.test.ts` to use canonical board/deck schema (DeckType values, panelId, etc) instead of legacy deck-type strings.
+- [x] Change 338 — Fix `cardplay/src/export/board-export.test.ts` to use canonical board/deck schema (DeckType values, panelId, etc) instead of legacy deck-type strings.
 - [ ] Change 339 — Update export metadata to avoid reusing DeckType strings for unrelated domains; introduce explicit export-domain enums.
 - [x] Change 340 — Add `ExportChangeType` union for collaboration metadata and ensure it does not reuse DeckType values. [Done in state/types.ts]
 - [ ] Change 341 — Audit for parallel stores under `cardplay/src/ui/*` duplicating SSOT data and migrate them.
@@ -379,7 +379,7 @@ Notes:
 - [x] Change 347 — Add a test ensuring board context resets correctly on board/project switches (no dangling IDs). [Done in ssot.test.ts]
 - [x] Change 348 — Add a test ensuring clip registry resets correctly when clearing project. [Done in ssot.test.ts]
 - [x] Change 349 — Add an explicit "project reset" API that resets all SSOT stores together, and ensure UI uses it. [Done: resetProject() in ssot.ts]
-- [ ] Change 350 — Add a docs↔code sync check ensuring `cardplay/docs/canon/ssot-stores.md` file paths remain valid.
+- [x] Change 350 — Add a docs↔code sync check ensuring `cardplay/docs/canon/ssot-stores.md` file paths remain valid.
 
 ## Phase 7 — AI/Theory/Prolog Alignment (Changes 351–400)
 
@@ -438,7 +438,7 @@ Notes:
 
 - [x] Change 401 — Implement CardPack manifest schema in `cardplay/src/user-cards/manifest.ts` (name, version, namespace, capabilities, exported entities).
 - [x] Change 402 — Use manifest `name` as the default namespace for pack IDs.
-- [ ] Change 403 — Add `cardplay/src/extensions/registry.ts` as the single loader for packs and registries (cards, deck templates, ontology packs, themes).
+- [x] Change 403 — Add `cardplay/src/extensions/registry.ts` as the single loader for packs and registries (cards, deck templates, ontology packs, themes).
 - [ ] Change 404 — Implement pack discovery mechanism (project-local folder, user folder, etc) and document its paths.
 - [ ] Change 405 — Enforce that third-party pack IDs use namespaced IDs and do not collide with builtins.
 - [ ] Change 406 — Add `cardplay/src/extensions/capabilities.ts` defining capability strings + risk levels (replaces phantom `registry/v2/policy.ts` references).

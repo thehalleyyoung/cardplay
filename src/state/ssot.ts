@@ -33,16 +33,16 @@ import {
 
 import {
   type ClipRegistry,
-  getSharedClipRegistry,
+  getClipRegistry,
 } from './clip-registry';
 
 import {
-  type RoutingGraph,
-  getSharedRoutingGraph,
+  type RoutingGraphStore,
+  getRoutingGraph,
 } from './routing-graph';
 
 // Re-export store types
-export type { SharedEventStore, ClipRegistry, RoutingGraph };
+export type { SharedEventStore, ClipRegistry, RoutingGraphStore as RoutingGraph };
 
 // ============================================================================
 // UNIFIED SSOT ACCESS
@@ -64,15 +64,15 @@ export interface SSOTStores {
 export function getSSOTStores(): SSOTStores {
   return {
     events: getSharedEventStore(),
-    clips: getSharedClipRegistry(),
-    routing: getSharedRoutingGraph(),
+    clips: getClipRegistry(),
+    routing: getRoutingGraph(),
   };
 }
 
 /**
  * Re-export individual getters for convenience.
  */
-export { getSharedEventStore, getSharedClipRegistry, getSharedRoutingGraph };
+export { getSharedEventStore, getClipRegistry as getSharedClipRegistry, getRoutingGraph as getSharedRoutingGraph };
 
 // ============================================================================
 // PROJECT RESET
@@ -122,8 +122,11 @@ export function resetProject(): void {
     stores.clips.deleteClip(clip.id);
   }
   
-  // Clear all routing connections
-  stores.routing.clear();
+  // Clear all routing by removing all nodes (which removes edges)
+  const allNodes = stores.routing.getNodes();
+  for (const node of allNodes) {
+    stores.routing.removeNode(node.id);
+  }
   
   // Notify reset callbacks
   for (const callback of resetCallbacks) {

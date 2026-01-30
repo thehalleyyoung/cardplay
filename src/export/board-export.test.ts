@@ -31,13 +31,16 @@ describe('board-export', () => {
     },
     layout: {
       type: 'dock',
-      panels: []
+      panels: [
+        { id: 'main-panel', location: 'center', size: 1 }
+      ]
     },
     panels: [],
     decks: [
       {
         id: 'deck-1',
-        type: 'pattern-editor',
+        type: 'pattern-deck',
+        panelId: 'main-panel',
         cardLayout: 'stack',
         allowReordering: true,
         allowDragOut: true
@@ -289,7 +292,7 @@ describe('board-export', () => {
     it('should detect deck missing type', () => {
       const exportData = exportBoardConfiguration(mockBoard);
       exportData.board.decks = [
-        { id: 'deck-1', type: undefined as any, cardLayout: 'stack', allowReordering: true, allowDragOut: true }
+        { id: 'deck-1', type: undefined as any, panelId: 'main-panel', cardLayout: 'stack', allowReordering: true, allowDragOut: true }
       ];
 
       const compat = checkBoardCompatibility(exportData);

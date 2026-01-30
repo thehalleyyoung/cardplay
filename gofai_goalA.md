@@ -19,20 +19,20 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 019 [Infra] — Commit to "no magic": any default (e.g., what "darker" means) must be inspectable and user-configurable.
 - [x] Step 021 [HCI] — Write 10 canonical user scenarios spanning studio editing, education, live performance, and IP-sensitive workflows.
 - [x] Step 026 [Type] — Decide on a "semantic provenance" mechanism: every CPL node retains spans + lexeme IDs + rule IDs that created it.
-- [ ] Step 028 [Eval] — Create a seed dataset: 200 English instructions with expected CPL (covering scope, constraints, comparatives, anaphora, negation).
-- [ ] Step 029 [Eval] — Create paraphrase sets for 50 of those instructions (≥5 paraphrases each) to enforce semantic invariance.
-- [ ] Step 030 [Eval][Prag] — Create an “ambiguity suite” of utterances that must trigger clarification (not allowed to auto-resolve).
-- [ ] Step 034 [HCI] — Define “preview-first UX”: user can inspect plan/diff at every step; auto-apply only in explicitly allowed contexts.
-- [ ] Step 036 [Prag] — Specify how UI selection participates in pragmatics (deictic “this”, “here”, “these notes”), including fallbacks when selection is empty.
-- [ ] Step 037 [Sem] — Specify how contrastive constructions map (“do X but keep Y”, “do X without Y”) including constraint precedence rules.
-- [ ] Step 038 [Sem][Prag] — Specify the semantics of “again”, “still”, “also”, “too” as presupposition triggers in edit dialogue.
-- [ ] Step 039 [Prag] — Specify an implicature/default model (Gricean/QUD): what “keep tempo steady” implies absent explicit BPM changes.
-- [ ] Step 040 [Infra] — Define a change-control rule: new lexemes/grammar rules require golden tests and ambiguity analysis notes.
+- [x] Step 028 [Eval] — Create a seed dataset: 200 English instructions with expected CPL (covering scope, constraints, comparatives, anaphora, negation).
+- [x] Step 029 [Eval] — Create paraphrase sets for 50 of those instructions (≥5 paraphrases each) to enforce semantic invariance.
+- [x] Step 030 [Eval][Prag] — Create an "ambiguity suite" of utterances that must trigger clarification (not allowed to auto-resolve).
+- [x] Step 034 [HCI] — Define "preview-first UX": user can inspect plan/diff at every step; auto-apply only in explicitly allowed contexts.
+- [x] Step 036 [Prag] — Specify how UI selection participates in pragmatics (deictic "this", "here", "these notes"), including fallbacks when selection is empty.
+- [x] Step 037 [Sem] — Specify how contrastive constructions map ("do X but keep Y", "do X without Y") including constraint precedence rules.
+- [x] Step 038 [Sem][Prag] — Specify the semantics of "again", "still", "also", "too" as presupposition triggers in edit dialogue.
+- [x] Step 039 [Prag] — Specify an implicature/default model (Gricean/QUD): what "keep tempo steady" implies absent explicit BPM changes.
+- [x] Step 040 [Infra] — Define a change-control rule: new lexemes/grammar rules require golden tests and ambiguity analysis notes.
 - [x] Step 041 [Type] — Decide how musical "entities" are typed: section, range, track/layer, card, param, event selector, deck, board.
 - [x] Step 042 [Infra] — Create a "canonical axis catalog" for perceptual axes (energy, lift, brightness, width, intimacy, tension, groove tightness).
 - [x] Step 043 [Sem] — Define degree semantics for comparatives ("more lift", "less busy") using axis values and monotonic lever mappings.
-- [ ] Step 044 [HCI] — Define UI affordances for degrees: sliders, discrete “tiny/small/moderate/large”, and explicit numeric overrides.
-- [ ] Step 049 [HCI] — Define “user preference profiles” for vague words (dark = timbre vs harmony vs register) and how UI edits those profiles.
+- [x] Step 044 [HCI] — Define UI affordances for degrees: sliders, discrete "tiny/small/moderate/large", and explicit numeric overrides.
+- [x] Step 049 [HCI] — Define "user preference profiles" for vague words (dark = timbre vs harmony vs register) and how UI edits those profiles.
 ---
 
 ## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)

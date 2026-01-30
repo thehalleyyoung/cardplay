@@ -12,3 +12,5 @@ export * from './interaction-loop';
 export * from './ambiguity-policy';
 export * from './error-shapes';
 export * from './provenance';
+export * from './preview-first-ux';
+export * from './degree-affordances';

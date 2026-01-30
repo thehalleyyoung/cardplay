@@ -1,10 +1,12 @@
 /**
  * @fileoverview Clip Registry - Shared clip storage for Session and Arrangement views.
  * 
+ * **SSOT:** This is the canonical store for all clip definitions.
  * Clips are stored centrally and referenced by ID.
  * Session View and Arrangement View both read from and write to this registry.
  * 
  * @module @cardplay/state/clip-registry
+ * @see cardplay/docs/canon/ssot-stores.md
  */
 
 import { type Tick, asTick } from '../types/primitives';

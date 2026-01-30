@@ -1,36 +1,37 @@
 # Port Unification Rules
-Assumes canonical model and terminology in `cardplay2.md` (repo root).
 
-Ports are typed endpoints on cards and graphs. Port types follow the parametric type vocabulary from cardplay2.md §2.0.1 (e.g., `EventStream<E>` is `Stream<Event<any>>`). The registry defines:
-- port type compatibility (subtyping)
-- adapter edges (explicit conversions with cost)
+**Status:** aspirational (partially implemented)  
+**Canonical terms:** PortType, PortCompatibility, port adapters  
+**Primary code references:** 
+- `cardplay/src/canon/port-types.ts` (canonical port types)
+- `cardplay/src/boards/gating/validate-connection.ts` (compatibility rules)
+- `cardplay/src/boards/gating/port-conversion.ts` (adapters - if implemented)
 
-Implementation:
-- `src/registry/port-types.ts`
-- `src/registry/adapters.ts`
-- `src/core/port-conversion.ts`
+Ports are typed endpoints on cards and graphs. Port types follow the canonical vocabulary from `cardplay/docs/canon/port-vocabulary.md`.
 
-## Compatibility (`compatibleWith`)
+## Current Implementation
 
-Port types can declare a zero-cost compatibility list:
+The routing system currently implements:
+- Direct type compatibility (audio↔audio, midi↔midi, etc.)
+- Basic cross-type compatibility (notes→midi, trigger↔gate, clock↔transport)
+- Port direction enforcement (out→in only)
 
-- `A compatibleWith: [B]` means `A → B` is allowed without inserting adapter cards.
+## Aspirational: Adapter Registry
 
-This is treated as a “registry conversion edge” of cost 0 in `findCheapestConversionPath()`.
+Future enhancement: explicit adapter cards that convert between port types.
 
-## Adapters
+For example:
+- notes→midi adapter (renders note events to MIDI messages)
+- midi→audio adapter (synthesizes MIDI to audio)
 
-Adapter edges are explicit conversions:
+The system would prefer:
+1. Direct compatibility (cost 0)
+2. Cheapest adapter path (Dijkstra over a small graph)
 
-- from `EventStream` to `AudioBuffer` via card `Render` (cost 2)
+## Cost Model
 
-The system prefers:
-1. direct compatibility (cost 0)
-2. cheapest adapter path (Dijkstra over a small graph)
+Costs would be additive across a multi-hop path, used for:
+- Best-effort fix suggestions
+- Selecting which adapters to auto-insert in a stack
 
-## Cost model
-
-Costs are additive across a multi-hop path. They are used for:
-- best-effort fix suggestions
-- selecting which adapters to auto-insert in a stack
-
+**Note:** Full adapter system is not yet implemented. See `cardplay/src/boards/gating/validate-connection.ts` for current compatibility rules.
