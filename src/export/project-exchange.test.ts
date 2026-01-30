@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { exportProject, type ProjectExportOptions, type ProjectMetadata, type ProjectArchive } from './project-export';
 import { importProject, type ProjectImportOptions } from './project-import';
 import { getSharedEventStore } from '../state/event-store';
-import { getClipRegistry } from '../state/clip-registry';
+import { getClipRegistry, resetClipRegistry } from '../state/clip-registry';
 import { asTick, asTickDuration, generateEventId } from '../types/index';
 import { EventKinds } from '../types/event-kind';
 
@@ -666,9 +666,8 @@ describe('Project Export/Import (O056-O058)', () => {
       
       // Verify events were imported
       if (importedStream) {
-        const events = eventStore.getStreamEvents(importedStream.id);
-        expect(events.length).toBe(1);
-        expect(events[0].payload.pitch).toBe(64);
+        expect(importedStream.events.length).toBe(1);
+        expect(importedStream.events[0].payload.pitch).toBe(64);
       }
     });
 
@@ -693,8 +692,8 @@ describe('Project Export/Import (O056-O058)', () => {
       });
       
       // Reset and import
-      // Reset not supported for singleton;
-      ClipRegistry.reset();
+      // Note: Reset should use function, not class method
+      resetClipRegistry();
       
       const result = await importProject(archive, {
         onStreamConflict: 'rename',
@@ -772,13 +771,12 @@ describe('Project Export/Import (O056-O058)', () => {
       expect(importedStream).toBeDefined();
       
       if (importedStream) {
-        const events = eventStore.getStreamEvents(importedStream.id);
-        expect(events.length).toBe(1);
-        expect(events[0].kind).toBe(EventKinds.NOTE);
-        expect(events[0].start).toBe(960);
-        expect(events[0].duration).toBe(240);
-        expect(events[0].payload.pitch).toBe(72);
-        expect(events[0].payload.velocity).toBe(95);
+        expect(importedStream.events.length).toBe(1);
+        expect(importedStream.events[0].kind).toBe(EventKinds.NOTE);
+        expect(importedStream.events[0].start).toBe(960);
+        expect(importedStream.events[0].duration).toBe(240);
+        expect(importedStream.events[0].payload.pitch).toBe(72);
+        expect(importedStream.events[0].payload.velocity).toBe(95);
       }
     });
 
@@ -928,8 +926,7 @@ describe('Project Export/Import (O056-O058)', () => {
       expect(stream).toBeDefined();
       
       if (stream) {
-        const events = eventStore.getStreamEvents(stream.id);
-        expect(events[0].payload.pitch).toBe(72);
+        expect(stream.events[0].payload.pitch).toBe(72);
       }
     });
 
