@@ -49,8 +49,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 068 [Sem] — Define the mapping between `MusicSpec` constraints and CPL constraints (lossless where possible).
 - [x] Step 069 [Sem] — Add a “constraint catalog” that includes both builtins and namespaced extension constraints with schemas.
 - [x] Step 070 [Type] — Define `ConstraintSchema` types (parametric) so unknown constraints remain typecheckable if declared.
-- [ ] Step 073 [Prag] — Add a “speech situation” model (speaker, addressee, time, focused tool) to support situation semantics-like reasoning.
-- [ ] Step 081 [Ext][Infra] — Integrate symbol table builder with CardRegistry and BoardRegistry listeners to auto-update referents when extensions load.
+- [x] Step 073 [Prag] — Add a “speech situation” model (speaker, addressee, time, focused tool) to support situation semantics-like reasoning.
+- [x] Step 081 [Ext][Infra] — Integrate symbol table builder with CardRegistry and BoardRegistry listeners to auto-update referents when extensions load.
 - [ ] Step 082 [Ext][Infra] — Define how deck factories and deck types become referents (“open the waveform editor deck”), including namespaced deck types.
 - [ ] Step 083 [Type] — Define “UI-only actions” vs “project mutation actions” with distinct effect types (prevents conflating navigation with edits).
 - [ ] Step 086 [Sem] — Define a typed representation for “musical dimensions” that can host both perceptual axes and symbolic-theory axes.

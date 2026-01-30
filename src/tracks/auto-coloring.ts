@@ -23,6 +23,8 @@ export type InstrumentCategory =
   | 'vocals'
   | 'fx'
   | 'ambient'
+  | 'aux'
+  | 'master'
   | 'other';
 
 /** Color scheme definition */
@@ -70,6 +72,8 @@ export const COLOR_SCHEMES: ColorScheme[] = [
       vocals: '#ff44ff',
       fx: '#888888',
       ambient: '#44ffcc',
+      aux: '#666666',
+      master: '#ffffff',
       other: '#aaaaaa',
     },
   },
@@ -89,6 +93,8 @@ export const COLOR_SCHEMES: ColorScheme[] = [
       vocals: '#dd4466',
       fx: '#887766',
       ambient: '#99aa88',
+      aux: '#776655',
+      master: '#eeeedd',
       other: '#999988',
     },
   },
@@ -105,10 +111,12 @@ export const COLOR_SCHEMES: ColorScheme[] = [
       strings: '#6666aa',
       brass: '#7788bb',
       woodwinds: '#55aa99',
-      vocals: '#8866bb',
-      fx: '#667788',
-      ambient: '#55aaaa',
-      other: '#778899',
+      vocals: '#8866ff',
+      fx: '#666666',
+      ambient: '#4488cc',
+      aux: '#445566',
+      master: '#cce8ff',
+      other: '#888899',
     },
   },
   {
@@ -124,10 +132,12 @@ export const COLOR_SCHEMES: ColorScheme[] = [
       strings: '#ff00ff',
       brass: '#ff8844',
       woodwinds: '#88ff00',
-      vocals: '#ff00aa',
-      fx: '#666666',
-      ambient: '#00ffaa',
-      other: '#888888',
+      vocals: '#cc55cc',
+      fx: '#111111',
+      ambient: '#338833',
+      aux: '#222222',
+      master: '#eeeeee',
+      other: '#333333',
     },
   },
   {
@@ -143,9 +153,11 @@ export const COLOR_SCHEMES: ColorScheme[] = [
       strings: '#ddaaff',
       brass: '#ffeeaa',
       woodwinds: '#ccffaa',
-      vocals: '#ffaaee',
+      vocals: '#eeccee',
       fx: '#cccccc',
-      ambient: '#aaffdd',
+      ambient: '#cceeee',
+      aux: '#bbbbbb',
+      master: '#ffffff',
       other: '#dddddd',
     },
   },
@@ -169,6 +181,8 @@ export const CATEGORY_KEYWORDS: Record<InstrumentCategory, string[]> = {
   vocals: ['vocal', 'voice', 'vox', 'sing', 'choir', 'harmony', 'lead vocal', 'backing', 'adlib', 'acapella'],
   fx: ['fx', 'effect', 'sfx', 'riser', 'sweep', 'noise', 'impact', 'whoosh', 'transition', 'foley'],
   ambient: ['ambient', 'atmosphere', 'texture', 'drone', 'pad', 'field', 'nature', 'environmental'],
+  aux: ['aux', 'bus', 'send', 'return'],
+  master: ['master', 'stereo out', 'mix bus', 'main out'],
   other: [],
 };
 
@@ -186,6 +200,8 @@ export const PLUGIN_KEYWORDS: Record<InstrumentCategory, string[]> = {
   vocals: ['vocaloid', 'synth v', 'exhale'],
   fx: ['soundtoys', 'effectrix', 'glitch'],
   ambient: ['omnisphere', 'alchemy', 'pigments'],
+  aux: [],
+  master: [],
   other: [],
 };
 
@@ -285,6 +301,17 @@ export function detectCategory(track: TrackInfo): { category: InstrumentCategory
   return firstResult ?? { category: 'other', confidence: 0.1 };
 }
 
+/**
+ * Get color for a category from a color scheme
+ */
+export function getColorForCategory(category: InstrumentCategory, schemeId: string = 'default'): string {
+  const scheme = COLOR_SCHEMES.find(s => s.id === schemeId);
+  if (!scheme) {
+    return COLOR_SCHEMES[0]!.colors[category];
+  }
+  return scheme.colors[category];
+}
+
 // --------------------------------------------------------------------------
 // Track Coloring Store
 // --------------------------------------------------------------------------
@@ -294,6 +321,7 @@ export class TrackColoringStore {
   private trackColors: Map<string, ColoringResult> = new Map();
   private customColors: Map<string, string> = new Map();
   private autoColorEnabled: boolean = true;
+  private listeners: Array<(trackId: string, result: ColoringResult) => void> = [];
   
   constructor(schemeId: string = 'default') {
     const foundScheme = COLOR_SCHEMES.find(s => s.id === schemeId);
@@ -301,9 +329,16 @@ export class TrackColoringStore {
   }
   
   /**
-   * Get current color scheme
+   * Get current color scheme ID
    */
-  getScheme(): ColorScheme {
+  getScheme(): string {
+    return this.scheme.id;
+  }
+  
+  /**
+   * Get current color scheme object
+   */
+  getSchemeObject(): ColorScheme {
     return { ...this.scheme };
   }
   
@@ -314,17 +349,28 @@ export class TrackColoringStore {
     const scheme = COLOR_SCHEMES.find(s => s.id === schemeId);
     if (scheme) {
       this.scheme = scheme;
-      // Recolor all tracks
+      // Recolor all tracks and notify
       this.recolorAll();
+      // Notify all listeners about scheme change
+      for (const result of this.trackColors.values()) {
+        this.notifyListeners(result.trackId, result);
+      }
       return true;
     }
     return false;
   }
   
   /**
-   * Get available schemes
+   * Get available schemes as IDs
    */
-  getAvailableSchemes(): ColorScheme[] {
+  getAvailableSchemes(): string[] {
+    return COLOR_SCHEMES.map(s => s.id);
+  }
+  
+  /**
+   * Get available schemes as objects
+   */
+  getAvailableSchemeObjects(): ColorScheme[] {
     return [...COLOR_SCHEMES];
   }
   
@@ -355,6 +401,7 @@ export class TrackColoringStore {
         confidence: 1.0,
       };
       this.trackColors.set(track.id, result);
+      this.notifyListeners(track.id, result);
       return result;
     }
     
@@ -366,6 +413,7 @@ export class TrackColoringStore {
         confidence: 0,
       };
       this.trackColors.set(track.id, result);
+      this.notifyListeners(track.id, result);
       return result;
     }
     
@@ -378,6 +426,7 @@ export class TrackColoringStore {
     };
     
     this.trackColors.set(track.id, result);
+    this.notifyListeners(track.id, result);
     return result;
   }
   
@@ -420,6 +469,7 @@ export class TrackColoringStore {
     if (existing) {
       existing.assignedColor = color;
       existing.confidence = 1.0;
+      this.notifyListeners(trackId, existing);
     }
   }
   
@@ -428,6 +478,51 @@ export class TrackColoringStore {
    */
   clearCustomColor(trackId: string): void {
     this.customColors.delete(trackId);
+  }
+  
+  /**
+   * Set custom color for a track (alias for setCustomColor)
+   */
+  setTrackColor(trackId: string, color: string): void {
+    this.setCustomColor(trackId, color);
+  }
+  
+  /**
+   * Check if track has color override
+   */
+  hasOverride(trackId: string): boolean {
+    return this.customColors.has(trackId);
+  }
+  
+  /**
+   * Clear color override for a track (alias for clearCustomColor)
+   */
+  clearOverride(trackId: string): void {
+    this.clearCustomColor(trackId);
+  }
+  
+  /**
+   * Subscribe to color changes
+   */
+  subscribe(callback: (trackId: string, result: ColoringResult) => void): () => void {
+    this.listeners.push(callback);
+    
+    // Return unsubscribe function
+    return () => {
+      const index = this.listeners.indexOf(callback);
+      if (index !== -1) {
+        this.listeners.splice(index, 1);
+      }
+    };
+  }
+  
+  /**
+   * Notify all listeners of a color change
+   */
+  private notifyListeners(trackId: string, result: ColoringResult): void {
+    for (const listener of this.listeners) {
+      listener(trackId, result);
+    }
   }
   
   /**
