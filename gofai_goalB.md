@@ -176,8 +176,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 - [x] Step 401 [Ext][Type] — Define the GOFAI extension interface (register lexicon, bindings, planner hooks, Prolog modules) with strict namespacing rules.
 - [x] Step 402 [Ext][Infra] — Implement an extension registry with register/unregister events and version negotiation.
-- [ ] Step 403 [Ext][Infra] — Implement auto-discovery: when a CardPlay pack loads, attempt to load its optional GOFAI extension module.
-- [ ] Step 404 [Ext][Type] — Define an extension trust model (trusted/untrusted) affecting whether execution hooks are enabled by default.
+- [x] Step 403 [Ext][Infra] — Implement auto-discovery: when a CardPlay pack loads, attempt to load its optional GOFAI extension module.
+- [x] Step 404 [Ext][Type] — Define an extension trust model (trusted/untrusted) affecting whether execution hooks are enabled by default.
 - [ ] Step 405 [Ext][HCI] — Add UI for enabling/disabling extension execution capabilities with clear local-only security messaging.
 - [ ] Step 406 [Ext][NLP] — Implement dynamic lexicon updates: extensions can register new lexemes/synonyms without restarting the app.
 - [ ] Step 407 [Ext][NLP] — Implement dynamic grammar updates: extensions can register new constructions with rule IDs and required test artifacts.
