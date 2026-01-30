@@ -124,7 +124,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 302 [Type] — Define a transactional execution model: apply edits to a fork; validate constraints; commit or rollback.
 - [ ] Step 303 [Type] — Define an execution effect system: UI actions are separate from project mutations; planners produce proposals, executors apply.
 - [ ] Step 304 [Type] — Define a canonical diff model: event diffs, container diffs, card graph diffs, param diffs, each with stable ordering.
-- [ ] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
+- [x] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
 - [ ] Step 306 [Infra] — Implement event-level edit primitives by composing existing `cardplay/src/events/operations.ts` functions where possible.
 - [ ] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
 - [ ] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).

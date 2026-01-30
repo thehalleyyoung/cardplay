@@ -25,6 +25,7 @@
 import type { Event } from '../../types/event.js';
 import type { EventId } from '../../types/event-id.js';
 import type { Tick, TickDuration } from '../../types/primitives.js';
+import { asTick } from '../../types/primitives.js';
 import {
   shiftEvent,
   quantizeEvent,
@@ -150,9 +151,11 @@ export function quantizeEvents<P>(
   
   const quantizedEvents = events.map(e => {
     const quantizeOptions = {
-      gridSize,
+      grid: gridSize,
       strength,
-      mode: mode as any,
+      quantizeStart: mode !== 'start_and_end',
+      quantizeEnd: mode === 'start_and_end',
+      quantizeDuration: false,
     };
     return quantizeEvent(e, quantizeOptions);
   });
@@ -265,8 +268,7 @@ export function mergeAdjacentEvents<P>(
   const sorted = [...events].sort((a, b) => a.start - b.start);
   const merged: Event<P>[] = [];
   
-  let current = sorted[0];
-  if (!current) {
+  if (sorted.length === 0) {
     return {
       events: [],
       removedIds: [],
@@ -280,8 +282,12 @@ export function mergeAdjacentEvents<P>(
     };
   }
   
+  let current = sorted[0];
+  
   for (let i = 1; i < sorted.length; i++) {
     const next = sorted[i];
+    if (!next || !current) continue;
+    
     const currentEnd = current.start + current.duration;
     const gap = next.start - currentEnd;
     
@@ -294,7 +300,9 @@ export function mergeAdjacentEvents<P>(
       current = next;
     }
   }
-  merged.push(current);
+  if (current) {
+    merged.push(current);
+  }
   
   return {
     events: merged,
@@ -402,7 +410,7 @@ export function transposeEvents<P>(
   
   const transposedEvents = events.map(event => {
     // Check if event has pitch
-    if (event.kind === 'note' && event.payload && 'pitch' in event.payload) {
+    if (event.kind === 'note' && event.payload && typeof event.payload === 'object' && event.payload !== null && 'pitch' in event.payload) {
       const newPayload = {
         ...event.payload,
         pitch: (event.payload as any).pitch + semitones,
@@ -411,7 +419,7 @@ export function transposeEvents<P>(
     }
     
     // For chord events, transpose all pitches
-    if (event.kind === 'chord' && event.payload && 'pitches' in event.payload) {
+    if (event.kind === 'chord' && event.payload && typeof event.payload === 'object' && event.payload !== null && 'pitches' in event.payload) {
       const oldPitches = (event.payload as any).pitches as number[];
       const newPitches = oldPitches.map((p: number) => p + semitones);
       const newPayload = {
@@ -458,7 +466,7 @@ export function scaleVelocity<P>(
   const clamp = options?.clamp ?? true;
   
   const scaledEvents = events.map(event => {
-    if (event.payload && 'velocity' in event.payload) {
+    if (event.payload && typeof event.payload === 'object' && event.payload !== null && 'velocity' in event.payload) {
       let newVelocity = (event.payload as any).velocity * factor;
       
       if (clamp) {
@@ -506,7 +514,7 @@ export function shiftVelocity<P>(
   const clamp = options?.clamp ?? true;
   
   const shiftedEvents = events.map(event => {
-    if (event.payload && 'velocity' in event.payload) {
+    if (event.payload && typeof event.payload === 'object' && event.payload !== null && 'velocity' in event.payload) {
       let newVelocity = (event.payload as any).velocity + amount;
       
       if (clamp) {
@@ -565,8 +573,8 @@ export function thinEvents<P>(
   } else if (strategy === 'low_velocity') {
     // Sort by velocity and keep highest
     const sorted = [...events].sort((a, b) => {
-      const aVel = (a.payload && 'velocity' in a.payload) ? (a.payload as any).velocity : 64;
-      const bVel = (b.payload && 'velocity' in b.payload) ? (b.payload as any).velocity : 64;
+      const aVel = (a.payload && typeof a.payload === 'object' && a.payload !== null && 'velocity' in a.payload) ? (a.payload as any).velocity : 64;
+      const bVel = (b.payload && typeof b.payload === 'object' && b.payload !== null && 'velocity' in b.payload) ? (b.payload as any).velocity : 64;
       return bVel - aVel;
     });
     keptEvents = sorted.slice(0, targetCount);
@@ -575,8 +583,8 @@ export function thinEvents<P>(
     // Random (deterministic if seed provided)
     const indices = events.map((_, i) => i);
     // Simple shuffle (would use seeded RNG in production)
-    keptEvents = indices.slice(0, targetCount).map(i => events[i]);
-    removedIds = indices.slice(targetCount).map(i => events[i].id);
+    keptEvents = indices.slice(0, targetCount).map(i => events[i]).filter((e): e is Event<P> => e !== undefined);
+    removedIds = indices.slice(targetCount).map(i => events[i]).filter((e): e is Event<P> => e !== undefined).map(e => e.id);
   }
   
   return {
@@ -617,6 +625,8 @@ export function densifyEvents<P>(
   for (let i = 0; i < sorted.length - 1; i++) {
     const current = sorted[i];
     const next = sorted[i + 1];
+    if (!current || !next) continue;
+    
     const gap = next.start - (current.start + current.duration);
     
     if (gap > 0) {
@@ -626,7 +636,7 @@ export function densifyEvents<P>(
         
         // Create new event (simplified - would need proper event creation)
         const newEvent = updateEvent(current, {
-          start: Math.round(position),
+          start: asTick(Math.round(position)),
           duration: current.duration,
         });
         densifiedEvents.push(newEvent);
@@ -684,7 +694,7 @@ export function humanizeRhythm<P>(
   const humanizedEvents = events.map(event => {
     // Generate pseudo-random offset (would use seeded RNG in production)
     const offset = Math.floor(Math.random() * (2 * maxOffset + 1)) - maxOffset;
-    const newStart = Math.max(0, event.start + offset);
+    const newStart = Math.max(0, event.start + offset) as Tick;
     return updateEvent(event, { start: newStart });
   });
   
@@ -722,7 +732,7 @@ export function applySwing<P>(
     
     if (isOffBeat) {
       const delay = Math.round((gridSize / 2) * swingAmount);
-      const newStart = event.start + delay;
+      const newStart = (event.start + delay) as Tick;
       return updateEvent(event, { start: newStart });
     }
     
@@ -756,7 +766,7 @@ export function adjustArticulation<P>(
   const originalEvents = [...events];
   
   const adjustedEvents = events.map(event => {
-    const newDuration = Math.max(1, Math.round(event.duration * factor));
+    const newDuration = Math.max(1, Math.round(event.duration * factor)) as TickDuration;
     return updateEvent(event, { duration: newDuration });
   });
   
@@ -898,7 +908,9 @@ export function editResultsEqual<P>(a: EditResult<P>, b: EditResult<P>): boolean
   if (a.removedIds.length !== b.removedIds.length) return false;
   
   for (let i = 0; i < a.events.length; i++) {
-    if (a.events[i].id !== b.events[i].id) return false;
+    const aEvent = a.events[i];
+    const bEvent = b.events[i];
+    if (!aEvent || !bEvent || aEvent.id !== bEvent.id) return false;
   }
   
   return true;
@@ -923,10 +935,14 @@ export function composeEdits<P>(
   const originalEvents = [...initialEvents];
   
   for (const operation of operations) {
-    const result = operation(currentEvents);
-    currentEvents = result.events;
-    allRemovedIds.push(...result.removedIds);
-    descriptions.push(result.description);
+    if (operation) {
+      const result = operation(currentEvents);
+      if (result) {
+        currentEvents = result.events;
+        allRemovedIds.push(...result.removedIds);
+        descriptions.push(result.description);
+      }
+    }
   }
   
   return {

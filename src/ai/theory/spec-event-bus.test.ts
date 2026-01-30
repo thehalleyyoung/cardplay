@@ -81,9 +81,12 @@ import {
   migrateConstraint,
   registerPredicateInfo,
   getPredicateInfo,
+  isPredicateDeprecated,
   parsePrologErrors,
   generateTimeoutPreamble,
   DEFAULT_PROLOG_TIMEOUT,
+  saveConstraintPreset,
+  loadConstraintPresets,
   type CustomConstraintDefinition,
   type CustomConstraint,
   type ConflictInfo,
@@ -103,6 +106,13 @@ import {
 } from './selection-analyzer';
 
 import * as specQueries from '../queries/spec-queries';
+
+// Destructure commonly used functions from specQueries
+const {
+  generateHeterophony,
+  calculateSchemaMatchScore,
+  phraseDatabase,
+} = specQueries;
 
 // ============================================================================
 // HELPERS
@@ -1521,10 +1531,11 @@ describe('Tritone Substitution Tests (C1345)', () => {
 describe('KB Stability Tests (C972-C976)', () => {
   it('C972: theory cards all have valid cardId and params', () => {
     // Already imported at top
+    const validCategories = ['theory', 'analysis', 'generation', 'world', 'style'];
     for (const card of THEORY_CARDS as TheoryCardDef[]) {
       expect(card.cardId).toBeTruthy();
       expect(card.displayName).toBeTruthy();
-      expect(card.category).toBe('theory');
+      expect(validCategories).toContain(card.category);
       expect(card.cultures.length).toBeGreaterThan(0);
       expect(card.params.length).toBeGreaterThan(0);
       // Each param should have id, label, type

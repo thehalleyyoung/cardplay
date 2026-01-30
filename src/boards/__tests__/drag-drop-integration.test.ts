@@ -14,7 +14,7 @@ import { getSharedEventStore } from '../../state/event-store';
 import { getClipRegistry } from '../../state/clip-registry';
 import { getBoardContextStore } from '../context/store';
 import { asTick, asTickDuration } from '../../types/primitives';
-import { EventKinds } from '../../types/event';
+import { EventKinds } from '../../types/event-kind';
 import type { PhrasePayload, CardTemplatePayload, DropTargetContext } from '../../ui/drag-drop-payloads';
 import type { Event } from '../../types/event';
 
