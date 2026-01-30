@@ -1,0 +1,59 @@
+feat(gofai): Implement Step 308 - Plan opcode executors for core event transforms (800+ LoC)
+
+STEP COMPLETED:
+- [x] Step 308: Plan opcode executors for core event transforms
+
+IMPLEMENTATION:
+
+1. Core Execution Infrastructure (src/gofai/execution/plan-executor.ts)
+   - ExecutionContext: Runtime context for opcode execution
+   - ExecutionOptions: Configurable execution behavior
+   - OpcodeExecutionResult: Standardized result type with provenance
+   - ExecutionError: Structured error reporting with suggestions
+   - ProvenanceRecord: Complete change → opcode → goal traceability
+
+2. Eight Core Opcode Executors:
+   - executeQuantize: Grid quantization with strength control
+   - executeShiftTiming: Time offset transformations
+   - executeShiftPitch: Pitch transposition
+   - executeScaleVelocity: Dynamic range adjustments
+   - executeThinDensity: Texture reduction via event removal
+   - executeDensify: Texture expansion via event addition
+   - executeShiftRegister: Octave-based register shifts
+   - executeHumanizeTiming: Natural timing variation
+
+3. Execution Framework:
+   - OPCODE_EXECUTORS: Extensible registry pattern
+   - executeOpcode: Type-safe dispatcher with unknown opcode handling
+   - executePlan: Sequential plan execution with accumulation
+   - applyPlanToFork: Pure functional state transformation
+   - computeDiff: Before/after state comparison with summaries
+
+4. Design Principles:
+   - Pure functions (no input mutation)
+   - Type-safe parameter handling
+   - Composable executors via registry
+   - Deterministic execution
+   - Full provenance tracking
+   - Structured error handling with recovery suggestions
+
+METRICS:
+- 800+ lines of implementation code
+- 8 opcode executors
+- 6 core infrastructure types
+- 3 execution patterns (execute, apply, compute diff)
+
+NOTES:
+- Establishes extensibility pattern for future opcodes
+- Enables structure, harmony, melody, and production edits
+- Foundation for extension-provided opcode integration
+- API integration with actual types needs refinement (params Map, selector conversion)
+
+NEXT STEPS:
+- Step 309: Structure edit executors (sections, breaks)
+- Step 310: Card parameter edit executors
+- Steps 311-313: Parameter schema validation and coercion
+- Steps 314-350: Capabilities, undo, constraints, tests
+
+Implements systematic changes from gofai_goalB.md Phase 6.
+Follows GOFAI Music+ architectural principles: typed IRs, composable transforms, full provenance.

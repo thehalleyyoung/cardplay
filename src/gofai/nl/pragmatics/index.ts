@@ -27,3 +27,6 @@ export * from './dialogue-hci';
 
 // Evaluation: dialogue fixtures, anaphora tests, presupposition tests, QUD tests, repair tests (Steps 236–240)
 export * from './dialogue-eval';
+
+// Integration, safety, confidence, explainability, HCI, infra (Steps 241–250)
+export * from './integration-safety';

@@ -2733,7 +2733,7 @@ export function summarizeExplanations(): ExplanationSummary {
   }
 
   const topReasons: { reason: ExplanationReason; count: number }[] = [];
-  for (const [reason, count] of reasonCounts.entries()) {
+  for (const [reason, count] of Array.from(reasonCounts.entries())) {
     topReasons.push({ reason, count });
   }
   topReasons.sort((a, b) => b.count - a.count);
@@ -2777,4 +2777,2134 @@ export function exportExplanationLog(): string {
  */
 export function getExplanationTemplates(): readonly ExplanationTemplate[] {
   return EXPLANATION_TEMPLATES;
+}
+
+
+// ============================================================================
+// Step 246 [HCI] — "Why This Question?" Affordance
+// ============================================================================
+
+/**
+ * A competing meaning for a clarification question.
+ */
+export interface CompetingMeaning {
+  readonly id: string;
+  readonly interpretation: string;
+  readonly description: string;
+  readonly editSummary: string;
+  readonly affectedEntities: readonly string[];
+  readonly confidence: number;
+  readonly riskLevel: 'low' | 'medium' | 'high';
+  readonly examples: readonly string[];
+}
+
+/**
+ * The difference between two competing meanings.
+ */
+export interface MeaningDiff {
+  readonly meaningA: string;
+  readonly meaningB: string;
+  readonly differenceDescription: string;
+  readonly affectedEntityDiffs: readonly string[];
+  readonly impactComparison: string;
+  readonly riskDifference: string;
+}
+
+/**
+ * Explanation of why a particular clarification question was asked.
+ */
+export interface WhyThisQuestion {
+  readonly questionId: string;
+  readonly question: string;
+  readonly reason: string;
+  readonly competingMeanings: readonly CompetingMeaning[];
+  readonly diffs: readonly MeaningDiff[];
+  readonly timestamp: number;
+}
+
+/**
+ * Configuration for "why this question?" generation.
+ */
+export interface WhyConfig {
+  readonly maxCompetingMeanings: number;
+  readonly showDiffs: boolean;
+  readonly showRiskLevels: boolean;
+  readonly showExamples: boolean;
+  readonly verbosity: 'brief' | 'normal' | 'detailed';
+  readonly maxDiffs: number;
+}
+
+/**
+ * Detailed explanation for UI display.
+ */
+export interface WhyExplanation {
+  readonly title: string;
+  readonly body: string;
+  readonly sections: readonly WhyExplanationSection[];
+  readonly timestamp: number;
+}
+
+/**
+ * A section of a why-explanation.
+ */
+export interface WhyExplanationSection {
+  readonly heading: string;
+  readonly content: string;
+  readonly type: 'meaning' | 'diff' | 'summary' | 'risk';
+}
+
+// ----- 246: Why-explanation templates (15+) -----
+
+interface WhyTemplate {
+  readonly id: string;
+  readonly pattern: string;
+  readonly template: string;
+  readonly category: 'ambiguity' | 'scope' | 'target' | 'action' | 'amount' | 'timing' | 'style';
+}
+
+const WHY_TEMPLATES: readonly WhyTemplate[] = [
+  {
+    id: 'why-ambiguous-pronoun',
+    pattern: 'ambiguous-pronoun',
+    template: 'We asked because "$utterance" could refer to multiple things: $candidates. Each would produce a different result.',
+    category: 'ambiguity',
+  },
+  {
+    id: 'why-ambiguous-scope',
+    pattern: 'ambiguous-scope',
+    template: 'We asked because the scope is unclear. "$utterance" could apply to $scopeA or $scopeB, with different impacts.',
+    category: 'scope',
+  },
+  {
+    id: 'why-ambiguous-target',
+    pattern: 'ambiguous-target',
+    template: 'We asked because "$utterance" doesn\'t specify which $entityType to affect. The options are: $candidates.',
+    category: 'target',
+  },
+  {
+    id: 'why-ambiguous-action',
+    pattern: 'ambiguous-action',
+    template: 'We asked because "$utterance" could mean $actionA or $actionB. These produce very different edits.',
+    category: 'action',
+  },
+  {
+    id: 'why-ambiguous-amount',
+    pattern: 'ambiguous-amount',
+    template: 'We asked because "$utterance" doesn\'t specify how much. A little vs. a lot could change the character of the music.',
+    category: 'amount',
+  },
+  {
+    id: 'why-safety-concern',
+    pattern: 'safety-concern',
+    template: 'We asked because one interpretation would make $impactDescription. We want to make sure that\'s what you intended.',
+    category: 'scope',
+  },
+  {
+    id: 'why-destructive-option',
+    pattern: 'destructive-option',
+    template: 'We asked because one interpretation would permanently $destructiveAction. This cannot be undone easily.',
+    category: 'action',
+  },
+  {
+    id: 'why-conflicting-constraints',
+    pattern: 'conflicting-constraints',
+    template: 'We asked because your request implies conflicting goals: $constraintA and $constraintB cannot both be satisfied.',
+    category: 'ambiguity',
+  },
+  {
+    id: 'why-missing-timing',
+    pattern: 'missing-timing',
+    template: 'We asked because "$utterance" doesn\'t specify when this should happen. Starting at $timeA vs $timeB would differ.',
+    category: 'timing',
+  },
+  {
+    id: 'why-style-ambiguity',
+    pattern: 'style-ambiguity',
+    template: 'We asked because "$utterance" could be interpreted in multiple musical styles, each producing a distinct result.',
+    category: 'style',
+  },
+  {
+    id: 'why-multiple-tracks',
+    pattern: 'multiple-tracks',
+    template: 'We asked because multiple tracks match "$utterance". Applying to all vs. one would have different effects.',
+    category: 'target',
+  },
+  {
+    id: 'why-degree-unclear',
+    pattern: 'degree-unclear',
+    template: 'We asked because "$utterance" uses a vague degree term. "A bit" vs "a lot" would change the edit substantially.',
+    category: 'amount',
+  },
+  {
+    id: 'why-section-ambiguity',
+    pattern: 'section-ambiguity',
+    template: 'We asked because "$utterance" could refer to $sectionA or $sectionB of the song.',
+    category: 'target',
+  },
+  {
+    id: 'why-preservation-conflict',
+    pattern: 'preservation-conflict',
+    template: 'We asked because applying "$utterance" might conflict with the preservation of $preservedElement.',
+    category: 'ambiguity',
+  },
+  {
+    id: 'why-no-context',
+    pattern: 'no-context',
+    template: 'We asked because there isn\'t enough context to determine what "$utterance" refers to. Please specify.',
+    category: 'ambiguity',
+  },
+  {
+    id: 'why-tempo-key-interact',
+    pattern: 'tempo-key-interaction',
+    template: 'We asked because changing $paramA may interact with $paramB in unexpected ways.',
+    category: 'action',
+  },
+] as const;
+
+// ----- 246: Default config -----
+
+const DEFAULT_WHY_CONFIG: WhyConfig = {
+  maxCompetingMeanings: 5,
+  showDiffs: true,
+  showRiskLevels: true,
+  showExamples: true,
+  verbosity: 'normal',
+  maxDiffs: 3,
+};
+
+let _whyMeaningCounter = 0;
+
+function generateMeaningId(): string {
+  _whyMeaningCounter += 1;
+  return `cm-${_whyMeaningCounter}-${Date.now()}`;
+}
+
+// ----- 246: Core functions -----
+
+/**
+ * Generate a "why this question?" explanation.
+ */
+export function generateWhyExplanation(
+  question: string,
+  competingMeanings: readonly CompetingMeaning[],
+  config?: Partial<WhyConfig>,
+): WhyThisQuestion {
+  const cfg: WhyConfig = {
+    ...DEFAULT_WHY_CONFIG,
+    ...(config !== undefined ? config : {}),
+  };
+
+  const limitedMeanings = competingMeanings.slice(0, cfg.maxCompetingMeanings);
+  const diffs: MeaningDiff[] = [];
+
+  // Compute diffs between each pair of meanings
+  for (let i = 0; i < limitedMeanings.length; i++) {
+    for (let j = i + 1; j < limitedMeanings.length; j++) {
+      if (diffs.length >= cfg.maxDiffs) break;
+      const mA = limitedMeanings[i];
+      const mB = limitedMeanings[j];
+      if (mA !== undefined && mB !== undefined) {
+        const entityDiffs: string[] = [];
+        const allEntities = new Set<string>();
+        for (const e of mA.affectedEntities) allEntities.add(e);
+        for (const e of mB.affectedEntities) allEntities.add(e);
+
+        for (const entity of Array.from(allEntities)) {
+          const inA = mA.affectedEntities.includes(entity);
+          const inB = mB.affectedEntities.includes(entity);
+          if (inA && !inB) {
+            entityDiffs.push(`"${entity}" only affected by interpretation A`);
+          } else if (!inA && inB) {
+            entityDiffs.push(`"${entity}" only affected by interpretation B`);
+          }
+        }
+
+        diffs.push({
+          meaningA: mA.interpretation,
+          meaningB: mB.interpretation,
+          differenceDescription:
+            `"${mA.interpretation}" would ${mA.editSummary}, ` +
+            `while "${mB.interpretation}" would ${mB.editSummary}`,
+          affectedEntityDiffs: entityDiffs,
+          impactComparison:
+            `Interpretation A affects ${mA.affectedEntities.length} entities; ` +
+            `B affects ${mB.affectedEntities.length}`,
+          riskDifference:
+            mA.riskLevel === mB.riskLevel
+              ? `Both are ${mA.riskLevel} risk`
+              : `A is ${mA.riskLevel} risk, B is ${mB.riskLevel} risk`,
+        });
+      }
+    }
+  }
+
+  const reasonParts: string[] = [];
+  if (limitedMeanings.length >= 2) {
+    reasonParts.push(
+      `There are ${limitedMeanings.length} possible interpretations of your request`,
+    );
+  }
+  const highRisk = limitedMeanings.filter((m) => m.riskLevel === 'high');
+  if (highRisk.length > 0) {
+    reasonParts.push(`${highRisk.length} interpretation(s) involve high-risk edits`);
+  }
+  const reason = reasonParts.length > 0
+    ? reasonParts.join('. ') + '.'
+    : 'Your request was ambiguous and we need clarification.';
+
+  return {
+    questionId: `wq-${Date.now()}`,
+    question,
+    reason,
+    competingMeanings: limitedMeanings,
+    diffs,
+    timestamp: Date.now(),
+  };
+}
+
+/**
+ * Get competing meanings for a given utterance.
+ */
+export function getCompetingMeanings(
+  utterance: string,
+  candidates: readonly { interpretation: string; editSummary: string; entities: readonly string[]; risk: 'low' | 'medium' | 'high' }[],
+): readonly CompetingMeaning[] {
+  const meanings: CompetingMeaning[] = [];
+  for (let i = 0; i < candidates.length; i++) {
+    const c = candidates[i];
+    if (c !== undefined) {
+      meanings.push({
+        id: generateMeaningId(),
+        interpretation: c.interpretation,
+        description: `Interpretation ${i + 1}: "${c.interpretation}"`,
+        editSummary: c.editSummary,
+        affectedEntities: c.entities,
+        confidence: 1.0 / candidates.length,
+        riskLevel: c.risk,
+        examples: [`If you mean "${c.interpretation}", then: ${c.editSummary}`],
+      });
+    }
+  }
+  void utterance;
+  return meanings;
+}
+
+/**
+ * Compute diffs between two specific meanings.
+ */
+export function computeMeaningDiffs(
+  meaningA: CompetingMeaning,
+  meaningB: CompetingMeaning,
+): MeaningDiff {
+  const entityDiffs: string[] = [];
+  const allEntities = new Set<string>();
+  for (const e of meaningA.affectedEntities) allEntities.add(e);
+  for (const e of meaningB.affectedEntities) allEntities.add(e);
+
+  for (const entity of Array.from(allEntities)) {
+    const inA = meaningA.affectedEntities.includes(entity);
+    const inB = meaningB.affectedEntities.includes(entity);
+    if (inA && !inB) {
+      entityDiffs.push(`"${entity}" only in interpretation A`);
+    } else if (!inA && inB) {
+      entityDiffs.push(`"${entity}" only in interpretation B`);
+    } else {
+      entityDiffs.push(`"${entity}" affected by both`);
+    }
+  }
+
+  return {
+    meaningA: meaningA.interpretation,
+    meaningB: meaningB.interpretation,
+    differenceDescription:
+      `A: ${meaningA.editSummary} vs B: ${meaningB.editSummary}`,
+    affectedEntityDiffs: entityDiffs,
+    impactComparison:
+      `A affects ${meaningA.affectedEntities.length} entities, ` +
+      `B affects ${meaningB.affectedEntities.length} entities`,
+    riskDifference:
+      meaningA.riskLevel === meaningB.riskLevel
+        ? `Both ${meaningA.riskLevel} risk`
+        : `A=${meaningA.riskLevel}, B=${meaningB.riskLevel}`,
+  };
+}
+
+/**
+ * Format the "why this question?" content for UI rendering.
+ */
+export function formatWhyForUI(why: WhyThisQuestion): WhyExplanation {
+  const sections: WhyExplanationSection[] = [];
+
+  // Summary section
+  sections.push({
+    heading: 'Why we asked',
+    content: why.reason,
+    type: 'summary',
+  });
+
+  // Meaning sections
+  for (const meaning of why.competingMeanings) {
+    sections.push({
+      heading: `Interpretation: "${meaning.interpretation}"`,
+      content:
+        `${meaning.editSummary}\n` +
+        `Affects: ${meaning.affectedEntities.join(', ')}\n` +
+        `Risk: ${meaning.riskLevel}\n` +
+        `Confidence: ${(meaning.confidence * 100).toFixed(0)}%`,
+      type: 'meaning',
+    });
+  }
+
+  // Diff sections
+  for (const diff of why.diffs) {
+    sections.push({
+      heading: 'Difference',
+      content:
+        `${diff.differenceDescription}\n` +
+        `${diff.impactComparison}\n` +
+        `${diff.riskDifference}`,
+      type: 'diff',
+    });
+  }
+
+  // Risk section
+  const highRiskMeanings = why.competingMeanings.filter((m) => m.riskLevel === 'high');
+  if (highRiskMeanings.length > 0) {
+    sections.push({
+      heading: 'Risk Warning',
+      content: `${highRiskMeanings.length} interpretation(s) carry high risk: ` +
+        highRiskMeanings.map((m) => `"${m.interpretation}"`).join(', '),
+      type: 'risk',
+    });
+  }
+
+  const title = `Why did we ask: "${why.question}"?`;
+  const bodyParts: string[] = [];
+  for (const s of sections) {
+    bodyParts.push(`### ${s.heading}\n${s.content}`);
+  }
+
+  return {
+    title,
+    body: bodyParts.join('\n\n'),
+    sections,
+    timestamp: Date.now(),
+  };
+}
+
+/**
+ * Rank meanings by their impact (entity count, risk).
+ */
+export function rankMeaningsByImpact(
+  meanings: readonly CompetingMeaning[],
+): readonly CompetingMeaning[] {
+  const riskScores: Record<string, number> = { low: 1, medium: 3, high: 5 };
+  const sorted = [...meanings];
+  sorted.sort((a, b) => {
+    const scoreA = (riskScores[a.riskLevel] ?? 1) * a.affectedEntities.length;
+    const scoreB = (riskScores[b.riskLevel] ?? 1) * b.affectedEntities.length;
+    return scoreB - scoreA;
+  });
+  return sorted;
+}
+
+/**
+ * Get available why-explanation templates.
+ */
+export function getWhyTemplates(): readonly WhyTemplate[] {
+  return WHY_TEMPLATES;
+}
+
+/**
+ * Batch generate "why this question?" explanations.
+ */
+export function batchGenerateWhyExplanations(
+  questions: readonly {
+    question: string;
+    meanings: readonly CompetingMeaning[];
+  }[],
+  config?: Partial<WhyConfig>,
+): readonly WhyThisQuestion[] {
+  const results: WhyThisQuestion[] = [];
+  for (const q of questions) {
+    results.push(generateWhyExplanation(q.question, q.meanings, config));
+  }
+  return results;
+}
+
+/**
+ * Summarize all competing interpretations across multiple questions.
+ */
+export function summarizeCompetitions(
+  whyQuestions: readonly WhyThisQuestion[],
+): string {
+  const lines: string[] = [];
+  lines.push(`=== Competition Summary (${whyQuestions.length} questions) ===`);
+
+  let totalMeanings = 0;
+  let totalHighRisk = 0;
+
+  for (const wq of whyQuestions) {
+    totalMeanings += wq.competingMeanings.length;
+    totalHighRisk += wq.competingMeanings.filter((m) => m.riskLevel === 'high').length;
+    lines.push(
+      `  Q: "${wq.question}" — ${wq.competingMeanings.length} interpretations, ` +
+      `${wq.diffs.length} diffs`,
+    );
+  }
+
+  lines.push('');
+  lines.push(`Total interpretations: ${totalMeanings}`);
+  lines.push(`High-risk interpretations: ${totalHighRisk}`);
+  lines.push(`Average interpretations per question: ${whyQuestions.length > 0
+    ? (totalMeanings / whyQuestions.length).toFixed(1) : '0'}`);
+
+  return lines.join('\n');
+}
+
+
+// ============================================================================
+// Step 247 [HCI] — Safe Preview Mode
+// ============================================================================
+
+/**
+ * A diff showing what changes a candidate would produce.
+ */
+export interface PreviewDiff {
+  readonly entityId: string;
+  readonly entityName: string;
+  readonly property: string;
+  readonly oldValue: string;
+  readonly newValue: string;
+  readonly changeType: 'add' | 'modify' | 'remove';
+}
+
+/**
+ * A candidate preview for a possible interpretation.
+ */
+export interface PreviewCandidate {
+  readonly id: string;
+  readonly label: string;
+  readonly interpretation: string;
+  readonly diffs: readonly PreviewDiff[];
+  readonly totalChanges: number;
+  readonly riskLevel: 'low' | 'medium' | 'high';
+  readonly summary: string;
+  readonly selected: boolean;
+}
+
+/**
+ * A safe preview showing side-by-side candidates.
+ */
+export interface SafePreview {
+  readonly id: string;
+  readonly utterance: string;
+  readonly candidates: readonly PreviewCandidate[];
+  readonly comparison: PreviewComparison | null;
+  readonly createdAt: number;
+  readonly expiresAt: number;
+  readonly status: 'pending' | 'selected' | 'discarded';
+}
+
+/**
+ * A comparison between two preview candidates.
+ */
+export interface PreviewComparison {
+  readonly candidateA: string;
+  readonly candidateB: string;
+  readonly sharedChanges: readonly PreviewDiff[];
+  readonly uniqueToA: readonly PreviewDiff[];
+  readonly uniqueToB: readonly PreviewDiff[];
+  readonly summary: string;
+}
+
+/**
+ * Configuration for safe preview mode.
+ */
+export interface PreviewConfig {
+  readonly maxCandidates: number;
+  readonly previewLifetimeMs: number;
+  readonly showSideBySide: boolean;
+  readonly highlightDifferences: boolean;
+  readonly autoDiscard: boolean;
+  readonly maxDiffsPerCandidate: number;
+}
+
+// ----- 247: Default config -----
+
+const DEFAULT_PREVIEW_CONFIG: PreviewConfig = {
+  maxCandidates: 4,
+  previewLifetimeMs: 300000, // 5 minutes
+  showSideBySide: true,
+  highlightDifferences: true,
+  autoDiscard: true,
+  maxDiffsPerCandidate: 50,
+};
+
+let _previewCounter = 0;
+const _previewHistory: SafePreview[] = [];
+
+function generatePreviewId(): string {
+  _previewCounter += 1;
+  return `sp-${_previewCounter}-${Date.now()}`;
+}
+
+function generateCandidateId(): string {
+  _previewCounter += 1;
+  return `pc-${_previewCounter}-${Date.now()}`;
+}
+
+// ----- 247: Diff comparison helper -----
+
+function diffKey(d: PreviewDiff): string {
+  return `${d.entityId}:${d.property}:${d.changeType}`;
+}
+
+function compareCandidateDiffs(
+  diffsA: readonly PreviewDiff[],
+  diffsB: readonly PreviewDiff[],
+): { shared: PreviewDiff[]; uniqueA: PreviewDiff[]; uniqueB: PreviewDiff[] } {
+  const keysA = new Set(diffsA.map(diffKey));
+  const keysB = new Set(diffsB.map(diffKey));
+  const keyToDiffA = new Map<string, PreviewDiff>();
+  const keyToDiffB = new Map<string, PreviewDiff>();
+
+  for (const d of diffsA) keyToDiffA.set(diffKey(d), d);
+  for (const d of diffsB) keyToDiffB.set(diffKey(d), d);
+
+  const shared: PreviewDiff[] = [];
+  const uniqueA: PreviewDiff[] = [];
+  const uniqueB: PreviewDiff[] = [];
+
+  for (const d of diffsA) {
+    const k = diffKey(d);
+    if (keysB.has(k)) {
+      const bDiff = keyToDiffB.get(k);
+      if (bDiff !== undefined && bDiff.newValue === d.newValue) {
+        shared.push(d);
+      } else {
+        uniqueA.push(d);
+      }
+    } else {
+      uniqueA.push(d);
+    }
+  }
+
+  for (const d of diffsB) {
+    const k = diffKey(d);
+    if (!keysA.has(k)) {
+      uniqueB.push(d);
+    } else {
+      const aDiff = keyToDiffA.get(k);
+      if (aDiff !== undefined && aDiff.newValue !== d.newValue) {
+        uniqueB.push(d);
+      }
+    }
+  }
+
+  return { shared, uniqueA, uniqueB };
+}
+
+// ----- 247: Core functions -----
+
+/**
+ * Generate a safe preview for an ambiguous request.
+ */
+export function generateSafePreview(
+  utterance: string,
+  candidateData: readonly {
+    label: string;
+    interpretation: string;
+    diffs: readonly PreviewDiff[];
+    risk: 'low' | 'medium' | 'high';
+  }[],
+  config?: Partial<PreviewConfig>,
+): SafePreview {
+  const cfg: PreviewConfig = {
+    ...DEFAULT_PREVIEW_CONFIG,
+    ...(config !== undefined ? config : {}),
+  };
+
+  const candidates: PreviewCandidate[] = [];
+  for (const cd of candidateData.slice(0, cfg.maxCandidates)) {
+    const trimmedDiffs = cd.diffs.slice(0, cfg.maxDiffsPerCandidate);
+    candidates.push({
+      id: generateCandidateId(),
+      label: cd.label,
+      interpretation: cd.interpretation,
+      diffs: trimmedDiffs,
+      totalChanges: cd.diffs.length,
+      riskLevel: cd.risk,
+      summary: `${cd.label}: ${trimmedDiffs.length} changes (${cd.risk} risk)`,
+      selected: false,
+    });
+  }
+
+  // Compute comparison between first two candidates if available
+  let comparison: PreviewComparison | null = null;
+  const candA = candidates[0];
+  const candB = candidates[1];
+  if (candA !== undefined && candB !== undefined) {
+    const comp = compareCandidateDiffs(candA.diffs, candB.diffs);
+    comparison = {
+      candidateA: candA.id,
+      candidateB: candB.id,
+      sharedChanges: comp.shared,
+      uniqueToA: comp.uniqueA,
+      uniqueToB: comp.uniqueB,
+      summary:
+        `${comp.shared.length} shared changes, ` +
+        `${comp.uniqueA.length} unique to "${candA.label}", ` +
+        `${comp.uniqueB.length} unique to "${candB.label}"`,
+    };
+  }
+
+  const now = Date.now();
+  const preview: SafePreview = {
+    id: generatePreviewId(),
+    utterance,
+    candidates,
+    comparison,
+    createdAt: now,
+    expiresAt: now + cfg.previewLifetimeMs,
+    status: 'pending',
+  };
+
+  _previewHistory.push(preview);
+  return preview;
+}
+
+/**
+ * Render a preview diff as a human-readable string.
+ */
+export function renderPreviewDiff(diff: PreviewDiff): string {
+  switch (diff.changeType) {
+    case 'add':
+      return `+ ${diff.entityName}.${diff.property} = "${diff.newValue}"`;
+    case 'remove':
+      return `- ${diff.entityName}.${diff.property} (was "${diff.oldValue}")`;
+    case 'modify':
+      return `~ ${diff.entityName}.${diff.property}: "${diff.oldValue}" -> "${diff.newValue}"`;
+  }
+}
+
+/**
+ * Compare two preview candidates side by side.
+ */
+export function comparePreviewCandidates(
+  candidateA: PreviewCandidate,
+  candidateB: PreviewCandidate,
+): PreviewComparison {
+  const comp = compareCandidateDiffs(candidateA.diffs, candidateB.diffs);
+  return {
+    candidateA: candidateA.id,
+    candidateB: candidateB.id,
+    sharedChanges: comp.shared,
+    uniqueToA: comp.uniqueA,
+    uniqueToB: comp.uniqueB,
+    summary:
+      `${comp.shared.length} shared, ` +
+      `${comp.uniqueA.length} only in "${candidateA.label}", ` +
+      `${comp.uniqueB.length} only in "${candidateB.label}"`,
+  };
+}
+
+/**
+ * Format a preview for UI display.
+ */
+export function formatPreviewForUI(preview: SafePreview): string {
+  const lines: string[] = [];
+  lines.push(`=== Safe Preview [${preview.id}] ===`);
+  lines.push(`Utterance: "${preview.utterance}"`);
+  lines.push(`Status: ${preview.status}`);
+  lines.push('');
+
+  for (const candidate of preview.candidates) {
+    lines.push(`--- ${candidate.label} (${candidate.riskLevel} risk) ---`);
+    lines.push(`  Interpretation: ${candidate.interpretation}`);
+    lines.push(`  Changes (${candidate.totalChanges} total):`);
+    for (const diff of candidate.diffs.slice(0, 10)) {
+      lines.push(`    ${renderPreviewDiff(diff)}`);
+    }
+    if (candidate.totalChanges > 10) {
+      lines.push(`    ... and ${candidate.totalChanges - 10} more changes`);
+    }
+    lines.push('');
+  }
+
+  if (preview.comparison !== null) {
+    lines.push('--- Comparison ---');
+    lines.push(`  ${preview.comparison.summary}`);
+    if (preview.comparison.uniqueToA.length > 0) {
+      lines.push(`  Only in A: ${preview.comparison.uniqueToA.length} changes`);
+    }
+    if (preview.comparison.uniqueToB.length > 0) {
+      lines.push(`  Only in B: ${preview.comparison.uniqueToB.length} changes`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Select a preview candidate (mark it as chosen).
+ */
+export function selectPreviewCandidate(
+  preview: SafePreview,
+  candidateId: string,
+): SafePreview {
+  const updatedCandidates = preview.candidates.map((c) => ({
+    ...c,
+    selected: c.id === candidateId,
+  }));
+
+  return {
+    ...preview,
+    candidates: updatedCandidates,
+    status: 'selected',
+  };
+}
+
+/**
+ * Discard all pending previews.
+ */
+export function discardPreviews(): number {
+  let count = 0;
+  for (let i = 0; i < _previewHistory.length; i++) {
+    const p = _previewHistory[i];
+    if (p !== undefined && p.status === 'pending') {
+      _previewHistory[i] = { ...p, status: 'discarded' };
+      count += 1;
+    }
+  }
+  return count;
+}
+
+/**
+ * Get preview history.
+ */
+export function getPreviewHistory(): readonly SafePreview[] {
+  return [..._previewHistory];
+}
+
+/**
+ * Batch generate previews for multiple utterances.
+ */
+export function batchGeneratePreviews(
+  items: readonly {
+    utterance: string;
+    candidates: readonly {
+      label: string;
+      interpretation: string;
+      diffs: readonly PreviewDiff[];
+      risk: 'low' | 'medium' | 'high';
+    }[];
+  }[],
+  config?: Partial<PreviewConfig>,
+): readonly SafePreview[] {
+  const results: SafePreview[] = [];
+  for (const item of items) {
+    results.push(generateSafePreview(item.utterance, item.candidates, config));
+  }
+  return results;
+}
+
+
+// ============================================================================
+// Step 248 [HCI] — Commit Button Gating
+// ============================================================================
+
+/**
+ * Types of gate conditions.
+ */
+export type GateConditionType =
+  | 'no-unresolved-ambiguities'
+  | 'safety-check-passed'
+  | 'confirmation-received'
+  | 'confidence-threshold-met'
+  | 'no-open-holes'
+  | 'all-constraints-satisfied'
+  | 'preview-reviewed'
+  | 'policy-requirements-met'
+  | 'no-destructive-without-confirm'
+  | 'scope-validated';
+
+/**
+ * A condition that must be met before committing.
+ */
+export interface GateCondition {
+  readonly type: GateConditionType;
+  readonly description: string;
+  readonly satisfied: boolean;
+  readonly blockerDescription: string | null;
+  readonly priority: 'critical' | 'high' | 'medium' | 'low';
+  readonly overridable: boolean;
+}
+
+/**
+ * The status of the commit gate.
+ */
+export interface GateStatus {
+  readonly enabled: boolean;
+  readonly conditions: readonly GateCondition[];
+  readonly allSatisfied: boolean;
+  readonly criticalBlockers: readonly GateCondition[];
+  readonly overridableBlockers: readonly GateCondition[];
+  readonly timestamp: number;
+}
+
+/**
+ * The full gate report including reasons and history.
+ */
+export interface CommitGate {
+  readonly id: string;
+  readonly status: GateStatus;
+  readonly overrideApplied: boolean;
+  readonly overrideReason: string | null;
+  readonly timestamp: number;
+}
+
+/**
+ * Configuration for commit gating.
+ */
+export interface CommitConfig {
+  readonly enableGating: boolean;
+  readonly requireAllCritical: boolean;
+  readonly requireAllHigh: boolean;
+  readonly allowOverride: boolean;
+  readonly overrideRequiresReason: boolean;
+  readonly logHistory: boolean;
+  readonly historyLimit: number;
+}
+
+/**
+ * Report on the gate state.
+ */
+export interface GateReport {
+  readonly gate: CommitGate;
+  readonly summary: string;
+  readonly blockerDetails: readonly string[];
+  readonly recommendations: readonly string[];
+}
+
+// ----- 248: Default config -----
+
+const DEFAULT_COMMIT_CONFIG: CommitConfig = {
+  enableGating: true,
+  requireAllCritical: true,
+  requireAllHigh: true,
+  allowOverride: true,
+  overrideRequiresReason: true,
+  logHistory: true,
+  historyLimit: 50,
+};
+
+let _commitGateCounter = 0;
+const _gateHistory: CommitGate[] = [];
+
+function generateGateId(): string {
+  _commitGateCounter += 1;
+  return `cg-${_commitGateCounter}-${Date.now()}`;
+}
+
+// ----- 248: Core functions -----
+
+/**
+ * Check the commit gate against a set of conditions.
+ */
+export function checkCommitGate(
+  conditions: readonly GateCondition[],
+  config?: Partial<CommitConfig>,
+): CommitGate {
+  const cfg: CommitConfig = {
+    ...DEFAULT_COMMIT_CONFIG,
+    ...(config !== undefined ? config : {}),
+  };
+
+  if (!cfg.enableGating) {
+    const gate: CommitGate = {
+      id: generateGateId(),
+      status: {
+        enabled: false,
+        conditions,
+        allSatisfied: true,
+        criticalBlockers: [],
+        overridableBlockers: [],
+        timestamp: Date.now(),
+      },
+      overrideApplied: false,
+      overrideReason: null,
+      timestamp: Date.now(),
+    };
+    if (cfg.logHistory) _gateHistory.push(gate);
+    return gate;
+  }
+
+  const criticalBlockers: GateCondition[] = [];
+  const overridableBlockers: GateCondition[] = [];
+
+  for (const cond of conditions) {
+    if (!cond.satisfied) {
+      if (cond.priority === 'critical') {
+        criticalBlockers.push(cond);
+      } else if (cond.overridable) {
+        overridableBlockers.push(cond);
+      } else {
+        criticalBlockers.push(cond);
+      }
+    }
+  }
+
+  let allSatisfied = criticalBlockers.length === 0;
+  if (cfg.requireAllHigh) {
+    const highBlockers = conditions.filter(
+      (c) => !c.satisfied && c.priority === 'high',
+    );
+    if (highBlockers.length > 0) allSatisfied = false;
+  }
+
+  const gate: CommitGate = {
+    id: generateGateId(),
+    status: {
+      enabled: true,
+      conditions,
+      allSatisfied,
+      criticalBlockers,
+      overridableBlockers,
+      timestamp: Date.now(),
+    },
+    overrideApplied: false,
+    overrideReason: null,
+    timestamp: Date.now(),
+  };
+
+  if (cfg.logHistory) {
+    _gateHistory.push(gate);
+    while (_gateHistory.length > cfg.historyLimit) {
+      _gateHistory.shift();
+    }
+  }
+
+  return gate;
+}
+
+/**
+ * Get the conditions for a commit gate.
+ */
+export function getGateConditions(
+  unresolvedAmbiguities: number,
+  safetyPassed: boolean,
+  confirmationReceived: boolean,
+  confidenceMet: boolean,
+  openHoles: number,
+  constraintsSatisfied: boolean,
+  previewReviewed: boolean,
+  policyMet: boolean,
+  hasDestructiveUnconfirmed: boolean,
+  scopeValidated: boolean,
+): readonly GateCondition[] {
+  const conditions: GateCondition[] = [
+    {
+      type: 'no-unresolved-ambiguities',
+      description: 'All ambiguities must be resolved',
+      satisfied: unresolvedAmbiguities === 0,
+      blockerDescription: unresolvedAmbiguities > 0
+        ? `${unresolvedAmbiguities} unresolved ambiguities remain`
+        : null,
+      priority: 'critical',
+      overridable: false,
+    },
+    {
+      type: 'safety-check-passed',
+      description: 'Safety assessment must pass',
+      satisfied: safetyPassed,
+      blockerDescription: !safetyPassed
+        ? 'Safety check has not passed'
+        : null,
+      priority: 'critical',
+      overridable: false,
+    },
+    {
+      type: 'confirmation-received',
+      description: 'User confirmation received if required',
+      satisfied: confirmationReceived,
+      blockerDescription: !confirmationReceived
+        ? 'Awaiting user confirmation'
+        : null,
+      priority: 'high',
+      overridable: true,
+    },
+    {
+      type: 'confidence-threshold-met',
+      description: 'Confidence must meet minimum threshold',
+      satisfied: confidenceMet,
+      blockerDescription: !confidenceMet
+        ? 'Confidence score below required threshold'
+        : null,
+      priority: 'high',
+      overridable: true,
+    },
+    {
+      type: 'no-open-holes',
+      description: 'No underspecified parameters remain',
+      satisfied: openHoles === 0,
+      blockerDescription: openHoles > 0
+        ? `${openHoles} underspecified parameters remain`
+        : null,
+      priority: 'critical',
+      overridable: false,
+    },
+    {
+      type: 'all-constraints-satisfied',
+      description: 'All hard constraints must be satisfied',
+      satisfied: constraintsSatisfied,
+      blockerDescription: !constraintsSatisfied
+        ? 'Some hard constraints are not satisfied'
+        : null,
+      priority: 'critical',
+      overridable: false,
+    },
+    {
+      type: 'preview-reviewed',
+      description: 'Preview has been reviewed if generated',
+      satisfied: previewReviewed,
+      blockerDescription: !previewReviewed
+        ? 'Preview has not been reviewed'
+        : null,
+      priority: 'medium',
+      overridable: true,
+    },
+    {
+      type: 'policy-requirements-met',
+      description: 'Accommodation policy requirements are met',
+      satisfied: policyMet,
+      blockerDescription: !policyMet
+        ? 'Accommodation policy requirements not met'
+        : null,
+      priority: 'medium',
+      overridable: true,
+    },
+    {
+      type: 'no-destructive-without-confirm',
+      description: 'Destructive actions require explicit confirmation',
+      satisfied: !hasDestructiveUnconfirmed,
+      blockerDescription: hasDestructiveUnconfirmed
+        ? 'Destructive action requires explicit confirmation'
+        : null,
+      priority: 'critical',
+      overridable: false,
+    },
+    {
+      type: 'scope-validated',
+      description: 'Action scope has been validated',
+      satisfied: scopeValidated,
+      blockerDescription: !scopeValidated
+        ? 'Action scope has not been validated'
+        : null,
+      priority: 'medium',
+      overridable: true,
+    },
+  ];
+  return conditions;
+}
+
+/**
+ * Check if the commit button should be enabled.
+ */
+export function isCommitEnabled(gate: CommitGate): boolean {
+  return gate.status.allSatisfied || gate.overrideApplied;
+}
+
+/**
+ * Get the blocking conditions preventing commit.
+ */
+export function getBlockingConditions(gate: CommitGate): readonly GateCondition[] {
+  return gate.status.conditions.filter((c) => !c.satisfied);
+}
+
+/**
+ * Format a gate report for display.
+ */
+export function formatGateReport(gate: CommitGate): GateReport {
+  const blockerDetails: string[] = [];
+  const recommendations: string[] = [];
+
+  for (const cond of gate.status.conditions) {
+    if (!cond.satisfied && cond.blockerDescription !== null) {
+      blockerDetails.push(`[${cond.priority.toUpperCase()}] ${cond.blockerDescription}`);
+      if (cond.type === 'no-unresolved-ambiguities') {
+        recommendations.push('Resolve all ambiguities before committing');
+      } else if (cond.type === 'safety-check-passed') {
+        recommendations.push('Review and pass the safety check');
+      } else if (cond.type === 'confidence-threshold-met') {
+        recommendations.push('Provide more details to increase confidence');
+      } else if (cond.type === 'no-open-holes') {
+        recommendations.push('Specify all required parameters');
+      } else if (cond.type === 'all-constraints-satisfied') {
+        recommendations.push('Ensure all constraints are met');
+      } else if (cond.type === 'preview-reviewed') {
+        recommendations.push('Review the generated preview');
+      } else if (cond.type === 'no-destructive-without-confirm') {
+        recommendations.push('Confirm destructive actions explicitly');
+      } else if (cond.type === 'scope-validated') {
+        recommendations.push('Validate the scope of the action');
+      } else if (cond.type === 'confirmation-received') {
+        recommendations.push('Confirm the proposed action');
+      } else if (cond.type === 'policy-requirements-met') {
+        recommendations.push('Meet accommodation policy requirements');
+      }
+    }
+  }
+
+  const isEnabled = isCommitEnabled(gate);
+  const summary = isEnabled
+    ? gate.overrideApplied
+      ? `Commit ENABLED (override applied: ${gate.overrideReason ?? 'no reason'})`
+      : 'Commit ENABLED — all conditions met'
+    : `Commit DISABLED — ${blockerDetails.length} blocker(s)`;
+
+  return {
+    gate,
+    summary,
+    blockerDetails,
+    recommendations,
+  };
+}
+
+/**
+ * Override the commit gate with a reason.
+ */
+export function overrideGate(
+  gate: CommitGate,
+  reason: string,
+  config?: Partial<CommitConfig>,
+): CommitGate {
+  const cfg: CommitConfig = {
+    ...DEFAULT_COMMIT_CONFIG,
+    ...(config !== undefined ? config : {}),
+  };
+
+  if (!cfg.allowOverride) {
+    return gate;
+  }
+
+  if (cfg.overrideRequiresReason && reason.trim().length === 0) {
+    return gate;
+  }
+
+  // Only allow overriding if there are no critical blockers that are non-overridable
+  const nonOverridableCritical = gate.status.criticalBlockers.filter(
+    (c) => !c.overridable,
+  );
+  if (nonOverridableCritical.length > 0) {
+    return gate;
+  }
+
+  return {
+    ...gate,
+    overrideApplied: true,
+    overrideReason: reason,
+  };
+}
+
+/**
+ * Get gate history.
+ */
+export function getGateHistory(): readonly CommitGate[] {
+  return [..._gateHistory];
+}
+
+/**
+ * Batch check gates for multiple sets of conditions.
+ */
+export function batchCheckGates(
+  conditionSets: readonly (readonly GateCondition[])[],
+  config?: Partial<CommitConfig>,
+): readonly CommitGate[] {
+  const results: CommitGate[] = [];
+  for (const conditions of conditionSets) {
+    results.push(checkCommitGate(conditions, config));
+  }
+  return results;
+}
+
+
+// ============================================================================
+// Step 249 [HCI] — Developer Mode Toggles
+// ============================================================================
+
+/**
+ * Available developer panels.
+ */
+export type DevPanelId =
+  | 'discourse-referents'
+  | 'salience-scores'
+  | 'qud-stack'
+  | 'common-ground'
+  | 'binding-chain'
+  | 'provenance'
+  | 'confidence-breakdown'
+  | 'speech-act'
+  | 'focus-markers'
+  | 'temporal-references'
+  | 'safety-assessment'
+  | 'accommodation-state'
+  | 'constraint-list';
+
+/**
+ * Configuration for developer mode.
+ */
+export interface DevModeConfig {
+  readonly enabled: boolean;
+  readonly activePanels: readonly DevPanelId[];
+  readonly overlayPosition: 'left' | 'right' | 'bottom' | 'floating';
+  readonly overlayOpacity: number;
+  readonly autoRefresh: boolean;
+  readonly refreshIntervalMs: number;
+  readonly showTimestamps: boolean;
+  readonly compactMode: boolean;
+}
+
+/**
+ * A single developer panel.
+ */
+export interface DevModePanel {
+  readonly id: DevPanelId;
+  readonly label: string;
+  readonly description: string;
+  readonly visible: boolean;
+  readonly data: readonly DevModeDataEntry[];
+  readonly lastUpdated: number;
+}
+
+/**
+ * An overlay containing all active panels.
+ */
+export interface DevModeOverlay {
+  readonly panels: readonly DevModePanel[];
+  readonly config: DevModeConfig;
+  readonly timestamp: number;
+}
+
+/**
+ * A toggle for a specific dev panel.
+ */
+export interface DevModeToggle {
+  readonly panelId: DevPanelId;
+  readonly enabled: boolean;
+  readonly label: string;
+  readonly shortcut: string;
+}
+
+/**
+ * Data for a dev mode panel.
+ */
+export interface DevModeData {
+  readonly panelId: DevPanelId;
+  readonly entries: readonly DevModeDataEntry[];
+  readonly metadata: Record<string, string>;
+  readonly timestamp: number;
+}
+
+/**
+ * A single entry in dev mode data.
+ */
+export interface DevModeDataEntry {
+  readonly key: string;
+  readonly value: string;
+  readonly type: 'string' | 'number' | 'list' | 'score' | 'boolean';
+  readonly highlight: boolean;
+}
+
+/**
+ * A snapshot of all dev mode state for export.
+ */
+export interface DevModeSnapshot {
+  readonly config: DevModeConfig;
+  readonly panels: readonly DevModePanel[];
+  readonly timestamp: number;
+  readonly version: string;
+}
+
+// ----- 249: Panel definitions -----
+
+interface PanelDefinition {
+  readonly id: DevPanelId;
+  readonly label: string;
+  readonly description: string;
+  readonly shortcut: string;
+  readonly defaultVisible: boolean;
+}
+
+const PANEL_DEFINITIONS: readonly PanelDefinition[] = [
+  {
+    id: 'discourse-referents',
+    label: 'Discourse Referents',
+    description: 'Shows all entities currently in the discourse model',
+    shortcut: 'Ctrl+Shift+D',
+    defaultVisible: false,
+  },
+  {
+    id: 'salience-scores',
+    label: 'Salience Scores',
+    description: 'Shows salience/activation levels for each discourse entity',
+    shortcut: 'Ctrl+Shift+S',
+    defaultVisible: false,
+  },
+  {
+    id: 'qud-stack',
+    label: 'QUD Stack',
+    description: 'Shows the Questions Under Discussion stack',
+    shortcut: 'Ctrl+Shift+Q',
+    defaultVisible: false,
+  },
+  {
+    id: 'common-ground',
+    label: 'Common Ground',
+    description: 'Shows propositions in the common ground',
+    shortcut: 'Ctrl+Shift+G',
+    defaultVisible: false,
+  },
+  {
+    id: 'binding-chain',
+    label: 'Binding Chain',
+    description: 'Shows how each pronoun/reference was resolved',
+    shortcut: 'Ctrl+Shift+B',
+    defaultVisible: false,
+  },
+  {
+    id: 'provenance',
+    label: 'Provenance',
+    description: 'Shows the origin of each interpretation decision',
+    shortcut: 'Ctrl+Shift+P',
+    defaultVisible: false,
+  },
+  {
+    id: 'confidence-breakdown',
+    label: 'Confidence Breakdown',
+    description: 'Shows detailed confidence score breakdown',
+    shortcut: 'Ctrl+Shift+C',
+    defaultVisible: false,
+  },
+  {
+    id: 'speech-act',
+    label: 'Speech Act',
+    description: 'Shows detected speech act type and parameters',
+    shortcut: 'Ctrl+Shift+A',
+    defaultVisible: false,
+  },
+  {
+    id: 'focus-markers',
+    label: 'Focus Markers',
+    description: 'Shows focus and topic markers in the utterance',
+    shortcut: 'Ctrl+Shift+F',
+    defaultVisible: false,
+  },
+  {
+    id: 'temporal-references',
+    label: 'Temporal References',
+    description: 'Shows detected time and sequence expressions',
+    shortcut: 'Ctrl+Shift+T',
+    defaultVisible: false,
+  },
+  {
+    id: 'safety-assessment',
+    label: 'Safety Assessment',
+    description: 'Shows current safety assessment and risk scores',
+    shortcut: 'Ctrl+Shift+Y',
+    defaultVisible: false,
+  },
+  {
+    id: 'accommodation-state',
+    label: 'Accommodation State',
+    description: 'Shows current accommodation policy and proposals',
+    shortcut: 'Ctrl+Shift+O',
+    defaultVisible: false,
+  },
+  {
+    id: 'constraint-list',
+    label: 'Constraint List',
+    description: 'Shows all active discourse constraints',
+    shortcut: 'Ctrl+Shift+L',
+    defaultVisible: false,
+  },
+] as const;
+
+// ----- 249: State -----
+
+let _devModeConfig: DevModeConfig = {
+  enabled: false,
+  activePanels: [],
+  overlayPosition: 'right',
+  overlayOpacity: 0.9,
+  autoRefresh: true,
+  refreshIntervalMs: 1000,
+  showTimestamps: true,
+  compactMode: false,
+};
+
+// ----- 249: Core functions -----
+
+/**
+ * Create a developer mode configuration.
+ */
+export function createDevModeConfig(
+  options?: Partial<DevModeConfig>,
+): DevModeConfig {
+  const config: DevModeConfig = {
+    enabled: false,
+    activePanels: [],
+    overlayPosition: 'right',
+    overlayOpacity: 0.9,
+    autoRefresh: true,
+    refreshIntervalMs: 1000,
+    showTimestamps: true,
+    compactMode: false,
+    ...(options !== undefined ? options : {}),
+  };
+  _devModeConfig = config;
+  return config;
+}
+
+/**
+ * Toggle a specific developer panel.
+ */
+export function toggleDevPanel(panelId: DevPanelId): DevModeToggle {
+  const currentlyActive = _devModeConfig.activePanels.includes(panelId);
+  const newActivePanels = currentlyActive
+    ? _devModeConfig.activePanels.filter((p) => p !== panelId)
+    : [..._devModeConfig.activePanels, panelId];
+
+  _devModeConfig = {
+    ..._devModeConfig,
+    activePanels: newActivePanels,
+    enabled: newActivePanels.length > 0,
+  };
+
+  const def = PANEL_DEFINITIONS.find((p) => p.id === panelId);
+  return {
+    panelId,
+    enabled: !currentlyActive,
+    label: def !== undefined ? def.label : panelId,
+    shortcut: def !== undefined ? def.shortcut : '',
+  };
+}
+
+/**
+ * Get data for a specific developer panel.
+ */
+export function getDevModeData(panelId: DevPanelId): DevModeData {
+  const entries: DevModeDataEntry[] = [];
+
+  switch (panelId) {
+    case 'discourse-referents':
+      entries.push({ key: 'Total referents', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Active referents', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Stale referents', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Last update', value: new Date().toISOString(), type: 'string', highlight: false });
+      break;
+
+    case 'salience-scores':
+      entries.push({ key: 'Max salience', value: '0.0', type: 'score', highlight: false });
+      entries.push({ key: 'Min salience', value: '0.0', type: 'score', highlight: false });
+      entries.push({ key: 'Avg salience', value: '0.0', type: 'score', highlight: false });
+      entries.push({ key: 'Entities scored', value: '0', type: 'number', highlight: false });
+      break;
+
+    case 'qud-stack':
+      entries.push({ key: 'Stack depth', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Top QUD', value: '(empty)', type: 'string', highlight: true });
+      entries.push({ key: 'Resolved QUDs', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Open QUDs', value: '0', type: 'number', highlight: false });
+      break;
+
+    case 'common-ground':
+      entries.push({ key: 'Propositions', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Shared facts', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Assumptions', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Contested', value: '0', type: 'number', highlight: false });
+      break;
+
+    case 'binding-chain':
+      entries.push({ key: 'Total bindings', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Chain length', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Unresolved', value: '0', type: 'number', highlight: true });
+      entries.push({ key: 'Override count', value: '0', type: 'number', highlight: false });
+      break;
+
+    case 'provenance':
+      entries.push({ key: 'Decisions logged', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Sources', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Trace entries', value: '0', type: 'number', highlight: false });
+      break;
+
+    case 'confidence-breakdown':
+      entries.push({ key: 'Score', value: '0.0', type: 'score', highlight: true });
+      entries.push({ key: 'Level', value: 'unknown', type: 'string', highlight: false });
+      entries.push({ key: 'Positive factors', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Negative factors', value: '0', type: 'number', highlight: false });
+      break;
+
+    case 'speech-act':
+      entries.push({ key: 'Type', value: '(none)', type: 'string', highlight: false });
+      entries.push({ key: 'Force', value: '(none)', type: 'string', highlight: false });
+      entries.push({ key: 'Directness', value: '(none)', type: 'string', highlight: false });
+      entries.push({ key: 'Felicity', value: 'unknown', type: 'boolean', highlight: false });
+      break;
+
+    case 'focus-markers':
+      entries.push({ key: 'Topic', value: '(none)', type: 'string', highlight: false });
+      entries.push({ key: 'Focus', value: '(none)', type: 'string', highlight: true });
+      entries.push({ key: 'Contrast', value: '(none)', type: 'string', highlight: false });
+      entries.push({ key: 'Background', value: '(none)', type: 'string', highlight: false });
+      break;
+
+    case 'temporal-references':
+      entries.push({ key: 'Time expressions', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Sequence markers', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Duration refs', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Relative refs', value: '0', type: 'number', highlight: false });
+      break;
+
+    case 'safety-assessment':
+      entries.push({ key: 'Risk score', value: '0.0', type: 'score', highlight: true });
+      entries.push({ key: 'Scope', value: 'minimal', type: 'string', highlight: false });
+      entries.push({ key: 'Triggers', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Recommendation', value: 'proceed', type: 'string', highlight: false });
+      break;
+
+    case 'accommodation-state':
+      entries.push({ key: 'Policy level', value: _currentAccommodationPolicy.level, type: 'string', highlight: false });
+      entries.push({ key: 'Auto-fills', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Pending proposals', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'History entries', value: String(_accommodationHistory.length), type: 'number', highlight: false });
+      break;
+
+    case 'constraint-list':
+      entries.push({ key: 'Total constraints', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Hard constraints', value: '0', type: 'number', highlight: true });
+      entries.push({ key: 'Soft constraints', value: '0', type: 'number', highlight: false });
+      entries.push({ key: 'Exclusions', value: '0', type: 'number', highlight: false });
+      break;
+  }
+
+  return {
+    panelId,
+    entries,
+    metadata: {
+      panelLabel: PANEL_DEFINITIONS.find((p) => p.id === panelId)?.label ?? panelId,
+      lastRefresh: new Date().toISOString(),
+    },
+    timestamp: Date.now(),
+  };
+}
+
+/**
+ * Format a dev panel for display.
+ */
+export function formatDevPanel(panel: DevModePanel): string {
+  const lines: string[] = [];
+  lines.push(`=== ${panel.label} ===`);
+  if (_devModeConfig.showTimestamps) {
+    lines.push(`  Updated: ${new Date(panel.lastUpdated).toISOString()}`);
+  }
+  for (const entry of panel.data) {
+    const marker = entry.highlight ? ' *' : '';
+    lines.push(`  ${entry.key}: ${entry.value}${marker}`);
+  }
+  return lines.join('\n');
+}
+
+/**
+ * Export a snapshot of the current dev mode state.
+ */
+export function exportDevSnapshot(): DevModeSnapshot {
+  const panels: DevModePanel[] = [];
+  for (const panelId of _devModeConfig.activePanels) {
+    const def = PANEL_DEFINITIONS.find((p) => p.id === panelId);
+    const data = getDevModeData(panelId);
+    panels.push({
+      id: panelId,
+      label: def !== undefined ? def.label : panelId,
+      description: def !== undefined ? def.description : '',
+      visible: true,
+      data: data.entries,
+      lastUpdated: data.timestamp,
+    });
+  }
+
+  return {
+    config: _devModeConfig,
+    panels,
+    timestamp: Date.now(),
+    version: '1.0.0',
+  };
+}
+
+/**
+ * Import a dev mode snapshot.
+ */
+export function importDevSnapshot(snapshot: DevModeSnapshot): DevModeConfig {
+  _devModeConfig = snapshot.config;
+  return _devModeConfig;
+}
+
+/**
+ * Get all available developer panels.
+ */
+export function getAllDevPanels(): readonly DevModeToggle[] {
+  return PANEL_DEFINITIONS.map((def) => ({
+    panelId: def.id,
+    enabled: _devModeConfig.activePanels.includes(def.id),
+    label: def.label,
+    shortcut: def.shortcut,
+  }));
+}
+
+/**
+ * Render the full dev mode overlay.
+ */
+export function renderDevOverlay(): DevModeOverlay {
+  const panels: DevModePanel[] = [];
+  for (const panelId of _devModeConfig.activePanels) {
+    const def = PANEL_DEFINITIONS.find((p) => p.id === panelId);
+    const data = getDevModeData(panelId);
+    panels.push({
+      id: panelId,
+      label: def !== undefined ? def.label : panelId,
+      description: def !== undefined ? def.description : '',
+      visible: true,
+      data: data.entries,
+      lastUpdated: data.timestamp,
+    });
+  }
+
+  return {
+    panels,
+    config: _devModeConfig,
+    timestamp: Date.now(),
+  };
+}
+
+
+// ============================================================================
+// Step 250 [Infra] — Pragmatics Trace Format
+// ============================================================================
+
+/**
+ * Types of trace events.
+ */
+export type TraceEventType =
+  | 'binding-decision'
+  | 'clarification-generated'
+  | 'accommodation-applied'
+  | 'repair-processed'
+  | 'confirmation-received'
+  | 'safety-assessment'
+  | 'confidence-computed'
+  | 'constraint-promoted'
+  | 'preview-generated'
+  | 'gate-checked'
+  | 'deference-decision'
+  | 'explanation-generated'
+  | 'dev-mode-toggle';
+
+/**
+ * A single entry in the pragmatics trace.
+ */
+export interface TraceEntry {
+  readonly id: string;
+  readonly eventType: TraceEventType;
+  readonly timestamp: number;
+  readonly description: string;
+  readonly inputData: Record<string, string>;
+  readonly outputData: Record<string, string>;
+  readonly decision: string;
+  readonly reason: string;
+  readonly relatedEntryIds: readonly string[];
+  readonly tags: readonly string[];
+}
+
+/**
+ * A trace event for structured recording.
+ */
+export interface TraceEvent {
+  readonly type: TraceEventType;
+  readonly payload: Record<string, string>;
+  readonly timestamp: number;
+}
+
+/**
+ * Configuration for trace recording.
+ */
+export interface TraceConfig {
+  readonly enabled: boolean;
+  readonly maxEntries: number;
+  readonly captureInputData: boolean;
+  readonly captureOutputData: boolean;
+  readonly filterEventTypes: readonly TraceEventType[] | null;
+  readonly includeTimestamps: boolean;
+  readonly includeRelatedEntries: boolean;
+}
+
+/**
+ * Summary statistics for a trace.
+ */
+export interface TraceSummary {
+  readonly totalEntries: number;
+  readonly eventTypeCounts: ReadonlyMap<TraceEventType, number>;
+  readonly firstTimestamp: number;
+  readonly lastTimestamp: number;
+  readonly durationMs: number;
+  readonly uniqueTags: readonly string[];
+  readonly decisionDistribution: ReadonlyMap<string, number>;
+}
+
+/**
+ * An exported trace for bug reports or reproducibility.
+ */
+export interface TraceExport {
+  readonly version: string;
+  readonly config: TraceConfig;
+  readonly entries: readonly TraceEntry[];
+  readonly summary: TraceSummary;
+  readonly exportedAt: number;
+  readonly metadata: Record<string, string>;
+}
+
+/**
+ * The full pragmatics trace.
+ */
+export interface PragmaticsTrace {
+  readonly id: string;
+  readonly config: TraceConfig;
+  readonly entries: readonly TraceEntry[];
+  readonly createdAt: number;
+  readonly lastUpdated: number;
+}
+
+// ----- 250: Default config -----
+
+const DEFAULT_TRACE_CONFIG: TraceConfig = {
+  enabled: true,
+  maxEntries: 500,
+  captureInputData: true,
+  captureOutputData: true,
+  filterEventTypes: null,
+  includeTimestamps: true,
+  includeRelatedEntries: true,
+};
+
+let _traceCounter = 0;
+let _traceEntryCounter = 0;
+const _traceEntries: TraceEntry[] = [];
+let _traceConfig: TraceConfig = DEFAULT_TRACE_CONFIG;
+let _traceCreatedAt: number = Date.now();
+
+function generateTraceId(): string {
+  _traceCounter += 1;
+  return `pt-${_traceCounter}-${Date.now()}`;
+}
+
+function generateTraceEntryId(): string {
+  _traceEntryCounter += 1;
+  return `te-${_traceEntryCounter}-${Date.now()}`;
+}
+
+// ----- 250: Core functions -----
+
+/**
+ * Create a new pragmatics trace.
+ */
+export function createTrace(config?: Partial<TraceConfig>): PragmaticsTrace {
+  _traceConfig = {
+    ...DEFAULT_TRACE_CONFIG,
+    ...(config !== undefined ? config : {}),
+  };
+  _traceEntries.length = 0;
+  _traceCreatedAt = Date.now();
+
+  return {
+    id: generateTraceId(),
+    config: _traceConfig,
+    entries: [],
+    createdAt: _traceCreatedAt,
+    lastUpdated: _traceCreatedAt,
+  };
+}
+
+/**
+ * Add a trace entry.
+ */
+export function addTraceEntry(
+  eventType: TraceEventType,
+  description: string,
+  decision: string,
+  reason: string,
+  inputData?: Record<string, string>,
+  outputData?: Record<string, string>,
+  relatedEntryIds?: readonly string[],
+  tags?: readonly string[],
+): TraceEntry {
+  if (!_traceConfig.enabled) {
+    return {
+      id: 'disabled',
+      eventType,
+      timestamp: Date.now(),
+      description,
+      inputData: {},
+      outputData: {},
+      decision,
+      reason,
+      relatedEntryIds: [],
+      tags: [],
+    };
+  }
+
+  if (
+    _traceConfig.filterEventTypes !== null &&
+    !_traceConfig.filterEventTypes.includes(eventType)
+  ) {
+    return {
+      id: 'filtered',
+      eventType,
+      timestamp: Date.now(),
+      description,
+      inputData: {},
+      outputData: {},
+      decision,
+      reason,
+      relatedEntryIds: [],
+      tags: [],
+    };
+  }
+
+  const entry: TraceEntry = {
+    id: generateTraceEntryId(),
+    eventType,
+    timestamp: Date.now(),
+    description,
+    inputData: _traceConfig.captureInputData && inputData !== undefined ? inputData : {},
+    outputData: _traceConfig.captureOutputData && outputData !== undefined ? outputData : {},
+    decision,
+    reason,
+    relatedEntryIds: _traceConfig.includeRelatedEntries && relatedEntryIds !== undefined
+      ? relatedEntryIds
+      : [],
+    tags: tags !== undefined ? tags : [],
+  };
+
+  _traceEntries.push(entry);
+  while (_traceEntries.length > _traceConfig.maxEntries) {
+    _traceEntries.shift();
+  }
+
+  return entry;
+}
+
+/**
+ * Get the current trace.
+ */
+export function getTrace(): PragmaticsTrace {
+  return {
+    id: `pt-current-${_traceCreatedAt}`,
+    config: _traceConfig,
+    entries: [..._traceEntries],
+    createdAt: _traceCreatedAt,
+    lastUpdated: _traceEntries.length > 0
+      ? (_traceEntries[_traceEntries.length - 1]?.timestamp ?? Date.now())
+      : _traceCreatedAt,
+  };
+}
+
+/**
+ * Export the trace for bug reports or reproducibility.
+ */
+export function exportTrace(metadata?: Record<string, string>): TraceExport {
+  const trace = getTrace();
+  const summary = summarizeTrace();
+
+  return {
+    version: '1.0.0',
+    config: _traceConfig,
+    entries: trace.entries,
+    summary,
+    exportedAt: Date.now(),
+    metadata: metadata !== undefined ? metadata : {},
+  };
+}
+
+/**
+ * Import a trace from an export.
+ */
+export function importTrace(exported: TraceExport): PragmaticsTrace {
+  _traceConfig = exported.config;
+  _traceEntries.length = 0;
+  for (const entry of exported.entries) {
+    _traceEntries.push(entry);
+  }
+  _traceCreatedAt = exported.entries.length > 0
+    ? (exported.entries[0]?.timestamp ?? Date.now())
+    : Date.now();
+
+  return getTrace();
+}
+
+/**
+ * Summarize the trace.
+ */
+export function summarizeTrace(): TraceSummary {
+  const eventTypeCounts = new Map<TraceEventType, number>();
+  const decisionDistribution = new Map<string, number>();
+  const allTags = new Set<string>();
+
+  let firstTimestamp = Infinity;
+  let lastTimestamp = 0;
+
+  for (const entry of _traceEntries) {
+    // Event type counts
+    const prevCount = eventTypeCounts.get(entry.eventType);
+    eventTypeCounts.set(entry.eventType, (prevCount !== undefined ? prevCount : 0) + 1);
+
+    // Decision distribution
+    const prevDec = decisionDistribution.get(entry.decision);
+    decisionDistribution.set(entry.decision, (prevDec !== undefined ? prevDec : 0) + 1);
+
+    // Tags
+    for (const tag of entry.tags) {
+      allTags.add(tag);
+    }
+
+    // Timestamps
+    if (entry.timestamp < firstTimestamp) firstTimestamp = entry.timestamp;
+    if (entry.timestamp > lastTimestamp) lastTimestamp = entry.timestamp;
+  }
+
+  if (_traceEntries.length === 0) {
+    firstTimestamp = 0;
+    lastTimestamp = 0;
+  }
+
+  return {
+    totalEntries: _traceEntries.length,
+    eventTypeCounts,
+    firstTimestamp,
+    lastTimestamp,
+    durationMs: lastTimestamp - firstTimestamp,
+    uniqueTags: Array.from(allTags),
+    decisionDistribution,
+  };
+}
+
+/**
+ * Filter the trace to specific event types.
+ */
+export function filterTrace(
+  eventTypes: readonly TraceEventType[],
+): readonly TraceEntry[] {
+  const typeSet = new Set(eventTypes);
+  return _traceEntries.filter((e) => typeSet.has(e.eventType));
+}
+
+/**
+ * Format the trace for a bug report.
+ */
+export function formatTraceForBugReport(): string {
+  const summary = summarizeTrace();
+  const lines: string[] = [];
+
+  lines.push('=== Pragmatics Trace Bug Report ===');
+  lines.push(`Generated: ${new Date().toISOString()}`);
+  lines.push(`Total entries: ${summary.totalEntries}`);
+  lines.push(`Duration: ${summary.durationMs}ms`);
+  lines.push('');
+
+  // Event type breakdown
+  lines.push('Event Type Breakdown:');
+  for (const [eventType, count] of Array.from(summary.eventTypeCounts.entries())) {
+    lines.push(`  ${eventType}: ${count}`);
+  }
+  lines.push('');
+
+  // Decision distribution
+  lines.push('Decision Distribution:');
+  for (const [decision, count] of Array.from(summary.decisionDistribution.entries())) {
+    lines.push(`  "${decision}": ${count}`);
+  }
+  lines.push('');
+
+  // Tags
+  if (summary.uniqueTags.length > 0) {
+    lines.push(`Tags: ${summary.uniqueTags.join(', ')}`);
+    lines.push('');
+  }
+
+  // Last 20 entries
+  lines.push('Recent Entries (last 20):');
+  const recentEntries = _traceEntries.slice(-20);
+  for (const entry of recentEntries) {
+    const ts = _traceConfig.includeTimestamps
+      ? `[${new Date(entry.timestamp).toISOString()}] `
+      : '';
+    lines.push(`${ts}${entry.eventType}: ${entry.description}`);
+    lines.push(`  Decision: ${entry.decision}`);
+    lines.push(`  Reason: ${entry.reason}`);
+    if (Object.keys(entry.inputData).length > 0) {
+      lines.push(`  Input: ${JSON.stringify(entry.inputData)}`);
+    }
+    if (Object.keys(entry.outputData).length > 0) {
+      lines.push(`  Output: ${JSON.stringify(entry.outputData)}`);
+    }
+    if (entry.relatedEntryIds.length > 0) {
+      lines.push(`  Related: ${entry.relatedEntryIds.join(', ')}`);
+    }
+    if (entry.tags.length > 0) {
+      lines.push(`  Tags: ${entry.tags.join(', ')}`);
+    }
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Clear the trace.
+ */
+export function clearTrace(): void {
+  _traceEntries.length = 0;
+  _traceCreatedAt = Date.now();
+}
+
+/**
+ * Get trace statistics.
+ */
+export function getTraceStats(): {
+  totalEntries: number;
+  oldestEntryAge: number;
+  newestEntryAge: number;
+  entriesPerSecond: number;
+  eventTypes: readonly TraceEventType[];
+  configEnabled: boolean;
+} {
+  const now = Date.now();
+  const firstEntry = _traceEntries[0];
+  const lastEntry = _traceEntries[_traceEntries.length - 1];
+
+  const oldestAge = firstEntry !== undefined ? now - firstEntry.timestamp : 0;
+  const newestAge = lastEntry !== undefined ? now - lastEntry.timestamp : 0;
+  const duration = oldestAge > 0 ? oldestAge / 1000 : 1;
+
+  const eventTypeSet = new Set<TraceEventType>();
+  for (const entry of _traceEntries) {
+    eventTypeSet.add(entry.eventType);
+  }
+
+  return {
+    totalEntries: _traceEntries.length,
+    oldestEntryAge: oldestAge,
+    newestEntryAge: newestAge,
+    entriesPerSecond: _traceEntries.length / duration,
+    eventTypes: Array.from(eventTypeSet),
+    configEnabled: _traceConfig.enabled,
+  };
 }

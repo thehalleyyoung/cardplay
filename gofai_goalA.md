@@ -214,16 +214,16 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 238 [Eval] — Add tests for presupposition handling: "again" must fail/clarify if no antecedent edit exists.
 - [x] Step 239 [Eval] — Add tests for QUD behavior: clarification questions should reduce ambiguity and not introduce new ambiguities.
 - [x] Step 240 [Eval] — Add regression tests for "repair moves" ("no, I meant…") preserving all other semantics.
-- [ ] Step 241 [Sem][Prag] — Integrate discourse-level constraints: “but keep the melody” should become a high-priority hard constraint by default.
-- [ ] Step 242 [Sem][Prag] — Implement “accommodation policies” for underspecified requests: propose defaults but require explicit acknowledgement before execution.
-- [ ] Step 243 [Prag] — Implement “safety-first deference”: if a binding would cause large changes, prefer asking a question over executing.
-- [ ] Step 244 [Prag] — Implement “confidence” as an internal measure derived from ambiguity/hole count, not as a probabilistic model.
-- [ ] Step 245 [Prag] — Implement “explainable resolution”: every resolved pronoun must have a user-readable reason (“most recent focus: Chorus 2”).
-- [ ] Step 246 [HCI] — Add “why this question?” affordance on clarification UI that shows the competing meanings and their edits.
-- [ ] Step 247 [HCI] — Add a “safe preview mode” for ambiguous requests: show two candidate diffs without applying either.
-- [ ] Step 248 [HCI] — Add a “commit button” that is disabled until all hard ambiguities are resolved (holes that affect execution).
-- [ ] Step 249 [HCI] — Add “developer mode” toggles to display discourse referents and salience scores for debugging.
-- [ ] Step 250 [Infra] — Define an internal “pragmatics trace” format that records binding decisions for reproducibility and bug reports.
+- [x] Step 241 [Sem][Prag] — Integrate discourse-level constraints: "but keep the melody" should become a high-priority hard constraint by default.
+- [x] Step 242 [Sem][Prag] — Implement "accommodation policies" for underspecified requests: propose defaults but require explicit acknowledgement before execution.
+- [x] Step 243 [Prag] — Implement "safety-first deference": if a binding would cause large changes, prefer asking a question over executing.
+- [x] Step 244 [Prag] — Implement "confidence" as an internal measure derived from ambiguity/hole count, not as a probabilistic model.
+- [x] Step 245 [Prag] — Implement "explainable resolution": every resolved pronoun must have a user-readable reason ("most recent focus: Chorus 2").
+- [x] Step 246 [HCI] — Add "why this question?" affordance on clarification UI that shows the competing meanings and their edits.
+- [x] Step 247 [HCI] — Add a "safe preview mode" for ambiguous requests: show two candidate diffs without applying either.
+- [x] Step 248 [HCI] — Add a "commit button" that is disabled until all hard ambiguities are resolved (holes that affect execution).
+- [x] Step 249 [HCI] — Add "developer mode" toggles to display discourse referents and salience scores for debugging.
+- [x] Step 250 [Infra] — Define an internal "pragmatics trace" format that records binding decisions for reproducibility and bug reports.
 ---
 
 ## Phase 7 — HCI: The GOFAI Deck, Clarifications, Trust, and Flow (Steps 351–400)
