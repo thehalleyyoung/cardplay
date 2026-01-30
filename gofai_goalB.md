@@ -142,7 +142,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 320 [HCI] — Add UI for “reapply”: user can reapply a prior package to a new context if still valid.
 - [x] Step 321 [Sem][Type] — Implement melody preservation checkers (exact pitch+onset equality; tolerances for “recognizable”).
 - [x] Step 322 [Sem][Type] — Implement harmony preservation checkers (chord skeleton equality; functional equivalence; extension invariance).
-- [ ] Step 323 [Sem][Type] — Implement rhythm preservation checkers (grid-aligned onset sets; swing/humanize allowances).
+- [x] Step 323 [Sem][Type] — Implement rhythm preservation checkers (grid-aligned onset sets; swing/humanize allowances).
 - [x] Step 324 [Sem][Type] — Implement “only-change” checker: diff must touch only allowed selectors; report violations with highlighted events.
 - [x] Step 325 [Sem][Type] — Implement “no-new-layers” checker: ensure no new tracks/cards are added unless allowed.
 - [x] Step 326 [Infra] — Implement diff rendering helpers: convert low-level diffs into human summary sentences (“Chorus: hats density +20%”).

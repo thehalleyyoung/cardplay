@@ -52,7 +52,7 @@ describe('Phrase Integration (G055-G057)', () => {
     expect(board?.compositionTools.aiComposer.mode).toBe('hidden');
   });
 
-  it('G056: dropping phrase writes correct event timings into SharedEventStore', () => {
+  it('G056: dropping phrase writes correct event timings into SharedEventStore', async () => {
     const eventStore = getSharedEventStore();
     
     // Create a test stream
@@ -79,10 +79,19 @@ describe('Phrase Integration (G055-G057)', () => {
     
     // Simulate drop at specific position
     const dropAtTick = asTick(1920); // Drop at beat 2
-    const targetTrack = 0;
+    
+    // Create drop context
+    const dropContext = {
+      targetType: 'pattern-editor' as const,
+      targetId: 'test-deck',
+      position: { x: 0, y: 0 },
+      streamId,
+      time: dropAtTick,
+      modifiers: { shift: false, alt: false, ctrl: false },
+    };
     
     // Execute drop handler
-    const result = handlePhraseToPatternEditor(phrasePayload, streamId, dropAtTick, targetTrack);
+    const result = await handlePhraseToPatternEditor(phrasePayload, dropContext);
     
     expect(result.accepted).toBe(true);
     
@@ -102,7 +111,7 @@ describe('Phrase Integration (G055-G057)', () => {
     expect(newEvents[2].payload.note).toBe(64);
   });
 
-  it('G057: phrase drop is undoable and restores previous events', () => {
+  it('G057: phrase drop is undoable and restores previous events', async () => {
     const eventStore = getSharedEventStore();
     const undoStack = getUndoStack();
     
@@ -141,7 +150,16 @@ describe('Phrase Integration (G055-G057)', () => {
     };
     
     // Execute drop (should be undoable)
-    const result = handlePhraseToPatternEditor(phrasePayload, streamId, asTick(960), 0);
+    const dropContext = {
+      targetType: 'pattern-editor' as const,
+      targetId: 'test-deck',
+      position: { x: 0, y: 0 },
+      streamId,
+      time: 960,
+      modifiers: { shift: false, alt: false, ctrl: false },
+    };
+    
+    const result = await handlePhraseToPatternEditor(phrasePayload, dropContext);
     expect(result.accepted).toBe(true);
     expect(result.undoable).toBe(true);
     
@@ -169,7 +187,7 @@ describe('Phrase Integration (G055-G057)', () => {
     expect(afterRedoEvents[2].payload.note).toBe(62); // Phrase note 2
   });
 
-  it('phrase adaptation: adapts to harmony context when available', () => {
+  it('phrase adaptation: adapts to harmony context when available', async () => {
     const eventStore = getSharedEventStore();
     
     // Create test stream
@@ -201,7 +219,17 @@ describe('Phrase Integration (G055-G057)', () => {
     };
     
     // Execute drop with adaptation (would use phrase-adapter.ts in real implementation)
-    const result = handlePhraseToPatternEditor(phrasePayload, streamId, asTick(0), 0, harmonyContext);
+    const dropContext = {
+      targetType: 'pattern-editor' as const,
+      targetId: 'test-deck',
+      position: { x: 0, y: 0 },
+      streamId,
+      time: 0,
+      modifiers: { shift: false, alt: false, ctrl: false },
+      harmonyContext,
+    };
+    
+    const result = await handlePhraseToPatternEditor(phrasePayload, dropContext);
     
     expect(result.accepted).toBe(true);
     
