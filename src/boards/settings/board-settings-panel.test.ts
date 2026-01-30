@@ -2,6 +2,7 @@
  * @fileoverview Tests for Board Settings Panel
  * 
  * @module @cardplay/boards/settings/board-settings-panel.test
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -11,9 +12,11 @@ import { basicTrackerBoard } from '../builtins/basic-tracker-board';
 
 describe('BoardSettingsPanel', () => {
   beforeEach(() => {
-    // Register test board
+    // Register test board as builtin (if not already registered)
     const registry = getBoardRegistry();
-    registry.register(basicTrackerBoard);
+    if (!registry.get('basic-tracker')) {
+      registry.register(basicTrackerBoard, { isBuiltin: true });
+    }
     
     // Setup DOM
     document.body.innerHTML = '<div id="test-container"></div>';
