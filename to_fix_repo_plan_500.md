@@ -557,7 +557,41 @@ Notes:
 - ✅ **Test files:** 270/311 passing (86.8%) ← UPDATED Session 23!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 23 Summary (2026-01-30) - LATEST
+### Session 24 Summary (2026-01-30) - LATEST
+
+**Major Achievements:**
+1. ✅ Fixed id-system tests from 56/58 to 58/58 passing (100%, +2 tests)
+2. ✅ Fixed isNamespaced() and getNamespace() for gofai:category:name format
+3. ✅ Fixed namespace validation to enforce kebab-case (no underscores)
+4. ✅ Tests passing: 10,890 → 10,915 (+25 tests, +0.2%)
+5. ✅ Test files passing: 269 → 271 (+2 files)
+6. ✅ Pass rate: 95.6% → 95.7% (+0.1%)
+
+**Test Improvements:**
+1. id-system.test.ts (58/58, was 56/58):
+   - Fixed isNamespaced() to recognize gofai:category:name and rule:category:name as core IDs
+   - Fixed getNamespace() to extract namespace from 4-part gofai/rule IDs  
+   - Updated validateNamespace() to enforce kebab-case (no underscores in namespaces)
+   - Corrected test expectations for ID format: type:namespace:name (not namespace:type:name)
+   - Fixed all createLexemeId() calls to use correct parameter order (name, namespace?)
+   - Updated constraint ID tests (bare names for core, namespace:name for extensions)
+
+**Progress Metrics:**
+- Starting: 10,890 tests passing (269 files), 479 failing
+- Ending: 10,915 tests passing (271 files), 458 failing
+- Pass rate: 95.7% (10,915/11,406)
+- Improvement: +25 tests, +2 files, -21 failures, +0.1% pass rate
+
+**Commits:**
+1. 706730d: Fix id-system tests: correct ID format expectations and namespace validation
+
+**Remaining Work:**
+- 41 test files still failing (down from 42)
+- 458 tests failing (4.0% failure rate, down from 4.2%)
+- High-impact files: spec-event-bus (200), vocabulary-policy (42), auto-coloring (26), store (25)
+- Most failures in: integration tests, GOFAI experiments, UI timing tests
+
+### Session 23 Summary (2026-01-30)
 
 **Major Achievements:**
 1. ✅ Fixed vocabulary-policy tests from 15/57 to 57/57 passing (100%, +42 tests, +280%)

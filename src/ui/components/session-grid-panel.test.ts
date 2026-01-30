@@ -20,6 +20,20 @@ describe('SessionGridPanel', () => {
   let clipRegistry: ReturnType<typeof getClipRegistry>;
 
   beforeEach(() => {
+    // Mock localStorage for jsdom
+    const localStorageMock = {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      length: 0,
+      key: vi.fn(),
+    };
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
+
     // Setup DOM
     document.body.innerHTML = '<div id="test-root"></div>';
 
