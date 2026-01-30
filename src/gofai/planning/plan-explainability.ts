@@ -778,6 +778,657 @@ function describeVerification(constraint: CPLConstraint): string {
 }
 
 // =============================================================================
+// Comprehensive Opcode Explanation Library
+// =============================================================================
+
+/**
+ * Detailed explanation templates for all opcodes.
+ * This maps each opcode to multiple explanation formats for different contexts.
+ */
+interface OpcodeExplanationTemplate {
+  readonly action: string;
+  readonly effect: string;
+  readonly musicalRationale: string;
+  readonly technicalDetails: string;
+  readonly typicalGoals: readonly string[];
+  readonly compatibleAxes: readonly AxisId[];
+  readonly riskLevel: 'low' | 'medium' | 'high';
+  readonly examples: readonly string[];
+}
+
+const OPCODE_EXPLANATIONS: Record<OpcodeId, OpcodeExplanationTemplate> = {
+  // ===== Spectral / Timbral Opcodes =====
+  'boost_highs': {
+    action: 'Boost high frequencies',
+    effect: 'Makes the sound brighter and more present',
+    musicalRationale: 'Increases clarity and air, helps elements cut through the mix',
+    technicalDetails: 'Applies high-shelf EQ boost centered around 8-12kHz',
+    typicalGoals: ['increase brightness', 'add air', 'improve clarity'],
+    compatibleAxes: ['axis:brightness' as AxisId, 'axis:air' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Adds sparkle to cymbals',
+      'Brings out vocal presence',
+      'Makes synths sound more modern',
+    ],
+  },
+  'cut_highs': {
+    action: 'Reduce high frequencies',
+    effect: 'Makes the sound warmer and less harsh',
+    musicalRationale: 'Reduces fatigue, creates vintage character, controls sibilance',
+    technicalDetails: 'Applies high-shelf EQ cut or low-pass filter',
+    typicalGoals: ['increase warmth', 'reduce harshness', 'create vintage feel'],
+    compatibleAxes: ['axis:warmth' as AxisId, 'axis:brightness' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Warms up harsh digital synths',
+      'Creates lofi character',
+      'Tames overly bright recordings',
+    ],
+  },
+  'boost_lows': {
+    action: 'Boost low frequencies',
+    effect: 'Adds weight and power to the sound',
+    musicalRationale: 'Increases impact and physical presence, fills out thin mixes',
+    technicalDetails: 'Applies low-shelf EQ boost or sub-harmonic generation',
+    typicalGoals: ['add weight', 'increase power', 'fill out low end'],
+    compatibleAxes: ['axis:weight' as AxisId, 'axis:power' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Makes kick drums hit harder',
+      'Fills out bass lines',
+      'Adds sub presence to pads',
+    ],
+  },
+  'cut_lows': {
+    action: 'Reduce low frequencies',
+    effect: 'Cleans up muddy low end and creates space',
+    musicalRationale: 'Prevents frequency buildup, clears headroom for bass/kick',
+    technicalDetails: 'Applies high-pass filter typically at 80-200Hz',
+    typicalGoals: ['reduce muddiness', 'clean up mix', 'create space'],
+    compatibleAxes: ['axis:clarity' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Removes rumble from vocals',
+      'Cleans up guitar tracks',
+      'Separates elements in busy mixes',
+    ],
+  },
+  'boost_mids': {
+    action: 'Boost mid-range frequencies',
+    effect: 'Brings elements forward in the mix',
+    musicalRationale: 'Increases presence and body, helps with mix definition',
+    technicalDetails: 'Applies parametric EQ boost in 200Hz-5kHz range',
+    typicalGoals: ['increase presence', 'add body', 'improve definition'],
+    compatibleAxes: ['axis:presence' as AxisId, 'axis:body' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Makes vocals sit forward',
+      'Adds punch to snares',
+      'Brings out melodic content',
+    ],
+  },
+  'cut_mids': {
+    action: 'Reduce mid-range frequencies',
+    effect: 'Creates space and reduces boxiness',
+    musicalRationale: 'Removes resonances, controls harshness, creates room for other elements',
+    technicalDetails: 'Applies parametric EQ cut targeting resonant frequencies',
+    typicalGoals: ['reduce boxiness', 'create space', 'control resonance'],
+    compatibleAxes: ['axis:clarity' as AxisId, 'axis:space' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Removes nasal quality from vocals',
+      'Tames boxy acoustic guitars',
+      'Creates room for lead elements',
+    ],
+  },
+
+  // ===== Spatial / Stereo Opcodes =====
+  'widen_stereo': {
+    action: 'Increase stereo width',
+    effect: 'Makes the sound feel more expansive and immersive',
+    musicalRationale: 'Creates space and separation, enhances envelopment',
+    technicalDetails: 'Applies stereo widening via mid-side processing or Haas effect',
+    typicalGoals: ['increase width', 'create space', 'enhance immersion'],
+    compatibleAxes: ['axis:width' as AxisId, 'axis:space' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Makes pad sounds more atmospheric',
+      'Widens stereo synths',
+      'Creates cinematic space',
+    ],
+  },
+  'narrow_stereo': {
+    action: 'Reduce stereo width',
+    effect: 'Creates focus and intimacy',
+    musicalRationale: 'Increases mono compatibility, focuses attention, creates intimacy',
+    technicalDetails: 'Reduces side content in mid-side processing',
+    typicalGoals: ['increase focus', 'improve mono compatibility', 'create intimacy'],
+    compatibleAxes: ['axis:intimacy' as AxisId, 'axis:focus' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Focuses lead vocals',
+      'Tightens bass frequencies',
+      'Creates intimate acoustic feel',
+    ],
+  },
+  'pan_left': {
+    action: 'Position sound toward left',
+    effect: 'Places element in left portion of stereo field',
+    musicalRationale: 'Creates separation and balance in arrangement',
+    technicalDetails: 'Adjusts pan position -100 to -30',
+    typicalGoals: ['create separation', 'balance arrangement', 'position elements'],
+    compatibleAxes: ['axis:position' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Pans rhythm guitar left',
+      'Balances dual elements',
+      'Creates stereo space',
+    ],
+  },
+  'pan_right': {
+    action: 'Position sound toward right',
+    effect: 'Places element in right portion of stereo field',
+    musicalRationale: 'Creates separation and balance in arrangement',
+    technicalDetails: 'Adjusts pan position +30 to +100',
+    typicalGoals: ['create separation', 'balance arrangement', 'position elements'],
+    compatibleAxes: ['axis:position' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Pans rhythm guitar right',
+      'Balances dual elements',
+      'Creates stereo space',
+    ],
+  },
+  'center_position': {
+    action: 'Center sound in stereo field',
+    effect: 'Places element directly in center',
+    musicalRationale: 'Creates focus and power, typical for lead elements',
+    technicalDetails: 'Sets pan position to 0 (center)',
+    typicalGoals: ['create focus', 'increase power', 'center attention'],
+    compatibleAxes: ['axis:focus' as AxisId, 'axis:power' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Centers lead vocal',
+      'Focuses kick and bass',
+      'Creates strong presence',
+    ],
+  },
+
+  // ===== Dynamics Opcodes =====
+  'compress': {
+    action: 'Apply dynamic range compression',
+    effect: 'Evens out volume levels and adds sustain',
+    musicalRationale: 'Increases consistency, adds power and punch, controls peaks',
+    technicalDetails: 'Reduces dynamic range via ratio, threshold, attack/release',
+    typicalGoals: ['increase consistency', 'add punch', 'control dynamics'],
+    compatibleAxes: ['axis:punch' as AxisId, 'axis:consistency' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Makes vocals sit consistently',
+      'Adds punch to drums',
+      'Glues mix elements together',
+    ],
+  },
+  'expand': {
+    action: 'Increase dynamic range',
+    effect: 'Makes quiet parts quieter and loud parts louder',
+    musicalRationale: 'Restores natural dynamics, increases drama and impact',
+    technicalDetails: 'Expands dynamic range via upward or downward expansion',
+    typicalGoals: ['increase dynamics', 'restore life', 'add drama'],
+    compatibleAxes: ['axis:dynamics' as AxisId, 'axis:drama' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Restores over-compressed material',
+      'Increases dramatic range',
+      'Brings back natural feel',
+    ],
+  },
+  'limit': {
+    action: 'Apply hard limiting',
+    effect: 'Prevents peaks from exceeding threshold',
+    musicalRationale: 'Maximizes loudness without clipping, protects against peaks',
+    technicalDetails: 'Applies brick-wall limiting at specified ceiling',
+    typicalGoals: ['maximize loudness', 'prevent clipping', 'add power'],
+    compatibleAxes: ['axis:loudness' as AxisId, 'axis:power' as AxisId],
+    riskLevel: 'high',
+    examples: [
+      'Maximizes master bus loudness',
+      'Controls transient peaks',
+      'Prepares for streaming platforms',
+    ],
+  },
+  'gate': {
+    action: 'Apply noise gate',
+    effect: 'Silences signal below threshold',
+    musicalRationale: 'Removes noise and bleed, tightens drums, creates rhythmic effects',
+    technicalDetails: 'Cuts signal below threshold with configurable attack/release',
+    typicalGoals: ['remove noise', 'tighten performance', 'create rhythm'],
+    compatibleAxes: ['axis:tightness' as AxisId, 'axis:clarity' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Cleans up noisy recordings',
+      'Tightens drum tracks',
+      'Creates gated reverb effects',
+    ],
+  },
+
+  // ===== Temporal / Rhythm Opcodes =====
+  'quantize': {
+    action: 'Align timing to grid',
+    effect: 'Makes rhythm more precise and locked',
+    musicalRationale: 'Increases tightness, fixes timing errors, creates mechanical feel',
+    technicalDetails: 'Snaps note onsets to nearest grid position',
+    typicalGoals: ['increase tightness', 'fix timing', 'create precision'],
+    compatibleAxes: ['axis:tightness' as AxisId, 'axis:precision' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Locks drums to grid',
+      'Tightens bass performance',
+      'Creates electronic precision',
+    ],
+  },
+  'humanize': {
+    action: 'Add timing variation',
+    effect: 'Makes rhythm feel more natural and organic',
+    musicalRationale: 'Removes mechanical feel, adds human character, creates groove',
+    technicalDetails: 'Randomly offsets timing and velocity within musical bounds',
+    typicalGoals: ['add humanity', 'create groove', 'remove mechanical feel'],
+    compatibleAxes: ['axis:groove' as AxisId, 'axis:humanity' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Makes MIDI drums feel real',
+      'Adds groove to programmed parts',
+      'Creates natural imperfection',
+    ],
+  },
+  'add_swing': {
+    action: 'Apply swing timing',
+    effect: 'Creates shuffled or swung groove',
+    musicalRationale: 'Adds groove and feel, creates genre-specific character',
+    technicalDetails: 'Delays off-beat events by swing percentage',
+    typicalGoals: ['add groove', 'create swing feel', 'enhance rhythm'],
+    compatibleAxes: ['axis:swing' as AxisId, 'axis:groove' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Creates jazz swing feel',
+      'Adds hip-hop groove',
+      'Makes rhythm less rigid',
+    ],
+  },
+  'remove_swing': {
+    action: 'Straighten swing timing',
+    effect: 'Creates straight, even rhythm',
+    musicalRationale: 'Removes shuffle, creates driving feel, increases urgency',
+    technicalDetails: 'Removes swing offset, creates even subdivision',
+    typicalGoals: ['create drive', 'increase urgency', 'straighten rhythm'],
+    compatibleAxes: ['axis:drive' as AxisId, 'axis:tightness' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Straightens shuffled drums',
+      'Creates driving rock feel',
+      'Increases forward motion',
+    ],
+  },
+  'shift_timing': {
+    action: 'Shift all events in time',
+    effect: 'Changes phase relationship with other elements',
+    musicalRationale: 'Creates pocket, adjusts feel, fixes sync issues',
+    technicalDetails: 'Offsets all events by fixed amount',
+    typicalGoals: ['adjust pocket', 'fix sync', 'create feel'],
+    compatibleAxes: ['axis:pocket' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Pushes drums ahead for urgency',
+      'Lays drums back for laid-back feel',
+      'Fixes phase issues between tracks',
+    ],
+  },
+
+  // ===== Harmonic Opcodes =====
+  'transpose_up': {
+    action: 'Shift pitch upward',
+    effect: 'Raises overall pitch register',
+    musicalRationale: 'Changes key, increases brightness and energy',
+    technicalDetails: 'Shifts all pitches by specified semitones',
+    typicalGoals: ['raise register', 'increase energy', 'change key'],
+    compatibleAxes: ['axis:register' as AxisId, 'axis:energy' as AxisId],
+    riskLevel: 'high',
+    examples: [
+      'Transposes melody up an octave',
+      'Raises key for brighter feel',
+      'Creates higher harmony layer',
+    ],
+  },
+  'transpose_down': {
+    action: 'Shift pitch downward',
+    effect: 'Lowers overall pitch register',
+    musicalRationale: 'Changes key, adds weight and gravity',
+    technicalDetails: 'Shifts all pitches by specified semitones',
+    typicalGoals: ['lower register', 'add weight', 'change key'],
+    compatibleAxes: ['axis:register' as AxisId, 'axis:weight' as AxisId],
+    riskLevel: 'high',
+    examples: [
+      'Drops bass line an octave',
+      'Lowers key for darker feel',
+      'Creates lower harmony layer',
+    ],
+  },
+  'revoice': {
+    action: 'Change chord voicing',
+    effect: 'Redistributes notes within chord',
+    musicalRationale: 'Improves voice leading, changes character, optimizes register',
+    technicalDetails: 'Moves chord tones to different octaves while preserving harmony',
+    typicalGoals: ['improve voicing', 'optimize register', 'enhance character'],
+    compatibleAxes: ['axis:voicing' as AxisId, 'axis:register' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Opens up close voicing',
+      'Creates drop-2 voicing',
+      'Improves voice leading',
+    ],
+  },
+  'add_extensions': {
+    action: 'Add harmonic extensions',
+    effect: 'Makes harmony richer and more colorful',
+    musicalRationale: 'Adds complexity and sophistication, creates tension/color',
+    technicalDetails: 'Adds 7ths, 9ths, 11ths, 13ths to chords',
+    typicalGoals: ['enrich harmony', 'add color', 'increase sophistication'],
+    compatibleAxes: ['axis:richness' as AxisId, 'axis:complexity' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Makes triads into 7th chords',
+      'Adds jazz color to progressions',
+      'Creates sophisticated harmonic palette',
+    ],
+  },
+  'substitute_chord': {
+    action: 'Replace chord with substitute',
+    effect: 'Changes harmonic direction while maintaining function',
+    musicalRationale: 'Adds variety, creates reharmonization, maintains or enhances motion',
+    technicalDetails: 'Replaces chord with functional substitute (tritone, relative, etc.)',
+    typicalGoals: ['add variety', 'enhance progression', 'create interest'],
+    compatibleAxes: ['axis:variety' as AxisId, 'axis:sophistication' as AxisId],
+    riskLevel: 'high',
+    examples: [
+      'Tritone substitution in jazz',
+      'Replaces IV with ii',
+      'Modal interchange substitution',
+    ],
+  },
+
+  // ===== Density / Texture Opcodes =====
+  'thin_texture': {
+    action: 'Remove notes or events',
+    effect: 'Creates space and reduces busyness',
+    musicalRationale: 'Increases clarity, creates breathing room, reduces fatigue',
+    technicalDetails: 'Removes events based on salience, timing, or register',
+    typicalGoals: ['increase clarity', 'create space', 'reduce busyness'],
+    compatibleAxes: ['axis:clarity' as AxisId, 'axis:space' as AxisId, 'axis:busyness' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Removes excessive hi-hat hits',
+      'Thins out busy piano part',
+      'Creates cleaner arrangement',
+    ],
+  },
+  'densify': {
+    action: 'Add notes or events',
+    effect: 'Makes rhythm or harmony fuller',
+    musicalRationale: 'Increases energy and complexity, fills holes, adds movement',
+    technicalDetails: 'Adds events following musical logic (scales, subdivisions)',
+    typicalGoals: ['increase energy', 'add complexity', 'fill out texture'],
+    compatibleAxes: ['axis:energy' as AxisId, 'axis:complexity' as AxisId, 'axis:density' as AxisId],
+    riskLevel: 'medium',
+    examples: [
+      'Adds hi-hat 16ths',
+      'Fills out chord voicing',
+      'Creates busier arrangement',
+    ],
+  },
+  'add_layer': {
+    action: 'Duplicate to new layer',
+    effect: 'Creates thicker, richer sound',
+    musicalRationale: 'Adds depth and body, creates ensemble effect',
+    technicalDetails: 'Duplicates events to new track with optional variation',
+    typicalGoals: ['add richness', 'create ensemble', 'increase power'],
+    compatibleAxes: ['axis:richness' as AxisId, 'axis:power' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Doubles vocals for chorus',
+      'Creates string ensemble',
+      'Adds guitar layers',
+    ],
+  },
+  'remove_layer': {
+    action: 'Delete layer or events',
+    effect: 'Simplifies arrangement',
+    musicalRationale: 'Creates clarity, reduces crowding, increases focus',
+    technicalDetails: 'Removes specified track or event group',
+    typicalGoals: ['increase clarity', 'create focus', 'simplify arrangement'],
+    compatibleAxes: ['axis:clarity' as AxisId, 'axis:focus' as AxisId],
+    riskLevel: 'high',
+    examples: [
+      'Removes doubling for verse',
+      'Strips down for breakdown',
+      'Creates intimate section',
+    ],
+  },
+
+  // ===== Structural Opcodes =====
+  'duplicate_section': {
+    action: 'Copy section to new location',
+    effect: 'Repeats musical material',
+    musicalRationale: 'Extends form, creates repetition, builds structure',
+    technicalDetails: 'Copies all events and settings from source to destination',
+    typicalGoals: ['extend form', 'create repetition', 'build structure'],
+    compatibleAxes: [],
+    riskLevel: 'low',
+    examples: [
+      'Repeats chorus',
+      'Doubles verse length',
+      'Creates song intro from verse',
+    ],
+  },
+  'insert_break': {
+    action: 'Create rhythmic break',
+    effect: 'Adds dramatic pause or fill',
+    musicalRationale: 'Creates tension, provides transition, adds drama',
+    technicalDetails: 'Silences or modifies rhythm for specified duration',
+    typicalGoals: ['add drama', 'create transition', 'build tension'],
+    compatibleAxes: ['axis:drama' as AxisId, 'axis:tension' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Creates drum break before drop',
+      'Adds fill before chorus',
+      'Creates anticipation moment',
+    ],
+  },
+  'extend_section': {
+    action: 'Make section longer',
+    effect: 'Adds more bars to section',
+    musicalRationale: 'Allows development, creates space, adjusts pacing',
+    technicalDetails: 'Extends section by repeating or interpolating material',
+    typicalGoals: ['allow development', 'adjust pacing', 'create space'],
+    compatibleAxes: [],
+    riskLevel: 'low',
+    examples: [
+      'Extends verse for additional lyrics',
+      'Lengthens solo section',
+      'Creates longer buildup',
+    ],
+  },
+  'shorten_section': {
+    action: 'Make section shorter',
+    effect: 'Reduces number of bars',
+    musicalRationale: 'Increases urgency, tightens structure, improves pacing',
+    technicalDetails: 'Removes bars while maintaining musical sense',
+    typicalGoals: ['increase urgency', 'tighten structure', 'improve pacing'],
+    compatibleAxes: [],
+    riskLevel: 'medium',
+    examples: [
+      'Cuts verse from 16 to 8 bars',
+      'Tightens intro',
+      'Makes song more concise',
+    ],
+  },
+  'add_variation': {
+    action: 'Create subtle variations',
+    effect: 'Adds interest to repetitive sections',
+    musicalRationale: 'Prevents monotony, maintains interest, creates evolution',
+    technicalDetails: 'Modifies repeated material with melodic/rhythmic variations',
+    typicalGoals: ['add interest', 'prevent monotony', 'create evolution'],
+    compatibleAxes: ['axis:variety' as AxisId, 'axis:interest' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Varies second verse melody',
+      'Adds drum fills on repeats',
+      'Creates evolving pad texture',
+    ],
+  },
+
+  // ===== Effect / Processing Opcodes =====
+  'add_reverb': {
+    action: 'Apply spatial reverb',
+    effect: 'Adds sense of space and depth',
+    musicalRationale: 'Creates atmosphere, adds depth, enhances mood',
+    technicalDetails: 'Applies algorithmic or convolution reverb',
+    typicalGoals: ['add space', 'create atmosphere', 'add depth'],
+    compatibleAxes: ['axis:space' as AxisId, 'axis:depth' as AxisId, 'axis:atmosphere' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Adds hall reverb to vocals',
+      'Creates ambient pad space',
+      'Adds room character to drums',
+    ],
+  },
+  'reduce_reverb': {
+    action: 'Decrease reverb amount',
+    effect: 'Makes sound drier and more direct',
+    musicalRationale: 'Increases clarity and intimacy, creates direct feel',
+    technicalDetails: 'Reduces reverb mix or removes reverb processing',
+    typicalGoals: ['increase clarity', 'create intimacy', 'add directness'],
+    compatibleAxes: ['axis:clarity' as AxisId, 'axis:intimacy' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Dries out over-reverbed vocals',
+      'Creates intimate acoustic feel',
+      'Brings elements forward',
+    ],
+  },
+  'add_delay': {
+    action: 'Apply rhythmic delay',
+    effect: 'Creates echoes and rhythmic interest',
+    musicalRationale: 'Adds space, creates rhythm, enhances groove',
+    technicalDetails: 'Applies time-based delay with feedback',
+    typicalGoals: ['add space', 'create rhythm', 'enhance interest'],
+    compatibleAxes: ['axis:space' as AxisId, 'axis:rhythm' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Adds eighth-note delay to vocals',
+      'Creates dub echo effects',
+      'Adds rhythmic interest to leads',
+    ],
+  },
+  'add_distortion': {
+    action: 'Apply harmonic distortion',
+    effect: 'Adds grit, aggression, and harmonics',
+    musicalRationale: 'Increases aggression and power, adds character',
+    technicalDetails: 'Applies saturation, overdrive, or distortion',
+    typicalGoals: ['increase aggression', 'add character', 'add power'],
+    compatibleAxes: ['axis:aggression' as AxisId, 'axis:grit' as AxisId, 'axis:power' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Adds drive to bass',
+      'Creates distorted vocal effect',
+      'Adds bite to guitars',
+    ],
+  },
+  'add_chorus': {
+    action: 'Apply chorus effect',
+    effect: 'Creates width and thickness',
+    musicalRationale: 'Adds richness and movement, creates ensemble effect',
+    technicalDetails: 'Applies pitch-modulated delay for ensemble effect',
+    typicalGoals: ['add richness', 'create width', 'add movement'],
+    compatibleAxes: ['axis:richness' as AxisId, 'axis:width' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Thickens synth pads',
+      'Adds ensemble feel to strings',
+      'Creates 80s guitar sound',
+    ],
+  },
+  'add_phaser': {
+    action: 'Apply phaser effect',
+    effect: 'Creates sweeping motion',
+    musicalRationale: 'Adds movement and psychedelic character',
+    technicalDetails: 'Applies all-pass filter modulation',
+    typicalGoals: ['add movement', 'create character', 'add interest'],
+    compatibleAxes: ['axis:movement' as AxisId, 'axis:character' as AxisId],
+    riskLevel: 'low',
+    examples: [
+      'Creates sweeping pad motion',
+      'Adds psychedelic guitar effect',
+      'Creates vintage synth character',
+    ],
+  },
+} as const;
+
+/**
+ * Get comprehensive explanation for an opcode.
+ */
+function getOpcodeExplanation(
+  opcodeId: OpcodeId,
+  context: {
+    magnitude?: number;
+    targetDescription?: string;
+    goalDescription?: string;
+  }
+): Partial<StepExplanation> {
+  const template = OPCODE_EXPLANATIONS[opcodeId];
+  
+  if (!template) {
+    // Fallback for unknown opcodes
+    return {
+      action: opcodeId,
+      effect: 'Applies transformation',
+      description: `Apply ${opcodeId}`,
+      rationale: [],
+      confidence: 0.5,
+    };
+  }
+
+  const magnitude = context.magnitude ?? 0.30;
+  const magnitudeDesc = getMagnitudeDescription(magnitude);
+  const target = context.targetDescription ?? 'selected elements';
+
+  return {
+    action: template.action,
+    effect: template.effect,
+    description: `${magnitudeDesc} ${template.action.toLowerCase()} to ${target}`,
+    rationale: context.goalDescription
+      ? [`To ${context.goalDescription}`, template.musicalRationale]
+      : [template.musicalRationale],
+    confidence: 0.85,
+    technicalNote: template.technicalDetails,
+    examples: template.examples,
+  };
+}
+
+/**
+ * Convert numeric magnitude to descriptive phrase.
+ */
+function getMagnitudeDescription(magnitude: number): string {
+  if (magnitude < 0.10) return 'Very slightly';
+  if (magnitude < 0.20) return 'Slightly';
+  if (magnitude < 0.35) return 'Moderately';
+  if (magnitude < 0.50) return 'Significantly';
+  if (magnitude < 0.70) return 'Substantially';
+  if (magnitude < 0.85) return 'Dramatically';
+  return 'Extremely';
+}
+
+// =============================================================================
 // Supporting Functions
 // =============================================================================
 

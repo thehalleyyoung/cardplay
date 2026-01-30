@@ -77,9 +77,9 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
 - [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
 - [x] Step 261 [Sem][Type] — Implement a “plan skeleton” step that maps from CPL-Intent to a set of lever candidates with open parameters.
-- [ ] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
+- [x] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
 - [x] Step 263 [Sem] — Implement “plan legality” checks: ensure opcodes only touch allowed scope and do not mutate forbidden targets.
-- [ ] Step 264 [Sem] — Implement “plan explainability”: each opcode carries a reason string linked to the goal it serves.
+- [x] Step 264 [Sem] — Implement “plan explainability”: each opcode carries a reason string linked to the goal it serves.
 - [ ] Step 265 [Sem] — Implement “plan provenance”: preserve lexeme/rule origins through to plan steps for end-to-end explanations.
 - [ ] Step 266 [Sem][Infra] — Integrate Prolog for symbolic suggestions: query theory KB for chord substitutions, cadence options, mode inference.
 - [ ] Step 267 [Sem] — Define a typed Prolog query layer for GOFAI planning (wrap raw predicates; validate results).

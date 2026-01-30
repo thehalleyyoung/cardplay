@@ -27,14 +27,15 @@ function createMockBoard(id: string, tags: readonly string[], deckTypes: readonl
     decks: deckTypes.map((type, idx) => ({
       id: `${id}-deck-${idx}` as never,
       type: type as never,
-      panelId: `panel-${idx}` as never,
+      panelId: 'panel-main' as never,
       layout: 'tabs' as const,
     })),
     layout: {
-      panels: [{ id: 'panel-0' as never, direction: 'vertical' as const, size: 100 }],
+      type: 'dock' as const,
+      panels: [{ id: 'panel-main' as never, direction: 'vertical' as const, size: 100, position: 'center' as const }],
     },
     difficulty: 'beginner' as const,
-    controlLevel: 'auto-apply' as const,
+    controlLevel: 'assisted' as const, // Valid ControlLevel
     policy: {
       allowCustomCards: false,
       allowExtensions: false,
@@ -49,6 +50,10 @@ function createMockBoard(id: string, tags: readonly string[], deckTypes: readonl
       arrangerCard: { enabled: false, mode: 'hidden' },
       aiComposer: { enabled: false, mode: 'hidden' }
     },
+    connections: [],
+    author: 'test',
+    icon: 'test',
+    philosophy: 'test board for features',
   } as Board;
 }
 

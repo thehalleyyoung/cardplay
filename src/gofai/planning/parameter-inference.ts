@@ -442,6 +442,445 @@ const PARAMETER_TYPE_ADJUSTMENTS: Record<
 };
 
 // =============================================================================
+// Musical Genre-Aware Adjustments
+// =============================================================================
+
+/**
+ * Different genres have different "normal" ranges for parameters.
+ * For instance, "wider" in ambient music means something different than in punk.
+ */
+interface GenreProfile {
+  readonly widthDefault: number;
+  readonly brightnessDefault: number;
+  readonly densityDefault: number;
+  readonly dynamicRangeDefault: number;
+  readonly reverbDefault: number;
+  readonly tempoFlexibility: number;
+}
+
+const GENRE_PROFILES: Record<string, GenreProfile> = {
+  'ambient': {
+    widthDefault: 0.80,
+    brightnessDefault: 0.40,
+    densityDefault: 0.30,
+    dynamicRangeDefault: 0.70,
+    reverbDefault: 0.75,
+    tempoFlexibility: 0.20,
+  },
+  'classical': {
+    widthDefault: 0.70,
+    brightnessDefault: 0.55,
+    densityDefault: 0.50,
+    dynamicRangeDefault: 0.85,
+    reverbDefault: 0.65,
+    tempoFlexibility: 0.30,
+  },
+  'jazz': {
+    widthDefault: 0.60,
+    brightnessDefault: 0.50,
+    densityDefault: 0.55,
+    dynamicRangeDefault: 0.75,
+    reverbDefault: 0.45,
+    tempoFlexibility: 0.40,
+  },
+  'rock': {
+    widthDefault: 0.65,
+    brightnessDefault: 0.65,
+    densityDefault: 0.70,
+    dynamicRangeDefault: 0.60,
+    reverbDefault: 0.35,
+    tempoFlexibility: 0.15,
+  },
+  'punk': {
+    widthDefault: 0.50,
+    brightnessDefault: 0.75,
+    densityDefault: 0.80,
+    dynamicRangeDefault: 0.40,
+    reverbDefault: 0.20,
+    tempoFlexibility: 0.10,
+  },
+  'metal': {
+    widthDefault: 0.70,
+    brightnessDefault: 0.70,
+    densityDefault: 0.90,
+    dynamicRangeDefault: 0.50,
+    reverbDefault: 0.30,
+    tempoFlexibility: 0.12,
+  },
+  'electronic': {
+    widthDefault: 0.75,
+    brightnessDefault: 0.60,
+    densityDefault: 0.65,
+    dynamicRangeDefault: 0.70,
+    reverbDefault: 0.50,
+    tempoFlexibility: 0.35,
+  },
+  'edm': {
+    widthDefault: 0.85,
+    brightnessDefault: 0.80,
+    densityDefault: 0.75,
+    dynamicRangeDefault: 0.80,
+    reverbDefault: 0.55,
+    tempoFlexibility: 0.15,
+  },
+  'techno': {
+    widthDefault: 0.70,
+    brightnessDefault: 0.65,
+    densityDefault: 0.70,
+    dynamicRangeDefault: 0.60,
+    reverbDefault: 0.45,
+    tempoFlexibility: 0.08,
+  },
+  'house': {
+    widthDefault: 0.75,
+    brightnessDefault: 0.70,
+    densityDefault: 0.65,
+    dynamicRangeDefault: 0.65,
+    reverbDefault: 0.50,
+    tempoFlexibility: 0.10,
+  },
+  'hip-hop': {
+    widthDefault: 0.65,
+    brightnessDefault: 0.55,
+    densityDefault: 0.60,
+    dynamicRangeDefault: 0.75,
+    reverbDefault: 0.40,
+    tempoFlexibility: 0.25,
+  },
+  'trap': {
+    widthDefault: 0.80,
+    brightnessDefault: 0.70,
+    densityDefault: 0.50,
+    dynamicRangeDefault: 0.85,
+    reverbDefault: 0.35,
+    tempoFlexibility: 0.20,
+  },
+  'pop': {
+    widthDefault: 0.70,
+    brightnessDefault: 0.65,
+    densityDefault: 0.60,
+    dynamicRangeDefault: 0.65,
+    reverbDefault: 0.45,
+    tempoFlexibility: 0.20,
+  },
+  'folk': {
+    widthDefault: 0.55,
+    brightnessDefault: 0.50,
+    densityDefault: 0.40,
+    dynamicRangeDefault: 0.70,
+    reverbDefault: 0.40,
+    tempoFlexibility: 0.35,
+  },
+  'country': {
+    widthDefault: 0.60,
+    brightnessDefault: 0.60,
+    densityDefault: 0.50,
+    dynamicRangeDefault: 0.65,
+    reverbDefault: 0.35,
+    tempoFlexibility: 0.25,
+  },
+  'blues': {
+    widthDefault: 0.55,
+    brightnessDefault: 0.45,
+    densityDefault: 0.45,
+    dynamicRangeDefault: 0.80,
+    reverbDefault: 0.40,
+    tempoFlexibility: 0.40,
+  },
+  'soul': {
+    widthDefault: 0.65,
+    brightnessDefault: 0.55,
+    densityDefault: 0.60,
+    dynamicRangeDefault: 0.75,
+    reverbDefault: 0.50,
+    tempoFlexibility: 0.30,
+  },
+  'r&b': {
+    widthDefault: 0.70,
+    brightnessDefault: 0.60,
+    densityDefault: 0.55,
+    dynamicRangeDefault: 0.80,
+    reverbDefault: 0.55,
+    tempoFlexibility: 0.30,
+  },
+  'reggae': {
+    widthDefault: 0.60,
+    brightnessDefault: 0.50,
+    densityDefault: 0.50,
+    dynamicRangeDefault: 0.60,
+    reverbDefault: 0.60,
+    tempoFlexibility: 0.15,
+  },
+  'dub': {
+    widthDefault: 0.85,
+    brightnessDefault: 0.45,
+    densityDefault: 0.40,
+    dynamicRangeDefault: 0.75,
+    reverbDefault: 0.85,
+    tempoFlexibility: 0.20,
+  },
+  'indie': {
+    widthDefault: 0.65,
+    brightnessDefault: 0.60,
+    densityDefault: 0.55,
+    dynamicRangeDefault: 0.70,
+    reverbDefault: 0.50,
+    tempoFlexibility: 0.30,
+  },
+  'lofi': {
+    widthDefault: 0.50,
+    brightnessDefault: 0.40,
+    densityDefault: 0.45,
+    dynamicRangeDefault: 0.55,
+    reverbDefault: 0.50,
+    tempoFlexibility: 0.25,
+  },
+  'chillhop': {
+    widthDefault: 0.65,
+    brightnessDefault: 0.50,
+    densityDefault: 0.50,
+    dynamicRangeDefault: 0.65,
+    reverbDefault: 0.55,
+    tempoFlexibility: 0.20,
+  },
+};
+
+/**
+ * Get genre-adjusted magnitude baseline.
+ */
+function getGenreAdjustedBaseline(
+  axis: AxisId | undefined,
+  genre: string | undefined
+): number | null {
+  if (!axis || !genre) return null;
+  
+  const profile = GENRE_PROFILES[genre.toLowerCase()];
+  if (!profile) return null;
+
+  const axisKey = axis.replace('axis:', '').toLowerCase();
+  
+  if (axisKey.includes('width') || axisKey.includes('stereo')) {
+    return profile.widthDefault;
+  }
+  if (axisKey.includes('bright') || axisKey.includes('high')) {
+    return profile.brightnessDefault;
+  }
+  if (axisKey.includes('density') || axisKey.includes('busy')) {
+    return profile.densityDefault;
+  }
+  if (axisKey.includes('dynamics') || axisKey.includes('compress')) {
+    return profile.dynamicRangeDefault;
+  }
+  if (axisKey.includes('reverb') || axisKey.includes('space')) {
+    return profile.reverbDefault;
+  }
+  if (axisKey.includes('tempo') || axisKey.includes('speed')) {
+    // For tempo, we use flexibility as a multiplier
+    return 0.30 * profile.tempoFlexibility;
+  }
+
+  return null;
+}
+
+// =============================================================================
+// Time-of-Day and Session Context Adjustments
+// =============================================================================
+
+/**
+ * Users tend to make different magnitude decisions at different times.
+ * Morning sessions: more conservative
+ * Late night: more experimental/aggressive
+ */
+interface TimeContextProfile {
+  readonly conservativenessMultiplier: number;
+  readonly clarificationThreshold: number;
+}
+
+const TIME_OF_DAY_PROFILES: Record<string, TimeContextProfile> = {
+  'morning': {
+    conservativenessMultiplier: 0.75, // More conservative
+    clarificationThreshold: 0.65, // Ask more questions
+  },
+  'afternoon': {
+    conservativenessMultiplier: 0.90,
+    clarificationThreshold: 0.70,
+  },
+  'evening': {
+    conservativenessMultiplier: 1.10,
+    clarificationThreshold: 0.75,
+  },
+  'late-night': {
+    conservativenessMultiplier: 1.25, // More aggressive
+    clarificationThreshold: 0.80, // Trust user more
+  },
+  'overnight': {
+    conservativenessMultiplier: 1.15,
+    clarificationThreshold: 0.75,
+  },
+};
+
+/**
+ * Adjust magnitude based on time of day.
+ */
+function applyTimeOfDayAdjustment(
+  value: number,
+  timeContext?: string
+): number {
+  if (!timeContext) return value;
+  
+  const profile = TIME_OF_DAY_PROFILES[timeContext];
+  if (!profile) return value;
+
+  // Apply conservativeness multiplier
+  // If user says "much", in the morning we interpret as "somewhat much"
+  const deviation = value - 0.30; // 0.30 is our baseline "normal"
+  const adjustedDeviation = deviation * profile.conservativenessMultiplier;
+  return 0.30 + adjustedDeviation;
+}
+
+// =============================================================================
+// User History and Learning
+// =============================================================================
+
+/**
+ * Learn from user's historical magnitude acceptances.
+ */
+interface HistoricalPattern {
+  readonly parameterType: string;
+  readonly averageAccepted: number;
+  readonly acceptedRange: { min: number; max: number };
+  readonly rejectionRate: number;
+  readonly sampleSize: number;
+}
+
+/**
+ * Infer user's magnitude preference from history.
+ */
+function inferFromHistory(
+  history: readonly number[] | undefined,
+  defaultValue: number
+): { value: number; confidence: number } {
+  if (!history || history.length < 3) {
+    // Not enough data
+    return { value: defaultValue, confidence: 0.5 };
+  }
+
+  // Calculate mean and std dev
+  const mean = history.reduce((a, b) => a + b, 0) / history.length;
+  const variance = history.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / history.length;
+  const stdDev = Math.sqrt(variance);
+
+  // Confidence increases with more samples and lower variance
+  const sampleConfidence = Math.min(history.length / 10, 1.0);
+  const consistencyConfidence = Math.max(0, 1 - stdDev);
+  const confidence = (sampleConfidence + consistencyConfidence) / 2;
+
+  return { value: mean, confidence };
+}
+
+/**
+ * Check if proposed value is within user's typical acceptance range.
+ */
+function isWithinUserNorm(
+  value: number,
+  history: readonly number[] | undefined,
+  tolerance: number = 0.15
+): boolean {
+  if (!history || history.length < 3) return true; // Unknown, assume OK
+
+  const mean = history.reduce((a, b) => a + b, 0) / history.length;
+  const deviation = Math.abs(value - mean);
+  
+  return deviation <= tolerance;
+}
+
+// =============================================================================
+// Musical Context Constraints
+// =============================================================================
+
+/**
+ * Some musical contexts constrain safe magnitude ranges.
+ */
+interface MusicalConstraints {
+  readonly minSafe: number;
+  readonly maxSafe: number;
+  readonly preferred: number;
+  readonly reason: string;
+}
+
+/**
+ * Get constraints based on musical context.
+ */
+function getMusicalContextConstraints(
+  context: InferenceContext
+): MusicalConstraints | null {
+  // If working with melody, be very conservative
+  if (context.parameter.name.toLowerCase().includes('melody')) {
+    return {
+      minSafe: 0.05,
+      maxSafe: 0.30,
+      preferred: 0.15,
+      reason: 'Melody changes are musically sensitive',
+    };
+  }
+
+  // If working with harmony, be moderately conservative
+  if (context.parameter.name.toLowerCase().includes('harmon')) {
+    return {
+      minSafe: 0.10,
+      maxSafe: 0.45,
+      preferred: 0.25,
+      reason: 'Harmony changes affect musical meaning',
+    };
+  }
+
+  // If working with rhythm, allow moderate changes
+  if (context.parameter.name.toLowerCase().includes('rhythm') ||
+      context.parameter.name.toLowerCase().includes('timing')) {
+    return {
+      minSafe: 0.08,
+      maxSafe: 0.40,
+      preferred: 0.20,
+      reason: 'Rhythm changes affect groove and feel',
+    };
+  }
+
+  // If working with production/mix, allow larger changes
+  if (context.parameter.name.toLowerCase().includes('width') ||
+      context.parameter.name.toLowerCase().includes('bright') ||
+      context.parameter.name.toLowerCase().includes('reverb')) {
+    return {
+      minSafe: 0.15,
+      maxSafe: 0.70,
+      preferred: 0.40,
+      reason: 'Production parameters are safely adjustable',
+    };
+  }
+
+  // If working with a large scope (whole song), be more conservative
+  if (context.scopeSize === 'large') {
+    return {
+      minSafe: 0.08,
+      maxSafe: 0.35,
+      preferred: 0.20,
+      reason: 'Large scope requires conservative changes',
+    };
+  }
+
+  // If working with small scope (single bar), allow bolder changes
+  if (context.scopeSize === 'small') {
+    return {
+      minSafe: 0.10,
+      maxSafe: 0.65,
+      preferred: 0.35,
+      reason: 'Small scope allows experimental changes',
+    };
+  }
+
+  return null;
+}
+
+// =============================================================================
 // Core Inference Functions
 // =============================================================================
 
