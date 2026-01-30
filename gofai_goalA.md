@@ -194,11 +194,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 218 [Prag] — Implement "topic continuity": if user is working on chorus, "make it wider" inherits chorus scope unless contradicted.
 - [x] Step 219 [Prag] — Implement "focus semantics": contrastive stress (if captured) or textual cues ("NOT the chords") prioritize certain constraints.
 - [x] Step 220 [Prag] — Implement "reference by description": "the noisy synth" resolves via metadata/tags; if multiple, ask a disambiguating question.
-- [ ] Step 221 [Prag][Type] — Typecheck pragmatic bindings: references must resolve to entities compatible with their semantic roles or become holes.
-- [ ] Step 222 [Prag][Type] — Define a structured “clarification object” type: question text, options, default, effect on CPL, and safety notes.
-- [ ] Step 223 [Prag] — Implement a “clarification minimality” principle: ask only what’s needed to execute safely, not what’s needed to be perfect.
-- [ ] Step 224 [Prag] — Implement a “clarification batching” strategy: combine related ambiguities into one UI step when possible.
-- [ ] Step 225 [Prag] — Implement user preference learning: persist mapping preferences for vague terms and apply them with provenance (“using your default”).
+- [x] Step 221 [Prag][Type] — Typecheck pragmatic bindings: references must resolve to entities compatible with their semantic roles or become holes.
+- [x] Step 222 [Prag][Type] — Define a structured "clarification object" type: question text, options, default, effect on CPL, and safety notes.
+- [x] Step 223 [Prag] — Implement a "clarification minimality" principle: ask only what's needed to execute safely, not what's needed to be perfect.
+- [x] Step 224 [Prag] — Implement a "clarification batching" strategy: combine related ambiguities into one UI step when possible.
+- [x] Step 225 [Prag] — Implement user preference learning: persist mapping preferences for vague terms and apply them with provenance ("using your default").
 - [ ] Step 226 [Sem][Prag] — Model speech acts explicitly: distinguish requests, suggestions, questions, meta-questions (“why”), and commands to undo.
 - [ ] Step 227 [Prag] — Implement politeness/hedging handling (“could you maybe”) as lowering confidence, not changing the semantic act type.
 - [ ] Step 228 [Prag] — Implement “intention recognition” for multi-turn editing: recognize that user is optimizing a section and keep stable scope.

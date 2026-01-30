@@ -156,15 +156,15 @@ describe('Auto Track Coloring', () => {
       expect(detectCategoryFromPlugins(['Melodyne']).category).toBe('vocals');
     });
     
-    it('should return null for no matching plugins', () => {
-      expect(detectCategoryFromPlugins(['EQ', 'Compressor'])).toBeNull();
-      expect(detectCategoryFromPlugins([])).toBeNull();
+    it('should return "other" for no matching plugins', () => {
+      expect(detectCategoryFromPlugins(['EQ', 'Compressor']).category).toBe('other');
+      expect(detectCategoryFromPlugins([]).category).toBe('other');
     });
     
     it('should match first relevant plugin', () => {
       // If multiple plugins, returns first match
       const result = detectCategoryFromPlugins(['EQ', 'Serum', 'Compressor']);
-      expect(result).toBe('synth');
+      expect(result.category).toBe('synth');
     });
   });
   
@@ -174,23 +174,23 @@ describe('Auto Track Coloring', () => {
   
   describe('detectCategory', () => {
     it('should prioritize name over plugins', () => {
-      const result = detectCategory('Drums', ['Serum']);
-      expect(result).toBe('drums');
+      const result = detectCategory({ id: '1', name: 'Drums', plugins: ['Serum'] });
+      expect(result.category).toBe('drums');
     });
     
     it('should use plugins when name is generic', () => {
-      const result = detectCategory('Track 1', ['Serum']);
-      expect(result).toBe('synth');
+      const result = detectCategory({ id: '1', name: 'Track 1', plugins: ['Serum'] });
+      expect(result.category).toBe('synth');
     });
     
     it('should use sample path for detection', () => {
-      const result = detectCategory('Track 1', [], '/samples/drums/kick.wav');
-      expect(result).toBe('drums');
+      const result = detectCategory({ id: '1', name: 'Track 1', plugins: [], samplePath: '/samples/drums/kick.wav' });
+      expect(result.category).toBe('drums');
     });
     
     it('should return other for no matches', () => {
-      const result = detectCategory('Track 1', []);
-      expect(result).toBe('other');
+      const result = detectCategory({ id: '1', name: 'Track 1', plugins: [] });
+      expect(result.category).toBe('other');
     });
   });
   
@@ -268,22 +268,22 @@ describe('Auto Track Coloring', () => {
     
     describe('single track coloring', () => {
       it('should color track', () => {
-        const result = store.colorTrack('track-1', 'Drums');
+        const result = store.colorTrack({ id: 'track-1', name: 'Drums' });
         
-        expect(result.category).toBe('drums');
-        expect(result.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+        expect(result.detectedCategory).toBe('drums');
+        expect(result.assignedColor).toMatch(/^#[0-9A-Fa-f]{6}$/);
       });
       
       it('should store track color', () => {
-        store.colorTrack('track-1', 'Drums');
+        store.colorTrack({ id: 'track-1', name: 'Drums' });
         
         const color = store.getTrackColor('track-1');
         expect(color).toBeDefined();
       });
       
       it('should use plugins for detection', () => {
-        const result = store.colorTrack('track-1', 'Track 1', ['Serum']);
-        expect(result.category).toBe('synth');
+        const result = store.colorTrack({ id: 'track-1', name: 'Track 1', plugins: ['Serum'] });
+        expect(result.detectedCategory).toBe('synth');
       });
     });
     
@@ -298,9 +298,9 @@ describe('Auto Track Coloring', () => {
         const results = store.colorTracks(tracks);
         
         expect(results).toHaveLength(3);
-        expect(results[0].category).toBe('drums');
-        expect(results[1].category).toBe('bass');
-        expect(results[2].category).toBe('vocals');
+        expect(results[0].detectedCategory).toBe('drums');
+        expect(results[1].detectedCategory).toBe('bass');
+        expect(results[2].detectedCategory).toBe('vocals');
       });
       
       it('should return unique colors per category', () => {
@@ -313,32 +313,32 @@ describe('Auto Track Coloring', () => {
         const results = store.colorTracks(tracks);
         
         // All drums, should have same base color
-        expect(results[0].category).toBe('drums');
-        expect(results[1].category).toBe('drums');
-        expect(results[2].category).toBe('drums');
+        expect(results[0].detectedCategory).toBe('drums');
+        expect(results[1].detectedCategory).toBe('drums');
+        expect(results[2].detectedCategory).toBe('drums');
         
         // But may have slightly different shades
-        expect(results[0].color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+        expect(results[0].assignedColor).toMatch(/^#[0-9A-Fa-f]{6}$/);
       });
     });
     
     describe('manual override', () => {
       it('should allow manual color override', () => {
-        store.colorTrack('track-1', 'Drums');
+        store.colorTrack({ id: 'track-1', name: 'Drums' });
         store.setTrackColor('track-1', '#FF0000');
         
         expect(store.getTrackColor('track-1')).toBe('#FF0000');
       });
       
       it('should track overrides', () => {
-        store.colorTrack('track-1', 'Drums');
+        store.colorTrack({ id: 'track-1', name: 'Drums' });
         store.setTrackColor('track-1', '#FF0000');
         
         expect(store.hasOverride('track-1')).toBe(true);
       });
       
       it('should clear override', () => {
-        store.colorTrack('track-1', 'Drums');
+        store.colorTrack({ id: 'track-1', name: 'Drums' });
         store.setTrackColor('track-1', '#FF0000');
         store.clearOverride('track-1');
         
@@ -353,7 +353,7 @@ describe('Auto Track Coloring', () => {
         const listener = vi.fn();
         store.subscribe(listener);
         
-        store.colorTrack('track-1', 'Drums');
+        store.colorTrack({ id: 'track-1', name: 'Drums' });
         
         expect(listener).toHaveBeenCalled();
       });
@@ -372,7 +372,7 @@ describe('Auto Track Coloring', () => {
         const unsubscribe = store.subscribe(listener);
         
         unsubscribe();
-        store.colorTrack('track-1', 'Drums');
+        store.colorTrack({ id: 'track-1', name: 'Drums' });
         
         expect(listener).not.toHaveBeenCalled();
       });
@@ -380,8 +380,8 @@ describe('Auto Track Coloring', () => {
     
     describe('clear', () => {
       it('should clear all colors', () => {
-        store.colorTrack('track-1', 'Drums');
-        store.colorTrack('track-2', 'Bass');
+        store.colorTrack({ id: 'track-1', name: 'Drums' });
+        store.colorTrack({ id: 'track-2', name: 'Bass' });
         
         store.clear();
         

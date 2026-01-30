@@ -17,8 +17,11 @@
  * @see gofai_goalB.md Step 053
  */
 
-import type { GofaiId, LexemeId, AxisId, OpcodeId, ConstraintId } from './types.js';
+import type { GofaiId, LexemeId, AxisId, OpcodeId, ConstraintTypeId } from './types.js';
 import { parseGofaiId, isBuiltinId, isExtensionId } from './gofai-id.js';
+
+// Type alias for consistency with catalog
+type ConstraintId = ConstraintTypeId;
 
 // =============================================================================
 // Validation Types
@@ -227,6 +230,18 @@ export class CanonValidator {
     try {
       const parsed = parseGofaiId(id as GofaiId);
       
+      // Parsed must be defined
+      if (!parsed) {
+        this.errors.push({
+          severity: 'error',
+          code: 'PARSE_FAILED',
+          message: `Failed to parse ID: ${id}`,
+          location: source,
+          id,
+        });
+        return;
+      }
+      
       // Extension IDs must have namespace
       if (!isBuiltinId(id as GofaiId)) {
         if (!parsed.namespace) {
@@ -316,7 +331,7 @@ export class CanonValidator {
     for (const [id, reg] of this.registry.lexemes) {
       if (isExtensionId(id)) {
         const parsed = parseGofaiId(id);
-        if (parsed.namespace && !this.namespaces.has(parsed.namespace)) {
+        if (parsed && parsed.namespace && !this.namespaces.has(parsed.namespace)) {
           this.warnings.push({
             severity: 'warning',
             code: 'UNDECLARED_NAMESPACE',
@@ -363,16 +378,16 @@ export class CanonValidator {
     let count = 0;
     
     for (const id of this.registry.lexemes.keys()) {
-      if (isBuiltinId(id as GofaiId)) count++;
+      if (isBuiltinId(id as unknown as GofaiId)) count++;
     }
     for (const id of this.registry.axes.keys()) {
-      if (isBuiltinId(id as GofaiId)) count++;
+      if (isBuiltinId(id as unknown as GofaiId)) count++;
     }
     for (const id of this.registry.opcodes.keys()) {
-      if (isBuiltinId(id as GofaiId)) count++;
+      if (isBuiltinId(id as unknown as GofaiId)) count++;
     }
     for (const id of this.registry.constraints.keys()) {
-      if (isBuiltinId(id as GofaiId)) count++;
+      if (isBuiltinId(id as unknown as GofaiId)) count++;
     }
     
     return count;
@@ -382,16 +397,16 @@ export class CanonValidator {
     let count = 0;
     
     for (const id of this.registry.lexemes.keys()) {
-      if (isExtensionId(id)) count++;
+      if (isExtensionId(id as unknown as GofaiId)) count++;
     }
     for (const id of this.registry.axes.keys()) {
-      if (isExtensionId(id)) count++;
+      if (isExtensionId(id as unknown as GofaiId)) count++;
     }
     for (const id of this.registry.opcodes.keys()) {
-      if (isExtensionId(id)) count++;
+      if (isExtensionId(id as unknown as GofaiId)) count++;
     }
     for (const id of this.registry.constraints.keys()) {
-      if (isExtensionId(id)) count++;
+      if (isExtensionId(id as unknown as GofaiId)) count++;
     }
     
     return count;
