@@ -18,3 +18,6 @@ export * from './context-resolution';
 
 // Pragmatic typing: binding typecheck, clarification objects, minimality, batching, preference learning (Steps 221–225)
 export * from './pragmatic-typing';
+
+// Speech acts, hedging, intention, confirmation, counterfactual exploration (Steps 226–230)
+export * from './speech-acts';

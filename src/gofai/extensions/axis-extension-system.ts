@@ -67,7 +67,7 @@ export interface AxisDimension {
   /** Weight of this dimension's contribution (0-1) */
   readonly weight: number;
   /** Optional description of how this dimension relates to the axis */
-  readonly description?: string;
+  readonly description?: string | undefined;
 }
 
 /**
@@ -83,19 +83,19 @@ export interface AxisDefinition {
   /** Value range specification */
   readonly range: AxisRange;
   /** Opposite axis (if meaningful) */
-  readonly opposite?: AxisId;
+  readonly opposite?: AxisId | undefined;
   /** Related axes (correlated or commonly co-adjusted) */
-  readonly related?: readonly AxisId[];
+  readonly related?: readonly AxisId[] | undefined;
   /** Dimensions that contribute to this axis */
-  readonly dimensions?: readonly AxisDimension[];
+  readonly dimensions?: readonly AxisDimension[] | undefined;
   /** Detailed description of what this axis represents */
   readonly description: string;
   /** Example phrases that reference this axis */
-  readonly examples?: readonly string[];
+  readonly examples?: readonly string[] | undefined;
   /** Tags for categorization and search */
-  readonly tags?: readonly string[];
+  readonly tags?: readonly string[] | undefined;
   /** Extension namespace (undefined for builtins) */
-  readonly namespace?: string;
+  readonly namespace?: string | undefined;
   /** Schema version */
   readonly schemaVersion: '1.0';
 }
@@ -329,8 +329,10 @@ export function axisDefinitionFromAnnotation(
       dimensionId: d.name,
       weight: d.weight ?? 1.0,
       description: d.description
-    })),
+    })) ?? undefined,
     description,
+    examples: undefined,
+    tags: undefined,
     namespace,
     schemaVersion: '1.0'
   };

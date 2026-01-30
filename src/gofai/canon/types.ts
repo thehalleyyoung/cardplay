@@ -99,7 +99,7 @@ export function createGofaiId(
 
 /**
  * Validate namespace format.
- * Must be 2-32 chars, start with letter, lowercase alphanumeric with hyphens/underscores.
+ * Must be 2-32 chars, kebab-case (lowercase alphanumeric with hyphens only, no underscores).
  */
 function validateNamespace(namespace: string): void {
   if (namespace.length < 2 || namespace.length > 32) {
@@ -110,12 +110,9 @@ function validateNamespace(namespace: string): void {
     throw new Error(`Invalid namespace: ${namespace} (must start with lowercase letter)`);
   }
   
-  if (!/^[a-z][a-z0-9_-]*$/.test(namespace)) {
-    throw new Error(`Invalid namespace: ${namespace} (must be lowercase alphanumeric with hyphens/underscores)`);
-  }
-  
-  if (/--|__/.test(namespace)) {
-    throw new Error(`Invalid namespace: ${namespace} (no consecutive hyphens or underscores)`);
+  // Kebab-case: lowercase alphanumeric with hyphens only (no underscores)
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(namespace)) {
+    throw new Error(`Invalid namespace: ${namespace} (must be kebab-case: lowercase alphanumeric with hyphens, no underscores)`);
   }
   
   // Reserved namespaces
@@ -277,6 +274,8 @@ export function isNamespaced(id: string): boolean {
   // - lexeme:<name> (not namespaced) vs lexeme:<namespace>:<name> (namespaced)
   // - axis:<name> (not namespaced) vs axis:<namespace>:<name> (namespaced)
   // - opcode:<name> (not namespaced) vs opcode:<namespace>:<name> (namespaced)
+  // - gofai:<category>:<name> (not namespaced) vs <namespace>:gofai:<category>:<name> (namespaced)
+  // - rule:<category>:<name> (not namespaced) vs <namespace>:rule:<category>:<name> (namespaced)
   // - <name> (not namespaced) vs <namespace>:<name> (namespaced, for constraints)
   
   const parts = id.split(':');
@@ -286,9 +285,19 @@ export function isNamespaced(id: string): boolean {
     return true; // namespace:name format for constraint
   }
   
+  // gofai and rule IDs have 3 parts when core: gofai:category:name, rule:category:name
+  if (parts.length === 3 && (parts[0] === 'gofai' || parts[0] === 'rule')) {
+    return false; // core format
+  }
+  
   // Other IDs: type:<name> (2 parts) or type:<namespace>:<name> (3 parts)
   if (parts.length === 3) {
     return true; // type:namespace:name format
+  }
+  
+  // gofai and rule with namespace have 4 parts: namespace:gofai:category:name
+  if (parts.length === 4 && (parts[1] === 'gofai' || parts[1] === 'rule')) {
+    return true;
   }
   
   return false;
@@ -304,6 +313,11 @@ export function getNamespace(id: string): string | undefined {
   
   // For constraint IDs: <namespace>:<name>
   if (parts.length === 2 && !['lexeme', 'axis', 'opcode', 'gofai', 'rule', 'unit', 'section', 'layer'].includes(parts[0]!)) {
+    return parts[0];
+  }
+  
+  // For gofai and rule IDs with namespace: <namespace>:gofai:<category>:<name> or <namespace>:rule:<category>:<name>
+  if (parts.length === 4 && (parts[1] === 'gofai' || parts[1] === 'rule')) {
     return parts[0];
   }
   

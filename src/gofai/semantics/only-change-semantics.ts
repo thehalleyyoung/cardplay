@@ -26,7 +26,6 @@
 
 import type { GofaiId } from '../canon/types.ts';
 import type { CardPlayId } from '../../canon/id-validation.ts';
-import type { EventKind } from '../../events/types.ts';
 
 /**
  * Scope selector: what entities can be modified.
@@ -35,20 +34,20 @@ export interface ScopeSelector {
   /** Selector type */
   readonly type: 'all' | 'tracks' | 'sections' | 'events' | 'cards' | 'parameters' | 'layers' | 'roles';
   /** Specific IDs (if type is tracks/sections/cards/parameters) */
-  readonly ids?: readonly (CardPlayId | string)[];
+  readonly ids?: readonly (CardPlayId | string)[] | undefined;
   /** Event kinds (if type is events) */
-  readonly eventKinds?: readonly EventKind[];
+  readonly eventKinds?: readonly string[] | undefined;
   /** Musical roles (if type is roles) */
-  readonly roles?: readonly string[];
+  readonly roles?: readonly string[] | undefined;
   /** Layer names (if type is layers) */
-  readonly layers?: readonly string[];
+  readonly layers?: readonly string[] | undefined;
   /** Time range (if type is sections) */
   readonly timeRange?: {
     readonly startBar: number;
     readonly endBar: number;
-  };
+  } | undefined;
   /** Additional filters */
-  readonly filters?: readonly SelectorFilter[];
+  readonly filters?: readonly SelectorFilter[] | undefined;
 }
 
 /**
@@ -85,7 +84,7 @@ export interface OnlyChangeConstraint {
   /** What aspects can be modified within that scope */
   readonly allowedAspects: readonly ModificationAspect[];
   /** Exceptions to the constraint (nested constraints that override) */
-  readonly exceptions?: readonly OnlyChangeConstraint[];
+  readonly exceptions?: readonly OnlyChangeConstraint[] | undefined;
   /** Human-readable description */
   readonly description: string;
   /** Confidence (0-1, for soft vs hard constraints) */
@@ -141,7 +140,7 @@ export interface ConstraintViolation {
   /** Severity (error for hard constraints, warning for soft) */
   readonly severity: 'error' | 'warning';
   /** Suggested fix (if applicable) */
-  readonly suggestedFix?: string;
+  readonly suggestedFix?: string | undefined;
 }
 
 /**
@@ -324,7 +323,7 @@ export class OnlyChangeValidator {
    * Suggest a fix for a violation.
    */
   private suggestFix(
-    constraint: OnlyChangeConstraint,
+    _constraint: OnlyChangeConstraint,
     item: DiffItem
   ): string | undefined {
     if (item.changeType === 'added') {
@@ -432,7 +431,7 @@ export class ScopeSelectorBuilder {
   /**
    * Create an event kind selector.
    */
-  static eventKinds(kinds: readonly EventKind[]): ScopeSelector {
+  static eventKinds(kinds: readonly string[]): ScopeSelector {
     return {
       type: 'events',
       eventKinds: kinds

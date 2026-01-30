@@ -199,11 +199,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 223 [Prag] — Implement a "clarification minimality" principle: ask only what's needed to execute safely, not what's needed to be perfect.
 - [x] Step 224 [Prag] — Implement a "clarification batching" strategy: combine related ambiguities into one UI step when possible.
 - [x] Step 225 [Prag] — Implement user preference learning: persist mapping preferences for vague terms and apply them with provenance ("using your default").
-- [ ] Step 226 [Sem][Prag] — Model speech acts explicitly: distinguish requests, suggestions, questions, meta-questions (“why”), and commands to undo.
-- [ ] Step 227 [Prag] — Implement politeness/hedging handling (“could you maybe”) as lowering confidence, not changing the semantic act type.
-- [ ] Step 228 [Prag] — Implement “intention recognition” for multi-turn editing: recognize that user is optimizing a section and keep stable scope.
-- [ ] Step 229 [Prag] — Implement “plan confirmation” moves: user says “yes, do that” to commit and execute; nothing executes before that.
-- [ ] Step 230 [Prag] — Implement “counterfactual exploration”: user says “what if we…” to produce alternative plans without mutation.
+- [x] Step 226 [Sem][Prag] — Model speech acts explicitly: distinguish requests, suggestions, questions, meta-questions ("why"), and commands to undo.
+- [x] Step 227 [Prag] — Implement politeness/hedging handling ("could you maybe") as lowering confidence, not changing the semantic act type.
+- [x] Step 228 [Prag] — Implement "intention recognition" for multi-turn editing: recognize that user is optimizing a section and keep stable scope.
+- [x] Step 229 [Prag] — Implement "plan confirmation" moves: user says "yes, do that" to commit and execute; nothing executes before that.
+- [x] Step 230 [Prag] — Implement "counterfactual exploration": user says "what if we…" to produce alternative plans without mutation.
 - [ ] Step 231 [HCI] — Add UI for “clarification cards”: each ambiguity is a small card with radio options and a default explanation.
 - [ ] Step 232 [HCI] — Add UI for “context strip”: shows current focus (board/deck/section/range/layer) and how pronouns will resolve.
 - [ ] Step 233 [HCI] — Add UI for “conversation memory”: show last N turns with CPL and diffs; allow bookmarking.

@@ -124,17 +124,17 @@ export interface AxisParameterBinding {
   /** Parameter unit */
   readonly unit: ParameterUnit;
   /** Amount phrase mappings (overrides or extends standard) */
-  readonly amountMappings?: readonly AmountMapping[];
+  readonly amountMappings?: readonly AmountMapping[] | undefined;
   /** Custom transfer function reference (for 'custom' scaling) */
-  readonly transferFunction?: string;
+  readonly transferFunction?: string | undefined;
   /** Confidence/priority (0-1, higher = preferred in case of conflicts) */
   readonly confidence: number;
   /** Description of what this binding does */
   readonly description: string;
   /** Optional preconditions (e.g., "only when filter type is lowpass") */
-  readonly preconditions?: readonly string[];
+  readonly preconditions?: readonly string[] | undefined;
   /** Extension namespace (undefined for builtins) */
-  readonly namespace?: string;
+  readonly namespace?: string | undefined;
   /** Schema version */
   readonly schemaVersion: '1.0';
 }
@@ -590,9 +590,11 @@ export function createBindingFromAnnotation(
     scaling: annotation.scaling ?? 'linear',
     range: annotation.range ?? { min: 0, max: 1, default: 0.5 },
     unit: annotation.unit ?? 'none',
-    amountMappings: annotation.amountMappings,
+    amountMappings: annotation.amountMappings ?? undefined,
+    transferFunction: undefined,
     confidence: annotation.confidence ?? 0.7,
     description: annotation.description ?? `Maps ${axisId} to ${paramName} on ${cardId}`,
+    preconditions: undefined,
     namespace,
     schemaVersion: '1.0'
   };

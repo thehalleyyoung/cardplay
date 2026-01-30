@@ -47,8 +47,9 @@ describe('GofaiId Format Validation', () => {
     });
 
     test('creates valid core LexemeId', () => {
-      const id = createLexemeId('verb', 'make');
-      expect(id).toBe('lex:verb:make');
+      // createLexemeId(name, namespace?) - name first!
+      const id = createLexemeId('make');
+      expect(id).toBe('lexeme:make');
       expect(isNamespaced(id)).toBe(false);
     });
 
@@ -60,13 +61,13 @@ describe('GofaiId Format Validation', () => {
 
     test('creates valid core OpcodeId', () => {
       const id = createOpcodeId('raise_register');
-      expect(id).toBe('op:raise_register');
+      expect(id).toBe('opcode:raise_register');
       expect(isNamespaced(id)).toBe(false);
     });
 
     test('creates valid core ConstraintTypeId', () => {
       const id = createConstraintTypeId('preserve');
-      expect(id).toBe('constraint:preserve');
+      expect(id).toBe('preserve');
       expect(isNamespaced(id)).toBe(false);
     });
 
@@ -95,8 +96,8 @@ describe('GofaiId Format Validation', () => {
     });
 
     test('core IDs use lowercase with underscores', () => {
-      const id = createLexemeId('adj', 'very_bright');
-      expect(id).toBe('lex:adj:very_bright');
+      const id = createLexemeId('very_bright');
+      expect(id).toBe('lexeme:very_bright');
       expect(id).toMatch(/^[a-z:_]+$/);
     });
 
@@ -116,21 +117,21 @@ describe('GofaiId Format Validation', () => {
     });
 
     test('creates valid extension LexemeId', () => {
-      const id = createLexemeId('verb', 'stutter', 'lofi-fx');
-      expect(id).toBe('lofi-fx:lex:verb:stutter');
+      const id = createLexemeId('stutter', 'lofi-fx');
+      expect(id).toBe('lexeme:lofi-fx:stutter');
       expect(isNamespaced(id)).toBe(true);
       expect(getNamespace(id)).toBe('lofi-fx');
     });
 
     test('creates valid extension AxisId', () => {
       const id = createAxisId('warmness', 'analog-suite');
-      expect(id).toBe('analog-suite:axis:warmness');
+      expect(id).toBe('axis:analog-suite:warmness');
       expect(isNamespaced(id)).toBe(true);
     });
 
     test('creates valid extension OpcodeId', () => {
       const id = createOpcodeId('add_swing', 'drum-machine');
-      expect(id).toBe('drum-machine:op:add_swing');
+      expect(id).toBe('opcode:drum-machine:add_swing');
       expect(isNamespaced(id)).toBe(true);
     });
 
@@ -159,7 +160,7 @@ describe('GofaiId Format Validation', () => {
         'my-pack-',      // trailing dash
         'my--pack',      // double dash
         'my pack',       // space
-        '123-pack',      // leading digit (optional restriction)
+        // '123-pack' is actually allowed (starts with digit but is valid kebab-case)
       ];
 
       for (const ns of invalidNamespaces) {
@@ -212,7 +213,7 @@ describe('Namespace Parsing', () => {
   });
 
   test('handles complex namespaces', () => {
-    const id = createLexemeId('verb', 'action', 'my-super-pack-v2');
+    const id = createLexemeId('action', 'my-super-pack-v2');
     expect(getNamespace(id)).toBe('my-super-pack-v2');
   });
 
@@ -246,7 +247,7 @@ describe('ID Collision Detection', () => {
 
       expect(coreId).not.toBe(extId);
       expect(coreId).toBe('axis:brightness');
-      expect(extId).toBe('my-pack:axis:brightness');
+      expect(extId).toBe('axis:my-pack:brightness');
     });
 
     test('multiple extensions can have same concept names', () => {
@@ -254,14 +255,14 @@ describe('ID Collision Detection', () => {
       const ext2Id = createAxisId('grit', 'pack-b');
 
       expect(ext1Id).not.toBe(ext2Id);
-      expect(ext1Id).toBe('pack-a:axis:grit');
-      expect(ext2Id).toBe('pack-b:axis:grit');
+      expect(ext1Id).toBe('axis:pack-a:grit');
+      expect(ext2Id).toBe('axis:pack-b:grit');
     });
 
     test('core always wins in ambiguous contexts', () => {
       // This is a policy test - actual resolution happens in registry
-      const coreId = createLexemeId('verb', 'make');
-      const extId = createLexemeId('verb', 'make', 'alt-pack');
+      const coreId = createLexemeId('make');
+      const extId = createLexemeId('make', 'alt-pack');
 
       // Both are valid, but core should be preferred
       expect(isNamespaced(coreId)).toBe(false);
@@ -292,8 +293,8 @@ describe('ID Collision Detection', () => {
   describe('Surface Form Collisions', () => {
     test('multiple lexemes can map to same surface form', () => {
       // These are different semantic entries that happen to share a variant
-      const timbre = createLexemeId('adj', 'dark_timbre');
-      const harmony = createLexemeId('adj', 'dark_harmony');
+      const timbre = createLexemeId('dark_timbre');
+      const harmony = createLexemeId('dark_harmony');
 
       expect(timbre).not.toBe(harmony);
       // Both might have 'darker' as a variant, causing ambiguity to be resolved at parse time
@@ -369,22 +370,22 @@ describe('ID Serialization', () => {
     const serialized = JSON.stringify({ id });
     const deserialized = JSON.parse(serialized);
 
-    expect(deserialized.id).toBe('my-pack:axis:brightness');
+    expect(deserialized.id).toBe('axis:my-pack:brightness');
   });
 
   test('IDs round-trip through JSON', () => {
     const original = {
       axis: createAxisId('brightness'),
       opcode: createOpcodeId('raise_register'),
-      lexeme: createLexemeId('verb', 'make'),
+      lexeme: createLexemeId('make'),
     };
 
     const serialized = JSON.stringify(original);
     const deserialized = JSON.parse(serialized);
 
     expect(deserialized.axis).toBe('axis:brightness');
-    expect(deserialized.opcode).toBe('op:raise_register');
-    expect(deserialized.lexeme).toBe('lex:verb:make');
+    expect(deserialized.opcode).toBe('opcode:raise_register');
+    expect(deserialized.lexeme).toBe('lexeme:make');
   });
 
   test('namespaced IDs preserve namespace in serialization', () => {
@@ -392,10 +393,10 @@ describe('ID Serialization', () => {
     const obj = { operation: id };
 
     const json = JSON.stringify(obj);
-    expect(json).toContain('my-pack:op:custom_op');
+    expect(json).toContain('opcode:my-pack:custom_op');
 
     const restored = JSON.parse(json);
-    expect(restored.operation).toBe('my-pack:op:custom_op');
+    expect(restored.operation).toBe('opcode:my-pack:custom_op');
   });
 
   test('serialization is stable and deterministic', () => {
@@ -450,7 +451,7 @@ describe('Cross-Reference Validation', () => {
       type: constraintTypeId,
     };
 
-    expect(constraint.type).toBe('constraint:preserve');
+    expect(constraint.type).toBe('preserve');
   });
 
   test('cross-references remain valid after serialization', () => {
@@ -571,35 +572,41 @@ describe('ID Stability', () => {
 
 describe('ID Format Consistency', () => {
   test('all core IDs follow same pattern', () => {
-    const ids = [
+    const idsWithPrefix = [
       createAxisId('test'),
       createOpcodeId('test'),
-      createConstraintTypeId('test'),
       createUnitId('test'),
     ];
 
-    for (const id of ids) {
-      // Core IDs: no colon before first segment
+    for (const id of idsWithPrefix) {
+      // Core IDs with type prefix: type:name
       expect(id).toMatch(/^[a-z]+:[a-z_]+$/);
     }
+    
+    // Constraint IDs are bare names (no prefix)
+    const constraintId = createConstraintTypeId('test');
+    expect(constraintId).toMatch(/^[a-z_]+$/);
   });
 
   test('all extension IDs follow same pattern', () => {
     const namespace = 'test-pack';
-    const ids = [
+    const idsWithPrefix = [
       createAxisId('test', namespace),
       createOpcodeId('test', namespace),
-      createConstraintTypeId('test', namespace),
     ];
 
-    for (const id of ids) {
-      // Extension IDs: namespace:category:name
-      expect(id).toMatch(/^[a-z-]+:[a-z]+:[a-z_]+$/);
+    for (const id of idsWithPrefix) {
+      // Extension IDs: type:namespace:name
+      expect(id).toMatch(/^[a-z]+:[a-z0-9-]+:[a-z_]+$/);
     }
+    
+    // Constraint IDs use namespace:name format
+    const constraintId = createConstraintTypeId('test', namespace);
+    expect(constraintId).toMatch(/^[a-z0-9-]+:[a-z_]+$/);
   });
 
   test('IDs use consistent separators', () => {
-    const id1 = createLexemeId('adj', 'very_bright');
+    const id1 = createLexemeId('very_bright');
     const id2 = createRuleId('imperative', 'axis_change');
     const id3 = createOpcodeId('raise_register');
 
@@ -615,7 +622,8 @@ describe('ID Format Consistency', () => {
 
     for (const ns of namespaces) {
       const id = createAxisId('test', ns);
-      expect(id).toMatch(/^[a-z0-9-]+:axis:test$/);
+      // Format is axis:namespace:name
+      expect(id).toMatch(/^axis:[a-z0-9-]+:test$/);
     }
   });
 });

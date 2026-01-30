@@ -54,11 +54,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 082 [Ext][Infra] — Define how deck factories and deck types become referents (“open the waveform editor deck”), including namespaced deck types.
 - [x] Step 083 [Type] — Define “UI-only actions” vs “project mutation actions” with distinct effect types (prevents conflating navigation with edits).
 - [x] Step 086 [Sem] — Define a typed representation for “musical dimensions” that can host both perceptual axes and symbolic-theory axes.
-- [ ] Step 087 [Ext][Sem] — Define how an extension can add a new axis (e.g., “grit”) and map it to levers without editing core.
-- [ ] Step 088 [Ext][Type] — Define a schema for “axis → parameter bindings” (e.g., width → param stereoWidth on certain cards).
-- [ ] Step 089 [Sem] — Define the semantics of “only change X” as an explicit scope restriction plus a validation rule over diffs.
-- [ ] Step 090 [Infra] — Write an “ontology drift” lint that fails if docs and canon vocab disagree.
-- [ ] Step 091 [Type] — Define a typed “reference to historical edit package” to support “undo that”, “redo the chorus widening”.
+- [x] Step 087 [Ext][Sem] — Define how an extension can add a new axis (e.g., “grit”) and map it to levers without editing core.
+- [x] Step 088 [Ext][Type] — Define a schema for “axis → parameter bindings” (e.g., width → param stereoWidth on certain cards).
+- [x] Step 089 [Sem] — Define the semantics of “only change X” as an explicit scope restriction plus a validation rule over diffs.
+- [x] Step 090 [Infra] — Write an “ontology drift” lint that fails if docs and canon vocab disagree.
+- [x] Step 091 [Type] — Define a typed “reference to historical edit package” to support “undo that”, “redo the chorus widening”.
 - [ ] Step 098 [Infra] — Add a “vocab coverage report” script: which cards/boards/decks have no language bindings or weak bindings.
 - [ ] Step 099 [Eval] — Add regression tests asserting entity bindings remain stable across refactors (ID-based, not display-name fragile).
 - [ ] Step 100 [Infra] — Define the “GOFAI docs SSOT rule”: canonical vocab lives in code; docs are generated or validated from that code.

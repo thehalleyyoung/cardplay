@@ -485,3 +485,10 @@ export function logValidationResults(result: FullValidationResult): void {
   console.log(`Status: ${result.valid ? 'VALID ✓' : 'INVALID ✗'}`);
   console.log('='.repeat(60));
 }
+
+// =============================================================================
+// Re-export Ontology Drift Lint (Step 090)
+// =============================================================================
+
+export { checkOntologyDrift, assertNoOntologyDrift, logDriftCheckResults } from './ontology-drift-lint';
+export type { DriftError, DriftCheckResult } from './ontology-drift-lint';
