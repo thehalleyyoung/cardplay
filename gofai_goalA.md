@@ -108,9 +108,9 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 140 [Infra] — Add developer tooling to visualize parse forest + semantic composition for a given utterance.
 - [x] Step 141 [Eval] — Add golden tests for 100 core utterances ensuring stable tokenization and parse outputs.
 - [x] Step 142 [Eval] — Add paraphrase invariance tests at the parse+semantics boundary (paraphrases should yield the same CPL-Intent or same holes).
-- [ ] Step 143 [Eval] — Add fuzz tests for tokenizer and unit parsing (random punctuation, unicode, spacing) to ensure robustness.
-- [ ] Step 144 [Eval] — Add ambiguity tests ensuring known ambiguous utterances do not collapse to a single meaning without clarification.
-- [ ] Step 145 [Eval] — Add performance tests for parsing latency under incremental typing (budget targets per input length).
+- [x] Step 143 [Eval] — Add fuzz tests for tokenizer and unit parsing (random punctuation, unicode, spacing) to ensure robustness.
+- [x] Step 144 [Eval] — Add ambiguity tests ensuring known ambiguous utterances do not collapse to a single meaning without clarification.
+- [x] Step 145 [Eval] — Add performance tests for parsing latency under incremental typing (budget targets per input length).
 - [ ] Step 146 [HCI] — Define a “typing UX” spec: parse status indicator, suggestions dropdown, and how/when to interrupt with clarification.
 - [ ] Step 147 [HCI] — Define an error recovery UX: user can edit the utterance, accept suggested rephrasing, or choose from interpreted candidates.
 - [ ] Step 148 [HCI] — Add UI copy templates for clarification questions (“By ‘darker’ do you mean timbre, harmony, register, or texture?”).

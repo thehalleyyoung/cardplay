@@ -542,17 +542,22 @@ Notes:
 
 ---
 
-## Final Status (2026-01-30 - Updated)
+## Final Status (2026-01-30 - Session Update)
 
-**Completion:** 491/500 changes (98.2%)
+**Completion:** 493/500 changes (98.6%)
 
-### Completed in this session:
-- Fixed phantom module reference (cardscript/sandbox path)
-- Fixed ESM __dirname issues in all scripts (20+ files)
-- Documented ambiguous symbols (Track, CardState, PortType) in legacy-type-aliases.md
-- Added TypeScript code blocks to ids.md (ControlLevel, DeckType, PPQ)
-- All canon tests now passing (85/85) ✅
-- Change 499: Done definition checklist ✅
+### Just Completed:
+- Fixed port-vocabulary.md compatibility pairs (added self-connections)
+- Fixed direction-encoded port type detection in check script
+- Updated module-map check to remove src/registry/v2 (now implemented)
+- Fixed 9 phantom module references in docs (adapter-cost-model, coding-style, graph-invariants, pack-provenance, capability-prompts, stack-inference, plan.md)
+- Fixed ESM import issues in check-ontology-mixing.ts
+- ✅ **docs:lint now passing completely!**
+
+### Current Status:
+- ✅ Canon tests: All passing (85/85 tests)
+- ✅ Docs lint: **All checks passing!** (canon:check, port-vocabulary, module-map, aliases, ontology-mixing, prolog-predicates)
+- 🚧 Full check: Type errors remain (primarily in gofai modules)
 
 ### Remaining Items:
 

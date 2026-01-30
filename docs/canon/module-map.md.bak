@@ -977,16 +977,16 @@ These modules are stable and match their canonical paths:
 
 These modules have been moved but maintain compatibility:
 
-| Legacy Alias | Actual Path | Status |
+| Canonical Path | Actual Path | Status |
 |---------------|-------------|--------|
-| `src/extensions/registry/v2/diff.ts` | `src/registry/v2/diff.ts` | Implemented |
-| `src/extensions/registry/v2/index.ts` | `src/registry/v2/index.ts` | Implemented |
-| `src/extensions/registry/v2/merge.ts` | `src/registry/v2/merge.ts` | Implemented |
-| `src/extensions/registry/v2/policy.ts` | `src/registry/v2/policy.ts` | Implemented |
-| `src/extensions/registry/v2/reports.ts` | `src/registry/v2/reports.ts` | Implemented |
-| `src/extensions/registry/v2/schema.ts` | `src/registry/v2/schema.ts` | Implemented |
-| `src/extensions/registry/v2/types.ts` | `src/registry/v2/types.ts` | Implemented |
-| `src/extensions/registry/v2/validate.ts` | `src/registry/v2/validate.ts` | Implemented |
+| `src/extensions/registry/v2/diff.ts` | `src/registry/v2/diff.ts` | Redirected |
+| `src/extensions/registry/v2/index.ts` | `src/registry/v2/index.ts` | Redirected |
+| `src/extensions/registry/v2/merge.ts` | `src/registry/v2/merge.ts` | Redirected |
+| `src/extensions/registry/v2/policy.ts` | `src/registry/v2/policy.ts` | Redirected |
+| `src/extensions/registry/v2/reports.ts` | `src/registry/v2/reports.ts` | Redirected |
+| `src/extensions/registry/v2/schema.ts` | `src/registry/v2/schema.ts` | Redirected |
+| `src/extensions/registry/v2/types.ts` | `src/registry/v2/types.ts` | Redirected |
+| `src/extensions/registry/v2/validate.ts` | `src/registry/v2/validate.ts` | Redirected |
 
 ## Legacy Modules
 

@@ -48,7 +48,7 @@ const signature = {
 ### 1. Check Recording State
 
 \`\`\`typescript
-import { shouldCaptureEvents, shouldOutputRealtime } from 'cardplay/src/cards/card';
+import { shouldCaptureEvents, shouldOutputRealtime } from '@cardplay/core/cards';
 
 function processCard(input: Input, context: CardContext): CardResult<Output> {
   const recording = shouldCaptureEvents(context);
@@ -72,7 +72,7 @@ function processCard(input: Input, context: CardContext): CardResult<Output> {
 The `routeOutput` helper automatically routes outputs based on mode:
 
 \`\`\`typescript
-import { routeOutput } from 'cardplay/src/cards/card';
+import { routeOutput } from '@cardplay/core/cards';
 
 function processCard(input: Input, context: CardContext): CardResult<Output> {
   const events = generateEvents(input);
@@ -103,7 +103,7 @@ import {
   startRecordingBuffer,
   recordEvent,
   bufferToStream,
-} from 'cardplay/src/cards/card';
+} from '@cardplay/core/cards';
 
 // Initialize recording state
 let recordingState = createRecordingState();
@@ -141,7 +141,7 @@ type RecordingMode =
 Check if a card properly supports recording:
 
 \`\`\`typescript
-import { checkRecordingSupport } from 'cardplay/src/cards/card';
+import { checkRecordingSupport } from '@cardplay/core/cards';
 
 const support = checkRecordingSupport(cardSignature);
 
@@ -162,7 +162,7 @@ import {
   shouldOutputRealtime,
   type Card,
   type CardContext,
-} from 'cardplay/src/cards/card';
+} from '@cardplay/core/cards';
 
 interface DrumMachineOutput {
   readonly audio?: Float32Array[];
@@ -219,7 +219,7 @@ Test both modes explicitly:
 
 \`\`\`typescript
 import { describe, it, expect } from 'vitest';
-import { createCardContext } from 'cardplay/src/cards/card';
+import { createCardContext } from '@cardplay/core/cards';
 
 describe('MyCard', () => {
   it('outputs audio in playback mode', () => {

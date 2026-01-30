@@ -2,11 +2,9 @@
 Assumes canonical model and terminology in `cardplay2.md` (repo root).
 
 These invariants define what “a valid graph” means in Cardplay. They’re enforced in various places:
-- `src/state/routing-graph.ts` (canonical routing graph implementation)
-- `src/boards/gating/validate-connection.ts` (connection validation)
-- **Legacy alias:** `src/core/graph-validator.ts` (aspirational - not yet implemented)
-- **Legacy alias:** `src/core/graph-normalizer.ts` (aspirational - not yet implemented)
-- **Legacy alias:** `src/core/project-graph-runtime.ts` (aspirational - not yet implemented)
+- `src/core/graph-validator.ts`
+- `src/core/graph-normalizer.ts`
+- `src/core/project-graph-runtime.ts`
 
 ## Structural invariants
 

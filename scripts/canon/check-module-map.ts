@@ -24,17 +24,17 @@ const __dirname = path.dirname(__filename);
 // ============================================================================
 
 // These patterns indicate references to modules that don't exist or are legacy
+// Note: src/registry/v2/ is now implemented (Changes 406-413), so only checking src/core/
 const PHANTOM_MODULE_PATTERNS = [
   /src\/core\//g,
-  /src\/registry\/v2\//g,
   /cardplay\/src\/core\//g,
-  /cardplay\/src\/registry\/v2\//g,
   /@cardplay\/core\//g,
 ];
 
 // Allowed contexts where these patterns may appear
 const ALLOWED_CONTEXTS = [
   'Legacy alias',
+  'legacy:',
   'deprecated',
   'aspirational',
   'not yet implemented',

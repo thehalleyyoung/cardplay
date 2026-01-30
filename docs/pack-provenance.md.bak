@@ -4,10 +4,9 @@ Assumes canonical model and terminology in `cardplay2.md` (repo root).
 Card packs can install new card types at runtime using CardScript.
 
 Implementation:
-- `src/extensions/validators.ts` (provenance validation)
-- `src/registry/v2/types.ts` (RegistryEntryProvenance)
-- **Aspirational:** `src/ui/PackPanel.ts` (not yet implemented)
-- **Aspirational:** `src/runtime/pack-install.ts` (not yet implemented)
+- `src/ui/PackPanel.ts`
+- `src/runtime/pack-install.ts`
+- `src/registry/v2/types.ts` (`RegistryEntryProvenance`)
 
 ## Provenance model
 

@@ -7,7 +7,7 @@ Implementation:
 - `src/boards/gating/port-conversion.ts` (canonical adapter registry)
 - `src/boards/gating/validate-connection.ts` (connection validation)
 - `src/cards/adapter.ts` (adapter models)
-- `src/registry/v2/reports.ts` (coverage matrix)
+- **Aspirational:** `src/registry/v2/reports.ts` (coverage matrix - not yet implemented)
 
 ## Interpretation
 

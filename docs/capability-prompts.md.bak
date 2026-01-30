@@ -4,10 +4,9 @@ Assumes canonical model and terminology in `cardplay2.md` (repo root).
 CardScript packs declare requested capabilities (read/write privileges) at install time.
 
 Implementation:
-- `src/extensions/capabilities.ts` (capability definitions and risk levels)
-- `src/user-cards/cardscript/sandbox.ts` (CardScript sandbox with capability checks)
+- `src/sandbox/capabilities.ts`
 - `src/registry/v2/policy.ts` (risk classification)
-- **Aspirational:** `src/ui/PackPanel.ts` (prompt UI - not yet implemented)
+- `src/ui/PackPanel.ts` (prompt + trust tracking + revocation toggle)
 
 ## Why prompts exist
 

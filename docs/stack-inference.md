@@ -8,8 +8,9 @@ Cardplay supports building "stacks" of cards (`Card<A,B>` morphisms — see card
 - Suggested **adapter paths** for mismatches (when available)
 
 Primary implementation:
-- `src/core/stack-inference.ts`
-- `src/core/stack-inspector.ts`
+- `src/cards/stack.ts` (canonical implementation)
+- **Legacy alias:** `src/core/stack-inference.ts` (aspirational - not yet implemented)
+- **Legacy alias:** `src/core/stack-inspector.ts` (aspirational - not yet implemented)
 
 ## Inputs
 

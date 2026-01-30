@@ -191,10 +191,16 @@ function checkDirectionSeparation(docContent: string): CheckResult {
   const hasDirectionSection = docContent.includes('## Direction') || 
                                docContent.includes('Port direction is separate');
   
-  // Check for anti-patterns
-  const hasDirectionInType = /`(audio_in|audio_out|midi_in|midi_out)`/.test(docContent);
+  // Check for anti-patterns (but allow mentions in "avoid" context)
+  // Look for uses that aren't in "avoid" or "don't" context
+  const lines = docContent.split('\n');
+  const badUsages = lines.filter(line => {
+    const hasDirectionType = /`(audio_in|audio_out|midi_in|midi_out)`/.test(line);
+    const isAvoidContext = /avoid|don't|deprecated/i.test(line);
+    return hasDirectionType && !isAvoidContext;
+  });
 
-  if (hasDirectionSection && !hasDirectionInType) {
+  if (hasDirectionSection && badUsages.length === 0) {
     return {
       passed: true,
       category: 'Direction Separation',
@@ -206,14 +212,14 @@ function checkDirectionSeparation(docContent: string): CheckResult {
   if (!hasDirectionSection) {
     details.push('Missing direction separation guidance');
   }
-  if (hasDirectionInType) {
-    details.push('Found direction-encoded port types (audio_in, midi_out, etc.)');
+  if (badUsages.length > 0) {
+    details.push(`Found direction-encoded port types outside "avoid" context:\n  ${badUsages.join('\n  ')}`);
   }
 
   return {
-    passed: !hasDirectionInType,
+    passed: badUsages.length === 0,
     category: 'Direction Separation',
-    message: hasDirectionInType ? 'Doc contains direction-encoded port types' : 'Missing direction guidance',
+    message: badUsages.length > 0 ? 'Doc contains direction-encoded port types' : 'Missing direction guidance',
     details,
   };
 }

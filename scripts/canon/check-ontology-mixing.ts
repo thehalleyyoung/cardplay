@@ -20,7 +20,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { glob } from 'glob';
+import glob from 'glob';
 
 // ============================================================================
 // ONTOLOGY MARKERS
@@ -233,11 +233,10 @@ async function main(): Promise<void> {
   process.exit(totalErrors > 0 ? 1 : 0);
 }
 
-if (require.main === module) {
-  main().catch(error => {
-    console.error('Error:', error);
-    process.exit(1);
-  });
-}
+// ESM entry point
+main().catch(error => {
+  console.error('Error:', error);
+  process.exit(1);
+});
 
 export { validateDocument, detectOntologies, detectBridgeSections };

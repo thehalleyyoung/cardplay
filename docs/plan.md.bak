@@ -54,10 +54,10 @@ Goals:
 - Basic graph representation with explicit wiring.
 
 Deliverables:
-- `src/cards/card.ts` (canonical location; **legacy:** `src/core/card.ts`): CardDefinition, signatures, params/state.
-- `src/cards/stack.ts` (canonical location; **legacy:** `src/core/stack.ts`): Stack types, inference, adapters.
+- `src/core/card.ts`: CardDefinition, signatures, params/state.
+- `src/core/stack.ts`: Stack types, inference, adapters.
 - `src/registry/adapters.ts`: adapter registry and cost model.
-- `src/state/routing-graph.ts` (canonical location; **legacy:** `src/core/graph.ts`): Node/edge graph model.
+- `src/core/graph.ts`: Node/edge graph model.
 - Stack inspector data model (no UI yet).
 
 Exit criteria:
@@ -76,7 +76,7 @@ Deliverables:
 - `src/state/store.ts`: store, actions, subscriptions.
 - `src/state/actions.ts`: createEvent/updateEvent/deleteEvent.
 - `src/state/selectors.ts`: derived selectors for UI.
-- `src/state/event-store.ts` (canonical location; **legacy:** `src/core/editor.ts`): shared event editing logic.
+- `src/core/editor.ts`: shared event editing logic.
 
 Exit criteria:
 - Changing an event updates store deterministically.

@@ -33,10 +33,15 @@ Defined in `cardplay/src/boards/gating/validate-connection.ts`.
 Default compatible pairs:
 - `audio` ↔ `audio`
 - `midi` ↔ `midi`
+- `notes` ↔ `notes`
 - `notes` → `midi` (with adapter)
 - `control` ↔ `control`
-- `trigger` ↔ `gate` (compatible)
-- `clock` ↔ `transport` (compatible)
+- `trigger` ↔ `trigger`
+- `trigger` ↔ `gate`
+- `gate` ↔ `gate`
+- `clock` ↔ `clock`
+- `clock` ↔ `transport`
+- `transport` ↔ `transport`
 
 ---
 
