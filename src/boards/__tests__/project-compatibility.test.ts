@@ -16,7 +16,7 @@ import { switchBoard } from '../switching/switch-board';
 import { getBoardStateStore } from '../store/store';
 import { getBoardContextStore } from '../context/store';
 import { asTick, asTickDuration } from '../../types/primitives';
-import { EventKinds } from '../../types/event';
+import { EventKinds } from '../../types/event-kind';
 
 describe('K004: Project Compatibility', () => {
   beforeEach(() => {
