@@ -132,3 +132,12 @@ export {
 
 // Change-control rules for canon modifications
 export * from './change-control';
+
+// Entity reference types with branded IDs
+export * from './entity-refs';
+
+// EventSelector: typed predicate language over Event<P>
+export * from './event-selector';
+
+// Canonical time vocabulary
+export * from './time-vocabulary';

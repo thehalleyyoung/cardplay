@@ -27,10 +27,8 @@
 
 import type { HostAction } from './host-actions';
 import type { MusicSpec } from './music-spec';
-import { getSSOTStores } from '../../state/ssot';
 import { getUndoStack } from '../../state/undo-stack';
 import type { ControlLevel } from '../../canon/card-kind';
-import type { ToolMode } from '../../boards/types';
 
 // ============================================================================
 // TYPES
@@ -43,7 +41,7 @@ export interface ApplyHostActionOptions {
   /** Current control level - some actions may be restricted */
   readonly controlLevel: ControlLevel;
   /** Current tool mode - affects how actions are applied */
-  readonly toolMode: ToolMode;
+  readonly toolMode: string;  // Use string instead of generic ToolMode
   /** Whether to record undo */
   readonly recordUndo?: boolean;
   /** Current music spec (for spec-modifying actions) */
@@ -91,7 +89,7 @@ const actionHandlers: Record<string, ActionHandler> = {
 
 function handleSetParam(
   action: HostAction,
-  options: ApplyHostActionOptions
+  _options: ApplyHostActionOptions
 ): ApplyHostActionResult {
   if (action.action !== 'set_param') {
     return { success: false, error: 'Invalid action type' };
@@ -206,10 +204,8 @@ function handleSetKey(
   
   const updatedSpec: MusicSpec = {
     ...options.currentSpec,
-    key: {
-      root: action.root,
-      mode: action.mode,
-    },
+    keyRoot: action.root,
+    mode: action.mode,
   };
   
   options.onSpecUpdate(updatedSpec);
@@ -253,10 +249,8 @@ function handleSetMeter(
   
   const updatedSpec: MusicSpec = {
     ...options.currentSpec,
-    timeSignature: {
-      numerator: action.numerator,
-      denominator: action.denominator,
-    },
+    meterNumerator: action.numerator,
+    meterDenominator: action.denominator,
   };
   
   options.onSpecUpdate(updatedSpec);
@@ -317,7 +311,7 @@ function handleSwitchBoard(
   }
   
   // TODO: Trigger board switch through board manager
-  console.log(`[apply-host-action] switch_board: ${action.boardId}`);
+  console.log(`[apply-host-action] switch_board: ${action.boardType}`);
   
   return { success: true };
 }
@@ -331,7 +325,7 @@ function handleAddDeck(
   }
   
   // TODO: Add deck through board/deck factory
-  console.log(`[apply-host-action] add_deck: ${action.deckType}`);
+  console.log(`[apply-host-action] add_deck: ${action.deckTemplate}`);
   
   return { success: true };
 }
@@ -417,7 +411,6 @@ export function applyHostAction(
     const undoStack = getUndoStack();
     undoStack.push({
       type: 'events-modify',
-      timestamp: Date.now(),
       description: `Apply AI action: ${action.action}`,
       undo: () => {
         // TODO: Implement proper undo for each action type

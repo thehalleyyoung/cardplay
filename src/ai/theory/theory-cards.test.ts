@@ -103,6 +103,19 @@ describe('Theory Cards', () => {
     expect(THEORY_CARDS).toHaveLength(9);
   });
 
+  // Change 283: Assert all theory card IDs are namespaced and unique
+  it('should have all card IDs namespaced with "theory:" prefix', () => {
+    for (const card of THEORY_CARDS) {
+      expect(card.cardId).toMatch(/^theory:/);
+    }
+  });
+
+  it('should have unique card IDs across all theory cards', () => {
+    const cardIds = THEORY_CARDS.map(c => c.cardId);
+    const uniqueIds = new Set(cardIds);
+    expect(uniqueIds.size).toBe(cardIds.length);
+  });
+
   it('should find cards by ID', () => {
     expect(getTheoryCard('theory:tonality_model')).toBe(TONALITY_MODEL_CARD);
     expect(getTheoryCard('theory:schema')).toBe(SCHEMA_CARD);

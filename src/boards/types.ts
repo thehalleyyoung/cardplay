@@ -8,8 +8,6 @@
  * @module @cardplay/boards/types
  */
 
-import type { OntologyId } from '../ai/theory/ontologies';
-
 // ============================================================================
 // CONTROL LEVEL
 // ============================================================================
@@ -378,11 +376,9 @@ export const FLEXIBLE_BOARD_POLICY: BoardPolicy = {
  * must respect the board's ontology constraints.
  * 
  * @see Change 139 in to_fix_repo_plan_500.md
+ * 
+ * Note: OntologySelection type is defined later (~line 491) after OntologyId
  */
-export type OntologySelection = 
-  | OntologyId                      // Single ontology
-  | readonly OntologyId[]           // Multiple allowed ontologies
-  | { primary: OntologyId; fallback?: readonly OntologyId[] }; // Primary + fallbacks
 
 // ============================================================================
 // BOARD DEFINITION
@@ -501,7 +497,10 @@ export const DEFAULT_ONTOLOGY: OntologyId = 'western-12tet';
 export function getBoardOntologies(board: Board): readonly OntologyId[] {
   if (!board.ontology) return [DEFAULT_ONTOLOGY];
   if (typeof board.ontology === 'string') return [board.ontology];
-  return board.ontology;
+  if (Array.isArray(board.ontology)) return board.ontology;
+  // Handle { primary, fallback } structure
+  const withFallback = board.ontology as { primary: OntologyId; fallback?: readonly OntologyId[] };
+  return [withFallback.primary, ...(withFallback.fallback || [])];
 }
 
 // ============================================================================

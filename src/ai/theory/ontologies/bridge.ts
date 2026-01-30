@@ -106,22 +106,28 @@ class BridgePolicy {
     // Check for specific rule
     const rule = this.findRule(from, to);
     if (rule) {
-      return {
+      const result: BridgeResult = {
         allowed: rule.action !== 'block',
         action: rule.action,
-        warning: rule.warning,
       };
+      if (rule.warning) {
+        return { ...result, warning: rule.warning };
+      }
+      return result;
     }
 
     // Check registry compatibility
     if (ontologyRegistry.areCompatible(from, to)) {
       const warning = ontologyRegistry.getBridgeWarning(from) || 
                       ontologyRegistry.getBridgeWarning(to);
-      return {
+      const result: BridgeResult = {
         allowed: true,
         action: warning ? 'warn' : 'allow',
-        warning,
       };
+      if (warning) {
+        return { ...result, warning };
+      }
+      return result;
     }
 
     // Use default action

@@ -173,15 +173,21 @@ export function validateCardId(id: string): CardIdValidationResult {
     }
   }
   
-  return {
+  const namespace = getCardIdNamespace(id);
+  const result: CardIdValidationResult = {
     valid: errors.length === 0,
     isBuiltin,
     isNamespaced,
-    namespace: getCardIdNamespace(id),
     localName: getCardIdLocalName(id),
     warnings,
     errors,
   };
+  
+  if (namespace) {
+    return { ...result, namespace };
+  }
+  
+  return result;
 }
 
 /**

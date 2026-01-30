@@ -243,23 +243,29 @@ export function builtinProvenance(): Provenance {
  * Creates a provenance object for pack registrations.
  */
 export function packProvenance(packId: string, extensionId?: string): Provenance {
-  return {
+  const prov: Provenance = {
     source: 'pack',
     packId,
-    extensionId,
     timestamp: Date.now(),
   };
+  if (extensionId) {
+    return { ...prov, extensionId };
+  }
+  return prov;
 }
 
 /**
  * Creates a provenance object for user registrations.
  */
 export function userProvenance(userId?: string): Provenance {
-  return {
+  const prov: Provenance = {
     source: 'user',
-    userId,
     timestamp: Date.now(),
   };
+  if (userId) {
+    return { ...prov, userId };
+  }
+  return prov;
 }
 
 /**
@@ -271,15 +277,19 @@ export function logRegistration(
   provenance: Provenance,
   metadata?: Record<string, unknown>
 ): void {
-  getRegistryLogger().log({
+  const entry: RegistryLogEntry = {
     level: LogLevel.INFO,
     action: 'register',
     entityType,
     entityId,
     provenance,
     message: `Registered ${entityType} "${entityId}"`,
-    metadata,
-  });
+  };
+  if (metadata) {
+    getRegistryLogger().log({ ...entry, metadata });
+  } else {
+    getRegistryLogger().log(entry);
+  }
 }
 
 /**
@@ -298,10 +308,13 @@ export function logRegistrationError(
     entityId,
     provenance,
     message: `Failed to register ${entityType} "${entityId}": ${error.message}`,
-    error: {
+    error: error.stack ? {
       code: (error as any).code ?? 'UNKNOWN',
       message: error.message,
       stack: error.stack,
+    } : {
+      code: (error as any).code ?? 'UNKNOWN',
+      message: error.message,
     },
   });
 }

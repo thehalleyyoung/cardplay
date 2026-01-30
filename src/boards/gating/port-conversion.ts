@@ -7,7 +7,7 @@
  * @module @cardplay/boards/gating/port-conversion
  */
 
-import type { PortType } from '../../canon/port-types';
+import type { CanonicalPortType } from '../../canon/port-types';
 
 // ============================================================================
 // PORT ADAPTER TYPES
@@ -20,9 +20,9 @@ export interface PortAdapter {
   /** Unique identifier for this adapter */
   readonly id: string;
   /** Source port type */
-  readonly from: PortType;
+  readonly from: CanonicalPortType;
   /** Target port type */
-  readonly to: PortType;
+  readonly to: CanonicalPortType;
   /** Whether this conversion is lossless */
   readonly lossless: boolean;
   /** Human-readable description */
@@ -108,7 +108,7 @@ export function getPortAdapters(): readonly PortAdapter[] {
  * Find an adapter that converts from one port type to another.
  * Returns the first matching adapter, or null if none exists.
  */
-export function findAdapter(from: PortType, to: PortType): PortAdapter | null {
+export function findAdapter(from: CanonicalPortType, to: CanonicalPortType): PortAdapter | null {
   for (const adapter of adapterRegistry.values()) {
     if (adapter.from === from && adapter.to === to) {
       return adapter;
@@ -121,7 +121,7 @@ export function findAdapter(from: PortType, to: PortType): PortAdapter | null {
  * Check if a conversion path exists between two port types
  * (either direct compatibility or via an adapter).
  */
-export function canConvert(from: PortType, to: PortType): boolean {
+export function canConvert(from: CanonicalPortType, to: CanonicalPortType): boolean {
   if (from === to) return true;
   return findAdapter(from, to) !== null;
 }

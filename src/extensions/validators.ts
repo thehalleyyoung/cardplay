@@ -8,7 +8,7 @@
  */
 
 import { isNamespacedId, isBuiltinId, validateId } from '../canon/id-validation';
-import { isValidCapability, type Capability } from './capabilities';
+import { isValidCapability } from './capabilities';
 
 // ============================================================================
 // PROVENANCE TYPES (Change 411)
@@ -131,7 +131,7 @@ export function validateEntityId(
     issues.push({
       severity: 'error',
       code: 'INVALID_ID_FORMAT',
-      message: idValidation.errors.join('; '),
+      message: idValidation.error,
       suggestion: 'Use format "namespace:name" for extension IDs',
     });
   }

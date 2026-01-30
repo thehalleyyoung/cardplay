@@ -13,7 +13,7 @@
  * @see to_fix_repo_plan_500.md Change 417
  */
 
-import { isNamespacedId, isBuiltinId } from '../../canon/id-validation';
+import { isNamespacedId } from '../../canon/id-validation';
 import type { RegistryEntryProvenance } from '../../extensions/validators';
 import { createBuiltinProvenance, createExtensionProvenance } from '../../extensions/validators';
 

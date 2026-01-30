@@ -10,7 +10,8 @@
  * @module @cardplay/boards/settings/board-settings-panel
  */
 
-import type { Board, BoardPolicy, DEFAULT_BOARD_POLICY } from '../types';
+import type { Board, BoardPolicy } from '../types';
+import { DEFAULT_BOARD_POLICY } from '../types';
 import { getBoardStateStore } from '../store/store';
 import { getBoardRegistry } from '../registry';
 

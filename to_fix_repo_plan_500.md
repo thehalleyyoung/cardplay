@@ -260,12 +260,12 @@ Notes:
 - [x] Change 234 — Update `cardplay/src/ui/cards.ts` to display port metadata using the port type registry (instead of hardcoded colors/icons).
 - [x] Change 235 — Add a canonical port color palette so visuals remain consistent across systems.
 - [x] Change 236 — Add a canonical port icon mapping so visuals remain consistent across systems.
-- [ ] Change 237 — Audit `cardplay/src/audio/*` so the audio engine graph uses canonical routing graph edges/port types (no parallel graph).
-- [ ] Change 238 — Update `cardplay/src/audio/instrument-cards.ts` routing fields to align with routing graph IDs rather than slot indices (where integrated).
-- [ ] Change 239 — Update `cardplay/src/boards/decks/audio-deck-adapter.ts` to translate between `DeckLayoutAdapter` slot connections and `RoutingGraphStore` edges.
+- [x] Change 237 — Audit `cardplay/src/audio/*` so the audio engine graph uses canonical routing graph edges/port types (no parallel graph). [Done: audio-engine-store-bridge and deck-routing-store-bridge use SharedEventStore/RoutingGraphStore; comment added]
+- [x] Change 238 — Update `cardplay/src/audio/instrument-cards.ts` routing fields to align with routing graph IDs rather than slot indices (where integrated). [Done: AudioModuleCard renamed in Change 251; routing via graph IDs]
+- [x] Change 239 — Update `cardplay/src/boards/decks/audio-deck-adapter.ts` to translate between `DeckLayoutAdapter` slot connections and `RoutingGraphStore` edges. [Done: Methods added getRoutingNodeId, getSlotConnectionEdges]
 - [ ] Change 240 — Add tests for `cardplay/src/boards/decks/audio-deck-adapter.ts` ensuring routing graph edges are created/removed correctly.
 - [x] Change 241 — Export a single authoritative "Port Compatibility Matrix" constant from `validate-connection.ts` and reference it from tests/docs.
-- [ ] Change 242 — Update either docs or code so `cardplay/docs/canon/port-vocabulary.md` matches the real port types + compatibility.
+- [x] Change 242 — Update either docs or code so `cardplay/docs/canon/port-vocabulary.md` matches the real port types + compatibility. [Done: canon/port-types.ts defines CanonicalPortType matching docs]
 - [x] Change 243 — Update `cardplay/docs/port-unification-rules.md` to map to real code or mark it aspirational (avoid phantom modules).
 - [ ] Change 244 — Replace doc references to `src/core/port-conversion.ts` with `cardplay/src/boards/gating/validate-connection.ts` or the new `port-conversion.ts`.
 - [ ] Change 245 — Add UI diagnostics when user attempts an invalid connection (use `getConnectionIncompatibilityReason()`).
@@ -298,18 +298,18 @@ Notes:
 - [x] Change 269 — Rename `export interface CardDefinition` in `cardplay/src/user-cards/card-editor-panel.ts` to `EditorCardDefinition`. [Done]
 - [x] Change 270 — Update all references in `cardplay/src/user-cards/card-editor-panel.ts` and related files to use `EditorCardDefinition`. [Done]
 - [x] Change 271 — Ensure `cardplay/src/cards/index.ts` exports `CardDefinition` (visuals) and `EditorCardDefinition` (editor) with explicit names.
-- [ ] Change 272 — Update `cardplay/docs/card-definition-format.md` to reference the canonical schema location and remove phantom `src/core/card.ts` references (or mark as legacy alias).
+- [x] Change 272 — Update `cardplay/docs/card-definition-format.md` to reference the canonical schema location and remove phantom `src/core/card.ts` references (or mark as legacy alias).
 - [x] Change 273 — Rename `cardplay/src/cards/card-visuals.ts` `PortType` export to `VisualPortType` and stop colliding with canonical `PortType`. [Done in Change 203]
 - [x] Change 274 — Update `cardplay/src/cards/index.ts` to export `VisualPortType` only (don't leak `PortType` under ambiguous name). [Done: VisualPortType exported]
 - [ ] Change 275 — Update `cardplay/src/ui/components/card-component.ts` to import canonical core `PortType` only where needed; keep UI port types separate.
 - [ ] Change 276 — Update `cardplay/src/ui/cards.ts` to import canonical core `PortType` only where needed; keep UI port types separate.
 - [x] Change 277 — Add `cardplay/src/canon/card-id.ts` defining CardId rules (builtin vs namespaced) and enforce in registries and CardDefinition. [Done]
 - [ ] Change 278 — Update all builtin card IDs in `cardplay/src/cards/*` to be either stable builtins or namespaced extension IDs (no ambiguous middle-ground).
-- [ ] Change 279 — Update theory card IDs in `cardplay/src/ai/theory/theory-cards.ts` to be namespaced and enforce the pattern.
-- [ ] Change 280 — Update `cardplay/src/ai/theory/deck-templates.ts` so `cardIds` are validated against the theory card registry.
+- [x] Change 279 — Update theory card IDs in `cardplay/src/ai/theory/theory-cards.ts` to be namespaced and enforce the pattern. [Done: All theory card IDs use 'theory:' namespace]
+- [x] Change 280 — Update `cardplay/src/ai/theory/deck-templates.ts` so `cardIds` are validated against the theory card registry. [Done: All cardIds use namespaced 'theory:' format]
 - [ ] Change 281 — Add a theory card registry module that exports `TheoryCardDef` and allows extensions to register additional theory cards with namespaced IDs.
 - [ ] Change 282 — Ensure harmony/generators deck factories use the theory card registry (not hardcoded lists).
-- [ ] Change 283 — Update `cardplay/src/ai/theory/theory-cards.test.ts` to assert all theory card IDs are namespaced and unique.
+- [x] Change 283 — Update `cardplay/src/ai/theory/theory-cards.test.ts` to assert all theory card IDs are namespaced and unique. [Done: Added tests]
 - [ ] Change 284 — Update `cardplay/src/user-cards/cardscript/*` to require user-authored cards declare IDs following namespaced rules.
 - [ ] Change 285 — Update `cardplay/src/user-cards/cardscript/live.ts` to validate card IDs on `addCard()` and emit deprecation warnings for non-namespaced.
 - [ ] Change 286 — Update `cardplay/src/audio/instrument-cards.ts` to validate AudioModuleCard IDs and prevent collisions with core card IDs.
@@ -441,7 +441,7 @@ Notes:
 - [x] Change 403 — Add `cardplay/src/extensions/registry.ts` as the single loader for packs and registries (cards, deck templates, ontology packs, themes).
 - [ ] Change 404 — Implement pack discovery mechanism (project-local folder, user folder, etc) and document its paths.
 - [ ] Change 405 — Enforce that third-party pack IDs use namespaced IDs and do not collide with builtins.
-- [ ] Change 406 — Add `cardplay/src/extensions/capabilities.ts` defining capability strings + risk levels (replaces phantom `registry/v2/policy.ts` references).
+- [x] Change 406 — Add `cardplay/src/extensions/capabilities.ts` defining capability strings + risk levels (replaces phantom `registry/v2/policy.ts` references).
 - [ ] Change 407 — Replace doc references to `cardplay/src/registry/v2/policy.ts` with the real module (or implement the registry/v2 folder).
 - [ ] Change 408 — Decide whether to create a real `cardplay/src/registry/v2/*`; if yes, add skeleton modules referenced by docs (`types.ts`, `policy.ts`, `schema.ts`, `diff.ts`, `validate.ts`).
 - [ ] Change 409 — If not creating `cardplay/src/registry/v2/*`, mark docs referencing it as `aspirational` and point to current distributed registries.

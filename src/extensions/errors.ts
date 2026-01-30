@@ -54,11 +54,18 @@ export enum ExtensionErrorCode {
  * Base error class for extension system errors.
  */
 export class ExtensionError extends Error {
+  /** Error code */
   readonly code: ExtensionErrorCode;
+  /** Extension ID if applicable */
   readonly extensionId?: string;
+  /** Pack ID if applicable */
   readonly packId?: string;
+  /** Underlying cause if any */
   readonly cause?: Error;
+  /** Additional metadata */
   readonly metadata?: Record<string, unknown>;
+
+  override readonly name = 'ExtensionError';
 
   constructor(options: {
     code: ExtensionErrorCode;
@@ -71,10 +78,10 @@ export class ExtensionError extends Error {
     super(options.message);
     this.name = 'ExtensionError';
     this.code = options.code;
-    this.extensionId = options.extensionId;
-    this.packId = options.packId;
-    this.cause = options.cause;
-    this.metadata = options.metadata;
+    if (options.extensionId) this.extensionId = options.extensionId;
+    if (options.packId) this.packId = options.packId;
+    if (options.cause) this.cause = options.cause;
+    if (options.metadata) this.metadata = options.metadata;
   }
 
   /**
@@ -209,12 +216,23 @@ export function wrapError(
   }
   
   const message = error instanceof Error ? error.message : String(error);
-  const cause = error instanceof Error ? error : undefined;
   
-  return new ExtensionError({
+  const errorOptions: {
+    code: ExtensionErrorCode;
+    message: string;
+    extensionId?: string;
+    packId?: string;
+    cause?: Error;
+    metadata?: Record<string, unknown>;
+  } = {
     code,
     message,
-    cause,
     ...context,
-  });
+  };
+  
+  if (error instanceof Error) {
+    errorOptions.cause = error;
+  }
+  
+  return new ExtensionError(errorOptions);
 }

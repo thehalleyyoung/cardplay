@@ -364,17 +364,23 @@ export function getRoutingDiagnostics(): readonly RoutingDiagnostic[] {
     const sourceNode = graph.getNode(edge.from);
     const targetNode = graph.getNode(edge.to);
     const hasAdapter = 'adapterId' in edge && edge.adapterId !== undefined;
+    const adapterId = hasAdapter ? (edge as { adapterId?: string }).adapterId : undefined;
 
-    diagnostics.push({
+    const diagnostic: RoutingDiagnostic = {
       edgeId: edge.id,
       sourceNodeName: sourceNode?.name ?? edge.from,
       targetNodeName: targetNode?.name ?? edge.to,
       adapterRequired: hasAdapter,
-      adapterId: hasAdapter ? (edge as { adapterId?: string }).adapterId : undefined,
       message: hasAdapter
-        ? `Connection requires adapter: ${(edge as { adapterId?: string }).adapterId}`
+        ? `Connection requires adapter: ${adapterId}`
         : 'Direct connection',
-    });
+    };
+    
+    if (adapterId) {
+      diagnostics.push({ ...diagnostic, adapterId });
+    } else {
+      diagnostics.push(diagnostic);
+    }
   }
 
   return diagnostics;

@@ -4,10 +4,12 @@ Assumes canonical model and terminology in `cardplay2.md` (repo root).
 Card definitions are runtime-visible “types” used to build stacks/graphs.
 
 Implementation:
-- `src/core/card.ts` (types)
-- `src/registry/cards.ts` (registry)
-- `src/registry/builtins.ts` (built-in card definitions)
-- `src/runtime/cardscript-bridge.ts` (CardScript → runtime definition bridge)
+- `src/cards/card-visuals.ts` (canonical CardDefinition schema)
+- `src/user-cards/card-editor-panel.ts` (EditorCardDefinition for user authoring)
+- `src/cards/registry.ts` (core card registry)
+- `src/cards/index.ts` (barrel exports)
+- Legacy aliases: `src/core/card.ts` (aliased to src/cards/card.ts)
+- Registry v2: See `docs/canon/module-map.md` for module organization
 
 ## Fields (Phase 4)
 
