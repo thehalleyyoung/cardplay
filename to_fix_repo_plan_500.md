@@ -528,6 +528,7 @@ Notes:
 - [x] Change 487 — Add `cardplay/scripts/update-stack-systems-doc.ts` keeping `cardplay/docs/canon/stack-systems.md` aligned with code symbols.
 - [ ] Change 488 — Add a "golden path" example project fixture exercising boards, decks, routing, AI suggestions, and export end-to-end. [Deferred: Integration test suite to be designed separately] — Add a “golden path” example project fixture exercising boards, decks, routing, AI suggestions, and export end-to-end.
 - [ ] Change 489 — Add an integration test loading the golden path fixture and asserting key invariants (canonical IDs, stable layout, SSOT-only stores).
+- [x] Change 490 — Add a snapshot test for ClipRegistry output so clip state changes are intentional. [Done: clip-registry.snapshot.test.ts]
 - [x] Change 491 — Add a snapshot test for board registry output so metadata changes are intentional. [Done: board-registry.snapshot.test.ts]
 - [x] Change 492 — Add a snapshot test for deck factory registry output so factory changes are intentional. [Done: deck-factory-registry.snapshot.test.ts]
 - [x] Change 493 — Add a snapshot test for port type registry output so port vocabulary changes are intentional. [Done: port-type-registry.snapshot.test.ts]
@@ -544,14 +545,15 @@ Notes:
 
 ## Final Status (2026-01-30 - Session Update)
 
-**Completion:** 493/500 changes (98.6%)
+**Completion:** 494/500 changes (98.8%)
 
 ### Just Completed:
 - Fixed port-vocabulary.md compatibility pairs (added self-connections)
 - Fixed direction-encoded port type detection in check script
 - Updated module-map check to remove src/registry/v2 (now implemented)
-- Fixed 9 phantom module references in docs (adapter-cost-model, coding-style, graph-invariants, pack-provenance, capability-prompts, stack-inference, plan.md)
+- Fixed 9 phantom module references in docs
 - Fixed ESM import issues in check-ontology-mixing.ts
+- Added ClipRegistry snapshot test (Change 490)
 - ✅ **docs:lint now passing completely!**
 
 ### Current Status:
