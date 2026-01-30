@@ -5,6 +5,13 @@
  * connections and the audio routing system read from. Single source of
  * truth for all signal flow in the system.
  * 
+ * **SSOT**: This is the single source of truth for routing state.
+ * See cardplay/docs/canon/ssot-stores.md for the SSOT contract.
+ * 
+ * - All connections MUST be created/deleted through this store
+ * - UI and audio engine read from this store only
+ * - No parallel routing graphs should exist
+ * 
  * @module @cardplay/state/routing-graph
  * @see INTEGRATION_FIXES_CHECKLIST.md Phase E.3
  */

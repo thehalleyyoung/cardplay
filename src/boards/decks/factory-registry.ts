@@ -86,6 +86,33 @@ export class DeckFactoryRegistry {
   }
 
   /**
+   * Change 196: Report missing factory with actionable diagnostics.
+   * Returns diagnostic message if factory is missing, null if present.
+   */
+  getMissingFactoryDiagnostic(deckType: DeckType): string | null {
+    const canonicalType = normalizeDeckType(deckType);
+    if (this.factories.has(canonicalType)) {
+      return null;
+    }
+    
+    const registered = this.getRegisteredTypes();
+    const similar = registered.filter(t => 
+      t.includes(deckType.split('-')[0] || '') || 
+      deckType.includes(t.split('-')[0] || '')
+    );
+    
+    let message = `Missing factory for deck type: "${canonicalType}"\n`;
+    message += `  → Add factory file: src/boards/decks/factories/${canonicalType}-factory.ts\n`;
+    message += `  → Register in: src/boards/decks/factories/index.ts\n`;
+    
+    if (similar.length > 0) {
+      message += `  → Similar registered types: ${similar.join(', ')}\n`;
+    }
+    
+    return message;
+  }
+
+  /**
    * Unregisters a deck factory (for testing).
    * Canonicalizes deck type via normalizeDeckType.
    */

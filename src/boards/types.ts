@@ -271,6 +271,18 @@ export interface BoardDeck {
 // ============================================================================
 
 /**
+ * Change 228: Canonical ConnectionType union.
+ * 
+ * Used across routing graph, deck layout, and UI.
+ * Extension connection types should be namespaced (e.g., 'myext:custom').
+ */
+export type ConnectionType = 
+  | 'audio'       // Audio signal
+  | 'midi'        // MIDI data
+  | 'modulation'  // Control/modulation signals
+  | 'trigger';    // Trigger/gate signals
+
+/**
  * Routing connection between decks.
  */
 export interface BoardConnection {
@@ -278,7 +290,7 @@ export interface BoardConnection {
   readonly sourcePort: string;
   readonly targetId: string;
   readonly targetPort: string;
-  readonly connectionType: 'audio' | 'midi' | 'modulation' | 'trigger';
+  readonly connectionType: ConnectionType;
 }
 
 // ============================================================================

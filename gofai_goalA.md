@@ -8,9 +8,9 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 ## Phase 0 — Charter, Invariants, and Non‑Negotiables (Steps 001–050)
 
-- [ ] Step 001 [Infra][HCI] — Write a one-page “GOFAI Music+ product contract” (offline, deterministic, inspectable, undoable) and publish it as a repo doc with explicit non-goals.
-- [ ] Step 005 [HCI] — Define user-facing trust primitives: **preview**, **diff**, **why**, **undo**, and **scope highlighting** are mandatory in UX.
-- [ ] Step 009 [HCI] — Decide the default interaction loop: parse → show CPL → ask clarifications if needed → show plan/diff → user applies.
+- [x] Step 001 [Infra][HCI] — Write a one-page "GOFAI Music+ product contract" (offline, deterministic, inspectable, undoable) and publish it as a repo doc with explicit non-goals.
+- [x] Step 005 [HCI] — Define user-facing trust primitives: **preview**, **diff**, **why**, **undo**, and **scope highlighting** are mandatory in UX.
+- [x] Step 009 [HCI] — Decide the default interaction loop: parse → show CPL → ask clarifications if needed → show plan/diff → user applies.
 - [ ] Step 012 [NLP][Prag] — Specify a formal ambiguity policy: allow underspecified meaning (holes) and require explicit resolution before execution.
 - [ ] Step 013 [NLP][Sem] — Choose a core semantic representation strategy: typed lambda calculus + event semantics + degree semantics, with MRS-like underspecification for scope.
 - [ ] Step 014 [Prag] — Choose a discourse model strategy: DRT/SDRT-style discourse referents + rhetorical relations for “and/but/then/after”.
@@ -28,22 +28,22 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 038 [Sem][Prag] — Specify the semantics of “again”, “still”, “also”, “too” as presupposition triggers in edit dialogue.
 - [ ] Step 039 [Prag] — Specify an implicature/default model (Gricean/QUD): what “keep tempo steady” implies absent explicit BPM changes.
 - [ ] Step 040 [Infra] — Define a change-control rule: new lexemes/grammar rules require golden tests and ambiguity analysis notes.
-- [ ] Step 041 [Type] — Decide how musical “entities” are typed: section, range, track/layer, card, param, event selector, deck, board.
-- [ ] Step 042 [Infra] — Create a “canonical axis catalog” for perceptual axes (energy, lift, brightness, width, intimacy, tension, groove tightness).
-- [ ] Step 043 [Sem] — Define degree semantics for comparatives (“more lift”, “less busy”) using axis values and monotonic lever mappings.
+- [x] Step 041 [Type] — Decide how musical "entities" are typed: section, range, track/layer, card, param, event selector, deck, board.
+- [x] Step 042 [Infra] — Create a "canonical axis catalog" for perceptual axes (energy, lift, brightness, width, intimacy, tension, groove tightness).
+- [x] Step 043 [Sem] — Define degree semantics for comparatives ("more lift", "less busy") using axis values and monotonic lever mappings.
 - [ ] Step 044 [HCI] — Define UI affordances for degrees: sliders, discrete “tiny/small/moderate/large”, and explicit numeric overrides.
 - [ ] Step 049 [HCI] — Define “user preference profiles” for vague words (dark = timbre vs harmony vs register) and how UI edits those profiles.
 ---
 
 ## Phase 1 — Canonical Ontology + Extensible Symbol Tables (Steps 051–100)
 
-- [ ] Step 051 [Type][Infra] — Create a GOFAI canon layer: a single SSOT module exporting lexeme IDs, axis IDs, opcode IDs, and normalization rules.
+- [x] Step 051 [Type][Infra] — Create a GOFAI canon layer: a single SSOT module exporting lexeme IDs, axis IDs, opcode IDs, and normalization rules.
 - [ ] Step 054 [Type] — Define `EntityRef` types (SectionRef, RangeRef, LayerRef, CardRef, ParamRef, DeckRef, BoardRef) with branded IDs.
 - [ ] Step 055 [Type] — Define `EventSelector` as a typed predicate language over `Event<P>` (kind, tags, role, pitch range, time range).
 - [ ] Step 056 [Infra] — Implement a project “symbol table builder” that indexes sections, tracks/layers, cards, decks, and boards by IDs and display names.
 - [ ] Step 057 [Prag][Type] — Add salience tracking to symbol tables (last-focused section, last-edited layer, current selection) for reference resolution.
-- [ ] Step 058 [NLP][Sem] — Define a canonical section vocabulary: intro/verse/chorus/bridge/outro + numbered variants + user-defined labels.
-- [ ] Step 059 [NLP][Sem] — Define a canonical layer vocabulary: drums/kick/snare/hats/bass/pad/lead/vocal + role mappings.
+- [x] Step 058 [NLP][Sem] — Define a canonical section vocabulary: intro/verse/chorus/bridge/outro + numbered variants + user-defined labels.
+- [x] Step 059 [NLP][Sem] — Define a canonical layer vocabulary: drums/kick/snare/hats/bass/pad/lead/vocal + role mappings.
 - [ ] Step 060 [NLP][Sem] — Define a canonical time vocabulary: bars/beats/ticks, relative phrases (“two bars before”), and timepoint references (“at bar 49”).
 - [ ] Step 071 [Infra] — Document the “entity binding precedence”: selection > explicit reference > salience > defaults; add tests for resolution order.
 - [ ] Step 072 [Prag] — Encode deictic resolution rules (“this section”, “these notes”) and require a UI selection context for them.

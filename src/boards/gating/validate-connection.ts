@@ -74,8 +74,11 @@ export function validateConnection(
 /**
  * Port type compatibility matrix.
  * Defines which port types can be connected together.
+ * 
+ * Change 241: Authoritative "Port Compatibility Matrix" constant.
+ * Reference this from tests and docs.
  */
-const COMPATIBILITY_MATRIX = new Map<PortType, Set<PortType>>([
+export const PORT_COMPATIBILITY_MATRIX = new Map<PortType, Set<PortType>>([
   // Audio is compatible with itself and control signals
   [PortTypes.AUDIO, new Set([PortTypes.AUDIO, PortTypes.CONTROL])],
   
@@ -109,6 +112,9 @@ const COMPATIBILITY_MATRIX = new Map<PortType, Set<PortType>>([
   // Patterns can be used as streams
   [PortTypes.PATTERN, new Set([PortTypes.PATTERN, PortTypes.STREAM])],
 ]);
+
+// Alias for backward compatibility
+const COMPATIBILITY_MATRIX = PORT_COMPATIBILITY_MATRIX;
 
 /**
  * Checks if two port types are compatible.

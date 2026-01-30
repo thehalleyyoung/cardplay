@@ -355,3 +355,39 @@ describe('Deck Pack Addition (O032-O034)', () => {
     expect(result.errors[0]).toContain('not found');
   });
 });
+
+/**
+ * Change 199: Assert every deck pack only uses DeckTypes that have factories.
+ */
+describe('Deck Pack Factory Coverage (Change 199)', () => {
+  beforeEach(() => {
+    resetDeckPackRegistry();
+  });
+
+  test('all deck pack deck types have registered factories', async () => {
+    // Dynamic import to avoid circular dependency
+    const { getDeckFactoryRegistry } = await import('../decks/factory-registry.js');
+    // Ensure factories are registered
+    await import('../decks/factories/index.js');
+    
+    const factoryRegistry = getDeckFactoryRegistry();
+    const missingFactories: string[] = [];
+    
+    for (const pack of builtinDeckPacks) {
+      for (const deck of pack.decks) {
+        if (!factoryRegistry.hasFactory(deck.type as any)) {
+          missingFactories.push(`${pack.id}/${deck.type}`);
+        }
+      }
+    }
+    
+    if (missingFactories.length > 0) {
+      console.warn('Deck packs reference DeckTypes without factories:', missingFactories);
+    }
+    
+    expect(
+      missingFactories,
+      `Deck packs use DeckTypes without factories: ${missingFactories.join(', ')}`
+    ).toHaveLength(0);
+  });
+});
