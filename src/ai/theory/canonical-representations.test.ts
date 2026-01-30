@@ -525,8 +525,8 @@ describe('C041: Mode Similarity Metric', () => {
   test('calculates similarity between Ionian and Aeolian', () => {
     const result = calculateModeSimilarity('ionian', 'aeolian');
     expect(result).not.toBeNull();
-    // They share 5 notes
-    expect(result!.sharedDegrees).toBe(5);
+    // They share 4 notes (C, D, F, G when both rooted on same tonic)
+    expect(result!.sharedDegrees).toBe(4);
     expect(result!.relationship).toBe('relative');
   });
 

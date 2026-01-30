@@ -553,9 +553,38 @@ Notes:
 - ✅ **Canon tests:** 85/85 passing (100%)
 - ✅ **SSOT tests:** 14/14 passing (100%)
 - ✅ **Snapshot tests:** 64/64 passing (100%)
-- ✅ **Test suite:** 10,791/11,450 tests passing (94.2%) ← UPDATED!
-- ✅ **Test files:** 257/311 passing (82.6%) ← UPDATED!
+- ✅ **Test suite:** 10,795/11,450 tests passing (94.3%) ← UPDATED!
+- ✅ **Test files:** 258/311 passing (83.0%) ← UPDATED!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
+
+### Session 15 Summary (2026-01-30)
+
+**Major Achievements:**
+1. ✅ Fixed piano-roll-panel tests (132/132, was 129/132)
+2. ✅ Fixed arranger anticipation test (222/222, was 221/222)
+3. ✅ Fixed project-exchange metadata test (partial: 23/33, was 22/33)
+4. ✅ Added 4 passing tests (10,791 → 10,795)
+5. ✅ Fixed 1 test file (257 → 258)
+
+**Test Files Fixed:**
+1. piano-roll-panel.test.ts - Disabled snap grid in move/resize tests (snapping caused false positives)
+2. arranger.test.ts - Fixed PPQ value from 480 to 960 (canonical)
+3. project-exchange.test.ts - Fixed metadata field name (name → projectName)
+
+**Root Causes Fixed:**
+- Piano roll tests were failing because snap-to-grid (240 ticks) caused small deltas (100 ticks) to snap to same position
+- Arranger test had incorrect PPQ assumption (480 vs canonical 960)
+- Project exchange test used wrong metadata field name
+
+**Progress Metrics:**
+- Starting: 10,791 tests passing (257 files)
+- Ending: 10,795 tests passing (258 files)
+- Improvement: +4 tests, +1 file
+- Pass rate: 94.3% (10,795/11,450)
+- Failure rate: 5.7% (down from 5.7%)
+
+**Commits:**
+1. 7034837: Fix test failures: piano-roll snap grid, arranger PPQ, project-exchange metadata
 
 ### Session 14 Summary (2026-01-30)
 

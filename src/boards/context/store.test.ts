@@ -251,6 +251,9 @@ describe('BoardContextStore', () => {
     });
 
     it('should save only once after burst of updates', () => {
+      // Clear any pending saves from beforeEach
+      vi.runAllTimers();
+      
       const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
 
       for (let i = 0; i < 10; i++) {

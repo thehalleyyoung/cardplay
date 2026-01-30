@@ -141,6 +141,8 @@ const JUST_INTONATION: OntologyPack = {
   compatibility: {
     bridges12TET: true,
     bridgeWarning: 'Just intonation intervals may not map exactly to 12-TET',
+    compatibleWith: ['western' as OntologyId],
+    requiresBridging: ['western' as OntologyId],
   },
 };
 

@@ -151,6 +151,12 @@ export const DECK_CAPABILITIES: Record<DeckType, DeckCapabilities> = {
     requestsProlog: true, // main AI query deck
     supportsSlotGrid: false,
   },
+  'ai-composer-deck': {
+    readsSpec: true,
+    writesSpec: true, // modifies spec via composition
+    requestsProlog: true,
+    supportsSlotGrid: false,
+  },
 
   // Utility decks
   'transport-deck': {

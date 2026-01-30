@@ -128,18 +128,16 @@ describe('Routing Persistence', () => {
       bypassed: false
     });
     
-    // Try to connect audio to MIDI - should work as routing is flexible
-    // The actual validation happens at the port level in real usage
-    const edge = graph.connect(
-      'instrument-1',
-      'audio-out',
-      'midi-device',
-      'midi-in',
-      'audio' as EdgeType
-    );
-    
-    // Connection is created (validation is UI-level concern)
-    expect(edge).toBeDefined();
+    // Try to connect audio to MIDI - should be rejected due to type mismatch
+    expect(() => {
+      graph.connect(
+        'instrument-1',
+        'audio-out',
+        'midi-device',
+        'midi-in',
+        'audio' as EdgeType
+      );
+    }).toThrow(/incompatible|Cannot connect/i);
   });
 
   it('should handle multiple connections from one source', () => {
