@@ -34,7 +34,7 @@ describe('switchBoard', () => {
     registry.clear();
     
     const testBoard1: Board = {
-      id: 'test-board-1',
+      id: 'test:test-board-1',
       name: 'Test Board 1',
       description: 'First test board',
       icon: '🎹',
@@ -60,14 +60,14 @@ describe('switchBoard', () => {
 
     const testBoard2: Board = {
       ...testBoard1,
-      id: 'test-board-2',
+      id: 'test:test-board-2',
       name: 'Test Board 2',
       description: 'Second test board',
     };
 
     const testBoard3: Board = {
       ...testBoard1,
-      id: 'test-board-3',
+      id: 'test:test-board-3',
       name: 'Test Board 3',
       description: 'Third test board with lifecycle',
       onActivate: vi.fn(),
@@ -85,12 +85,12 @@ describe('switchBoard', () => {
 
   describe('basic switching', () => {
     it('should switch to valid board', () => {
-      const result = switchBoard('test-board-1');
+      const result = switchBoard('test:test-board-1');
       expect(result).toBe(true);
 
       const store = getBoardStateStore();
       const state = store.getState();
-      expect(state.currentBoardId).toBe('test-board-1');
+      expect(state.currentBoardId).toBe('test:test-board-1');
     });
 
     it('should return false for invalid board', () => {
@@ -104,7 +104,7 @@ describe('switchBoard', () => {
 
     it('should update lastOpenedAt timestamp', () => {
       const before = Date.now();
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
       const after = Date.now();
 
       const store = getBoardStateStore();
@@ -117,36 +117,36 @@ describe('switchBoard', () => {
 
   describe('recent boards', () => {
     it('should add board to recent list on switch', () => {
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
 
       const store = getBoardStateStore();
       const state = store.getState();
       
-      expect(state.recentBoardIds).toContain('test-board-1');
+      expect(state.recentBoardIds).toContain('test:test-board-1');
     });
 
     it('should maintain recent boards order', () => {
-      switchBoard('test-board-1');
-      switchBoard('test-board-2');
-      switchBoard('test-board-3');
+      switchBoard('test:test-board-1');
+      switchBoard('test:test-board-2');
+      switchBoard('test:test-board-3');
 
       const store = getBoardStateStore();
       const state = store.getState();
       
-      expect(state.recentBoardIds[0]).toBe('test-board-3');
-      expect(state.recentBoardIds[1]).toBe('test-board-2');
-      expect(state.recentBoardIds[2]).toBe('test-board-1');
+      expect(state.recentBoardIds[0]).toBe('test:test-board-3');
+      expect(state.recentBoardIds[1]).toBe('test:test-board-2');
+      expect(state.recentBoardIds[2]).toBe('test:test-board-1');
     });
 
     it('should not duplicate in recent list', () => {
-      switchBoard('test-board-1');
-      switchBoard('test-board-2');
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
+      switchBoard('test:test-board-2');
+      switchBoard('test:test-board-1');
 
       const store = getBoardStateStore();
       const state = store.getState();
       
-      const count = state.recentBoardIds.filter(id => id === 'test-board-1').length;
+      const count = state.recentBoardIds.filter(id => id === 'test:test-board-1').length;
       expect(count).toBe(1);
     });
   });
@@ -157,7 +157,7 @@ describe('switchBoard', () => {
       contextStore.setActiveStream('stream-1');
       contextStore.setActiveClip('clip-1');
 
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
 
       const context = contextStore.getContext();
       expect(context.activeStreamId).toBe('stream-1');
@@ -169,7 +169,7 @@ describe('switchBoard', () => {
       contextStore.setActiveStream('stream-1');
       contextStore.setActiveClip('clip-1');
 
-      switchBoard('test-board-1', { preserveActiveContext: false });
+      switchBoard('test:test-board-1', { preserveActiveContext: false });
 
       const context = contextStore.getContext();
       expect(context.activeStreamId).toBeNull();
@@ -180,29 +180,29 @@ describe('switchBoard', () => {
   describe('layout state', () => {
     it('should preserve layout state by default', () => {
       const store = getBoardStateStore();
-      store.setLayoutState('test-board-1', {
+      store.setLayoutState('test:test-board-1', {
         panelSizes: { left: 300 },
         collapsedPanels: [],
         activeTabIds: {},
       });
 
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
 
-      const layout = store.getLayoutState('test-board-1');
+      const layout = store.getLayoutState('test:test-board-1');
       expect(layout.panelSizes?.left).toBe(300);
     });
 
     it('should reset layout when resetLayout is true', () => {
       const store = getBoardStateStore();
-      store.setLayoutState('test-board-1', {
+      store.setLayoutState('test:test-board-1', {
         panelSizes: { left: 300 },
         collapsedPanels: ['right'],
         activeTabIds: {},
       });
 
-      switchBoard('test-board-1', { resetLayout: true });
+      switchBoard('test:test-board-1', { resetLayout: true });
 
-      const layout = store.getLayoutState('test-board-1');
+      const layout = store.getLayoutState('test:test-board-1');
       expect(layout.panelSizes).toEqual({});
       expect(layout.collapsedPanels).toEqual([]);
     });
@@ -211,76 +211,76 @@ describe('switchBoard', () => {
   describe('deck state', () => {
     it('should preserve deck state by default', () => {
       const store = getBoardStateStore();
-      store.setDeckState('test-board-1', {
+      store.setDeckState('test:test-board-1', {
         activeTabs: { 'deck-1': 'tab-1' },
         scrollPositions: {},
         focusedItems: {},
         filters: {},
       });
 
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
 
-      const deckState = store.getDeckState('test-board-1');
+      const deckState = store.getDeckState('test:test-board-1');
       expect(deckState.activeTabs?.['deck-1']).toBe('tab-1');
     });
 
     it('should reset deck state when resetDecks is true', () => {
       const store = getBoardStateStore();
-      store.setDeckState('test-board-1', {
+      store.setDeckState('test:test-board-1', {
         activeTabs: { 'deck-1': 'tab-1' },
         scrollPositions: {},
         focusedItems: {},
         filters: {},
       });
 
-      switchBoard('test-board-1', { resetDecks: true });
+      switchBoard('test:test-board-1', { resetDecks: true });
 
-      const deckState = store.getDeckState('test-board-1');
+      const deckState = store.getDeckState('test:test-board-1');
       expect(deckState.activeTabs).toEqual({});
     });
   });
 
   describe('lifecycle hooks', () => {
     it('should call onDeactivate on previous board', () => {
-      switchBoard('test-board-3');
-      const board = getBoardRegistry().get('test-board-3') as Board & {
+      switchBoard('test:test-board-3');
+      const board = getBoardRegistry().get('test:test-board-3') as Board & {
         onDeactivate: ReturnType<typeof vi.fn>;
         onActivate: ReturnType<typeof vi.fn>;
       };
 
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
 
       expect(board.onDeactivate).toHaveBeenCalled();
     });
 
     it('should call onActivate on new board', () => {
-      switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
       
-      const board = getBoardRegistry().get('test-board-3') as Board & {
+      const board = getBoardRegistry().get('test:test-board-3') as Board & {
         onDeactivate: ReturnType<typeof vi.fn>;
         onActivate: ReturnType<typeof vi.fn>;
       };
 
-      switchBoard('test-board-3');
+      switchBoard('test:test-board-3');
 
       expect(board.onActivate).toHaveBeenCalled();
     });
 
     it('should skip lifecycle hooks when callLifecycleHooks is false', () => {
-      switchBoard('test-board-3');
-      const board = getBoardRegistry().get('test-board-3') as Board & {
+      switchBoard('test:test-board-3');
+      const board = getBoardRegistry().get('test:test-board-3') as Board & {
         onDeactivate: ReturnType<typeof vi.fn>;
         onActivate: ReturnType<typeof vi.fn>;
       };
 
-      switchBoard('test-board-1', { callLifecycleHooks: false });
+      switchBoard('test:test-board-1', { callLifecycleHooks: false });
 
       expect(board.onDeactivate).not.toHaveBeenCalled();
     });
 
     it('should handle lifecycle hook errors gracefully', () => {
       const errorBoard: Board = {
-        id: 'error-board',
+        id: 'test:error-board',
         name: 'Error Board',
         description: 'Board with failing hooks',
         icon: '⚠️',
@@ -306,28 +306,28 @@ describe('switchBoard', () => {
       getBoardRegistry().register(errorBoard);
 
       // Should not throw
-      expect(() => switchBoard('error-board')).not.toThrow();
-      expect(() => switchBoard('test-board-1')).not.toThrow();
+      expect(() => switchBoard('test:error-board')).not.toThrow();
+      expect(() => switchBoard('test:test-board-1')).not.toThrow();
     });
   });
 
   describe('first switch', () => {
     it('should handle first board switch (no previous board)', () => {
-      const result = switchBoard('test-board-1');
+      const result = switchBoard('test:test-board-1');
       
       expect(result).toBe(true);
       
       const store = getBoardStateStore();
       const state = store.getState();
-      expect(state.currentBoardId).toBe('test-board-1');
+      expect(state.currentBoardId).toBe('test:test-board-1');
     });
 
     it('should not call onDeactivate when no previous board', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
-      switchBoard('test-board-3');
+      switchBoard('test:test-board-3');
 
-      const board = getBoardRegistry().get('test-board-3') as Board & {
+      const board = getBoardRegistry().get('test:test-board-3') as Board & {
         onDeactivate: ReturnType<typeof vi.fn>;
       };
 
@@ -340,21 +340,21 @@ describe('switchBoard', () => {
 
   describe('switch to same board', () => {
     it('should allow switching to same board', () => {
-      switchBoard('test-board-1');
-      const result = switchBoard('test-board-1');
+      switchBoard('test:test-board-1');
+      const result = switchBoard('test:test-board-1');
 
       expect(result).toBe(true);
     });
 
     it('should still update recent boards when switching to same board', () => {
-      switchBoard('test-board-1');
-      switchBoard('test-board-2');
-      switchBoard('test-board-1'); // Back to first board
+      switchBoard('test:test-board-1');
+      switchBoard('test:test-board-2');
+      switchBoard('test:test-board-1'); // Back to first board
 
       const store = getBoardStateStore();
       const state = store.getState();
       
-      expect(state.recentBoardIds[0]).toBe('test-board-1');
+      expect(state.recentBoardIds[0]).toBe('test:test-board-1');
     });
   });
 
@@ -364,13 +364,13 @@ describe('switchBoard', () => {
       const stateStore = getBoardStateStore();
 
       contextStore.setActiveStream('stream-1');
-      stateStore.setLayoutState('test-board-1', {
+      stateStore.setLayoutState('test:test-board-1', {
         panelSizes: { left: 300 },
         collapsedPanels: [],
         activeTabIds: {},
       });
 
-      switchBoard('test-board-1', {
+      switchBoard('test:test-board-1', {
         resetLayout: true,
         resetDecks: true,
         preserveActiveContext: false,
@@ -378,8 +378,8 @@ describe('switchBoard', () => {
       });
 
       const context = contextStore.getContext();
-      const layout = stateStore.getLayoutState('test-board-1');
-      const deckState = stateStore.getDeckState('test-board-1');
+      const layout = stateStore.getLayoutState('test:test-board-1');
+      const deckState = stateStore.getDeckState('test:test-board-1');
 
       expect(context.activeStreamId).toBeNull();
       expect(layout.panelSizes).toEqual({});

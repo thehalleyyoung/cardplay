@@ -17,17 +17,17 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 010 [Infra] — Identify the minimal “project world API” needed by GOFAI (section markers, tracks/layers, card registry, selected range, undo stack).
 - [x] Step 011 [Type] — Specify the difference between **goals**, **constraints**, and **preferences** (hard vs soft), with a stable typed model.
 - [x] Step 016 [Infra] — Add a glossary of key terms (scope, referent, salience, presupposition, implicature, constraint) and require it in docs review.
-- [ ] Step 017 [Type] — Decide how “unknown-but-declared” extension semantics are represented (opaque namespaced nodes with schemas).
+- [x] Step 017 [Type] — Decide how “unknown-but-declared” extension semantics are represented (opaque namespaced nodes with schemas).
 - [x] Step 020 [Infra][Eval] — Define success metrics: semantic reliability under paraphrase, constraint correctness, edit reversibility, workflow speed, user trust.
-- [ ] Step 022 [Infra] — Build a “risk register” (failure modes: wrong scope, wrong target, broken constraints, destructive edits) and map each to mitigation steps.
-- [ ] Step 023 [Type] — Define a “capability model” for the current environment: what can be edited (events vs routing vs DSP) depending on board policy.
+- [x] Step 022 [Infra] — Build a “risk register” (failure modes: wrong scope, wrong target, broken constraints, destructive edits) and map each to mitigation steps.
+- [x] Step 023 [Type] — Define a “capability model” for the current environment: what can be edited (events vs routing vs DSP) depending on board policy.
 - [x] Step 024 [Infra] — Establish a policy for deterministic output ordering (stable sorting for entities, stable tie-breakers for parsing/planning).
 - [x] Step 025 [Infra] — Create a dedicated docs entrypoint for GOFAI (index + architecture + vocabulary + extension spec).
-- [ ] Step 027 [Infra] — Define a minimal “song fixture” format for tests (small project state snapshots that can be diffed deterministically).
+- [x] Step 027 [Infra] — Define a minimal “song fixture” format for tests (small project state snapshots that can be diffed deterministically).
 - [x] Step 031 [Infra] — Decide on naming conventions and folder layout for GOFAI modules (canon, nl, semantics, pragmatics, planning, execution, ui).
 - [x] Step 032 [Type] — Define “CPL as a public interface”: stable TS types + JSON schema; discourage leaking parse-tree internals.
 - [x] Step 033 [Infra] — Define “compiler determinism rules” (no random choices; if multiple plans tie, show options).
-- [ ] Step 035 [Type] — Define “undo tokens” as linear resources: every `apply` yields a token that can be consumed by `undo` deterministically.
+- [x] Step 035 [Type] — Define “undo tokens” as linear resources: every `apply` yields a token that can be consumed by `undo` deterministically.
 - [x] Step 045 [Type] — Define refinement constraints for axis values (e.g., width ∈ [0,1], BPM > 0), with validators.
 - [x] Step 046 [Infra] — Establish a local-only telemetry plan (optional) to capture anonymized parse/clarification failures for iterative improvement.
 - [x] Step 047 [Eval] — Decide on an evaluation harness that can replay a conversation against fixed fixtures and assert deterministic outputs.
