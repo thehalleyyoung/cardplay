@@ -28,6 +28,7 @@ import { getSharedEventStore } from '../state/event-store';
 import { getClipRegistry } from '../state/clip-registry';
 import { getUndoStack } from '../state/undo-stack';
 import { asTick, asTickDuration } from '../types/primitives';
+import { createEvent } from '../types/event';
 import type { Event } from '../types/event';
 import type { EventId } from '../types/event-id';
 
@@ -152,10 +153,15 @@ export const handlePhraseToPatternEditor: DropHandler<PhrasePayload> = async (
   
   // Transform phrase notes to events at drop position
   const baseTime = Math.round(context.time);
-  const newEvents: Event<unknown>[] = notesToDrop.map(note => ({
-    ...note,
-    start: asTick((note.start as unknown as number) + baseTime),
-  }));
+  const newEvents: Event<unknown>[] = notesToDrop.map((note) => {
+    // Create new event with offset start time
+    // Use unary + to ensure numeric value
+    const offsetStart = (+note.start) + baseTime;
+    return createEvent({
+      ...note,
+      start: offsetStart, // createEvent will call asTick internally
+    }) as Event<unknown>;
+  });
   
   // Execute with undo support (E070)
   const eventIds = newEvents.map(e => e.id);

@@ -136,7 +136,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 314 [Type] — Implement “execution capability checks”: if a plan requires routing edits but policy forbids it, downgrade to preview-only.
 - [x] Step 315 [Infra] — Implement “deterministic host action ordering” so repeated runs produce identical diffs.
 - [x] Step 316 [Infra] — Implement automatic undo integration with CardPlay store: each `EditPackage` becomes one undo step (or a grouped transaction).
-- [ ] Step 317 [Infra] — Implement redo integration; ensure redo re-validates constraints if the world changed since original apply.
+- [x] Step 317 [Infra] — Implement redo integration; ensure redo re-validates constraints if the world changed since original apply.
 - [x] Step 318 [Type] — Implement “edit package addressability”: users can undo by package ID, by scope, or by turn index.
 - [ ] Step 319 [HCI] — Add UI for “undo preview”: show what will revert before actually undoing.
 - [ ] Step 320 [HCI] — Add UI for “reapply”: user can reapply a prior package to a new context if still valid.
@@ -150,10 +150,10 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 328 [Infra] — Implement “explanation generator”: produce before/after summaries and satisfy-constraint reports.
 - [ ] Step 329 [HCI] — Add UI for diff visualization: per-section timeline overlay + per-layer change list + filter by kind.
 - [ ] Step 330 [HCI] — Add UI for “what changed and why” that is readable by collaborators (exportable report).
-- [ ] Step 331 [Ext][Type] — Define how extension opcodes compile: extensions return proposed `EditPackage` fragments but core executor applies them.
-- [ ] Step 332 [Ext][Type] — Enforce extension handler purity: forbid direct store mutation in extension code paths; require returning pure patch objects.
-- [ ] Step 333 [Ext][Type] — Define “unknown opcode” runtime behavior: cannot execute; must display and ask for handler selection or decline.
-- [ ] Step 334 [Type] — Implement “safe failure”: if execution fails mid-transaction, rollback and show a structured error with context and suggested fixes.
+- [x] Step 331 [Ext][Type] — Define how extension opcodes compile: extensions return proposed `EditPackage` fragments but core executor applies them.
+- [x] Step 332 [Ext][Type] — Enforce extension handler purity: forbid direct store mutation in extension code paths; require returning pure patch objects.
+- [x] Step 333 [Ext][Type] — Define “unknown opcode” runtime behavior: cannot execute; must display and ask for handler selection or decline.
+- [x] Step 334 [Type] — Implement “safe failure”: if execution fails mid-transaction, rollback and show a structured error with context and suggested fixes.
 - [ ] Step 335 [HCI] — Add UI for execution failures that shows exactly which precondition failed and offers remedial actions (“select a chorus first”).
 - [ ] Step 336 [Eval] — Build execution golden tests: given plan + fixture, applying yields exact diff snapshots and passes constraint checks.
 - [ ] Step 337 [Eval] — Add undo/redo roundtrip tests: apply → undo → redo yields identical state and identical diffs.
