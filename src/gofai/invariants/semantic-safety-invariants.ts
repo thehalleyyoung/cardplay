@@ -91,7 +91,7 @@ export const INV_NO_SILENT_AMBIGUITY: InvariantDefinition<unknown, unknown> = {
         invariantId: INV_NO_SILENT_AMBIGUITY.id,
         severity: INV_NO_SILENT_AMBIGUITY.severity,
         message: 'Ambiguous parse resolved without clarification',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -127,7 +127,7 @@ export const INV_CONSTRAINTS_EXECUTABLE: InvariantDefinition<unknown, unknown> =
         invariantId: INV_CONSTRAINTS_EXECUTABLE.id,
         severity: INV_CONSTRAINTS_EXECUTABLE.severity,
         message: 'Constraint declared without executable verifier',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -163,7 +163,7 @@ export const INV_REFERENTS_RESOLVE: InvariantDefinition<unknown, unknown> = {
         invariantId: INV_REFERENTS_RESOLVE.id,
         severity: INV_REFERENTS_RESOLVE.severity,
         message: 'Referent failed to resolve uniquely',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -198,7 +198,7 @@ export const INV_SCOPE_VISIBLE: InvariantDefinition<unknown, unknown> = {
         invariantId: INV_SCOPE_VISIBLE.id,
         severity: INV_SCOPE_VISIBLE.severity,
         message: 'Scope references non-existent entity',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -232,7 +232,7 @@ export const INV_PRESUPPOSITIONS_SATISFIED: InvariantDefinition<unknown, unknown
         invariantId: INV_PRESUPPOSITIONS_SATISFIED.id,
         severity: INV_PRESUPPOSITIONS_SATISFIED.severity,
         message: 'Presupposition not satisfied',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -267,7 +267,7 @@ export const INV_EFFECT_TYPES_MATCH_POLICY: InvariantDefinition<unknown, unknown
         invariantId: INV_EFFECT_TYPES_MATCH_POLICY.id,
         severity: INV_EFFECT_TYPES_MATCH_POLICY.severity,
         message: 'Effect type violates board policy',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
