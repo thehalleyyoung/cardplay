@@ -781,12 +781,14 @@ export function createPreserveConstraint(
   aspect: string,
   exactness: 'unchanged' | 'recognizable',
   options?: Partial<PreserveConstraint>
-): PreserveConstraint {
+): PreserveConstraint & { exactness: 'unchanged' | 'recognizable'; severity: 'blocking' } {
   return {
     type: 'preserve',
     aspects: [aspect as PreservableAspect],
     strictness: (exactness === 'unchanged' ? 'exact' : 'recognizable') as 'exact' | 'recognizable',
-    target: options?.target as any,
+    exactness, // Add exactness for backward compatibility
+    severity: 'blocking', // All constraints are blocking by default
+    target: options?.target || { type: 'name', name: aspect },
   };
 }
 

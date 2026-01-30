@@ -25,9 +25,11 @@
  * @see docs/gofai/execution/constraint-checkers.md
  */
 
-import type { Event, EventId } from '../../types/event.js';
+import type { Event } from '../../types/event.js';
+import type { EventId } from '../../types/event-id.js';
 import type { EventSelector } from '../canon/event-selector.js';
-import type { Constraint, ConstraintType } from '../canon/constraint-types.js';
+import type { Constraint } from '../canon/goals-constraints-preferences.js';
+import type { ConstraintTypeId } from '../canon/types.js';
 
 // Temporary type aliases until we unify with canon
 type Selector = EventSelector & { scope: Scope };
@@ -37,6 +39,7 @@ type Scope = {
   trackId?: string;
   tags?: readonly string[];
 };
+type ConstraintType = ConstraintTypeId | string;
 
 // ============================================================================
 // Core Types
@@ -360,7 +363,6 @@ export const checkMelodyPreservation: ConstraintChecker = (
   const beforeMap = new Map(beforeMelody.map(e => [e.id, e]));
   const afterMap = new Map(afterMelody.map(e => [e.id, e]));
   
-  const violations: Violation[] = [];
   const changedNotes: Array<{
     readonly eventId: EventId;
     readonly beforePitch: number;
@@ -422,13 +424,14 @@ export const checkMelodyPreservation: ConstraintChecker = (
     removedNotes,
   };
   
-  violations.push({
+  const melodyViolations: Violation[] = [];
+  melodyViolations.push({
     type: 'melody_changed',
     message: buildMelodyViolationMessage(counterexample),
     counterexample,
     severity: 'error',
     context: {
-      constraintId: constraint.id || 'preserve_melody',
+      constraintId: getConstraintId(constraint),
       constraint,
       scope: selector.scope,
     },
@@ -436,7 +439,7 @@ export const checkMelodyPreservation: ConstraintChecker = (
   
   return {
     status: 'fail',
-    violations,
+    violations: melodyViolations,
   };
 };
 
@@ -506,7 +509,7 @@ export const checkHarmonyPreservation: ConstraintChecker = (
       counterexample,
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'preserve_harmony',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -590,7 +593,7 @@ export const checkRhythmPreservation: ConstraintChecker = (
       counterexample,
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'preserve_rhythm',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -655,7 +658,7 @@ export const checkOnlyChange: ConstraintChecker = (
       counterexample,
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'only_change',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -696,7 +699,7 @@ export const checkTempoPreservation: ConstraintChecker = (
       },
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'preserve_tempo',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -740,7 +743,7 @@ export const checkKeyPreservation: ConstraintChecker = (
       },
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'preserve_key',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -780,7 +783,7 @@ export const checkMeterPreservation: ConstraintChecker = (
       },
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'preserve_meter',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -834,7 +837,7 @@ export const checkNoNewLayers: ConstraintChecker = (
       },
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'no_new_layers',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -853,7 +856,7 @@ export const checkNoNewLayers: ConstraintChecker = (
       },
       severity: 'error',
       context: {
-        constraintId: constraint.id || 'no_new_layers',
+        constraintId: getConstraintId(constraint),
         constraint,
         scope: selector.scope,
       },
@@ -869,6 +872,14 @@ export const checkNoNewLayers: ConstraintChecker = (
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/**
+ * Get constraint ID from constraint object.
+ */
+function getConstraintId(constraint: Constraint): string {
+  // Use type as ID
+  return constraint.type;
+}
 
 /**
  * Extract melody events from snapshot.
@@ -1021,7 +1032,7 @@ function eventsEqual(a: Event<any>, b: Event<any>): boolean {
 /**
  * Extract allowed selectors from constraint.
  */
-function extractAllowedSelectors(constraint: Constraint): readonly Selector[] {
+function extractAllowedSelectors(_constraint: Constraint): readonly Selector[] {
   // Extract from constraint parameters
   // This would be defined by constraint type
   return [];
@@ -1064,7 +1075,10 @@ function buildHarmonyViolationMessage(example: HarmonyCounterexample): string {
   }
   
   const first = example.changedChords[0];
-  return `Harmony changed at tick ${first.tick}: ${first.beforeChord} → ${first.afterChord}`;
+  if (first) {
+    return `Harmony changed at tick ${first.tick}: ${first.beforeChord} → ${first.afterChord}`;
+  }
+  return 'Harmony constraint violated';
 }
 
 /**
@@ -1115,7 +1129,7 @@ export const CONSTRAINT_CHECKERS: ReadonlyMap<ConstraintType, ConstraintChecker>
  * Get constraint checker for a given constraint type.
  */
 export function getConstraintChecker(type: ConstraintType): ConstraintChecker | undefined {
-  return CONSTRAINT_CHECKERS.get(type);
+  return CONSTRAINT_CHECKERS.get(type as any);
 }
 
 /**
@@ -1131,7 +1145,8 @@ export function checkAllConstraints(
   const allViolations: Violation[] = [];
   
   for (const constraint of constraints) {
-    const checker = getConstraintChecker(constraint.type);
+    const constraintType = constraint.type as ConstraintType;
+    const checker = getConstraintChecker(constraintType);
     if (!checker) {
       console.warn(`No checker found for constraint type: ${constraint.type}`);
       continue;
