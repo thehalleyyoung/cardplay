@@ -214,33 +214,36 @@ describe('switchBoard', () => {
     it('should preserve deck state by default', () => {
       const store = getBoardStateStore();
       store.setDeckState('test:test-board-1', {
-        activeTabs: { 'deck-1': 'tab-1' },
-        scrollPositions: {},
+        activeCards: { 'deck-1': 'card-1' },
+        scrollPositions: { 'deck-1': 100 },
         focusedItems: {},
-        filters: {},
+        filterState: {},
+        deckSettings: {},
       });
 
       switchBoard('test:test-board-1');
 
       const deckState = store.getDeckState('test:test-board-1');
-      expect(deckState.activeTabs?.['deck-1']).toBe('tab-1');
+      expect(deckState.activeCards['deck-1']).toBe('card-1');
+      expect(deckState.scrollPositions['deck-1']).toBe(100);
     });
 
     it('should reset deck state when resetDecks is true', () => {
       const store = getBoardStateStore();
       store.setDeckState('test:test-board-1', {
-        activeTabs: { 'deck-1': 'tab-1' },
-        scrollPositions: {},
+        activeCards: { 'deck-1': 'card-1' },
+        scrollPositions: { 'deck-1': 100 },
         focusedItems: {},
-        filters: {},
+        filterState: {},
+        deckSettings: {},
       });
 
       switchBoard('test:test-board-1', { resetDecks: true });
 
       const deckState = store.getDeckState('test:test-board-1');
       // getDeckState returns a fresh DEFAULT_DECK_STATE copy, not undefined
-      expect(deckState.activeTabs).toEqual({});
       expect(deckState.activeCards).toEqual({});
+      expect(deckState.scrollPositions).toEqual({});
     });
   });
 
@@ -375,7 +378,8 @@ describe('switchBoard', () => {
       stateStore.setLayoutState('test:test-board-1', {
         panelSizes: { left: 300 },
         collapsedPanels: [],
-        activeTabIds: {},
+        panelActiveTab: { 'center': 'deck-1' },
+        panelTabOrder: {},
       });
 
       switchBoard('test:test-board-1', {
@@ -393,7 +397,7 @@ describe('switchBoard', () => {
       // It only updates viewType per B084 design
       expect(context.activeStreamId).toBe('stream-1');
       expect(layout.panelSizes).toEqual({});
-      expect(deckState.activeTabs).toEqual({});
+      expect(layout.panelActiveTab).toEqual({});
     });
   });
 });
