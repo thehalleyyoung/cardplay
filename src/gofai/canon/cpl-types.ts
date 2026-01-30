@@ -49,7 +49,9 @@ export type CPLNodeType =
   | 'opcode'
   | 'param-set'
   // Extensions
-  | 'extension-node';
+  | 'extension-node'
+  // Clarification
+  | 'hole';
 
 /**
  * Base interface for all CPL nodes.
@@ -459,7 +461,7 @@ export interface CPLOpcode extends CPLNode {
  * Hole: Unresolved element requiring clarification.
  */
 export interface CPLHole extends CPLNode {
-  readonly type: string; // Will be set to specific hole type
+  readonly type: 'hole';
 
   /** What kind of information is missing */
   readonly holeKind:

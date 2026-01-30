@@ -6,13 +6,13 @@
  * @module gofai/canon/domain-nouns-batch14
  */
 
-import type { DomainNoun } from './types';
+import type { DomainNounLexeme } from './types';
 
 // =============================================================================
 // Synthesis Concepts
 // =============================================================================
 
-const SYNTHESIS: DomainNoun = {
+const SYNTHESIS: DomainNounLexeme = {
   id: 'noun:synthesis',
   term: 'synthesis',
   variants: ['synth', 'sound synthesis', 'synthesizer'],
@@ -30,7 +30,7 @@ const SYNTHESIS: DomainNoun = {
   ],
 };
 
-const OSCILLATOR: DomainNoun = {
+const OSCILLATOR: DomainNounLexeme = {
   id: 'noun:oscillator',
   term: 'oscillator',
   variants: ['osc', 'VCO', 'waveform generator'],
@@ -39,7 +39,7 @@ const OSCILLATOR: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'synthesis',
-    entityType: 'component',
+    entityType: 'effect',
   },
   examples: [
     'Detune the oscillators slightly',
@@ -48,7 +48,7 @@ const OSCILLATOR: DomainNoun = {
   ],
 };
 
-const FILTER: DomainNoun = {
+const FILTER: DomainNounLexeme = {
   id: 'noun:filter',
   term: 'filter',
   variants: ['VCF', 'cutoff', 'resonance'],
@@ -57,7 +57,7 @@ const FILTER: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'synthesis',
-    entityType: 'component',
+    entityType: 'effect',
   },
   examples: [
     'Open the filter more',
@@ -66,7 +66,7 @@ const FILTER: DomainNoun = {
   ],
 };
 
-const ENVELOPE: DomainNoun = {
+const ENVELOPE: DomainNounLexeme = {
   id: 'noun:envelope',
   term: 'envelope',
   variants: ['ADSR', 'EG', 'envelope generator'],
@@ -84,7 +84,7 @@ const ENVELOPE: DomainNoun = {
   ],
 };
 
-const LFO: DomainNoun = {
+const LFO: DomainNounLexeme = {
   id: 'noun:lfo',
   term: 'LFO',
   variants: ['low frequency oscillator', 'modulation', 'vibrato'],
@@ -93,7 +93,7 @@ const LFO: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'synthesis',
-    entityType: 'modulator',
+    entityType: 'effect',
   },
   examples: [
     'Add LFO to the filter',
@@ -102,7 +102,7 @@ const LFO: DomainNoun = {
   ],
 };
 
-const WAVEFORM: DomainNoun = {
+const WAVEFORM: DomainNounLexeme = {
   id: 'noun:waveform',
   term: 'waveform',
   variants: ['wave shape', 'wave', 'signal shape'],
@@ -120,16 +120,16 @@ const WAVEFORM: DomainNoun = {
   ],
 };
 
-const MODULATION: DomainNoun = {
+const MODULATION: DomainNounLexeme = {
   id: 'noun:modulation',
   term: 'modulation',
   variants: ['mod', 'FM', 'AM', 'ring mod'],
   category: 'synthesis',
   definition: 'The variation of one signal by another',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'synthesis',
-    device: 'signal_interaction',
+    aspect: 'signal_interaction',
   },
   examples: [
     'Add frequency modulation',
@@ -138,16 +138,16 @@ const MODULATION: DomainNoun = {
   ],
 };
 
-const WAVETABLE: DomainNoun = {
+const WAVETABLE: DomainNounLexeme = {
   id: 'noun:wavetable',
   term: 'wavetable',
   variants: ['wavetable synthesis', 'WT', 'morphing waveforms'],
   category: 'synthesis',
   definition: 'Synthesis using tables of waveforms that can be scanned',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'synthesis',
-    device: 'wavetable_playback',
+    aspect: 'wavetable_playback',
   },
   examples: [
     'Use wavetable synthesis',
@@ -156,16 +156,16 @@ const WAVETABLE: DomainNoun = {
   ],
 };
 
-const GRANULAR: DomainNoun = {
+const GRANULAR: DomainNounLexeme = {
   id: 'noun:granular',
   term: 'granular synthesis',
   variants: ['granular', 'grain cloud', 'microsound'],
   category: 'synthesis',
   definition: 'Synthesis using many small grains of sound',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'synthesis',
-    device: 'grain_based',
+    aspect: 'grain_based',
   },
   examples: [
     'Add granular texture',
@@ -174,16 +174,16 @@ const GRANULAR: DomainNoun = {
   ],
 };
 
-const FM_SYNTHESIS: DomainNoun = {
+const FM_SYNTHESIS: DomainNounLexeme = {
   id: 'noun:fm',
   term: 'FM synthesis',
   variants: ['FM', 'frequency modulation', 'digital FM'],
   category: 'synthesis',
   definition: 'Synthesis using frequency modulation between operators',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'synthesis',
-    device: 'frequency_modulation',
+    aspect: 'frequency_modulation',
   },
   examples: [
     'Use FM synthesis for bells',
@@ -196,7 +196,7 @@ const FM_SYNTHESIS: DomainNoun = {
 // Sound Design Terms
 // =============================================================================
 
-const SOUND_DESIGN: DomainNoun = {
+const SOUND_DESIGN: DomainNounLexeme = {
   id: 'noun:sound_design',
   term: 'sound design',
   variants: ['sound crafting', 'timbre design', 'sonic sculpting'],
@@ -214,7 +214,7 @@ const SOUND_DESIGN: DomainNoun = {
   ],
 };
 
-const PATCH: DomainNoun = {
+const PATCH: DomainNounLexeme = {
   id: 'noun:patch',
   term: 'patch',
   variants: ['preset', 'sound', 'program'],
@@ -223,7 +223,7 @@ const PATCH: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'synthesis',
-    entityType: 'configuration',
+    entityType: 'param',
   },
   examples: [
     'Switch to a brighter patch',
@@ -232,7 +232,7 @@ const PATCH: DomainNoun = {
   ],
 };
 
-const TEXTURE: DomainNoun = {
+const TEXTURE: DomainNounLexeme = {
   id: 'noun:sonic_texture',
   term: 'texture',
   variants: ['sonic texture', 'timbral texture', 'sound quality'],
@@ -250,7 +250,7 @@ const TEXTURE: DomainNoun = {
   ],
 };
 
-const NOISE: DomainNoun = {
+const NOISE: DomainNounLexeme = {
   id: 'noun:noise',
   term: 'noise',
   variants: ['white noise', 'pink noise', 'noise generator'],
@@ -268,16 +268,16 @@ const NOISE: DomainNoun = {
   ],
 };
 
-const GLITCH: DomainNoun = {
+const GLITCH: DomainNounLexeme = {
   id: 'noun:glitch',
   term: 'glitch',
   variants: ['glitchy', 'digital artifacts', 'stutters'],
   category: 'effect',
   definition: 'Intentional digital errors and artifacts used creatively',
   semantics: {
-    type: 'effect',
+    type: 'concept',
     domain: 'production',
-    device: 'digital_manipulation',
+    aspect: 'digital_manipulation',
   },
   examples: [
     'Add glitch effects',
@@ -290,16 +290,16 @@ const GLITCH: DomainNoun = {
 // Production Effects
 // =============================================================================
 
-const SIDECHAIN: DomainNoun = {
+const SIDECHAIN: DomainNounLexeme = {
   id: 'noun:sidechain',
   term: 'sidechain',
   variants: ['side-chain', 'ducking', 'pumping'],
   category: 'effect',
   definition: 'Dynamic processing triggered by an external signal',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'production',
-    device: 'dynamic_interaction',
+    aspect: 'dynamic_interaction',
   },
   examples: [
     'Add sidechain compression',
@@ -308,16 +308,16 @@ const SIDECHAIN: DomainNoun = {
   ],
 };
 
-const SATURATION: DomainNoun = {
+const SATURATION: DomainNounLexeme = {
   id: 'noun:saturation',
   term: 'saturation',
   variants: ['saturate', 'warmth', 'analog warmth'],
   category: 'effect',
   definition: 'Harmonic enrichment through gentle distortion',
   semantics: {
-    type: 'effect',
+    type: 'concept',
     domain: 'production',
-    device: 'harmonic_generation',
+    aspect: 'harmonic_generation',
   },
   examples: [
     'Add tape saturation',
@@ -326,16 +326,16 @@ const SATURATION: DomainNoun = {
   ],
 };
 
-const BIT_CRUSH: DomainNoun = {
+const BIT_CRUSH: DomainNounLexeme = {
   id: 'noun:bit_crush',
   term: 'bit crush',
   variants: ['bit crushing', 'bit reduction', 'lo-fi'],
   category: 'effect',
   definition: 'Digital degradation effect reducing bit depth',
   semantics: {
-    type: 'effect',
+    type: 'concept',
     domain: 'production',
-    device: 'digital_degradation',
+    aspect: 'digital_degradation',
   },
   examples: [
     'Add bit crushing for grit',
@@ -344,16 +344,16 @@ const BIT_CRUSH: DomainNoun = {
   ],
 };
 
-const VOCODER: DomainNoun = {
+const VOCODER: DomainNounLexeme = {
   id: 'noun:vocoder',
   term: 'vocoder',
   variants: ['vocoding', 'voice synthesis', 'robotic voice'],
   category: 'effect',
   definition: 'Effect imposing spectral envelope of one signal onto another',
   semantics: {
-    type: 'effect',
+    type: 'concept',
     domain: 'production',
-    device: 'spectral_imposition',
+    aspect: 'spectral_imposition',
   },
   examples: [
     'Add vocoder to the vocals',
@@ -362,16 +362,16 @@ const VOCODER: DomainNoun = {
   ],
 };
 
-const AUTO_TUNE: DomainNoun = {
+const AUTO_TUNE: DomainNounLexeme = {
   id: 'noun:auto_tune',
   term: 'auto-tune',
   variants: ['pitch correction', 'tuning', 'vocal tuning'],
   category: 'effect',
   definition: 'Automatic pitch correction effect',
   semantics: {
-    type: 'effect',
+    type: 'concept',
     domain: 'production',
-    device: 'pitch_quantization',
+    aspect: 'pitch_quantization',
   },
   examples: [
     'Add auto-tune to the vocals',
@@ -384,7 +384,7 @@ const AUTO_TUNE: DomainNoun = {
 // Sampling Terms
 // =============================================================================
 
-const SAMPLE: DomainNoun = {
+const SAMPLE: DomainNounLexeme = {
   id: 'noun:sample',
   term: 'sample',
   variants: ['audio sample', 'sampled audio', 'recording'],
@@ -393,7 +393,7 @@ const SAMPLE: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'production',
-    entityType: 'audio_source',
+    entityType: 'effect',
   },
   examples: [
     'Chop the sample finer',
@@ -402,7 +402,7 @@ const SAMPLE: DomainNoun = {
   ],
 };
 
-const ONE_SHOT: DomainNoun = {
+const ONE_SHOT: DomainNounLexeme = {
   id: 'noun:one_shot',
   term: 'one-shot',
   variants: ['single hit', 'drum hit', 'sample hit'],
@@ -411,7 +411,7 @@ const ONE_SHOT: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'production',
-    entityType: 'sample_type',
+    entityType: 'effect',
   },
   examples: [
     'Replace with a tighter one-shot',
@@ -420,7 +420,7 @@ const ONE_SHOT: DomainNoun = {
   ],
 };
 
-const LOOP: DomainNoun = {
+const LOOP: DomainNounLexeme = {
   id: 'noun:loop',
   term: 'loop',
   variants: ['audio loop', 'repeating sample', 'cycled audio'],
@@ -429,7 +429,7 @@ const LOOP: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'production',
-    entityType: 'sample_type',
+    entityType: 'effect',
   },
   examples: [
     'The loop does not sync properly',
@@ -438,16 +438,16 @@ const LOOP: DomainNoun = {
   ],
 };
 
-const TIME_STRETCH: DomainNoun = {
+const TIME_STRETCH: DomainNounLexeme = {
   id: 'noun:time_stretch',
   term: 'time stretch',
   variants: ['time-stretching', 'tempo change', 'pitch-independent'],
   category: 'technique',
   definition: 'Changing duration without affecting pitch',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'production',
-    device: 'temporal_manipulation',
+    aspect: 'temporal_manipulation',
   },
   examples: [
     'Time stretch the vocal',
@@ -456,16 +456,16 @@ const TIME_STRETCH: DomainNoun = {
   ],
 };
 
-const PITCH_SHIFT: DomainNoun = {
+const PITCH_SHIFT: DomainNounLexeme = {
   id: 'noun:pitch_shift',
   term: 'pitch shift',
   variants: ['pitch-shifting', 'transposition', 'pitch change'],
   category: 'technique',
   definition: 'Changing pitch without affecting duration',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'production',
-    device: 'pitch_manipulation',
+    aspect: 'pitch_manipulation',
   },
   examples: [
     'Pitch shift down an octave',
@@ -474,16 +474,16 @@ const PITCH_SHIFT: DomainNoun = {
   ],
 };
 
-const REVERSE: DomainNoun = {
+const REVERSE: DomainNounLexeme = {
   id: 'noun:reverse',
   term: 'reverse',
   variants: ['reversed', 'backward', 'reverse audio'],
   category: 'effect',
   definition: 'Playing audio backward in time',
   semantics: {
-    type: 'effect',
+    type: 'concept',
     domain: 'production',
-    device: 'temporal_reversal',
+    aspect: 'temporal_reversal',
   },
   examples: [
     'Add a reverse cymbal',
@@ -496,7 +496,7 @@ const REVERSE: DomainNoun = {
 // Bass Music Terms
 // =============================================================================
 
-const SUB_BASS: DomainNoun = {
+const SUB_BASS: DomainNounLexeme = {
   id: 'noun:sub_bass',
   term: 'sub bass',
   variants: ['sub', 'subsonic', 'low frequency'],
@@ -514,16 +514,16 @@ const SUB_BASS: DomainNoun = {
   ],
 };
 
-const WOBBLE: DomainNoun = {
+const WOBBLE: DomainNounLexeme = {
   id: 'noun:wobble',
   term: 'wobble',
   variants: ['wobble bass', 'wub', 'modulated bass'],
   category: 'production',
   definition: 'Rhythmically modulated bass sound',
   semantics: {
-    type: 'effect',
+    type: 'concept',
     domain: 'production',
-    device: 'rhythmic_modulation',
+    aspect: 'rhythmic_modulation',
   },
   examples: [
     'Add wobble to the bass',
@@ -532,7 +532,7 @@ const WOBBLE: DomainNoun = {
   ],
 };
 
-const DROP: DomainNoun = {
+const DROP: DomainNounLexeme = {
   id: 'noun:drop',
   term: 'drop',
   variants: ['the drop', 'bass drop', 'climax'],
@@ -550,7 +550,7 @@ const DROP: DomainNoun = {
   ],
 };
 
-const BUILDUP: DomainNoun = {
+const BUILDUP: DomainNounLexeme = {
   id: 'noun:buildup',
   term: 'buildup',
   variants: ['build', 'riser', 'tension build'],
@@ -568,7 +568,7 @@ const BUILDUP: DomainNoun = {
   ],
 };
 
-const BREAKDOWN: DomainNoun = {
+const BREAKDOWN: DomainNounLexeme = {
   id: 'noun:breakdown',
   term: 'breakdown',
   variants: ['break', 'stripped section', 'minimal section'],
@@ -590,7 +590,7 @@ const BREAKDOWN: DomainNoun = {
 // Exports
 // =============================================================================
 
-export const SYNTHESIS_NOUNS: readonly DomainNoun[] = [
+export const SYNTHESIS_NOUNS: readonly DomainNounLexeme[] = [
   SYNTHESIS,
   OSCILLATOR,
   FILTER,
@@ -603,7 +603,7 @@ export const SYNTHESIS_NOUNS: readonly DomainNoun[] = [
   FM_SYNTHESIS,
 ] as const;
 
-export const SOUND_DESIGN_NOUNS: readonly DomainNoun[] = [
+export const SOUND_DESIGN_NOUNS: readonly DomainNounLexeme[] = [
   SOUND_DESIGN,
   PATCH,
   TEXTURE,
@@ -611,7 +611,7 @@ export const SOUND_DESIGN_NOUNS: readonly DomainNoun[] = [
   GLITCH,
 ] as const;
 
-export const PRODUCTION_EFFECT_NOUNS: readonly DomainNoun[] = [
+export const PRODUCTION_EFFECT_NOUNS: readonly DomainNounLexeme[] = [
   SIDECHAIN,
   SATURATION,
   BIT_CRUSH,
@@ -619,7 +619,7 @@ export const PRODUCTION_EFFECT_NOUNS: readonly DomainNoun[] = [
   AUTO_TUNE,
 ] as const;
 
-export const SAMPLING_NOUNS: readonly DomainNoun[] = [
+export const SAMPLING_NOUNS: readonly DomainNounLexeme[] = [
   SAMPLE,
   ONE_SHOT,
   LOOP,
@@ -628,7 +628,7 @@ export const SAMPLING_NOUNS: readonly DomainNoun[] = [
   REVERSE,
 ] as const;
 
-export const BASS_MUSIC_NOUNS: readonly DomainNoun[] = [
+export const BASS_MUSIC_NOUNS: readonly DomainNounLexeme[] = [
   SUB_BASS,
   WOBBLE,
   DROP,
@@ -636,7 +636,7 @@ export const BASS_MUSIC_NOUNS: readonly DomainNoun[] = [
   BREAKDOWN,
 ] as const;
 
-export const BATCH_14_NOUNS: readonly DomainNoun[] = [
+export const BATCH_14_NOUNS: readonly DomainNounLexeme[] = [
   ...SYNTHESIS_NOUNS,
   ...SOUND_DESIGN_NOUNS,
   ...PRODUCTION_EFFECT_NOUNS,

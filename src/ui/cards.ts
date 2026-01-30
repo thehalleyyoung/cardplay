@@ -1125,16 +1125,20 @@ export function closeMenu(state: CardMenuState): CardMenuState {
 // ============================================================================
 
 /**
- * Stack layout mode.
+ * UI layout stack mode (Change 266).
+ * This is distinct from the composition stack mode ('serial' | 'parallel' | 'layer' | 'tabs').
  */
-export type StackMode = 'tabs' | 'cascade' | 'overlay';
+export type UILayoutStackMode = 'tabs' | 'cascade' | 'overlay';
+
+/** @deprecated Use UILayoutStackMode instead (Change 266). */
+export type StackMode = UILayoutStackMode;
 
 /**
  * Card stack configuration.
  */
 export interface CardStackConfig {
-  /** Stack mode */
-  readonly mode: StackMode;
+  /** Stack mode (Change 266: uses UILayoutStackMode) */
+  readonly mode: UILayoutStackMode;
   /** Maximum visible cards (cascade mode) */
   readonly maxVisible: number;
   /** Cascade offset */

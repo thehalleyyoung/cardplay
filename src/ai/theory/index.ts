@@ -463,6 +463,12 @@ export {
   registerDefaultLinks,
 } from './spec-event-bus';
 
+// MusicSpec Store (Changes 363-365)
+export {
+  getMusicSpecStore,
+  resetMusicSpecStore,
+} from './music-spec-store';
+
 // Selection analyzer (C882-C883)
 export {
   type NoteEvent,

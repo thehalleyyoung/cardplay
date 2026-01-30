@@ -5,3 +5,9 @@
  */
 
 export * from './representation';
+
+// Coordination and sequencing semantics
+export * from './coordination-sequencing';
+
+// Replacement and substitution semantics
+export * from './replacement-semantics';

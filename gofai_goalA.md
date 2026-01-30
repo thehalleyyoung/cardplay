@@ -55,18 +55,18 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 079 [Prag] — Define a model of "shared plans" (plan recognition) for repeated edits ("do it again but bigger").
 - [x] Step 080 [Infra] — Implement a canonical registry of "default interpretations" with user-overridable mappings and versioned provenance.
 - [x] Step 084 [HCI] — Define how the UI exposes the current focus stack (board → deck → selection) as an explicit context panel.
-- [ ] Step 085 [Infra] — Add deterministic fuzzy matching rules for resolving names (same algorithm everywhere; stable tie-breakers; explainable matches).
-- [ ] Step 092 [Prag] — Specify how temporal adverbs (“now”, “then”) interact with dialogue state to choose edit targets.
-- [ ] Step 093 [Prag] — Specify how demonstratives (“that”, “those”) choose referents using salience, recency, and UI focus.
-- [ ] Step 094 [Sem] — Define the semantics of coordination and sequencing (“do X and then Y”) as ordered plan composition.
-- [ ] Step 095 [Sem] — Define the semantics of “instead” and “rather than” as plan replacement with explicit rollback.
-- [ ] Step 096 [HCI] — Design a “binding inspector” UI panel that shows resolved referents and why they were chosen.
-- [ ] Step 097 [HCI] — Design a “vocabulary browser” UI that lists known terms and their meanings, including extension namespaces.
+- [x] Step 085 [Infra] — Add deterministic fuzzy matching rules for resolving names (same algorithm everywhere; stable tie-breakers; explainable matches).
+- [x] Step 092 [Prag] — Specify how temporal adverbs ("now", "then") interact with dialogue state to choose edit targets.
+- [x] Step 093 [Prag] — Specify how demonstratives ("that", "those") choose referents using salience, recency, and UI focus.
+- [x] Step 094 [Sem] — Define the semantics of coordination and sequencing ("do X and then Y") as ordered plan composition.
+- [x] Step 095 [Sem] — Define the semantics of "instead" and "rather than" as plan replacement with explicit rollback.
+- [x] Step 096 [HCI] — Design a "binding inspector" UI panel that shows resolved referents and why they were chosen.
+- [x] Step 097 [HCI] — Design a "vocabulary browser" UI that lists known terms and their meanings, including extension namespaces.
 ---
 
 ## Phase 2 — Parsing Frontend: Tokenization, Morphology, and Grammar (Steps 101–150)
 
-- [ ] Step 101 [NLP] — Implement a span-preserving tokenizer that retains original substrings for quoting, highlighting, and provenance.
+- [x] Step 101 [NLP] — Implement a span-preserving tokenizer that retains original substrings for quoting, highlighting, and provenance.
 - [ ] Step 102 [NLP] — Implement a normalizer that canonicalizes whitespace, punctuation, unicode quotes, hyphenation, and common unit spellings.
 - [ ] Step 103 [NLP] — Implement morphological normalization (lemmatization-lite) for core verbs/adjectives (tighten/tighter/tightening).
 - [ ] Step 104 [NLP] — Add a robust number parser (words + digits) supporting “two”, “a couple”, “half”, and numeric ranges.

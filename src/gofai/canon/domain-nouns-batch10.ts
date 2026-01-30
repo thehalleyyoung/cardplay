@@ -9,7 +9,6 @@
 
 import {
   type Lexeme,
-  type LexemeId,
   createLexemeId,
 } from './types';
 

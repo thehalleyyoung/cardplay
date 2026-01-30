@@ -19,7 +19,12 @@ import { validateConnection } from '../../boards/gating/validate-connection';
 // TYPES
 // ============================================================================
 
-/** Card state */
+/**
+ * Card UI state (visual/interaction state).
+ * 
+ * This is the canonical UI-level CardState for visual/interaction states.
+ * Note: Different from core CardState<S> generic in cards/card.ts which handles stateful card data.
+ */
 export type CardState = 
   | 'idle'
   | 'selected'

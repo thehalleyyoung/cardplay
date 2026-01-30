@@ -8,3 +8,6 @@
  */
 
 export * from './semantics';
+
+// Tokenizer
+export * from './tokenizer';

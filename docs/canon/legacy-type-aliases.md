@@ -17,11 +17,10 @@ The codebase has evolved and contains duplicate or conflicting type names. This 
 
 | Legacy/Duplicate | Canonical | Location |
 |---|---|---|
-| `Card` (audio) | `AudioModuleCard` | `cardplay/src/audio/instrument-cards.ts` |
 | `CardCategory` (audio) | `AudioModuleCategory` | `cardplay/src/audio/instrument-cards.ts` |
 | `CardState` (audio) | `AudioModuleState` | `cardplay/src/audio/instrument-cards.ts` |
-| `CardSnapshot` (audio) | `AudioModuleSnapshot` | `cardplay/src/audio/instrument-cards.ts` |
-| `Card` (generic) | `Card<A,B>` | `cardplay/src/cards/card.ts` |
+| `CardState` (UI) | `CardState` (UI-level) | `cardplay/src/ui/components/card-component.ts` |
+| `CardState` (core) | `CardState<S>` (generic) | `cardplay/src/cards/card.ts` |
 | `CardDefinition` (editor) | `EditorCardDefinition` | `cardplay/src/user-cards/card-editor-panel.ts` |
 | `CardDefinition` (visuals) | `CardDefinition` | `cardplay/src/cards/card-visuals.ts` |
 

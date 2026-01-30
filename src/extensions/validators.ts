@@ -103,6 +103,81 @@ export interface ValidationResult {
 }
 
 // ============================================================================
+// PACK ENTITY VALIDATORS (Change 405)
+// ============================================================================
+
+/**
+ * Validates that entities exported by a third-party pack use namespaced IDs.
+ * Change 405: Enforces that third-party pack IDs use namespaced IDs and do not collide with builtins.
+ */
+export function validatePackEntities(
+  packNamespace: string,
+  entities: ReadonlyArray<{ id: string; type: string }>,
+  isBuiltinPack: boolean = false
+): ValidationResult {
+  const issues: ValidationIssue[] = [];
+  const entityIds = new Set<string>();
+  
+  for (const entity of entities) {
+    // Check for duplicate IDs within the pack
+    if (entityIds.has(entity.id)) {
+      issues.push({
+        severity: 'error',
+        code: 'DUPLICATE_ENTITY_ID',
+        message: `Duplicate ${entity.type} ID: ${entity.id}`,
+        path: entity.id,
+      });
+      continue;
+    }
+    entityIds.add(entity.id);
+    
+    // Validate entity ID format
+    const idValidation = validateEntityId(entity.id, entity.type, isBuiltinPack);
+    issues.push(...idValidation.issues);
+    
+    // For third-party packs, ensure entities use the pack's namespace
+    if (!isBuiltinPack) {
+      if (isBuiltinId(entity.id)) {
+        issues.push({
+          severity: 'error',
+          code: 'THIRD_PARTY_BUILTIN_ID',
+          message: `Third-party pack cannot use builtin ID: ${entity.id}`,
+          path: entity.id,
+          suggestion: `Use namespaced ID: ${packNamespace}:${entity.id}`,
+        });
+      } else if (!isNamespacedId(entity.id)) {
+        issues.push({
+          severity: 'error',
+          code: 'MISSING_NAMESPACE',
+          message: `Third-party ${entity.type} must use namespaced ID: ${entity.id}`,
+          path: entity.id,
+          suggestion: `Use format: ${packNamespace}:${entity.id.replace(/.*:/, '')}`,
+        });
+      } else {
+        // Check if namespace matches pack namespace
+        const [entityNamespace] = entity.id.split(':');
+        if (entityNamespace !== packNamespace) {
+          issues.push({
+            severity: 'warning',
+            code: 'NAMESPACE_MISMATCH',
+            message: `Entity namespace "${entityNamespace}" differs from pack namespace "${packNamespace}"`,
+            path: entity.id,
+            suggestion: `Consider using pack namespace: ${packNamespace}:${entity.id.replace(/.*:/, '')}`,
+          });
+        }
+      }
+    }
+  }
+  
+  return {
+    valid: issues.filter(i => i.severity === 'error').length === 0,
+    issues,
+    entityId: packNamespace,
+    entityType: 'pack',
+  };
+}
+
+// ============================================================================
 // ID VALIDATORS
 // ============================================================================
 

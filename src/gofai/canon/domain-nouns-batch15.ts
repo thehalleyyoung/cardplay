@@ -6,22 +6,22 @@
  * @module gofai/canon/domain-nouns-batch15
  */
 
-import type { DomainNoun } from './types';
+import type { DomainNounLexeme } from './types';
 
 // =============================================================================
 // Vocal Techniques
 // =============================================================================
 
-const VIBRATO: DomainNoun = {
+const VIBRATO: DomainNounLexeme = {
   id: 'noun:vibrato',
   term: 'vibrato',
   variants: ['vocal vibrato', 'pitch oscillation', 'tremolo'],
   category: 'technique',
   definition: 'Rhythmic variation of pitch in singing',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'pitch_modulation',
+    aspect: 'pitch_modulation',
   },
   examples: [
     'Add more vibrato to the vocal',
@@ -30,16 +30,16 @@ const VIBRATO: DomainNoun = {
   ],
 };
 
-const BELTING: DomainNoun = {
+const BELTING: DomainNounLexeme = {
   id: 'noun:belting',
   term: 'belting',
   variants: ['belt', 'powerful singing', 'chest voice'],
   category: 'technique',
   definition: 'A powerful, resonant vocal technique',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'vocal_power',
+    aspect: 'vocal_power',
   },
   examples: [
     'The chorus needs more belting',
@@ -48,16 +48,16 @@ const BELTING: DomainNoun = {
   ],
 };
 
-const FALSETTO: DomainNoun = {
+const FALSETTO: DomainNounLexeme = {
   id: 'noun:falsetto',
   term: 'falsetto',
   variants: ['head voice', 'upper register', 'light voice'],
   category: 'technique',
   definition: 'A high, light vocal register',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'register_shift',
+    aspect: 'register_shift',
   },
   examples: [
     'Use falsetto for the high notes',
@@ -66,16 +66,16 @@ const FALSETTO: DomainNoun = {
   ],
 };
 
-const MELISMA: DomainNoun = {
+const MELISMA: DomainNounLexeme = {
   id: 'noun:melisma',
   term: 'melisma',
   variants: ['melismatic', 'vocal runs', 'riff'],
   category: 'technique',
   definition: 'Singing multiple notes on a single syllable',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'syllabic_extension',
+    aspect: 'syllabic_extension',
   },
   examples: [
     'Add melisma to embellish',
@@ -84,7 +84,7 @@ const MELISMA: DomainNoun = {
   ],
 };
 
-const BREATH_CONTROL: DomainNoun = {
+const BREATH_CONTROL: DomainNounLexeme = {
   id: 'noun:breath_control',
   term: 'breath control',
   variants: ['breathing', 'breath support', 'phrasing'],
@@ -102,16 +102,16 @@ const BREATH_CONTROL: DomainNoun = {
   ],
 };
 
-const VOCAL_FRY: DomainNoun = {
+const VOCAL_FRY: DomainNounLexeme = {
   id: 'noun:vocal_fry',
   term: 'vocal fry',
   variants: ['fry', 'creaky voice', 'glottal fry'],
   category: 'technique',
   definition: 'A low, creaky vocal quality',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'register_effect',
+    aspect: 'register_effect',
   },
   examples: [
     'Add vocal fry for texture',
@@ -120,7 +120,7 @@ const VOCAL_FRY: DomainNoun = {
   ],
 };
 
-const RIFF: DomainNoun = {
+const RIFF: DomainNounLexeme = {
   id: 'noun:vocal_riff',
   term: 'riff',
   variants: ['vocal riff', 'run', 'vocal ornamentation'],
@@ -138,16 +138,16 @@ const RIFF: DomainNoun = {
   ],
 };
 
-const SCOOP: DomainNoun = {
+const SCOOP: DomainNounLexeme = {
   id: 'noun:scoop',
   term: 'scoop',
   variants: ['scooping', 'pitch slide', 'portamento'],
   category: 'technique',
   definition: 'Sliding up to a note from below',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'pitch_approach',
+    aspect: 'pitch_approach',
   },
   examples: [
     'Reduce the scooping',
@@ -156,7 +156,7 @@ const SCOOP: DomainNoun = {
   ],
 };
 
-const VOCAL_BREAK: DomainNoun = {
+const VOCAL_BREAK: DomainNounLexeme = {
   id: 'noun:vocal_break',
   term: 'vocal break',
   variants: ['break', 'register break', 'passaggio'],
@@ -174,7 +174,7 @@ const VOCAL_BREAK: DomainNoun = {
   ],
 };
 
-const DICTION: DomainNoun = {
+const DICTION: DomainNounLexeme = {
   id: 'noun:diction',
   term: 'diction',
   variants: ['articulation', 'enunciation', 'clarity'],
@@ -196,7 +196,7 @@ const DICTION: DomainNoun = {
 // Vocal Arrangements
 // =============================================================================
 
-const HARMONY: DomainNoun = {
+const HARMONY: DomainNounLexeme = {
   id: 'noun:vocal_harmony',
   term: 'harmony',
   variants: ['vocal harmony', 'backing vocals', 'harmonies'],
@@ -205,7 +205,7 @@ const HARMONY: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'vocals',
-    entityType: 'vocal_layer',
+    entityType: 'layer',
   },
   examples: [
     'Add harmonies in the chorus',
@@ -214,16 +214,16 @@ const HARMONY: DomainNoun = {
   ],
 };
 
-const DOUBLING: DomainNoun = {
+const DOUBLING: DomainNounLexeme = {
   id: 'noun:vocal_doubling',
   term: 'doubling',
   variants: ['double tracking', 'ADT', 'vocal double'],
   category: 'technique',
   definition: 'Recording the same part multiple times for thickness',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'layering',
+    aspect: 'layering',
   },
   examples: [
     'Add vocal doubling',
@@ -232,16 +232,16 @@ const DOUBLING: DomainNoun = {
   ],
 };
 
-const STACKING: DomainNoun = {
+const STACKING: DomainNounLexeme = {
   id: 'noun:vocal_stacking',
   term: 'stacking',
   variants: ['stacked vocals', 'vocal layers', 'thick vocals'],
   category: 'technique',
   definition: 'Layering multiple vocal takes for a fuller sound',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'additive_layering',
+    aspect: 'additive_layering',
   },
   examples: [
     'Stack the vocals in the hook',
@@ -250,16 +250,16 @@ const STACKING: DomainNoun = {
   ],
 };
 
-const CALL_RESPONSE: DomainNoun = {
+const CALL_RESPONSE: DomainNounLexeme = {
   id: 'noun:call_response',
   term: 'call and response',
   variants: ['call-response', 'answer', 'vocal dialogue'],
   category: 'arrangement',
   definition: 'Alternating vocal phrases between lead and backing',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'vocals',
-    device: 'dialogic_arrangement',
+    aspect: 'dialogic_arrangement',
   },
   examples: [
     'Add call and response',
@@ -268,7 +268,7 @@ const CALL_RESPONSE: DomainNoun = {
   ],
 };
 
-const AD_LIB: DomainNoun = {
+const AD_LIB: DomainNounLexeme = {
   id: 'noun:ad_lib',
   term: 'ad-lib',
   variants: ['ad lib', 'vocal ad-lib', 'improvisation'],
@@ -290,16 +290,16 @@ const AD_LIB: DomainNoun = {
 // Vocal Production
 // =============================================================================
 
-const COMPING: DomainNoun = {
+const COMPING: DomainNounLexeme = {
   id: 'noun:comping',
   term: 'comping',
   variants: ['vocal comping', 'comp', 'compilation'],
   category: 'production',
   definition: 'Selecting the best parts from multiple vocal takes',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'production',
-    device: 'take_compilation',
+    aspect: 'take_compilation',
   },
   examples: [
     'Finish comping the lead vocal',
@@ -308,16 +308,16 @@ const COMPING: DomainNoun = {
   ],
 };
 
-const TUNING: DomainNoun = {
+const TUNING: DomainNounLexeme = {
   id: 'noun:vocal_tuning',
   term: 'tuning',
   variants: ['pitch correction', 'vocal tuning', 'intonation correction'],
   category: 'production',
   definition: 'Correcting or adjusting vocal pitch',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'production',
-    device: 'pitch_editing',
+    aspect: 'pitch_editing',
   },
   examples: [
     'Tune the lead vocal',
@@ -326,16 +326,16 @@ const TUNING: DomainNoun = {
   ],
 };
 
-const DE_ESSING: DomainNoun = {
+const DE_ESSING: DomainNounLexeme = {
   id: 'noun:de_essing',
   term: 'de-essing',
   variants: ['de-esser', 'sibilance control', 'S reduction'],
   category: 'production',
   definition: 'Reducing harsh sibilant frequencies',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'production',
-    device: 'frequency_control',
+    aspect: 'frequency_control',
   },
   examples: [
     'Add de-essing to the vocal',
@@ -344,7 +344,7 @@ const DE_ESSING: DomainNoun = {
   ],
 };
 
-const VOCAL_CHAIN: DomainNoun = {
+const VOCAL_CHAIN: DomainNounLexeme = {
   id: 'noun:vocal_chain',
   term: 'vocal chain',
   variants: ['processing chain', 'effects chain', 'signal chain'],
@@ -362,7 +362,7 @@ const VOCAL_CHAIN: DomainNoun = {
   ],
 };
 
-const BREATH: DomainNoun = {
+const BREATH: DomainNounLexeme = {
   id: 'noun:breath',
   term: 'breath',
   variants: ['breaths', 'breathing sounds', 'inhales'],
@@ -371,7 +371,7 @@ const BREATH: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'vocals',
-    entityType: 'performance_artifact',
+    entityType: 'effect',
   },
   examples: [
     'Remove the breaths',
@@ -384,7 +384,7 @@ const BREATH: DomainNoun = {
 // Songwriting Terms
 // =============================================================================
 
-const HOOK: DomainNoun = {
+const HOOK: DomainNounLexeme = {
   id: 'noun:hook',
   term: 'hook',
   variants: ['catchy phrase', 'memorable line', 'earworm'],
@@ -397,12 +397,12 @@ const HOOK: DomainNoun = {
   },
   examples: [
     'Strengthen the hook',
-    'The hook isn't catchy enough',
+    'The hook is not catchy enough',
     'Add a pre-hook',
   ],
 };
 
-const VERSE: DomainNoun = {
+const VERSE: DomainNounLexeme = {
   id: 'noun:verse',
   term: 'verse',
   variants: ['verses', 'first verse', 'second verse'],
@@ -420,7 +420,7 @@ const VERSE: DomainNoun = {
   ],
 };
 
-const PRE_CHORUS: DomainNoun = {
+const PRE_CHORUS: DomainNounLexeme = {
   id: 'noun:pre_chorus',
   term: 'pre-chorus',
   variants: ['pre-hook', 'lift', 'climb'],
@@ -438,7 +438,7 @@ const PRE_CHORUS: DomainNoun = {
   ],
 };
 
-const TAG: DomainNoun = {
+const TAG: DomainNounLexeme = {
   id: 'noun:tag',
   term: 'tag',
   variants: ['outro tag', 'ending tag', 'repeated ending'],
@@ -456,7 +456,7 @@ const TAG: DomainNoun = {
   ],
 };
 
-const REFRAIN: DomainNoun = {
+const REFRAIN: DomainNounLexeme = {
   id: 'noun:refrain',
   term: 'refrain',
   variants: ['repeated line', 'chorus line', 'repeating phrase'],
@@ -474,7 +474,7 @@ const REFRAIN: DomainNoun = {
   ],
 };
 
-const LYRIC: DomainNoun = {
+const LYRIC: DomainNounLexeme = {
   id: 'noun:lyric',
   term: 'lyric',
   variants: ['lyrics', 'words', 'text'],
@@ -483,16 +483,16 @@ const LYRIC: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'songwriting',
-    entityType: 'text',
+    entityType: 'param',
   },
   examples: [
     'The lyrics are too abstract',
     'Rewrite the second verse lyrics',
-    'The lyrics don't fit the melody',
+    'The lyrics do not fit the melody',
   ],
 };
 
-const RHYME_SCHEME: DomainNoun = {
+const RHYME_SCHEME: DomainNounLexeme = {
   id: 'noun:rhyme_scheme',
   term: 'rhyme scheme',
   variants: ['rhyming pattern', 'rhyme', 'rhyme structure'],
@@ -510,7 +510,7 @@ const RHYME_SCHEME: DomainNoun = {
   ],
 };
 
-const PROSODY: DomainNoun = {
+const PROSODY: DomainNounLexeme = {
   id: 'noun:prosody',
   term: 'prosody',
   variants: ['lyric prosody', 'word stress', 'natural stress'],
@@ -528,7 +528,7 @@ const PROSODY: DomainNoun = {
   ],
 };
 
-const STORYLINE: DomainNoun = {
+const STORYLINE: DomainNounLexeme = {
   id: 'noun:storyline',
   term: 'storyline',
   variants: ['narrative', 'story', 'lyrical narrative'],
@@ -546,7 +546,7 @@ const STORYLINE: DomainNoun = {
   ],
 };
 
-const IMAGERY: DomainNoun = {
+const IMAGERY: DomainNounLexeme = {
   id: 'noun:imagery',
   term: 'imagery',
   variants: ['lyrical imagery', 'visual metaphors', 'descriptive language'],
@@ -568,7 +568,7 @@ const IMAGERY: DomainNoun = {
 // Performance Terms
 // =============================================================================
 
-const DELIVERY: DomainNoun = {
+const DELIVERY: DomainNounLexeme = {
   id: 'noun:delivery',
   term: 'delivery',
   variants: ['vocal delivery', 'performance', 'interpretation'],
@@ -586,7 +586,7 @@ const DELIVERY: DomainNoun = {
   ],
 };
 
-const PHRASING: DomainNoun = {
+const PHRASING: DomainNounLexeme = {
   id: 'noun:phrasing',
   term: 'phrasing',
   variants: ['vocal phrasing', 'phrase placement', 'timing'],
@@ -604,7 +604,7 @@ const PHRASING: DomainNoun = {
   ],
 };
 
-const INFLECTION: DomainNoun = {
+const INFLECTION: DomainNounLexeme = {
   id: 'noun:inflection',
   term: 'inflection',
   variants: ['vocal inflection', 'pitch variation', 'intonation'],
@@ -622,7 +622,7 @@ const INFLECTION: DomainNoun = {
   ],
 };
 
-const PRESENCE: DomainNoun = {
+const PRESENCE: DomainNounLexeme = {
   id: 'noun:vocal_presence',
   term: 'presence',
   variants: ['vocal presence', 'forward sound', 'clarity'],
@@ -640,7 +640,7 @@ const PRESENCE: DomainNoun = {
   ],
 };
 
-const EMOTION: DomainNoun = {
+const EMOTION: DomainNounLexeme = {
   id: 'noun:emotion',
   term: 'emotion',
   variants: ['emotional content', 'feeling', 'expression'],
@@ -662,7 +662,7 @@ const EMOTION: DomainNoun = {
 // Exports
 // =============================================================================
 
-export const VOCAL_TECHNIQUE_NOUNS: readonly DomainNoun[] = [
+export const VOCAL_TECHNIQUE_NOUNS: readonly DomainNounLexeme[] = [
   VIBRATO,
   BELTING,
   FALSETTO,
@@ -675,7 +675,7 @@ export const VOCAL_TECHNIQUE_NOUNS: readonly DomainNoun[] = [
   DICTION,
 ] as const;
 
-export const VOCAL_ARRANGEMENT_NOUNS: readonly DomainNoun[] = [
+export const VOCAL_ARRANGEMENT_NOUNS: readonly DomainNounLexeme[] = [
   HARMONY,
   DOUBLING,
   STACKING,
@@ -683,7 +683,7 @@ export const VOCAL_ARRANGEMENT_NOUNS: readonly DomainNoun[] = [
   AD_LIB,
 ] as const;
 
-export const VOCAL_PRODUCTION_NOUNS: readonly DomainNoun[] = [
+export const VOCAL_PRODUCTION_NOUNS: readonly DomainNounLexeme[] = [
   COMPING,
   TUNING,
   DE_ESSING,
@@ -691,7 +691,7 @@ export const VOCAL_PRODUCTION_NOUNS: readonly DomainNoun[] = [
   BREATH,
 ] as const;
 
-export const SONGWRITING_NOUNS: readonly DomainNoun[] = [
+export const SONGWRITING_NOUNS: readonly DomainNounLexeme[] = [
   HOOK,
   VERSE,
   PRE_CHORUS,
@@ -704,7 +704,7 @@ export const SONGWRITING_NOUNS: readonly DomainNoun[] = [
   IMAGERY,
 ] as const;
 
-export const PERFORMANCE_NOUNS: readonly DomainNoun[] = [
+export const PERFORMANCE_NOUNS: readonly DomainNounLexeme[] = [
   DELIVERY,
   PHRASING,
   INFLECTION,
@@ -712,7 +712,7 @@ export const PERFORMANCE_NOUNS: readonly DomainNoun[] = [
   EMOTION,
 ] as const;
 
-export const BATCH_15_NOUNS: readonly DomainNoun[] = [
+export const BATCH_15_NOUNS: readonly DomainNounLexeme[] = [
   ...VOCAL_TECHNIQUE_NOUNS,
   ...VOCAL_ARRANGEMENT_NOUNS,
   ...VOCAL_PRODUCTION_NOUNS,

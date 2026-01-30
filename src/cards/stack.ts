@@ -2,12 +2,14 @@
  * @fileoverview Stack Composition Implementation.
  * 
  * Stacks are linear arrangements of cards with different processing modes.
+ * Change 264: Uses CoreCard to ensure composition Stack doesn't collide with UI stacks.
  * 
  * @module @cardplay/core/cards/stack
  */
 
 import type {
   Card,
+  CoreCard,
   CardContext,
   CardResult,
   CardState,
@@ -32,12 +34,13 @@ export type StackMode = 'serial' | 'parallel' | 'layer' | 'tabs';
 
 /**
  * Stack entry wrapping a card with additional state.
+ * Change 264: Uses CoreCard for composition cards only.
  */
 export interface StackEntry<A = unknown, B = unknown> {
   /** Unique entry ID */
   readonly id: string;
-  /** The card */
-  readonly card: Card<A, B>;
+  /** The core composition card */
+  readonly card: CoreCard<A, B>;
   /** Whether card is bypassed */
   bypassed: boolean;
   /** Whether card is solo'd */
@@ -122,9 +125,10 @@ export function generateEntryId(): string {
 
 /**
  * Creates a stack from cards.
+ * Change 264: Takes CoreCard instances for composition.
  */
 export function createStack<A, B>(
-  cards: readonly Card<unknown, unknown>[],
+  cards: readonly CoreCard<unknown, unknown>[],
   mode: StackMode = 'serial',
   meta?: StackMeta
 ): Stack<A, B> {
@@ -295,10 +299,11 @@ export function inferStackPorts(
 
 /**
  * Inserts a card into a stack at a position.
+ * Change 264: Takes CoreCard for composition.
  */
 export function stackInsertCard<A, B>(
   stack: Stack<A, B>,
-  card: Card<unknown, unknown>,
+  card: CoreCard<unknown, unknown>,
   position: number
 ): Stack<A, B> {
   const newEntry: StackEntry = {
@@ -464,10 +469,11 @@ export function stackToGraph(stack: Stack): StackGraph {
 /**
  * Attempts to convert a graph back to a stack.
  * Only works for simple linear graphs.
+ * Change 264: Uses CoreCard for composition.
  */
 export function graphToStack<A, B>(
   graph: StackGraph,
-  getCard: (cardId: string) => Card<unknown, unknown> | undefined
+  getCard: (cardId: string) => CoreCard<unknown, unknown> | undefined
 ): Stack<A, B> | null {
   if (graph.nodes.length === 0) {
     return createStack([], 'serial');
@@ -508,7 +514,7 @@ export function graphToStack<A, B>(
   }
   
   // Traverse graph linearly
-  const orderedCards: Card<unknown, unknown>[] = [];
+  const orderedCards: CoreCard<unknown, unknown>[] = [];
   let currentId: string | undefined = startNode;
   const visited = new Set<string>();
   
@@ -669,8 +675,9 @@ export function stackMerge<A, B>(
 
 /**
  * Converts a stack to a single card.
+ * Change 264: Returns CoreCard for composition.
  */
-export function stackToCard<A, B>(stack: Stack<A, B>): Card<A, B> {
+export function stackToCard<A, B>(stack: Stack<A, B>): CoreCard<A, B> {
   const meta = createCardMeta(
     `stack-${stack.id}`,
     stack.meta.name ?? 'Stack',
@@ -699,11 +706,11 @@ export function stackToCard<A, B>(stack: Stack<A, B>): Card<A, B> {
     }
     
     // Chain all active cards
-    let combined = activeEntries[0]!.card as unknown as Card<A, B>;
+    let combined = activeEntries[0]!.card as unknown as CoreCard<A, B>;
     
     for (let i = 1; i < activeEntries.length; i++) {
       const entry = activeEntries[i]!;
-      combined = cardCompose(combined, entry.card as Card<B, B>) as unknown as Card<A, B>;
+      combined = cardCompose(combined, entry.card as CoreCard<B, B>) as unknown as CoreCard<A, B>;
     }
     
     return combined;

@@ -1023,11 +1023,11 @@ export function applyModifications(
       case 'remove_step': {
         const originalLength = modifiedSteps.length;
         modifiedSteps = modifiedSteps.filter(step => !matchesStep(step, mod.stepMatcher));
-        appliedMods.push({
-          modification: mod,
-          applied: modifiedSteps.length < originalLength,
-          reason: modifiedSteps.length === originalLength ? 'No matching step found' : undefined,
-        });
+        const stepRemoved = modifiedSteps.length < originalLength;
+        const removeStepResult: AppliedModification = stepRemoved
+          ? { modification: mod, applied: true }
+          : { modification: mod, applied: false, reason: 'No matching step found' };
+        appliedMods.push(removeStepResult);
         break;
       }
 
@@ -1042,11 +1042,11 @@ export function applyModifications(
         modifiedConstraints = modifiedConstraints.filter(c =>
           !c.target.toLowerCase().includes(mod.targetMatcher.toLowerCase())
         );
-        appliedMods.push({
-          modification: mod,
-          applied: modifiedConstraints.length < originalConstraintCount,
-          reason: modifiedConstraints.length === originalConstraintCount ? 'No matching constraint found' : undefined,
-        });
+        const constraintRemoved = modifiedConstraints.length < originalConstraintCount;
+        const removeConstraintResult: AppliedModification = constraintRemoved
+          ? { modification: mod, applied: true }
+          : { modification: mod, applied: false, reason: 'No matching constraint found' };
+        appliedMods.push(removeConstraintResult);
         break;
       }
 

@@ -120,8 +120,9 @@ interface VirtualScrollState {
 
 /**
  * Stack component for organizing cards
+ * Change 265: Renamed to UIStackComponent to avoid collision with composition Stack.
  */
-export class StackComponent {
+export class UIStackComponent {
   // Identity
   readonly id: string;
   readonly name: string;
@@ -1284,9 +1285,21 @@ export class StackComponent {
 // FACTORY
 // ============================================================================
 
-export function createStack(options: StackOptions): StackComponent {
-  return new StackComponent(options);
+/**
+ * Creates a UI stack component.
+ * Change 265: Renamed to createUIStack to avoid collision with composition stack factory.
+ */
+export function createUIStack(options: StackOptions): UIStackComponent {
+  return new UIStackComponent(options);
 }
+
+/** @deprecated Use createUIStack instead (Change 265). */
+export function createStack(options: StackOptions): UIStackComponent {
+  return createUIStack(options);
+}
+
+/** @deprecated Use UIStackComponent instead (Change 265). */
+export type StackComponent = UIStackComponent;
 
 // ============================================================================
 // CSS

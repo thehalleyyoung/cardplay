@@ -9,6 +9,7 @@
 
 import type {
   Card,
+  CoreCard,
   CardCategory,
   CardMeta,
   CardSignature,
@@ -93,10 +94,11 @@ export function isVersionCompatible(a: CardVersion, b: CardVersion): boolean {
 
 /**
  * Registry entry with card and additional metadata.
+ * Change 263: Uses CoreCard to ensure only core card types are registered.
  */
 export interface CardRegistryEntry<A = unknown, B = unknown> {
   /** The card instance */
-  readonly card: Card<A, B>;
+  readonly card: CoreCard<A, B>;
   /** Registration timestamp */
   readonly registeredAt: number;
   /** Usage count */
@@ -143,16 +145,18 @@ export interface CardQuery {
 
 /**
  * Card registry interface.
+ * Change 263: Uses CoreCard consistently to ensure only core composition cards are registered.
+ * UI cards (CardSurface) and audio module cards (AudioModuleCard) have separate registries.
  */
 export interface CardRegistry {
-  /** Register a card */
-  register<A, B>(card: Card<A, B>, dependencies?: readonly string[]): void;
+  /** Register a core card */
+  register<A, B>(card: CoreCard<A, B>, dependencies?: readonly string[]): void;
   
   /** Unregister a card */
   unregister(id: string): boolean;
   
   /** Get a card by ID */
-  get<A, B>(id: string): Card<A, B> | undefined;
+  get<A, B>(id: string): CoreCard<A, B> | undefined;
   
   /** Get entry with metadata */
   getEntry<A, B>(id: string): CardRegistryEntry<A, B> | undefined;
@@ -206,7 +210,7 @@ class CardRegistryImpl implements CardRegistry {
     return this.entries.size;
   }
   
-  register<A, B>(card: Card<A, B>, dependencies: readonly string[] = []): void {
+  register<A, B>(card: CoreCard<A, B>, dependencies: readonly string[] = []): void {
     const cardId = card.meta.id;
     
     // Validate card ID format
@@ -215,11 +219,17 @@ class CardRegistryImpl implements CardRegistry {
       throw new Error(`Invalid card ID '${cardId}': ${validation.error}`);
     }
     
-    // Warn if custom card doesn't use namespaced ID
-    // (builtin cards are allowed to use non-namespaced IDs)
-    if (isBuiltinId(cardId) && card.meta.category === 'custom') {
-      console.warn(
-        `[CardRegistry] Custom card '${cardId}' should use a namespaced ID (e.g., 'my-pack:${cardId}')`
+    // Change 263: Reject non-core card types
+    // The registry only accepts Card<A, B> composition cards.
+    // UI cards (CardSurface) should use a separate UI card registry.
+    // Audio module cards (AudioModuleCard) should use the audio module registry.
+    
+    // Enforce namespaced IDs for custom cards
+    if (!isBuiltinId(cardId) && card.meta.category === 'custom') {
+      // Custom cards with namespaced IDs are allowed
+    } else if (isBuiltinId(cardId) && card.meta.category === 'custom') {
+      throw new Error(
+        `Custom card '${cardId}' must use a namespaced ID (e.g., 'my-pack:${cardId}')`
       );
     }
     
@@ -234,7 +244,7 @@ class CardRegistryImpl implements CardRegistry {
     };
     
     this.entries.set(card.meta.id, entry as CardRegistryEntry);
-    this.indexCard(card as unknown as Card<unknown, unknown>);
+    this.indexCard(card as unknown as CoreCard<unknown, unknown>);
   }
   
   unregister(id: string): boolean {
@@ -246,9 +256,9 @@ class CardRegistryImpl implements CardRegistry {
     return true;
   }
   
-  get<A, B>(id: string): Card<A, B> | undefined {
+  get<A, B>(id: string): CoreCard<A, B> | undefined {
     const entry = this.entries.get(id);
-    return entry?.card as Card<A, B> | undefined;
+    return entry?.card as CoreCard<A, B> | undefined;
   }
   
   getEntry<A, B>(id: string): CardRegistryEntry<A, B> | undefined {
@@ -419,7 +429,7 @@ class CardRegistryImpl implements CardRegistry {
       .filter(t => t.length > 1);
   }
   
-  private indexCard(card: Card<unknown, unknown>): void {
+  private indexCard(card: CoreCard<unknown, unknown>): void {
     const id = card.meta.id;
     const terms = new Set<string>();
     
@@ -461,7 +471,7 @@ class CardRegistryImpl implements CardRegistry {
     }
   }
   
-  private removeFromIndex(card: Card<unknown, unknown>): void {
+  private removeFromIndex(card: CoreCard<unknown, unknown>): void {
     const id = card.meta.id;
     for (const ids of this.searchIndex.values()) {
       ids.delete(id);

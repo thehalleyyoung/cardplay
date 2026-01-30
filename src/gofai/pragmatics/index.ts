@@ -13,3 +13,5 @@ export * from './implicature-model';
 export * from './user-preferences';
 export * from './deictic-resolution-tests';
 export * from './shared-plans';
+export * from './temporal-adverbs';
+export * from './demonstrative-resolution';

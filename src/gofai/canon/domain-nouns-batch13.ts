@@ -6,13 +6,13 @@
  * @module gofai/canon/domain-nouns-batch13
  */
 
-import type { DomainNoun } from './types';
+import type { DomainNounLexeme } from './types';
 
 // =============================================================================
 // Orchestration Concepts
 // =============================================================================
 
-const ORCHESTRATION: DomainNoun = {
+const ORCHESTRATION: DomainNounLexeme = {
   id: 'noun:orchestration',
   term: 'orchestration',
   variants: ['instrumentation', 'arrangement', 'scoring'],
@@ -30,7 +30,7 @@ const ORCHESTRATION: DomainNoun = {
   ],
 };
 
-const VOICING: DomainNoun = {
+const VOICING: DomainNounLexeme = {
   id: 'noun:voicing',
   term: 'voicing',
   variants: ['voice leading', 'chord voicing', 'vertical spacing'],
@@ -48,16 +48,16 @@ const VOICING: DomainNoun = {
   ],
 };
 
-const DOUBLING: DomainNoun = {
+const DOUBLING: DomainNounLexeme = {
   id: 'noun:doubling',
   term: 'doubling',
   variants: ['double', 'doubled', 'unison doubling', 'octave doubling'],
   category: 'orchestration',
   definition: 'Playing the same melodic line with multiple instruments',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'orchestration',
-    device: 'reinforcement',
+    aspect: 'reinforcement',
   },
   examples: [
     'Add doubling to the melody',
@@ -66,14 +66,14 @@ const DOUBLING: DomainNoun = {
   ],
 };
 
-const ORCHESTRAL_WEIGHT: DomainNoun = {
+const ORCHESTRAL_WEIGHT: DomainNounLexeme = {
   id: 'noun:weight',
   term: 'weight',
   variants: ['orchestral weight', 'sonic weight', 'heaviness', 'density'],
   category: 'orchestration',
   definition: 'The perceived mass or density of the orchestration',
   semantics: {
-    type: 'axis',
+    type: 'concept',
     domain: 'orchestration',
     aspect: 'texture_density',
   },
@@ -84,7 +84,7 @@ const ORCHESTRAL_WEIGHT: DomainNoun = {
   ],
 };
 
-const TESSITURA: DomainNoun = {
+const TESSITURA: DomainNounLexeme = {
   id: 'noun:tessitura',
   term: 'tessitura',
   variants: ['vocal range', 'comfortable range', 'natural range'],
@@ -102,7 +102,7 @@ const TESSITURA: DomainNoun = {
   ],
 };
 
-const SCORING: DomainNoun = {
+const SCORING: DomainNounLexeme = {
   id: 'noun:scoring',
   term: 'scoring',
   variants: ['score', 'written parts', 'notation'],
@@ -120,16 +120,16 @@ const SCORING: DomainNoun = {
   ],
 };
 
-const DIVISI: DomainNoun = {
+const DIVISI: DomainNounLexeme = {
   id: 'noun:divisi',
   term: 'divisi',
   variants: ['div.', 'divided', 'split section'],
   category: 'orchestration',
   definition: 'Division of an instrumental section into multiple independent parts',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'orchestration',
-    device: 'part_division',
+    aspect: 'part_division',
   },
   examples: [
     'The strings are divisi here',
@@ -138,7 +138,7 @@ const DIVISI: DomainNoun = {
   ],
 };
 
-const TUTTI: DomainNoun = {
+const TUTTI: DomainNounLexeme = {
   id: 'noun:tutti',
   term: 'tutti',
   variants: ['full ensemble', 'everyone', 'all instruments'],
@@ -156,7 +156,7 @@ const TUTTI: DomainNoun = {
   ],
 };
 
-const SOLO: DomainNoun = {
+const SOLO: DomainNounLexeme = {
   id: 'noun:solo',
   term: 'solo',
   variants: ['soli', 'soloist', 'solo passage', 'solo line'],
@@ -174,7 +174,7 @@ const SOLO: DomainNoun = {
   ],
 };
 
-const ACCOMPANIMENT: DomainNoun = {
+const ACCOMPANIMENT: DomainNounLexeme = {
   id: 'noun:accompaniment',
   term: 'accompaniment',
   variants: ['accomp', 'backing', 'harmonic support'],
@@ -196,7 +196,7 @@ const ACCOMPANIMENT: DomainNoun = {
 // Instrumental Roles
 // =============================================================================
 
-const MELODY_INSTRUMENT: DomainNoun = {
+const MELODY_INSTRUMENT: DomainNounLexeme = {
   id: 'noun:lead',
   term: 'lead',
   variants: ['lead instrument', 'melodic lead', 'main voice'],
@@ -205,7 +205,7 @@ const MELODY_INSTRUMENT: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'orchestration',
-    entityType: 'instrument_role',
+    entityType: 'instrument',
   },
   examples: [
     'The lead is too quiet',
@@ -214,7 +214,7 @@ const MELODY_INSTRUMENT: DomainNoun = {
   ],
 };
 
-const BASS_INSTRUMENT: DomainNoun = {
+const BASS_INSTRUMENT: DomainNounLexeme = {
   id: 'noun:bass',
   term: 'bass',
   variants: ['bassline', 'low end', 'foundation'],
@@ -223,7 +223,7 @@ const BASS_INSTRUMENT: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'orchestration',
-    entityType: 'instrument_role',
+    entityType: 'instrument',
   },
   examples: [
     'The bass is too prominent',
@@ -232,7 +232,7 @@ const BASS_INSTRUMENT: DomainNoun = {
   ],
 };
 
-const HARMONIC_FILL: DomainNoun = {
+const HARMONIC_FILL: DomainNounLexeme = {
   id: 'noun:pad',
   term: 'pad',
   variants: ['harmonic pad', 'sustaining harmony', 'wash'],
@@ -241,7 +241,7 @@ const HARMONIC_FILL: DomainNoun = {
   semantics: {
     type: 'entity',
     domain: 'orchestration',
-    entityType: 'instrument_role',
+    entityType: 'instrument',
   },
   examples: [
     'Add a subtle pad underneath',
@@ -250,7 +250,7 @@ const HARMONIC_FILL: DomainNoun = {
   ],
 };
 
-const RHYTHMIC_DRIVER: DomainNoun = {
+const RHYTHMIC_DRIVER: DomainNounLexeme = {
   id: 'noun:rhythm_section',
   term: 'rhythm section',
   variants: ['rhythm', 'groove section', 'backbeat'],
@@ -268,7 +268,7 @@ const RHYTHMIC_DRIVER: DomainNoun = {
   ],
 };
 
-const COUNTER_VOICE: DomainNoun = {
+const COUNTER_VOICE: DomainNounLexeme = {
   id: 'noun:countermelody',
   term: 'countermelody',
   variants: ['counter', 'secondary melody', 'counterpoint line'],
@@ -290,16 +290,16 @@ const COUNTER_VOICE: DomainNoun = {
 // Textural Techniques
 // =============================================================================
 
-const LAYERING: DomainNoun = {
+const LAYERING: DomainNounLexeme = {
   id: 'noun:layering',
   term: 'layering',
   variants: ['layers', 'stacking', 'vertical density'],
   category: 'technique',
   definition: 'Building texture by combining multiple simultaneous parts',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'texture',
-    device: 'additive_combination',
+    aspect: 'additive_combination',
   },
   examples: [
     'Reduce the layering for clarity',
@@ -308,16 +308,16 @@ const LAYERING: DomainNoun = {
   ],
 };
 
-const UNISON: DomainNoun = {
+const UNISON: DomainNounLexeme = {
   id: 'noun:unison',
   term: 'unison',
   variants: ['in unison', 'unison passage', 'monophonic'],
   category: 'technique',
   definition: 'Multiple instruments playing the same pitch simultaneously',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'orchestration',
-    device: 'pitch_alignment',
+    aspect: 'pitch_alignment',
   },
   examples: [
     'Play this in unison',
@@ -326,16 +326,16 @@ const UNISON: DomainNoun = {
   ],
 };
 
-const CALL_AND_RESPONSE: DomainNoun = {
+const CALL_AND_RESPONSE: DomainNounLexeme = {
   id: 'noun:call_and_response',
   term: 'call and response',
   variants: ['call-response', 'antiphony', 'question-answer'],
   category: 'technique',
   definition: 'Alternating musical statements between two groups',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'form',
-    device: 'dialogic_structure',
+    aspect: 'dialogic_structure',
   },
   examples: [
     'Add a call and response section',
@@ -344,16 +344,16 @@ const CALL_AND_RESPONSE: DomainNoun = {
   ],
 };
 
-const HOCKET: DomainNoun = {
+const HOCKET: DomainNounLexeme = {
   id: 'noun:hocket',
   term: 'hocket',
   variants: ['hocketing', 'shared melody', 'interlocking parts'],
   category: 'technique',
   definition: 'A technique where a melody is fragmented between multiple voices',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'texture',
-    device: 'rhythmic_distribution',
+    aspect: 'rhythmic_distribution',
   },
   examples: [
     'Use hocket between the woodwinds',
@@ -362,16 +362,16 @@ const HOCKET: DomainNoun = {
   ],
 };
 
-const OSTINATO: DomainNoun = {
+const OSTINATO: DomainNounLexeme = {
   id: 'noun:ostinato',
   term: 'ostinato',
   variants: ['repeated figure', 'ground', 'riff'],
   category: 'technique',
   definition: 'A persistently repeated musical pattern',
   semantics: {
-    type: 'technique',
+    type: 'concept',
     domain: 'rhythm',
-    device: 'repetition',
+    aspect: 'repetition',
   },
   examples: [
     'Add an ostinato in the bass',
@@ -384,7 +384,7 @@ const OSTINATO: DomainNoun = {
 // Timbral Blending
 // =============================================================================
 
-const BLEND: DomainNoun = {
+const BLEND: DomainNounLexeme = {
   id: 'noun:blend',
   term: 'blend',
   variants: ['blending', 'timbral fusion', 'homogeneous sound'],
@@ -402,7 +402,7 @@ const BLEND: DomainNoun = {
   ],
 };
 
-const CONTRAST: DomainNoun = {
+const CONTRAST: DomainNounLexeme = {
   id: 'noun:contrast',
   term: 'contrast',
   variants: ['contrasting', 'timbral contrast', 'differentiation'],
@@ -420,7 +420,7 @@ const CONTRAST: DomainNoun = {
   ],
 };
 
-const COLOR: DomainNoun = {
+const COLOR: DomainNounLexeme = {
   id: 'noun:color',
   term: 'color',
   variants: ['tonal color', 'timbre', 'sound color'],
@@ -438,7 +438,7 @@ const COLOR: DomainNoun = {
   ],
 };
 
-const BALANCE: DomainNoun = {
+const BALANCE: DomainNounLexeme = {
   id: 'noun:balance',
   term: 'balance',
   variants: ['balanced', 'proportions', 'relative levels'],
@@ -456,7 +456,7 @@ const BALANCE: DomainNoun = {
   ],
 };
 
-const TRANSPARENCY: DomainNoun = {
+const TRANSPARENCY: DomainNounLexeme = {
   id: 'noun:transparency',
   term: 'transparency',
   variants: ['transparent', 'clarity', 'clear texture'],
@@ -478,7 +478,7 @@ const TRANSPARENCY: DomainNoun = {
 // Ensemble Sections
 // =============================================================================
 
-const STRINGS: DomainNoun = {
+const STRINGS: DomainNounLexeme = {
   id: 'noun:strings',
   term: 'strings',
   variants: ['string section', 'strings ensemble', 'orchestral strings'],
@@ -496,7 +496,7 @@ const STRINGS: DomainNoun = {
   ],
 };
 
-const BRASS: DomainNoun = {
+const BRASS: DomainNounLexeme = {
   id: 'noun:brass',
   term: 'brass',
   variants: ['brass section', 'horns', 'brass ensemble'],
@@ -514,7 +514,7 @@ const BRASS: DomainNoun = {
   ],
 };
 
-const WOODWINDS: DomainNoun = {
+const WOODWINDS: DomainNounLexeme = {
   id: 'noun:woodwinds',
   term: 'woodwinds',
   variants: ['woodwind section', 'winds', 'woodwind ensemble'],
@@ -532,7 +532,7 @@ const WOODWINDS: DomainNoun = {
   ],
 };
 
-const PERCUSSION: DomainNoun = {
+const PERCUSSION: DomainNounLexeme = {
   id: 'noun:percussion',
   term: 'percussion',
   variants: ['percussion section', 'drums', 'rhythmic percussion'],
@@ -550,7 +550,7 @@ const PERCUSSION: DomainNoun = {
   ],
 };
 
-const CHOIR: DomainNoun = {
+const CHOIR: DomainNounLexeme = {
   id: 'noun:choir',
   term: 'choir',
   variants: ['chorus', 'vocal ensemble', 'voices'],
@@ -572,7 +572,7 @@ const CHOIR: DomainNoun = {
 // Exports
 // =============================================================================
 
-export const ORCHESTRATION_NOUNS: readonly DomainNoun[] = [
+export const ORCHESTRATION_NOUNS: readonly DomainNounLexeme[] = [
   ORCHESTRATION,
   VOICING,
   DOUBLING,
@@ -585,7 +585,7 @@ export const ORCHESTRATION_NOUNS: readonly DomainNoun[] = [
   ACCOMPANIMENT,
 ] as const;
 
-export const ROLE_NOUNS: readonly DomainNoun[] = [
+export const ROLE_NOUNS: readonly DomainNounLexeme[] = [
   MELODY_INSTRUMENT,
   BASS_INSTRUMENT,
   HARMONIC_FILL,
@@ -593,7 +593,7 @@ export const ROLE_NOUNS: readonly DomainNoun[] = [
   COUNTER_VOICE,
 ] as const;
 
-export const TEXTURAL_TECHNIQUE_NOUNS: readonly DomainNoun[] = [
+export const TEXTURAL_TECHNIQUE_NOUNS: readonly DomainNounLexeme[] = [
   LAYERING,
   UNISON,
   CALL_AND_RESPONSE,
@@ -601,7 +601,7 @@ export const TEXTURAL_TECHNIQUE_NOUNS: readonly DomainNoun[] = [
   OSTINATO,
 ] as const;
 
-export const TIMBRAL_CONCEPT_NOUNS: readonly DomainNoun[] = [
+export const TIMBRAL_CONCEPT_NOUNS: readonly DomainNounLexeme[] = [
   BLEND,
   CONTRAST,
   COLOR,
@@ -609,7 +609,7 @@ export const TIMBRAL_CONCEPT_NOUNS: readonly DomainNoun[] = [
   TRANSPARENCY,
 ] as const;
 
-export const SECTION_NOUNS: readonly DomainNoun[] = [
+export const SECTION_NOUNS: readonly DomainNounLexeme[] = [
   STRINGS,
   BRASS,
   WOODWINDS,
@@ -617,7 +617,7 @@ export const SECTION_NOUNS: readonly DomainNoun[] = [
   CHOIR,
 ] as const;
 
-export const BATCH_13_NOUNS: readonly DomainNoun[] = [
+export const BATCH_13_NOUNS: readonly DomainNounLexeme[] = [
   ...ORCHESTRATION_NOUNS,
   ...ROLE_NOUNS,
   ...TEXTURAL_TECHNIQUE_NOUNS,

@@ -379,7 +379,16 @@ export type EntityType =
   | 'board'
   | 'track'
   | 'range'
-  | 'axis';
+  | 'axis'
+  | 'technique'
+  | 'instrument'
+  | 'style'
+  | 'genre'
+  | 'effect'
+  | 'texture'
+  | 'rhythm'
+  | 'harmony'
+  | 'melody';
 
 /**
  * Selectional restrictions for a lexeme.

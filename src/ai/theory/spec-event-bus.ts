@@ -10,6 +10,9 @@
  * - Dependent cards subscribe to specific constraint types via `specBus.on()`
  * - The bus also supports full-spec change events for cross-cutting concerns
  *
+ * Change 363: Event bus instances are now created per SpecContextId (not global).
+ * Access via MusicSpecStore.getEventBus(contextId).
+ *
  * Implements: C913 (parameter linking), C914 (linking layer), C915 (event bus)
  *
  * @module @cardplay/ai/theory/spec-event-bus
