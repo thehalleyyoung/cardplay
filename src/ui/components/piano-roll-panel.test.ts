@@ -691,14 +691,15 @@ describe('Piano Roll Event Editing', () => {
   describe('moveNote', () => {
     it('should move note by delta', () => {
       const state = createPianoRollState('test');
-      const noteState = createNoteAtPosition(state, 100, 300);
+      const noteState = createNoteAtPosition({ ...state, snapEnabled: false }, 100, 300);
       const note = noteState.notes[0]!;
       const noteId = note.eventId;
       
-      const updated = moveNote(noteState, noteId, 50, -12);
+      const updated = moveNote({ ...noteState, snapEnabled: false }, noteId, 50, -12);
       
-      expect(updated.notes[0]?.x).not.toBe(note.x);
-      expect(updated.notes[0]?.y).not.toBe(note.y);
+      // Check that the underlying tick/pitch changed (x/y are derived and may round to same)
+      expect(updated.notes[0]?.start).not.toBe(note.start);
+      expect(updated.notes[0]?.pitch).not.toBe(note.pitch);
     });
 
     it('should not move locked notes', () => {
@@ -730,10 +731,11 @@ describe('Piano Roll Event Editing', () => {
   describe('moveSelectedNotes', () => {
     it('should move all selected notes together', () => {
       const state = createPianoRollState('test');
-      const state1 = createNoteAtPosition(state, 100, 300);
-      const state2 = createNoteAtPosition(state1, 200, 350);
+      const state1 = createNoteAtPosition({ ...state, snapEnabled: false }, 100, 300);
+      const state2 = createNoteAtPosition({ ...state1, snapEnabled: false }, 200, 350);
       const withSelection = {
         ...state2,
+        snapEnabled: false,
         selectedNoteIds: [state2.notes[0]!.eventId, state2.notes[1]!.eventId]
       };
       
@@ -766,11 +768,11 @@ describe('Piano Roll Event Editing', () => {
 
     it('should resize from left edge', () => {
       const state = createPianoRollState('test');
-      const noteState = createNoteAtPosition(state, 100, 300, asTickDuration(500));
+      const noteState = createNoteAtPosition({ ...state, snapEnabled: false }, 100, 300, asTickDuration(500));
       const note = noteState.notes[0]!;
       const noteId = note.eventId;
       
-      const updated = resizeNoteEdge(noteState, noteId, 'left', note.x + 50);
+      const updated = resizeNoteEdge({ ...noteState, snapEnabled: false }, noteId, 'left', note.x + 50);
       
       expect(updated.notes[0]?.start).toBeGreaterThan(note.start);
     });

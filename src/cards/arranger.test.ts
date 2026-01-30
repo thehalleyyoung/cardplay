@@ -2087,8 +2087,8 @@ describe('Instrument Switcher', () => {
         melodyNotes: true,
       }, () => 0.5); // Always apply (above probability threshold)
       
-      expect(result).toBe(1920 - 0.25 * 480); // 480 = PPQ
-      expect(result).toBe(1800);
+      expect(result).toBe(1920 - 0.25 * 960); // 960 = PPQ (canonical)
+      expect(result).toBe(1680);
     });
     
     it('should not anticipate based on probability', () => {

@@ -622,7 +622,7 @@ describe('Project Export/Import (O056-O058)', () => {
       
       // Should parse back correctly
       const parsed = JSON.parse(json);
-      expect(parsed.metadata.name).toBe('Validation Test');
+      expect(parsed.metadata.projectName).toBe('Validation Test');
     });
   });
 
