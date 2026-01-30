@@ -648,7 +648,7 @@ describe('M273: Freeze Track Reduces CPU Correctly', () => {
     expect(frozenTrack.frozenPluginStates).toHaveLength(3);
     frozenTrack.frozenPluginStates!.forEach((state, i) => {
       expect(state.pluginId).toBe(`plugin_${i}`);
-      expect(state.wasEnabled).toBe(true);
+      expect(state.enabled).toBe(true);
     });
   });
 
