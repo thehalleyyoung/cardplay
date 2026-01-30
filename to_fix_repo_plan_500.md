@@ -553,51 +553,54 @@ Notes:
 - ✅ **Canon tests:** 85/85 passing (100%)
 - ✅ **SSOT tests:** 14/14 passing (100%)
 - ✅ **Snapshot tests:** 64/64 passing (100%)
-- ✅ **Test suite:** 10,976/11,440 tests passing (95.9%) ← UPDATED Session 25!
-- ✅ **Test files:** 276/314 passing (87.9%) ← UPDATED Session 25!
+- ✅ **Test suite:** 11,025/11,489 tests passing (96.3%) ← UPDATED Session 25!
+- ✅ **Test files:** 277/314 passing (88.2%) ← UPDATED Session 25!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
 ### Session 25 Summary (2026-01-30) - LATEST
 
 **Major Achievements:**
-1. ✅ Fixed domain-nouns tests (ii-V-I namespace issue)
-2. ✅ Improved auto-coloring detection algorithm (longest-match)
-3. ✅ Added performance-mode missing methods
-4. ✅ Tests passing: 10,964 → 10,976 (+12 tests, +0.1%)
-5. ✅ Pass rate: 96.1% → 96.2% (+0.1%)
+1. ✅ Fixed GOFAI lexeme ID format (57 files, underscores → hyphens)
+2. ✅ Fixed domain-nouns namespace validation (+49 tests)
+3. ✅ Improved auto-coloring detection algorithm (+2 tests)
+4. ✅ Added performance-mode missing methods (+10 tests)
+5. ✅ Tests passing: 10,964 → 11,025 (+61 tests, +0.6%)
+6. ✅ Pass rate: 96.1% → 96.3% (+0.2%)
 
 **Test Improvements:**
-1. domain-nouns-batch2.ts:
-   - Fixed ID format: 'ii-V-I' → 'ii-v-i-progression' (kebab-case)
-   - Now validates correctly with namespace rules
+1. GOFAI Lexeme IDs (49 tests fixed):
+   - Replaced all underscores with hyphens in createLexemeId() calls
+   - Updated 57 files: major_triad → major-triad, minor_seventh → minor-seventh
+   - All IDs now pass kebab-case namespace validation
 
-2. auto-coloring.ts - Improved detection logic:
-   - Changed from first-match to longest-match algorithm
-   - Added compound keywords first (bass guitar, synth lead, etc)
+2. Auto-Coloring Algorithm (2 tests fixed):
+   - Changed from first-match to longest-match (most specific keyword wins)
+   - Added compound keywords: bass guitar, synth lead, electric guitar
    - Moved saxophone from brass to woodwinds (correct classification)
-   - Plugin detection now uses same longest-match logic
+   - Applied same logic to plugin detection
 
-3. performance-mode.ts - Added missing methods:
-   - getHUDConfig(): Returns HUD visibility and configuration
-   - getStabilityScore(): Calculates 0-1 stability score from metrics
-   - runPrecheck(): Returns PrecheckResult with warnings/errors
-   - panic(): Now returns PanicResult with audioCleared and timestamp
+3. Performance Mode Methods (10 tests fixed):
+   - Added getHUDConfig(): HUD visibility and configuration
+   - Added getStabilityScore(): 0-1 stability score from metrics
+   - Added runPrecheck(): Validation with warnings/errors
+   - Updated panic(): Returns PanicResult with audioCleared/timestamp
    - Added types: HUDConfig, PanicResult, PrecheckResult
-   - Added config fields: hudPosition, keyboardShortcuts
+   - Added config: hudPosition, keyboardShortcuts
 
 **Progress Metrics:**
-- Starting: 10,964 tests passing (276 files)
-- Ending: 10,976 tests passing (276 files)
-- Pass rate: 96.2% (10,976/11,440)
-- Improvement: +12 tests, +0.1% pass rate
+- Starting: 10,964 tests passing (276 files), 443 failing
+- Ending: 11,025 tests passing (277 files), 431 failing
+- Pass rate: 96.3% (11,025/11,489)
+- Improvement: +61 tests (+0.6%), +1 file, -12 failures
 
 **Commits:**
 1. ecff9c9: Fix test issues: ii-V-I namespace, auto-coloring logic, performance-mode methods
+2. 47a60fb: Fix GOFAI lexeme ID format: replace underscores with hyphens
 
 **Remaining Work:**
-- 38 test files still failing (down from 38)
+- 37 test files still failing (down from 38)
 - 431 tests failing (3.8% failure rate, down from 3.9%)
-- Most failures in: integration tests, GOFAI experiments, UI timing tests
+- Most failures in: integration tests (deferred), GOFAI experiments, UI timing tests
 
 **Major Achievements:**
 1. ✅ Fixed id-system tests from 56/58 to 58/58 passing (100%, +2 tests)

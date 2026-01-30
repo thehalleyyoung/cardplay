@@ -243,12 +243,13 @@ export function assessConstraintRisk(
  * Higher score = better plan
  */
 export interface PlanScore {
-  readonly satisfactionScore: number; // 0.0 - 1.0 (higher is better)
-  readonly cost: number;              // Absolute cost (lower is better)
-  readonly normalizedCost: number;    // 0.0 - 1.0 (lower is better)
-  readonly constraintRisk: number;    // 0.0 - 1.0 (lower is better)
-  readonly overallScore: number;      // Weighted combination (higher is better)
-  readonly confidence: number;        // 0.0 - 1.0 (higher is better)
+  readonly satisfactionScore: number;      // 0.0 - 1.0 (higher is better)
+  readonly cost: number;                   // Absolute cost (lower is better)
+  readonly normalizedCost: number;         // 0.0 - 1.0 (lower is better)
+  readonly constraintRisk: number;         // 0.0 - 1.0 (lower is better)
+  readonly softConstraintPenalty: number;  // 0.0 - 1.0 (lower is better)
+  readonly overallScore: number;           // Weighted combination (higher is better)
+  readonly confidence: number;             // 0.0 - 1.0 (higher is better)
 }
 
 /**
@@ -258,17 +259,20 @@ export interface ScoringWeights {
   readonly satisfactionWeight: number;
   readonly costWeight: number;
   readonly constraintRiskWeight: number;
+  readonly softConstraintPenaltyWeight: number;
 }
 
 /**
  * Default scoring weights
  * - Satisfaction is most important (must achieve the goal)
  * - Constraint risk is critical (violations are unacceptable)
+ * - Soft constraint penalties influence but don't block
  * - Cost is secondary (prefer simpler edits when satisfaction is equal)
  */
 export const DEFAULT_SCORING_WEIGHTS: ScoringWeights = {
   satisfactionWeight: 1.0,
   constraintRiskWeight: 0.9,
+  softConstraintPenaltyWeight: 0.7,
   costWeight: 0.5,
 };
 
