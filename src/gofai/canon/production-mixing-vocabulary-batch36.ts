@@ -13,7 +13,6 @@ import {
   type Lexeme,
   createLexemeId,
   createAxisId,
-  createOpcodeId,
 } from './types.js';
 
 // =============================================================================

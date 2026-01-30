@@ -796,8 +796,7 @@ export function createPreserveConstraint(
 export function createRangeConstraint(
   targetName: string,
   min?: number,
-  max?: number,
-  options?: Partial<RangeConstraint>
+  max?: number
 ): RangeConstraint {
   return {
     type: 'range',
@@ -811,8 +810,7 @@ export function createRangeConstraint(
  * Create a minimal cost preference.
  */
 export function createMinimalCostPreference(
-  strength: number = 0.8,
-  options?: Partial<CostPreference>
+  strength: number = 0.8
 ): CostPreference {
   return {
     type: 'cost',
@@ -826,8 +824,7 @@ export function createMinimalCostPreference(
  * Create a naturalness preference.
  */
 export function createNaturalnessPreference(
-  strength: number = 0.7,
-  options?: Partial<DefaultPreference>
+  strength: number = 0.7
 ): DefaultPreference {
   return {
     type: 'default',

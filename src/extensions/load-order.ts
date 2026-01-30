@@ -103,8 +103,7 @@ export function resolveLoadOrder(packs: readonly LoadablePack[]): LoadOrderResul
     return a.manifest.name.localeCompare(b.manifest.name);
   });
   
-  // Check for ID collisions
-  const _idRegistry = new Map<string, string>(); // id -> pack name (placeholder for future use)
+  // Check for ID collisions (placeholder for future implementation)
   
   function checkCollisions(pack: LoadablePack): boolean {
     // Check for collisions in exported entities

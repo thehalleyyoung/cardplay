@@ -62,7 +62,7 @@ export interface ControlPolicyConfig {
  * 
  * Change 376: Implements capability-gated auto-apply rules.
  */
-const CONTROL_POLICY_MATRIX = {
+const CONTROL_POLICY_MATRIX: Record<ControlLevel, Record<ToolMode, ControlPolicyConfig>> = {
   'full-manual': {
     auto: {
       autoApply: AutoApplyPermission.NEVER,
@@ -248,7 +248,7 @@ const CONTROL_POLICY_MATRIX = {
       minConfidenceForAutoApply: 0.6,
     },
   },
-} satisfies Record<ControlLevel, Record<ToolMode, ControlPolicyConfig>>;
+};
 
 /**
  * Gets the control policy for a given control level and tool mode.
@@ -257,8 +257,7 @@ export function getControlPolicy(
   controlLevel: ControlLevel,
   toolMode: ToolMode
 ): ControlPolicyConfig {
-  const matrix = CONTROL_POLICY_MATRIX as Record<ControlLevel, Record<ToolMode, ControlPolicyConfig>>;
-  return matrix[controlLevel][toolMode];
+  return CONTROL_POLICY_MATRIX[controlLevel][toolMode];
 }
 
 /**

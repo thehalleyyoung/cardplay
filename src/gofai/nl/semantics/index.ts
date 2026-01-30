@@ -50,3 +50,6 @@ export * from './compositional-pipeline';
 
 // FrameNet / Frame semantics integration (Step 157)
 export * from './frame-semantics';
+
+// Musical goals representation (Step 158)
+export * from './musical-goals';

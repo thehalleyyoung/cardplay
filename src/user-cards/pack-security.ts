@@ -84,13 +84,13 @@ export const PROJECT_LOCAL_ALLOWED_CAPABILITIES: readonly Capability[] = [
  */
 export const GLOBAL_USER_ALLOWED_CAPABILITIES: readonly Capability[] = [
   ...PROJECT_LOCAL_ALLOWED_CAPABILITIES,
-  'filesystem-read',
-  'filesystem-write',
-  'network-access',
-  'register-themes',
-  'register-ontologies',
-  'modify-user-settings',
-  'execute-scripts',
+  'files:read',
+  'files:write',
+  'network:fetch',
+  'themes:create',
+  'ontology:extend',
+  'storage:local',
+  'eval:code',
 ];
 
 /**
