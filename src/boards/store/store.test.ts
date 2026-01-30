@@ -34,7 +34,7 @@ describe('BoardStateStore', () => {
   });
   
   afterEach(() => {
-    vi.restoreAllTimers();
+    vi.useRealTimers();
   });
 
   describe('initialization', () => {
