@@ -111,6 +111,14 @@ const UNIT_BPM: MeasurementUnit = {
   validRange: [20, 300],
 };
 
+const UNIT_BPM_CHANGE: MeasurementUnit = {
+  id: createUnitId('bpm_change'),
+  name: 'BPM Change',
+  abbreviations: ['bpm change', 'tempo change'],
+  category: 'tempo',
+  validRange: [-100, 100],
+};
+
 // =============================================================================
 // Dynamic Units
 // =============================================================================
@@ -140,6 +148,29 @@ const UNIT_PERCENT: MeasurementUnit = {
   abbreviations: ['%', 'pct'],
   category: 'ratio',
   validRange: [0, 100],
+};
+
+const UNIT_PERCENTAGE: MeasurementUnit = {
+  id: createUnitId('percentage'),
+  name: 'Percentage',
+  abbreviations: ['%', 'pct', 'percent'],
+  category: 'ratio',
+  validRange: [0, 100],
+};
+
+const UNIT_RATIO: MeasurementUnit = {
+  id: createUnitId('ratio'),
+  name: 'Ratio',
+  abbreviations: ['ratio'],
+  category: 'ratio',
+};
+
+const UNIT_LEVEL: MeasurementUnit = {
+  id: createUnitId('level'),
+  name: 'Level',
+  abbreviations: ['level', 'lvl'],
+  category: 'dynamic',
+  validRange: [0, 1],
 };
 
 const UNIT_FACTOR: MeasurementUnit = {

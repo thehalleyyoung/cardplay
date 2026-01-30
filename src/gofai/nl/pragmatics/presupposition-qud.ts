@@ -2241,3 +2241,1188 @@ export function mergeQUDStacks(a: QUDStack, b: QUDStack): QUDMergeResult {
     deduplicatedCount,
   };
 }
+
+
+// ===================== STEP 209: CLARIFICATION GENERATION =====================
+
+// ---- 209 Types ----
+
+/** Priority level for a clarification request. */
+export type ClarificationPriority = 'critical' | 'important' | 'minor';
+
+/** Strategy for generating clarification questions. */
+export type ClarificationStrategy =
+  | 'binary-choice'
+  | 'multi-choice'
+  | 'open-ended'
+  | 'scope-narrowing'
+  | 'type-selection'
+  | 'confirmation'
+  | 'parameter-specification';
+
+/** A single candidate option that a clarification distinguishes. */
+export interface ClarificationOption {
+  readonly optionId: string;
+  readonly label: string;
+  readonly description: string;
+  readonly probability: number;
+  readonly associatedAction: string;
+}
+
+/** Information gain computation for a candidate question. */
+export interface InformationGain {
+  readonly questionText: string;
+  readonly entropy_before: number;
+  readonly entropy_after: number;
+  readonly gain: number;
+  readonly candidateReduction: number;
+  readonly totalCandidates: number;
+}
+
+/** A generated clarification request. */
+export interface ClarificationRequest {
+  readonly requestId: string;
+  readonly questionText: string;
+  readonly strategy: ClarificationStrategy;
+  readonly priority: ClarificationPriority;
+  readonly options: readonly ClarificationOption[];
+  readonly informationGain: InformationGain;
+  readonly defaultOptionId: string;
+  readonly contextQUDId: string;
+  readonly utteranceRef: string;
+  readonly tags: readonly string[];
+}
+
+/** A batch of related clarification requests. */
+export interface ClarificationBatch {
+  readonly batchId: string;
+  readonly requests: readonly ClarificationRequest[];
+  readonly combinedQuestionText: string;
+  readonly totalGain: number;
+  readonly priority: ClarificationPriority;
+}
+
+/** The result of applying a user's answer to a clarification. */
+export interface ClarificationAnswer {
+  readonly requestId: string;
+  readonly selectedOptionId: string;
+  readonly freeText: string;
+  readonly turnNumber: number;
+  readonly resolved: boolean;
+}
+
+/** A follow-up clarification generated after an initial answer. */
+export interface FollowUpClarification {
+  readonly originalRequestId: string;
+  readonly followUp: ClarificationRequest;
+  readonly reason: string;
+}
+
+/** Template for generating clarification questions. */
+interface ClarificationTemplate {
+  readonly templateId: string;
+  readonly pattern: string;
+  readonly questionTemplate: string;
+  readonly strategy: ClarificationStrategy;
+  readonly priority: ClarificationPriority;
+  readonly description: string;
+}
+
+// ---- 209 Clarification Templates (25+) ----
+
+const CLARIFICATION_TEMPLATES: readonly ClarificationTemplate[] = [
+  // --- Binary choice ---
+  {
+    templateId: 'clar-x-or-y',
+    pattern: 'ambiguous-binary',
+    questionTemplate: 'Did you mean {option_a} or {option_b}?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Binary disambiguation between two options',
+  },
+  {
+    templateId: 'clar-which-track',
+    pattern: 'ambiguous-track',
+    questionTemplate: 'Which track are you referring to: {track_list}?',
+    strategy: 'multi-choice',
+    priority: 'critical',
+    description: 'Track disambiguation when multiple tracks match',
+  },
+  {
+    templateId: 'clar-which-section',
+    pattern: 'ambiguous-section',
+    questionTemplate: 'Which section should this apply to: {section_list}?',
+    strategy: 'multi-choice',
+    priority: 'critical',
+    description: 'Section disambiguation',
+  },
+  {
+    templateId: 'clar-scope-all-or-selected',
+    pattern: 'ambiguous-scope',
+    questionTemplate: 'Should this apply to all {entity_type} or just the selected one?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Scope clarification: all vs. selected',
+  },
+  {
+    templateId: 'clar-parameter-value',
+    pattern: 'missing-parameter',
+    questionTemplate: 'How much {parameter} adjustment do you want?',
+    strategy: 'parameter-specification',
+    priority: 'important',
+    description: 'Missing parameter value for an action',
+  },
+  {
+    templateId: 'clar-effect-type',
+    pattern: 'ambiguous-effect',
+    questionTemplate: 'Which type of {effect} did you have in mind: {effect_options}?',
+    strategy: 'multi-choice',
+    priority: 'important',
+    description: 'Effect type disambiguation',
+  },
+  {
+    templateId: 'clar-timing-scope',
+    pattern: 'ambiguous-timing',
+    questionTemplate: 'Should this change apply from {point_a} or across the entire {scope}?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Temporal scope clarification',
+  },
+  {
+    templateId: 'clar-confirm-destructive',
+    pattern: 'destructive-action',
+    questionTemplate: 'This will {action_desc}. Are you sure you want to proceed?',
+    strategy: 'confirmation',
+    priority: 'critical',
+    description: 'Confirmation for destructive/irreversible actions',
+  },
+  {
+    templateId: 'clar-eq-band',
+    pattern: 'ambiguous-eq-band',
+    questionTemplate: 'Which EQ band: lows, low-mids, mids, high-mids, or highs?',
+    strategy: 'multi-choice',
+    priority: 'important',
+    description: 'EQ band clarification',
+  },
+  {
+    templateId: 'clar-reverb-type',
+    pattern: 'ambiguous-reverb',
+    questionTemplate: 'What type of reverb: room, plate, hall, or spring?',
+    strategy: 'multi-choice',
+    priority: 'minor',
+    description: 'Reverb type disambiguation',
+  },
+  {
+    templateId: 'clar-compression-amount',
+    pattern: 'ambiguous-compression',
+    questionTemplate: 'How much compression: light, moderate, or heavy?',
+    strategy: 'multi-choice',
+    priority: 'minor',
+    description: 'Compression amount clarification',
+  },
+  {
+    templateId: 'clar-which-instrument',
+    pattern: 'ambiguous-instrument',
+    questionTemplate: 'Which instrument: {instrument_list}?',
+    strategy: 'multi-choice',
+    priority: 'critical',
+    description: 'Instrument disambiguation',
+  },
+  {
+    templateId: 'clar-relative-absolute',
+    pattern: 'ambiguous-value-type',
+    questionTemplate: 'Do you want to set {param} to {value} or change it by {value}?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Relative vs. absolute value clarification',
+  },
+  {
+    templateId: 'clar-keep-or-replace',
+    pattern: 'ambiguous-keep-replace',
+    questionTemplate: 'Should I keep the existing {entity} and add new, or replace it entirely?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Keep/add vs. replace clarification',
+  },
+  {
+    templateId: 'clar-confirm-overwrite',
+    pattern: 'overwrite-confirmation',
+    questionTemplate: 'This will overwrite the existing {entity}. Continue?',
+    strategy: 'confirmation',
+    priority: 'critical',
+    description: 'Overwrite confirmation',
+  },
+  {
+    templateId: 'clar-tempo-scope',
+    pattern: 'ambiguous-tempo-scope',
+    questionTemplate: 'Change the tempo for the whole track or just {section}?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Tempo change scope',
+  },
+  {
+    templateId: 'clar-pan-direction',
+    pattern: 'ambiguous-pan',
+    questionTemplate: 'Pan to the left or right?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Pan direction clarification',
+  },
+  {
+    templateId: 'clar-layer-position',
+    pattern: 'ambiguous-layer-position',
+    questionTemplate: 'Add the layer above, below, or alongside the existing one?',
+    strategy: 'multi-choice',
+    priority: 'minor',
+    description: 'Layer position clarification',
+  },
+  {
+    templateId: 'clar-automation-shape',
+    pattern: 'ambiguous-automation',
+    questionTemplate: 'What automation curve: linear, exponential, or s-curve?',
+    strategy: 'multi-choice',
+    priority: 'minor',
+    description: 'Automation curve shape clarification',
+  },
+  {
+    templateId: 'clar-fade-type',
+    pattern: 'ambiguous-fade',
+    questionTemplate: 'Fade in, fade out, or crossfade?',
+    strategy: 'multi-choice',
+    priority: 'important',
+    description: 'Fade type clarification',
+  },
+  {
+    templateId: 'clar-velocity-range',
+    pattern: 'ambiguous-velocity',
+    questionTemplate: 'Adjust velocity for all notes or just the {range} notes?',
+    strategy: 'binary-choice',
+    priority: 'minor',
+    description: 'Velocity range clarification',
+  },
+  {
+    templateId: 'clar-key-scale',
+    pattern: 'ambiguous-key',
+    questionTemplate: 'In {key} major or {key} minor?',
+    strategy: 'binary-choice',
+    priority: 'important',
+    description: 'Key/scale clarification',
+  },
+  {
+    templateId: 'clar-reference-track',
+    pattern: 'ambiguous-reference',
+    questionTemplate: 'Use which track as the reference: {track_list}?',
+    strategy: 'multi-choice',
+    priority: 'important',
+    description: 'Reference track clarification',
+  },
+  {
+    templateId: 'clar-what-specifically',
+    pattern: 'vague-instruction',
+    questionTemplate: 'Could you be more specific about what you want to {action}?',
+    strategy: 'open-ended',
+    priority: 'important',
+    description: 'Open-ended clarification for vague instructions',
+  },
+  {
+    templateId: 'clar-how-much',
+    pattern: 'missing-degree',
+    questionTemplate: 'How much {adjective}er should it be?',
+    strategy: 'parameter-specification',
+    priority: 'minor',
+    description: 'Degree specification for comparative adjectives',
+  },
+  {
+    templateId: 'clar-which-mix',
+    pattern: 'ambiguous-mix-version',
+    questionTemplate: 'Which mix version: {version_list}?',
+    strategy: 'multi-choice',
+    priority: 'important',
+    description: 'Mix version disambiguation',
+  },
+  {
+    templateId: 'clar-sidechain-source',
+    pattern: 'missing-sidechain',
+    questionTemplate: 'What should be the sidechain source: {source_list}?',
+    strategy: 'multi-choice',
+    priority: 'important',
+    description: 'Sidechain source specification',
+  },
+] as const;
+
+// ---- 209 ID generation ----
+
+let _clarificationIdCounter = 0;
+function generateClarificationId(): string {
+  _clarificationIdCounter++;
+  return `clar-${String(_clarificationIdCounter)}`;
+}
+
+let _batchIdCounter = 0;
+function generateBatchId(): string {
+  _batchIdCounter++;
+  return `clar-batch-${String(_batchIdCounter)}`;
+}
+
+// ---- 209 Functions ----
+
+/**
+ * Compute entropy of a probability distribution.
+ */
+function computeEntropy(probabilities: readonly number[]): number {
+  let entropy = 0;
+  for (const p of probabilities) {
+    if (p > 0) {
+      entropy -= p * Math.log2(p);
+    }
+  }
+  return entropy;
+}
+
+/**
+ * Compute information gain for a candidate clarification question.
+ * The question splits candidates into groups; gain is entropy reduction.
+ */
+export function computeInformationGain(
+  options: readonly ClarificationOption[],
+): InformationGain {
+  if (options.length === 0) {
+    return {
+      questionText: '',
+      entropy_before: 0,
+      entropy_after: 0,
+      gain: 0,
+      candidateReduction: 0,
+      totalCandidates: 0,
+    };
+  }
+
+  const total = options.length;
+
+  // Before asking: uniform distribution over candidates
+  const uniformProbs = options.map(() => 1 / total);
+  const entropyBefore = computeEntropy(uniformProbs);
+
+  // After asking: we know the answer, so entropy is 0 for a perfect split
+  // For a realistic model, estimate based on option probabilities
+  const probSum = options.reduce((acc, o) => acc + o.probability, 0);
+  const normalizedProbs = probSum > 0
+    ? options.map((o) => o.probability / probSum)
+    : uniformProbs;
+
+  // Expected entropy after: weighted average of branch entropies
+  // For simplicity with discrete options, each branch has 0 entropy (we pick one)
+  // Gain = entropyBefore - 0 = entropyBefore for a fully disambiguating question
+  // For partially disambiguating, compute expected posterior entropy
+  const entropyAfter = computeEntropy(normalizedProbs) * 0.3; // partial resolution factor
+
+  const gain = entropyBefore - entropyAfter;
+  const candidateReduction = Math.max(1, Math.round(total * (gain / Math.max(entropyBefore, 0.001))));
+
+  return {
+    questionText: '',
+    entropy_before: entropyBefore,
+    entropy_after: entropyAfter,
+    gain,
+    candidateReduction,
+    totalCandidates: total,
+  };
+}
+
+/**
+ * Generate a clarification request from a template and options.
+ */
+export function generateClarification(
+  templateId: string,
+  options: readonly ClarificationOption[],
+  utteranceRef: string,
+  contextQUDId?: string,
+  tags?: readonly string[],
+): ClarificationRequest {
+  const template = CLARIFICATION_TEMPLATES.find((t) => t.templateId === templateId);
+
+  const questionText = template !== undefined
+    ? template.questionTemplate
+    : 'Could you clarify what you mean?';
+
+  const strategy: ClarificationStrategy = template !== undefined
+    ? template.strategy
+    : 'open-ended';
+
+  const priority: ClarificationPriority = template !== undefined
+    ? template.priority
+    : 'important';
+
+  const ig = computeInformationGain(options);
+  const igWithQuestion: InformationGain = {
+    questionText,
+    entropy_before: ig.entropy_before,
+    entropy_after: ig.entropy_after,
+    gain: ig.gain,
+    candidateReduction: ig.candidateReduction,
+    totalCandidates: ig.totalCandidates,
+  };
+
+  const defaultOpt = options.length > 0 ? options[0] : undefined;
+  const defaultOptionId = defaultOpt !== undefined ? defaultOpt.optionId : '';
+
+  return {
+    requestId: generateClarificationId(),
+    questionText,
+    strategy,
+    priority,
+    options,
+    informationGain: igWithQuestion,
+    defaultOptionId,
+    contextQUDId: contextQUDId !== undefined ? contextQUDId : '',
+    utteranceRef,
+    tags: tags !== undefined ? tags : [],
+  };
+}
+
+/**
+ * Select the optimal question from a set of candidate clarifications.
+ * Picks the question with the highest information gain.
+ */
+export function selectOptimalQuestion(
+  candidates: readonly ClarificationRequest[],
+): ClarificationRequest | null {
+  if (candidates.length === 0) return null;
+
+  let best: ClarificationRequest | null = null;
+  let bestGain = -Infinity;
+
+  for (const req of candidates) {
+    if (req.informationGain.gain > bestGain) {
+      bestGain = req.informationGain.gain;
+      best = req;
+    }
+  }
+
+  return best;
+}
+
+/**
+ * Format a clarification request for display in the UI.
+ */
+export function formatClarificationForUI(request: ClarificationRequest): string {
+  const lines: string[] = [];
+  lines.push(request.questionText);
+
+  if (request.options.length > 0) {
+    for (let i = 0; i < request.options.length; i++) {
+      const opt = request.options[i];
+      if (opt !== undefined) {
+        const marker = opt.optionId === request.defaultOptionId ? ' (default)' : '';
+        lines.push(`  ${String(i + 1)}. ${opt.label}${marker}`);
+        if (opt.description.length > 0) {
+          lines.push(`     ${opt.description}`);
+        }
+      }
+    }
+  }
+
+  const priorityLabel = request.priority === 'critical'
+    ? '[CRITICAL]'
+    : request.priority === 'important'
+      ? '[IMPORTANT]'
+      : '[MINOR]';
+  lines.push(`Priority: ${priorityLabel}`);
+
+  return lines.join('\n');
+}
+
+/**
+ * Batch related clarifications into a single compound question.
+ */
+export function batchClarifications(
+  requests: readonly ClarificationRequest[],
+): ClarificationBatch {
+  if (requests.length === 0) {
+    return {
+      batchId: generateBatchId(),
+      requests: [],
+      combinedQuestionText: '',
+      totalGain: 0,
+      priority: 'minor',
+    };
+  }
+
+  // Determine highest priority
+  let highestPriority: ClarificationPriority = 'minor';
+  let totalGain = 0;
+
+  for (const req of requests) {
+    totalGain += req.informationGain.gain;
+    if (req.priority === 'critical') {
+      highestPriority = 'critical';
+    } else if (req.priority === 'important' && highestPriority !== 'critical') {
+      highestPriority = 'important';
+    }
+  }
+
+  // Combine question texts
+  const questionParts: string[] = [];
+  for (let i = 0; i < requests.length; i++) {
+    const req = requests[i];
+    if (req !== undefined) {
+      questionParts.push(`${String(i + 1)}. ${req.questionText}`);
+    }
+  }
+  const combinedQuestionText = questionParts.join('\n');
+
+  return {
+    batchId: generateBatchId(),
+    requests,
+    combinedQuestionText,
+    totalGain,
+    priority: highestPriority,
+  };
+}
+
+/**
+ * Prioritize clarifications: critical first, then important, then minor.
+ * Within same priority, sort by information gain descending.
+ */
+export function prioritizeClarifications(
+  requests: readonly ClarificationRequest[],
+): readonly ClarificationRequest[] {
+  const priorityOrder: Record<ClarificationPriority, number> = {
+    critical: 0,
+    important: 1,
+    minor: 2,
+  };
+
+  const sorted = [...requests];
+  sorted.sort((a, b) => {
+    const pa = priorityOrder[a.priority];
+    const pb = priorityOrder[b.priority];
+    if (pa !== pb) return pa - pb;
+    return b.informationGain.gain - a.informationGain.gain;
+  });
+
+  return sorted;
+}
+
+/**
+ * Check whether a clarification is critical (blocks execution).
+ */
+export function isCriticalClarification(request: ClarificationRequest): boolean {
+  return request.priority === 'critical';
+}
+
+/**
+ * Get the default resolution (first option) for a clarification.
+ */
+export function getDefaultResolution(
+  request: ClarificationRequest,
+): ClarificationOption | null {
+  if (request.options.length === 0) return null;
+
+  for (const opt of request.options) {
+    if (opt.optionId === request.defaultOptionId) {
+      return opt;
+    }
+  }
+
+  const first = request.options[0];
+  return first !== undefined ? first : null;
+}
+
+/**
+ * Apply a user's answer to a clarification request.
+ */
+export function applyClarificationAnswer(
+  request: ClarificationRequest,
+  selectedOptionId: string,
+  freeText: string,
+  turnNumber: number,
+): ClarificationAnswer {
+  const optionExists = request.options.some((o) => o.optionId === selectedOptionId);
+
+  return {
+    requestId: request.requestId,
+    selectedOptionId: optionExists ? selectedOptionId : '',
+    freeText,
+    turnNumber,
+    resolved: optionExists || freeText.length > 0,
+  };
+}
+
+/**
+ * Estimate how many candidates a clarification would eliminate.
+ */
+export function estimateCandidateReduction(
+  request: ClarificationRequest,
+): number {
+  return request.informationGain.candidateReduction;
+}
+
+/**
+ * Generate a follow-up clarification if the initial answer is insufficient.
+ */
+export function generateFollowUpClarification(
+  original: ClarificationRequest,
+  answer: ClarificationAnswer,
+  remainingOptions: readonly ClarificationOption[],
+  utteranceRef: string,
+): FollowUpClarification | null {
+  if (answer.resolved && remainingOptions.length <= 1) {
+    return null;
+  }
+
+  if (remainingOptions.length === 0) {
+    return null;
+  }
+
+  const followUpRequest = generateClarification(
+    'clar-what-specifically',
+    remainingOptions,
+    utteranceRef,
+    original.contextQUDId,
+    ['follow-up', original.requestId],
+  );
+
+  return {
+    originalRequestId: original.requestId,
+    followUp: followUpRequest,
+    reason: answer.resolved
+      ? 'Answer resolved but further specification needed for remaining candidates.'
+      : 'Initial answer was insufficient; rephrasing the question.',
+  };
+}
+
+/**
+ * Count the number of pending (unresolved) clarification requests in a batch.
+ */
+export function countPendingClarifications(
+  batch: ClarificationBatch,
+  answers: readonly ClarificationAnswer[],
+): number {
+  const answeredIds = new Set<string>();
+  for (const a of answers) {
+    if (a.resolved) {
+      answeredIds.add(a.requestId);
+    }
+  }
+
+  let pending = 0;
+  for (const req of batch.requests) {
+    if (!answeredIds.has(req.requestId)) {
+      pending++;
+    }
+  }
+  return pending;
+}
+
+
+// ===================== STEP 210: ACCEPT DEFAULTS AND OVERRIDE DIALOGUE MOVES =====================
+
+// ---- 210 Types ----
+
+/** The type of dialogue move detected from a user utterance. */
+export type DialogueMoveType =
+  | 'accept'
+  | 'reject'
+  | 'override'
+  | 'clarify'
+  | 'confirm'
+  | 'deny'
+  | 'elaborate'
+  | 'correct'
+  | 'undo'
+  | 'redo'
+  | 'defer'
+  | 'skip'
+  | 'accept-all'
+  | 'reject-all';
+
+/** Detection result for a dialogue move. */
+export interface MoveDetection {
+  readonly moveType: DialogueMoveType;
+  readonly confidence: number;
+  readonly matchedPattern: string;
+  readonly extractedValue: string;
+  readonly utterance: string;
+}
+
+/** Effect that a dialogue move has on dialogue state. */
+export interface MoveEffect {
+  readonly moveType: DialogueMoveType;
+  readonly effectDescription: string;
+  readonly holeResolution: 'resolve-with-default' | 'resolve-with-override' | 'mark-needs-new-option' | 'undo-last' | 'redo-last' | 'defer' | 'skip' | 'no-change';
+  readonly resolvedValue: string;
+  readonly affectedHoleIds: readonly string[];
+}
+
+/** Configuration for the dialogue move system. */
+export interface DialogueMoveConfig {
+  readonly enableAcceptAll: boolean;
+  readonly enableRejectAll: boolean;
+  readonly requireConfirmationForDestructive: boolean;
+  readonly maxMoveHistorySize: number;
+}
+
+/** A full dialogue move record. */
+export interface DialogueMove {
+  readonly moveId: string;
+  readonly moveType: DialogueMoveType;
+  readonly detection: MoveDetection;
+  readonly effect: MoveEffect;
+  readonly turnNumber: number;
+  readonly timestamp: number;
+  readonly reverted: boolean;
+}
+
+/** Summary of applied move effects. */
+export interface MoveEffectSummary {
+  readonly totalMoves: number;
+  readonly accepted: number;
+  readonly rejected: number;
+  readonly overridden: number;
+  readonly undone: number;
+  readonly deferred: number;
+  readonly skipped: number;
+  readonly lines: readonly string[];
+}
+
+/** A pattern for detecting dialogue moves. */
+interface MovePattern {
+  readonly patternId: string;
+  readonly regex: string;
+  readonly moveType: DialogueMoveType;
+  readonly confidence: number;
+  readonly extractValueGroup: number;
+  readonly description: string;
+}
+
+// ---- 210 Move Patterns (40+) ----
+
+const MOVE_PATTERNS: readonly MovePattern[] = [
+  // --- Accept ---
+  { patternId: 'move-yes', regex: '^(yes|yeah|yep|yup)[\\.!\\s]*$', moveType: 'accept', confidence: 0.95, extractValueGroup: 0, description: 'Affirmative: yes/yeah/yep' },
+  { patternId: 'move-sure', regex: '^(sure|ok|okay|fine|alright)[\\.!\\s]*$', moveType: 'accept', confidence: 0.9, extractValueGroup: 0, description: 'Affirmative: sure/ok/fine' },
+  { patternId: 'move-do-it', regex: '^(do\\s+it|go\\s+ahead|go\\s+for\\s+it|proceed)[\\.!\\s]*$', moveType: 'accept', confidence: 0.95, extractValueGroup: 0, description: 'Directive accept: do it/go ahead' },
+  { patternId: 'move-sounds-good', regex: '^(sounds\\s+good|looks\\s+good|that\\s+works|perfect|great)[\\.!\\s]*$', moveType: 'accept', confidence: 0.9, extractValueGroup: 0, description: 'Positive feedback accept' },
+  { patternId: 'move-exactly', regex: '^(exactly|precisely|correct|right)[\\.!\\s]*$', moveType: 'accept', confidence: 0.9, extractValueGroup: 0, description: 'Confirmatory accept' },
+  { patternId: 'move-thats-right', regex: "^(that'?s\\s+right|that'?s\\s+correct|that'?s\\s+it)[.!\\s]*$", moveType: 'accept', confidence: 0.9, extractValueGroup: 0, description: 'Confirmatory: that\'s right' },
+  { patternId: 'move-please', regex: '^(please|yes\\s+please)[.!\\s]*$', moveType: 'accept', confidence: 0.85, extractValueGroup: 0, description: 'Polite accept' },
+  // --- Reject ---
+  { patternId: 'move-no', regex: '^(no|nah|nope|nuh-uh)[\\.!\\s]*$', moveType: 'reject', confidence: 0.95, extractValueGroup: 0, description: 'Negative: no/nah/nope' },
+  { patternId: 'move-not-that', regex: '^(not\\s+that|not\\s+this|not\\s+quite)[.!\\s]*$', moveType: 'reject', confidence: 0.9, extractValueGroup: 0, description: 'Rejection: not that' },
+  { patternId: 'move-dont-want', regex: "\\b(don'?t\\s+want|don'?t\\s+like|don'?t\\s+do)\\b", moveType: 'reject', confidence: 0.85, extractValueGroup: 0, description: 'Rejection: don\'t want' },
+  { patternId: 'move-wrong', regex: '^(wrong|incorrect|that\'?s\\s+wrong)[.!\\s]*$', moveType: 'reject', confidence: 0.9, extractValueGroup: 0, description: 'Rejection: wrong' },
+  { patternId: 'move-never-mind', regex: '^(never\\s*mind|forget\\s+it|scratch\\s+that)[.!\\s]*$', moveType: 'reject', confidence: 0.85, extractValueGroup: 0, description: 'Rejection: never mind' },
+  // --- Override ---
+  { patternId: 'move-i-meant', regex: '\\bi\\s+meant?\\s+(.+)', moveType: 'override', confidence: 0.95, extractValueGroup: 1, description: 'Override: I meant X' },
+  { patternId: 'move-no-i-meant', regex: '\\bno,?\\s+(.+)', moveType: 'override', confidence: 0.8, extractValueGroup: 1, description: 'Override: no, X' },
+  { patternId: 'move-actually', regex: '\\bactually,?\\s+(.+)', moveType: 'override', confidence: 0.85, extractValueGroup: 1, description: 'Override: actually, X' },
+  { patternId: 'move-instead', regex: '\\binstead,?\\s+(.+)', moveType: 'override', confidence: 0.85, extractValueGroup: 1, description: 'Override: instead, X' },
+  { patternId: 'move-rather', regex: '\\brather,?\\s+(.+)', moveType: 'override', confidence: 0.8, extractValueGroup: 1, description: 'Override: rather X' },
+  { patternId: 'move-no-by-x-i-mean', regex: '\\bno,?\\s+by\\s+\\w+\\s+i\\s+mean\\s+(.+)', moveType: 'override', confidence: 0.95, extractValueGroup: 1, description: 'Override: no, by X I mean Y' },
+  { patternId: 'move-what-i-want', regex: '\\bwhat\\s+i\\s+(want|need|meant?)\\s+(is\\s+)?(.+)', moveType: 'override', confidence: 0.9, extractValueGroup: 3, description: 'Override: what I want is X' },
+  { patternId: 'move-i-was-thinking', regex: '\\bi\\s+was\\s+thinking\\s+(more\\s+)?(of\\s+|about\\s+)?(.+)', moveType: 'override', confidence: 0.8, extractValueGroup: 3, description: 'Override: I was thinking X' },
+  // --- Clarify ---
+  { patternId: 'move-what-about', regex: '\\bwhat\\s+about\\s+(.+)', moveType: 'clarify', confidence: 0.85, extractValueGroup: 1, description: 'Clarification request: what about X' },
+  { patternId: 'move-and-what', regex: '\\b(and|but)\\s+what\\s+(about|if)\\s+(.+)', moveType: 'clarify', confidence: 0.8, extractValueGroup: 3, description: 'Clarification: and/but what about X' },
+  { patternId: 'move-how-about', regex: '\\bhow\\s+about\\s+(.+)', moveType: 'clarify', confidence: 0.85, extractValueGroup: 1, description: 'Clarification/suggestion: how about X' },
+  { patternId: 'move-what-do-you-mean', regex: '\\bwhat\\s+do\\s+you\\s+mean\\b', moveType: 'clarify', confidence: 0.9, extractValueGroup: 0, description: 'Clarification: what do you mean' },
+  { patternId: 'move-can-you-explain', regex: '\\bcan\\s+you\\s+(explain|elaborate|clarify)\\b', moveType: 'clarify', confidence: 0.9, extractValueGroup: 0, description: 'Clarification: can you explain' },
+  // --- Confirm / Deny ---
+  { patternId: 'move-confirm-thats-what', regex: "\\b(that'?s\\s+what\\s+i\\s+(want|said|meant?))[.!\\s]*$", moveType: 'confirm', confidence: 0.9, extractValueGroup: 0, description: 'Confirm: that\'s what I want' },
+  { patternId: 'move-deny-not-what', regex: "\\b(that'?s\\s+not\\s+what\\s+i\\s+(want|said|meant?))", moveType: 'deny', confidence: 0.9, extractValueGroup: 0, description: 'Deny: that\'s not what I want' },
+  // --- Elaborate ---
+  { patternId: 'move-and-also', regex: '\\b(and\\s+also|plus|additionally)\\s+(.+)', moveType: 'elaborate', confidence: 0.8, extractValueGroup: 2, description: 'Elaborate: and also X' },
+  { patternId: 'move-more-specifically', regex: '\\b(more\\s+specifically|in\\s+particular|to\\s+be\\s+specific)\\s*,?\\s*(.+)', moveType: 'elaborate', confidence: 0.85, extractValueGroup: 2, description: 'Elaborate: more specifically X' },
+  // --- Correct ---
+  { patternId: 'move-sorry-i-meant', regex: '\\b(sorry|oops),?\\s+(i\\s+meant?\\s+)?(.+)', moveType: 'correct', confidence: 0.85, extractValueGroup: 3, description: 'Correction: sorry, I meant X' },
+  { patternId: 'move-wait-no', regex: '\\b(wait|hold\\s+on),?\\s+(no\\s*,?\\s*)?(.+)', moveType: 'correct', confidence: 0.8, extractValueGroup: 3, description: 'Correction: wait, no, X' },
+  // --- Undo / Redo ---
+  { patternId: 'move-undo', regex: '\\b(undo|undo\\s+that|take\\s+that\\s+back)\\b', moveType: 'undo', confidence: 0.95, extractValueGroup: 0, description: 'Undo last action' },
+  { patternId: 'move-redo', regex: '\\b(redo|redo\\s+that|put\\s+it\\s+back)\\b', moveType: 'redo', confidence: 0.95, extractValueGroup: 0, description: 'Redo last undone action' },
+  { patternId: 'move-go-back', regex: '\\bgo\\s+back\\b', moveType: 'undo', confidence: 0.7, extractValueGroup: 0, description: 'Undo via "go back"' },
+  // --- Defer / Skip ---
+  { patternId: 'move-later', regex: "\\b(later|not\\s+now|i'?ll\\s+decide\\s+later|come\\s+back\\s+to\\s+(it|that))\\b", moveType: 'defer', confidence: 0.85, extractValueGroup: 0, description: 'Defer: later / not now' },
+  { patternId: 'move-skip', regex: '\\b(skip|skip\\s+that|next|move\\s+on)\\b', moveType: 'skip', confidence: 0.85, extractValueGroup: 0, description: 'Skip: skip / next / move on' },
+  // --- Accept-all / Reject-all ---
+  { patternId: 'move-accept-all', regex: '\\b(accept\\s+all|yes\\s+to\\s+all|all\\s+good|all\\s+defaults)[.!\\s]*$', moveType: 'accept-all', confidence: 0.9, extractValueGroup: 0, description: 'Accept all defaults' },
+  { patternId: 'move-reject-all', regex: '\\b(reject\\s+all|no\\s+to\\s+all|none\\s+of\\s+(those|them|these))[.!\\s]*$', moveType: 'reject-all', confidence: 0.9, extractValueGroup: 0, description: 'Reject all options' },
+  { patternId: 'move-start-over', regex: '\\b(start\\s+over|from\\s+scratch|begin\\s+again)\\b', moveType: 'reject-all', confidence: 0.8, extractValueGroup: 0, description: 'Reject all: start over' },
+  { patternId: 'move-just-do-defaults', regex: '\\b(just\\s+(use|do)\\s+(the\\s+)?defaults?)\\b', moveType: 'accept-all', confidence: 0.9, extractValueGroup: 0, description: 'Accept defaults explicitly' },
+] as const;
+
+// ---- 210 Move ID generation ----
+
+let _moveIdCounter = 0;
+function generateMoveId(): string {
+  _moveIdCounter++;
+  return `move-${String(_moveIdCounter)}`;
+}
+
+// ---- 210 Move History ----
+
+const _moveHistory: DialogueMove[] = [];
+
+// ---- 210 Functions ----
+
+/**
+ * Detect the dialogue move type from a user utterance.
+ * Returns the best-matching move detection, or null if none found.
+ */
+export function detectDialogueMove(utterance: string): MoveDetection | null {
+  const lower = lowercaseTrim(utterance);
+  let bestMatch: MoveDetection | null = null;
+  let bestConfidence = 0;
+
+  for (const pat of MOVE_PATTERNS) {
+    try {
+      const re = new RegExp(pat.regex, 'i');
+      const m = re.exec(lower);
+      if (m !== null) {
+        let extractedValue = '';
+        if (pat.extractValueGroup > 0 && pat.extractValueGroup < m.length) {
+          const group = m[pat.extractValueGroup];
+          if (group !== undefined) {
+            extractedValue = group.trim();
+          }
+        }
+
+        if (pat.confidence > bestConfidence) {
+          bestConfidence = pat.confidence;
+          bestMatch = {
+            moveType: pat.moveType,
+            confidence: pat.confidence,
+            matchedPattern: pat.patternId,
+            extractedValue,
+            utterance,
+          };
+        }
+      }
+    } catch {
+      // skip broken pattern
+    }
+  }
+
+  return bestMatch;
+}
+
+/**
+ * Compute the effect of a dialogue move on dialogue state.
+ */
+export function applyMoveEffect(
+  detection: MoveDetection,
+  currentHoleIds: readonly string[],
+): MoveEffect {
+  const effectMap: Record<DialogueMoveType, { holeResolution: MoveEffect['holeResolution']; desc: string }> = {
+    'accept': { holeResolution: 'resolve-with-default', desc: 'Accept default value for pending hole.' },
+    'reject': { holeResolution: 'mark-needs-new-option', desc: 'Reject current option; needs new proposal.' },
+    'override': { holeResolution: 'resolve-with-override', desc: 'Override hole with user-specified value.' },
+    'clarify': { holeResolution: 'no-change', desc: 'Clarification requested; no hole resolution yet.' },
+    'confirm': { holeResolution: 'resolve-with-default', desc: 'Confirm current value (same as accept).' },
+    'deny': { holeResolution: 'mark-needs-new-option', desc: 'Deny current interpretation; needs revision.' },
+    'elaborate': { holeResolution: 'resolve-with-override', desc: 'Elaborate with additional specification.' },
+    'correct': { holeResolution: 'resolve-with-override', desc: 'Correct previous value with new one.' },
+    'undo': { holeResolution: 'undo-last', desc: 'Undo the last applied move.' },
+    'redo': { holeResolution: 'redo-last', desc: 'Redo the last undone move.' },
+    'defer': { holeResolution: 'defer', desc: 'Defer resolution to later.' },
+    'skip': { holeResolution: 'skip', desc: 'Skip this hole entirely.' },
+    'accept-all': { holeResolution: 'resolve-with-default', desc: 'Accept defaults for all pending holes.' },
+    'reject-all': { holeResolution: 'mark-needs-new-option', desc: 'Reject all current proposals.' },
+  };
+
+  const info = effectMap[detection.moveType];
+  const affectedHoles = detection.moveType === 'accept-all' || detection.moveType === 'reject-all'
+    ? currentHoleIds
+    : currentHoleIds.length > 0
+      ? [currentHoleIds[currentHoleIds.length - 1]].filter((h): h is string => h !== undefined)
+      : [];
+
+  return {
+    moveType: detection.moveType,
+    effectDescription: info.desc,
+    holeResolution: info.holeResolution,
+    resolvedValue: detection.extractedValue,
+    affectedHoleIds: affectedHoles,
+  };
+}
+
+/**
+ * Check if a detection is an accept move.
+ */
+export function isAcceptMove(detection: MoveDetection): boolean {
+  return detection.moveType === 'accept' || detection.moveType === 'accept-all' || detection.moveType === 'confirm';
+}
+
+/**
+ * Check if a detection is a reject move.
+ */
+export function isRejectMove(detection: MoveDetection): boolean {
+  return detection.moveType === 'reject' || detection.moveType === 'reject-all' || detection.moveType === 'deny';
+}
+
+/**
+ * Check if a detection is an override move.
+ */
+export function isOverrideMove(detection: MoveDetection): boolean {
+  return detection.moveType === 'override' || detection.moveType === 'correct' || detection.moveType === 'elaborate';
+}
+
+/**
+ * Check if a detection is a clarify move.
+ */
+export function isClarifyMove(detection: MoveDetection): boolean {
+  return detection.moveType === 'clarify';
+}
+
+/**
+ * Extract the override value from an override-type move.
+ */
+export function extractOverrideValue(detection: MoveDetection): string {
+  if (isOverrideMove(detection)) {
+    return detection.extractedValue;
+  }
+  return '';
+}
+
+/**
+ * Resolve a hole given a dialogue move.
+ * Returns a description of how the hole was resolved.
+ */
+export function resolveHoleWithMove(
+  holeId: string,
+  defaultValue: string,
+  detection: MoveDetection,
+): { readonly holeId: string; readonly resolvedValue: string; readonly resolution: string } {
+  if (isAcceptMove(detection)) {
+    return {
+      holeId,
+      resolvedValue: defaultValue,
+      resolution: `Hole "${holeId}" resolved with default value: "${defaultValue}"`,
+    };
+  }
+
+  if (isOverrideMove(detection)) {
+    const overrideVal = extractOverrideValue(detection);
+    const val = overrideVal.length > 0 ? overrideVal : defaultValue;
+    return {
+      holeId,
+      resolvedValue: val,
+      resolution: `Hole "${holeId}" overridden with: "${val}"`,
+    };
+  }
+
+  if (isRejectMove(detection)) {
+    return {
+      holeId,
+      resolvedValue: '',
+      resolution: `Hole "${holeId}" rejected; awaiting new proposal.`,
+    };
+  }
+
+  if (detection.moveType === 'undo') {
+    return {
+      holeId,
+      resolvedValue: '',
+      resolution: `Hole "${holeId}" undone; reverting to unresolved state.`,
+    };
+  }
+
+  if (detection.moveType === 'defer') {
+    return {
+      holeId,
+      resolvedValue: '',
+      resolution: `Hole "${holeId}" deferred to later.`,
+    };
+  }
+
+  if (detection.moveType === 'skip') {
+    return {
+      holeId,
+      resolvedValue: '',
+      resolution: `Hole "${holeId}" skipped.`,
+    };
+  }
+
+  return {
+    holeId,
+    resolvedValue: defaultValue,
+    resolution: `Hole "${holeId}" resolved with default (unhandled move type: ${detection.moveType}).`,
+  };
+}
+
+/**
+ * Process multiple dialogue moves in batch.
+ */
+export function batchProcessMoves(
+  utterances: readonly string[],
+  currentHoleIds: readonly string[],
+): readonly DialogueMove[] {
+  const results: DialogueMove[] = [];
+  const now = Date.now();
+
+  for (let i = 0; i < utterances.length; i++) {
+    const utt = utterances[i];
+    if (utt === undefined) continue;
+
+    const detection = detectDialogueMove(utt);
+    if (detection === null) continue;
+
+    const effect = applyMoveEffect(detection, currentHoleIds);
+    const move: DialogueMove = {
+      moveId: generateMoveId(),
+      moveType: detection.moveType,
+      detection,
+      effect,
+      turnNumber: i,
+      timestamp: now + i,
+      reverted: false,
+    };
+
+    results.push(move);
+    _moveHistory.push(move);
+  }
+
+  return results;
+}
+
+/**
+ * Format a move detection for debugging/display.
+ */
+export function formatMoveDetection(detection: MoveDetection): string {
+  const lines: string[] = [];
+  lines.push(`Move Detection:`);
+  lines.push(`  Type: ${detection.moveType}`);
+  lines.push(`  Confidence: ${String(detection.confidence)}`);
+  lines.push(`  Pattern: ${detection.matchedPattern}`);
+  lines.push(`  Utterance: "${detection.utterance}"`);
+  if (detection.extractedValue.length > 0) {
+    lines.push(`  Extracted value: "${detection.extractedValue}"`);
+  }
+  return lines.join('\n');
+}
+
+/**
+ * Get the priority of a dialogue move type.
+ * Override and reject are higher priority because they change or block state.
+ */
+export function getMovePriority(moveType: DialogueMoveType): number {
+  const priorities: Record<DialogueMoveType, number> = {
+    'override': 10,
+    'correct': 10,
+    'reject': 9,
+    'reject-all': 9,
+    'deny': 8,
+    'undo': 8,
+    'accept': 5,
+    'accept-all': 5,
+    'confirm': 5,
+    'redo': 5,
+    'elaborate': 4,
+    'clarify': 3,
+    'defer': 2,
+    'skip': 1,
+  };
+  return priorities[moveType];
+}
+
+/**
+ * Undo the last move in the move history.
+ * Returns the reverted move, or null if nothing to undo.
+ */
+export function undoLastMove(): DialogueMove | null {
+  for (let i = _moveHistory.length - 1; i >= 0; i--) {
+    const move = _moveHistory[i];
+    if (move !== undefined && !move.reverted) {
+      const revertedMove: DialogueMove = {
+        moveId: move.moveId,
+        moveType: move.moveType,
+        detection: move.detection,
+        effect: move.effect,
+        turnNumber: move.turnNumber,
+        timestamp: move.timestamp,
+        reverted: true,
+      };
+      _moveHistory[i] = revertedMove;
+      return revertedMove;
+    }
+  }
+  return null;
+}
+
+/**
+ * Get the full move history.
+ */
+export function getMoveHistory(): readonly DialogueMove[] {
+  return [..._moveHistory];
+}
+
+/**
+ * Summarize the effects of all moves in the history.
+ */
+export function summarizeMoveEffects(): MoveEffectSummary {
+  let accepted = 0;
+  let rejected = 0;
+  let overridden = 0;
+  let undone = 0;
+  let deferred = 0;
+  let skipped = 0;
+  const lines: string[] = [];
+
+  for (const move of _moveHistory) {
+    if (move.reverted) {
+      undone++;
+      lines.push(`[REVERTED] ${move.moveId}: ${move.moveType} — ${move.effect.effectDescription}`);
+      continue;
+    }
+
+    switch (move.moveType) {
+      case 'accept':
+      case 'accept-all':
+      case 'confirm':
+        accepted++;
+        break;
+      case 'reject':
+      case 'reject-all':
+      case 'deny':
+        rejected++;
+        break;
+      case 'override':
+      case 'correct':
+      case 'elaborate':
+        overridden++;
+        break;
+      case 'undo':
+        undone++;
+        break;
+      case 'defer':
+        deferred++;
+        break;
+      case 'skip':
+        skipped++;
+        break;
+      case 'clarify':
+      case 'redo':
+        break;
+    }
+
+    lines.push(`${move.moveId}: ${move.moveType} — ${move.effect.effectDescription}`);
+  }
+
+  lines.push('---');
+  lines.push(
+    `Summary: ${String(accepted)} accepted, ${String(rejected)} rejected, ` +
+    `${String(overridden)} overridden, ${String(undone)} undone, ` +
+    `${String(deferred)} deferred, ${String(skipped)} skipped`,
+  );
+
+  return {
+    totalMoves: _moveHistory.length,
+    accepted,
+    rejected,
+    overridden,
+    undone,
+    deferred,
+    skipped,
+    lines,
+  };
+}
