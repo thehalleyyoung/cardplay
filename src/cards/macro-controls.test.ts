@@ -821,12 +821,12 @@ describe('M213: Macro Grouping', () => {
       const panel = createMacroPanel();
       
       // Typically first two macros might be tone-related
-      let panelWithGroups = updateMacro(panel, 0, { group: 'Tone' });
-      panelWithGroups = updateMacro(panelWithGroups, 1, { group: 'Tone' });
-      panelWithGroups = updateMacro(panelWithGroups, 2, { group: 'Dynamics' });
-      panelWithGroups = updateMacro(panelWithGroups, 3, { group: 'Dynamics' });
-      panelWithGroups = updateMacro(panelWithGroups, 4, { group: 'Effects' });
-      panelWithGroups = updateMacro(panelWithGroups, 5, { group: 'Effects' });
+      let panelWithGroups = updateMacro(panel, { ...getMacro(panel, 0), group: 'Tone' });
+      panelWithGroups = updateMacro(panelWithGroups, { ...getMacro(panelWithGroups, 1), group: 'Tone' });
+      panelWithGroups = updateMacro(panelWithGroups, { ...getMacro(panelWithGroups, 2), group: 'Dynamics' });
+      panelWithGroups = updateMacro(panelWithGroups, { ...getMacro(panelWithGroups, 3), group: 'Dynamics' });
+      panelWithGroups = updateMacro(panelWithGroups, { ...getMacro(panelWithGroups, 4), group: 'Effects' });
+      panelWithGroups = updateMacro(panelWithGroups, { ...getMacro(panelWithGroups, 5), group: 'Effects' });
       
       const toneGroup = panelWithGroups.macros.filter(m => m.group === 'Tone');
       const dynamicsGroup = panelWithGroups.macros.filter(m => m.group === 'Dynamics');
