@@ -103,9 +103,9 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 285 [HCI] — Design “confidence UI”: show confidence as “ready / needs clarification / risky” derived from hole count + cost.
 - [x] Step 286 [Eval] — Build a planning golden suite: given CPL-Intent and a fixture, expected top plan(s) are stable and deterministic.
 - [x] Step 287 [Eval] — Add constraint violation tests: planner must never output a plan that violates hard constraints in the fixture.
-- [ ] Step 288 [Eval] — Add least-change tests: given two satisfying plans, system picks lower cost unless user requests otherwise.
-- [ ] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
-- [ ] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
+- [x] Step 288 [Eval] — Add least-change tests: given two satisfying plans, system picks lower cost unless user requests otherwise.
+- [x] Step 289 [Eval] — Add plan explanation tests: reasons include at least one link from each goal to at least one opcode.
+- [x] Step 290 [Eval] — Add performance tests: planning stays within time budget for typical scopes (chorus-level edits).
 - [ ] Step 291 [Prag] — Integrate user preference profiles into lever selection (e.g., “dark” meaning influences lever bundle).
 - [ ] Step 292 [Prag] — Implement “plan negotiation”: user can accept plan A, request plan B, or modify one lever (“keep it wide but less bright”).
 - [ ] Step 293 [HCI] — Add UI for “edit lever sliders” that tweak plan parameters before execution (quantize strength, register shift).

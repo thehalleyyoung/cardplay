@@ -501,9 +501,9 @@ describe('Real-World Scenarios', () => {
       .build();
 
     expect(intent.goals).toHaveLength(1);
-    expect(intent.goals[0].target?.axis).toBe('darkness');
+    expect(intent.goals[0].axis).toBe('darkness'); // Fixed: axis is at top level, not in target
     expect(intent.constraints).toHaveLength(1);
-    expect(intent.constraints[0].target.kind).toBe('melody');
+    expect(intent.constraints[0].aspect).toBe('melody'); // Fixed: aspect is added for backward compatibility
     expect(intent.preferences).toHaveLength(1);
 
     const feasibility = checkGoalFeasibility(intent.goals, intent.constraints);

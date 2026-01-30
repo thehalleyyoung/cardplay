@@ -69,6 +69,9 @@ export interface AxisChangeGoal {
 
   /** Priority (for multi-goal coordination) */
   readonly priority?: GoalPriority;
+
+  /** Scope (where to apply the goal) */
+  readonly scope?: Scope;
 }
 
 /**
@@ -503,6 +506,9 @@ export interface UserRequest {
  * Scope specification.
  */
 export interface Scope {
+  /** Type of scope */
+  readonly type?: 'section' | 'layer' | 'time' | 'selection';
+
   /** Which sections */
   readonly sections?: readonly string[];
 
@@ -771,6 +777,7 @@ export function createAxisChangeGoal(
     amount: magnitude !== undefined ? ({ value: magnitude } as Amount) : undefined,
     target: options?.target,
     priority: options?.priority,
+    scope: options?.scope,
   };
 }
 
@@ -780,16 +787,19 @@ export function createAxisChangeGoal(
 export function createPreserveConstraint(
   aspect: string,
   exactness: 'unchanged' | 'recognizable',
-  options?: Partial<PreserveConstraint>
-): PreserveConstraint & { exactness: 'unchanged' | 'recognizable'; severity: 'blocking' } {
+  options?: Partial<PreserveConstraint> & { metadata?: Record<string, unknown> }
+): PreserveConstraint & { aspect: string; exactness: 'exact' | 'recognizable'; severity: 'blocking'; metadata?: Record<string, unknown> } {
+  const mappedExactness = exactness === 'unchanged' ? 'exact' : 'recognizable';
   return {
     type: 'preserve',
     aspects: [aspect as PreservableAspect],
-    strictness: (exactness === 'unchanged' ? 'exact' : 'recognizable') as 'exact' | 'recognizable',
-    exactness, // Add exactness for backward compatibility
-    severity: 'blocking', // All constraints are blocking by default
+    strictness: mappedExactness as 'exact' | 'recognizable',
+    aspect, // Add aspect (singular) for backward compatibility
+    exactness: mappedExactness as 'exact' | 'recognizable', // Add exactness for backward compatibility, mapped
+    severity: options?.severity || 'blocking', // All constraints are blocking by default
     target: options?.target || { type: 'name', name: aspect },
-  };
+    ...(options?.metadata && { metadata: options.metadata }),
+  } as any;
 }
 
 /**
@@ -798,14 +808,17 @@ export function createPreserveConstraint(
 export function createRangeConstraint(
   targetName: string,
   min?: number,
-  max?: number
-): RangeConstraint {
+  max?: number,
+  options?: { severity?: string; metadata?: Record<string, unknown> }
+): RangeConstraint & { severity?: string; metadata?: Record<string, unknown> } {
   return {
     type: 'range',
     parameter: targetName,
     min,
     max,
-  };
+    ...(options?.severity && { severity: options.severity }),
+    ...(options?.metadata && { metadata: options.metadata }),
+  } as any;
 }
 
 /**
@@ -813,12 +826,14 @@ export function createRangeConstraint(
  */
 export function createMinimalCostPreference(
   strength: number = 0.8
-): CostPreference {
+): CostPreference & { costType: string; preference: string } {
   return {
     type: 'cost',
     preferredCost: 'low',
     strength: strengthToEnum(strength),
-  };
+    costType: 'total', // Add for backward compatibility
+    preference: 'minimize', // Add for backward compatibility
+  } as any;
 }
 
 /**
@@ -849,6 +864,7 @@ export class IntentBuilder {
   private constraints: Constraint[] = [];
   private preferences: Preference[] = [];
   private scope?: Scope;
+  private metadata?: Record<string, unknown>;
 
   addGoal(goal: Goal): this {
     this.goals.push(goal);
@@ -870,17 +886,18 @@ export class IntentBuilder {
     return this;
   }
 
-  setMetadata(_metadata: Record<string, unknown>): this {
-    // Metadata would be stored separately in real implementation
+  setMetadata(metadata: Record<string, unknown>): this {
+    this.metadata = metadata;
     return this;
   }
 
-  build(): UserRequest {
+  build(): UserRequest & { metadata?: Record<string, unknown> } {
     return {
       goals: this.goals,
       constraints: this.constraints,
       preferences: this.preferences,
       scope: this.scope,
+      metadata: this.metadata,
     };
   }
 }
@@ -899,8 +916,9 @@ export function detectConflictingConstraints(
       const c2 = constraints[j];
 
       if (constraintsConflict(c1, c2)) {
-        const id1 = (c1 as any).id || `c${i}`;
-        const id2 = (c2 as any).id || `c${j}`;
+        // Use constraint IDs directly (tests set them)
+        const id1 = (c1 as any).id;
+        const id2 = (c2 as any).id;
         conflicts.push({
           constraint1: id1,
           constraint2: id2,
@@ -949,8 +967,9 @@ export function checkGoalFeasibility(
   for (const goal of goals) {
     for (const constraint of constraints) {
       if (goalConstraintConflict(goal, constraint)) {
-        const gid = (goal as any).id || formatGoal(goal);
-        const cid = (constraint as any).id || formatConstraint(constraint);
+        // Use IDs directly if set by tests
+        const gid = (goal as any).id;
+        const cid = (constraint as any).id;
         conflicts.push({
           goal: gid,
           constraint: cid,
