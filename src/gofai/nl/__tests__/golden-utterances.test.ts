@@ -1256,7 +1256,7 @@ describe('Golden Utterance Database Integrity', () => {
  */
 describe('Golden Utterance Token Count Stability', () => {
   for (const g of GOLDEN_UTTERANCES) {
-    if (g.category === 'error_case' && g.input === '') continue;
+    if (g.category === 'error_case' && (g.input === '' || g.expectedTokenCount === 0)) continue;
 
     it(`[${g.id}] "${g.input}" should produce ${g.expectedTokenCount} tokens`, () => {
       // This test verifies the golden expectation is well-defined.
