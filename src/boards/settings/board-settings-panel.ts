@@ -10,7 +10,7 @@
  * @module @cardplay/boards/settings/board-settings-panel
  */
 
-import type { Board, BoardPolicy } from '../types';
+import type { Board, BoardPolicy, DEFAULT_BOARD_POLICY } from '../types';
 import { getBoardStateStore } from '../store/store';
 import { getBoardRegistry } from '../registry';
 
@@ -133,9 +133,10 @@ export class BoardSettingsPanel {
     const deckState = store.getDeckState(board.id);
     const displaySettings = deckState?.deckSettings?.display as BoardDisplaySettings | undefined || defaultDisplaySettings();
     
+    // Change 140: Use DEFAULT_BOARD_POLICY when board.policy is omitted
     this.state = {
       board,
-      policy: board.policy || { allowToolToggles: false, allowControlLevelOverridePerTrack: false, allowDeckCustomization: false, allowLayoutCustomization: false },
+      policy: board.policy ?? DEFAULT_BOARD_POLICY,
       displaySettings,
       isDirty: false,
     };
