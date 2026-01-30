@@ -511,7 +511,7 @@ function planAlternatives(
 
   // Generate plan for each compatible group
   for (const group of compatibility.compatibleGroups) {
-    const plan = generatePlanForObjectives(group, constraints, basePlan);
+    const plan = generatePlanForObjectives(group, _constraints, basePlan);
     if (plan) {
       plans.push(plan);
       satisfiedSets.push(group);
@@ -739,7 +739,7 @@ function scaleParameterValue(
 }
 
 // ============================================================================
-// Exports
+// Exports (type-only exports to avoid duplication)
 // ============================================================================
 
 export type {
@@ -752,11 +752,4 @@ export type {
   TradeoffDescription,
   ScopeRestrictedRequest,
   PlanScalingRequest,
-};
-
-export {
-  analyzeObjectiveCompatibility,
-  planMultiObjective,
-  planWithScopeRestriction,
-  scalePlan,
 };

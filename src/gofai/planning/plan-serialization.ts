@@ -387,7 +387,7 @@ function serializePlanCore(plan: CPLPlan): SerializedPlanCore {
 /**
  * Serialize an opcode
  */
-function serializeOpcode(opcode: Opcode): SerializedOpcode {
+function serializeOpcode(opcode: any): SerializedOpcode {
   return {
     opcodeId: opcode.id,
     category: opcode.category,
@@ -403,7 +403,7 @@ function serializeOpcode(opcode: Opcode): SerializedOpcode {
           rationale: opcode.reason,
         }
       : undefined,
-  };
+  } as SerializedOpcode;
 }
 
 /**
@@ -427,13 +427,10 @@ function serializeScope(scope: CPLScope): SerializedScope {
   return { ...scope };
 }
 
-/**
- * Serialize score
- */
-function serializeScore(totalCost: number, satisfactionScore?: number): SerializedScore {
+function serializeScore(_totalCost: number, _satisfactionScore?: number): SerializedScore {
   return {
-    total: totalCost,
-    goalSatisfaction: satisfactionScore,
+    total: _totalCost,
+    goalSatisfaction: _satisfactionScore,
   };
 }
 
@@ -704,7 +701,7 @@ export function validateSerializedPlan(
 }
 
 // ============================================================================
-// Exports
+// Exports (type-only exports to avoid duplication)
 // ============================================================================
 
 export type {
