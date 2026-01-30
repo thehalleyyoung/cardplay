@@ -27,7 +27,7 @@ import type {
 import { getSharedEventStore } from '../state/event-store';
 import { getClipRegistry } from '../state/clip-registry';
 import { getUndoStack } from '../state/undo-stack';
-import { asTick, asTickDuration } from '../types/primitives';
+import { asTick, asTickDuration, addTicks } from '../types/primitives';
 import { createEvent } from '../types/event';
 import type { Event } from '../types/event';
 import type { EventId } from '../types/event-id';
@@ -152,14 +152,20 @@ export const handlePhraseToPatternEditor: DropHandler<PhrasePayload> = async (
   }
   
   // Transform phrase notes to events at drop position
-  const baseTime = Math.round(context.time);
+  const baseTime = asTick(Math.round(context.time));
   const newEvents: Event<unknown>[] = notesToDrop.map((note) => {
-    // Create new event with offset start time
-    // Use unary + to ensure numeric value
-    const offsetStart = (+note.start) + baseTime;
+    // Offset the start time by adding baseTime
+    // Use unary + to coerce branded types to numbers
+    const offsetStart = asTick((+note.start) + (+baseTime));
     return createEvent({
-      ...note,
-      start: offsetStart, // createEvent will call asTick internally
+      kind: note.kind,
+      start: offsetStart,
+      duration: note.duration,
+      payload: note.payload,
+      triggers: note.triggers,
+      automation: note.automation,
+      tags: note.tags,
+      meta: note.meta,
     }) as Event<unknown>;
   });
   

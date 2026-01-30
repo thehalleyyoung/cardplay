@@ -160,11 +160,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 338 [Eval] — Add property tests: applying a plan then applying its inverse yields original state (where inverse defined).
 - [ ] Step 339 [Eval] — Add fuzz tests for selector safety: random scopes must not escape their bounds or mutate outside allowed ranges.
 - [ ] Step 340 [Eval] — Add performance tests for apply+diff: stay within latency budgets for typical edits.
-- [ ] Step 341 [Type] — Add a “transaction log” type that records each micro-step for debugging without exposing internal mutable state.
-- [ ] Step 342 [Infra] — Add “preview apply” mode that applies to a cloned project state for visualization without affecting main undo stack.
+- [x] Step 341 [Type] — Add a “transaction log” type that records each micro-step for debugging without exposing internal mutable state.
+- [x] Step 342 [Infra] — Add “preview apply” mode that applies to a cloned project state for visualization without affecting main undo stack.
 - [ ] Step 343 [HCI] — Add UI to toggle preview vs apply; preview should be the default when ambiguity/risks are high.
-- [ ] Step 344 [Type] — Add a stable “edit signature hash” for deduplicating identical plans and for caching.
-- [ ] Step 345 [Infra] — Add deterministic serialization of edit packages for shareability and audit.
+- [x] Step 344 [Type] — Add a stable “edit signature hash” for deduplicating identical plans and for caching.
+- [x] Step 345 [Infra] — Add deterministic serialization of edit packages for shareability and audit.
 - [ ] Step 346 [Prag] — Integrate the dialogue state with applied edits: after apply, update salience and discourse referents to stabilize subsequent pronouns.
 - [ ] Step 347 [Prag] — Implement “undo affects discourse”: if user undoes an edit, update what “again” and “that change” refer to.
 - [ ] Step 348 [HCI] — Add UI affordances for referencing history (“undo the chorus lift change”) by clicking on a past turn.
