@@ -2,6 +2,7 @@
  * Tests for Auto Track Coloring System
  */
 
+import { describe, test, it, expect, beforeEach, vi } from 'vitest';
 import {
   detectCategoryFromName,
   detectCategoryFromPlugins,
@@ -342,7 +343,7 @@ describe('Auto Track Coloring', () => {
     
     describe('subscriptions', () => {
       it('should notify on color change', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         store.subscribe(listener);
         
         store.colorTrack('track-1', 'Drums');
@@ -351,7 +352,7 @@ describe('Auto Track Coloring', () => {
       });
       
       it('should notify on scheme change', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         store.subscribe(listener);
         
         store.setScheme('warm');
@@ -360,7 +361,7 @@ describe('Auto Track Coloring', () => {
       });
       
       it('should support unsubscribe', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         const unsubscribe = store.subscribe(listener);
         
         unsubscribe();

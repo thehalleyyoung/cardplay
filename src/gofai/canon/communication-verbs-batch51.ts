@@ -8,7 +8,7 @@
  * meta-operations on musical structure.
  */
 
-import type { LexemeEntry, VerbFrame } from './types.js';
+import type { Lexeme } from './types.js';
 
 /**
  * Communication verbs for expressing musical intentions, reflections,
@@ -24,7 +24,7 @@ import type { LexemeEntry, VerbFrame } from './types.js';
  * - Comparative and contrastive statements
  */
 
-export const COMMUNICATION_VERBS: readonly LexemeEntry[] = [
+export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   // ============================================================================
   // EXPRESS INTENT - How musicians state what they want
   // ============================================================================

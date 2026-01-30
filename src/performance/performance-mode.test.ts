@@ -2,6 +2,7 @@
  * Tests for Performance Mode System (M364)
  */
 
+import { describe, test, it, expect, beforeEach, vi } from 'vitest';
 import {
   PerformanceModeStore,
   PerformanceModeConfig,
@@ -156,7 +157,7 @@ describe('Performance Mode Store', () => {
     });
     
     test('notifies listeners on config update', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.subscribe(listener);
       
       store.updateConfig({ lockLayout: false });
@@ -346,7 +347,7 @@ describe('Performance Mode Store', () => {
   
   describe('listeners', () => {
     test('notifies on enable', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.subscribe(listener);
       
       store.enable();
@@ -355,7 +356,7 @@ describe('Performance Mode Store', () => {
     });
     
     test('notifies on disable', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.enable();
       store.subscribe(listener);
       
@@ -365,7 +366,7 @@ describe('Performance Mode Store', () => {
     });
     
     test('unsubscribe stops notifications', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = store.subscribe(listener);
       
       unsubscribe();

@@ -2,6 +2,7 @@
  * Tests for Reference Track Player System
  */
 
+import { describe, test, it, expect, beforeEach, vi } from 'vitest';
 import {
   generateId,
   extractFileName,
@@ -419,7 +420,7 @@ describe('Reference Player', () => {
     
     describe('subscriptions', () => {
       it('should notify on changes', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         store.subscribe(listener);
         
         store.importTrack('/path/song.wav');
@@ -427,7 +428,7 @@ describe('Reference Player', () => {
       });
       
       it('should support unsubscribe', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         const unsubscribe = store.subscribe(listener);
         
         unsubscribe();
