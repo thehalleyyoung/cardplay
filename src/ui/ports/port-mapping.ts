@@ -6,7 +6,7 @@
  * @module @cardplay/ui/ports/port-mapping
  */
 
-import type { PortType } from '../../canon/port-types';
+import type { CanonicalPortType } from '../../canon/port-types';
 import type { UIPortType, UIPortDirection, UICanonicalPortType, PortSpec } from '../components/card-component';
 
 // ============================================================================
@@ -19,7 +19,7 @@ import type { UIPortType, UIPortDirection, UICanonicalPortType, PortSpec } from 
  * Change 204: The canonical PortType does not encode direction;
  * direction is stored separately in PortSpec.
  */
-export function uiPortTypeToCanonical(uiType: UIPortType): PortType {
+export function uiPortTypeToCanonical(uiType: UIPortType): CanonicalPortType {
   // Extract the base type from legacy format like 'audio_in'
   const baseType = uiType.split('_')[0] || uiType;
   
@@ -36,7 +36,7 @@ export function uiPortTypeToCanonical(uiType: UIPortType): PortType {
 /**
  * Maps UI canonical port type to canonical PortType.
  */
-export function uiCanonicalToPortType(uiCanonical: UICanonicalPortType): PortType {
+export function uiCanonicalToPortType(uiCanonical: UICanonicalPortType): CanonicalPortType {
   const mapping: Record<UICanonicalPortType, PortType> = {
     'audio': 'audio',
     'midi': 'midi',
@@ -57,7 +57,7 @@ export function uiCanonicalToPortType(uiCanonical: UICanonicalPortType): PortTyp
  * 
  * Change 204: Direction is ignored for canonical type; only the type matters.
  */
-export function portSpecToCanonical(spec: PortSpec): PortType {
+export function portSpecToCanonical(spec: PortSpec): CanonicalPortType {
   return uiCanonicalToPortType(spec.type);
 }
 
@@ -68,7 +68,7 @@ export function portSpecToCanonical(spec: PortSpec): PortType {
 /**
  * Maps canonical PortType to UI canonical port type.
  */
-export function canonicalToUICanonical(portType: PortType): UICanonicalPortType {
+export function canonicalToUICanonical(portType: CanonicalPortType): UICanonicalPortType {
   const mapping: Record<PortType, UICanonicalPortType> = {
     'audio': 'audio',
     'midi': 'midi',
@@ -86,7 +86,7 @@ export function canonicalToUICanonical(portType: PortType): UICanonicalPortType 
 /**
  * Creates a PortSpec from canonical PortType and direction.
  */
-export function createPortSpec(portType: PortType, direction: UIPortDirection): PortSpec {
+export function createPortSpec(portType: CanonicalPortType, direction: UIPortDirection): PortSpec {
   return {
     direction,
     type: canonicalToUICanonical(portType),
@@ -97,7 +97,7 @@ export function createPortSpec(portType: PortType, direction: UIPortDirection): 
  * Creates a legacy UIPortType from canonical PortType and direction.
  * Used for backward compatibility with CSS classes and legacy code.
  */
-export function canonicalToLegacyUIPortType(portType: PortType, direction: UIPortDirection): UIPortType {
+export function canonicalToLegacyUIPortType(portType: CanonicalPortType, direction: UIPortDirection): UIPortType {
   const typeMap: Record<PortType, string> = {
     'audio': 'audio',
     'midi': 'midi',
@@ -129,7 +129,7 @@ export function isValidCanonicalPortType(type: string): type is PortType {
  * Normalizes any port type string to canonical PortType.
  * Handles legacy formats like 'audio_in', 'midi_out', etc.
  */
-export function normalizeToCanonicalPortType(type: string): PortType {
+export function normalizeToCanonicalPortType(type: string): CanonicalPortType {
   // Already canonical
   if (isValidCanonicalPortType(type)) {
     return type;

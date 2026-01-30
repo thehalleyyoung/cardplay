@@ -8,7 +8,6 @@
  */
 
 import type {
-  Card,
   CoreCard,
   CardContext,
   CardResult,

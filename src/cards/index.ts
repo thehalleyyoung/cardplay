@@ -107,7 +107,7 @@ export {
   type LazyCard,
   createLazyCard,
   loadLazyCard,
-} from './card';
+} from './registry';
 
 // Card filtering by control level (Change 288)
 export {

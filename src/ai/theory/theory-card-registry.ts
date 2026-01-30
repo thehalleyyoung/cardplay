@@ -7,7 +7,7 @@
  * @module @cardplay/ai/theory/theory-card-registry
  */
 
-import type { TheoryCardDef, TheoryCardState } from './theory-cards';
+import type { TheoryCardDef } from './theory-cards';
 import {
   CONSTRAINT_PACK_CARD,
   TONALITY_MODEL_CARD,

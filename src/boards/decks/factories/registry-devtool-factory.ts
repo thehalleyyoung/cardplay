@@ -29,7 +29,7 @@ export const registryDevtoolDeckFactory: DeckFactory = {
       id: deckDef.id as DeckId,
       type: deckDef.type,
       title: 'Registry DevTool',
-      panelId: deckDef.panelId,
+      ...(deckDef.panelId !== undefined && { panelId: deckDef.panelId }),
       render: () => container,
       destroy: () => {
         container.remove();

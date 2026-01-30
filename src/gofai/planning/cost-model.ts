@@ -508,3 +508,419 @@ export function selectBestPlans(
   
   return distinctPlans;
 }
+
+// =============================================================================
+// Step 254 Enhancement: Comprehensive Deterministic Tie-Breaking
+// =============================================================================
+
+/**
+ * Detailed tie-breaking criteria applied in order of precedence
+ */
+export interface TieBreakingCriteria {
+  readonly name: string;
+  readonly evaluate: (plan: CPLPlan) => number;
+  readonly higherIsBetter: boolean;
+}
+
+/**
+ * Standard tie-breaking criteria in precedence order
+ * 
+ * When plans have equal scores, these criteria are applied sequentially
+ * until a winner is found. All criteria must be deterministic and stable.
+ */
+export const STANDARD_TIE_BREAKING_CRITERIA: readonly TieBreakingCriteria[] = [
+  // 1. Constraint risk (lower is better)
+  {
+    name: 'constraint_risk',
+    evaluate: (plan) => {
+      const risks = plan.opcodes.map(op => RISK_COST_MULTIPLIERS[op.risk]);
+      return risks.reduce((sum, r) => sum + r, 0) / risks.length;
+    },
+    higherIsBetter: false,
+  },
+  
+  // 2. Number of destructive operations (fewer is better)
+  {
+    name: 'destructive_count',
+    evaluate: (plan) => plan.opcodes.filter(op => op.destructive).length,
+    higherIsBetter: false,
+  },
+  
+  // 3. Scope size (smaller scope is better for locality)
+  {
+    name: 'scope_size',
+    evaluate: (plan) => {
+      // Estimate scope size (would use actual scope analysis in full implementation)
+      return plan.opcodes.length * 10; // Simplified
+    },
+    higherIsBetter: false,
+  },
+  
+  // 4. Number of opcodes (fewer is better for simplicity)
+  {
+    name: 'opcode_count',
+    evaluate: (plan) => plan.opcodes.length,
+    higherIsBetter: false,
+  },
+  
+  // 5. Category diversity (lower is better for focus)
+  {
+    name: 'category_diversity',
+    evaluate: (plan) => {
+      const categories = new Set(plan.opcodes.map(op => op.category));
+      return categories.size;
+    },
+    higherIsBetter: false,
+  },
+  
+  // 6. Maximum individual opcode cost (lower is better)
+  {
+    name: 'max_opcode_cost',
+    evaluate: (plan) => {
+      const costs = plan.opcodes.map(op => CATEGORY_BASE_COSTS[op.category]);
+      return Math.max(...costs, 0);
+    },
+    higherIsBetter: false,
+  },
+  
+  // 7. Plan ID (lexicographic, for absolute stability)
+  {
+    name: 'plan_id',
+    evaluate: (plan) => {
+      // Convert ID to numeric hash for comparison
+      let hash = 0;
+      for (let i = 0; i < plan.id.length; i++) {
+        hash = ((hash << 5) - hash) + plan.id.charCodeAt(i);
+        hash = hash & hash; // Convert to 32-bit integer
+      }
+      return hash;
+    },
+    higherIsBetter: false,
+  },
+];
+
+/**
+ * Apply deterministic tie-breaking to a set of plans
+ * 
+ * Uses a cascade of criteria to ensure a single winner is always selected
+ * in a deterministic and stable manner.
+ * 
+ * @param plans Plans to tie-break (should already be sorted by primary score)
+ * @param criteria Tie-breaking criteria (uses standard if not provided)
+ * @returns The winning plan
+ */
+export function deterministicTieBreak(
+  plans: readonly CPLPlan[],
+  criteria: readonly TieBreakingCriteria[] = STANDARD_TIE_BREAKING_CRITERIA
+): CPLPlan {
+  if (plans.length === 0) {
+    throw new Error('Cannot tie-break empty plan list');
+  }
+  if (plans.length === 1) {
+    return plans[0];
+  }
+  
+  let candidates = [...plans];
+  
+  // Apply each criterion in order until we have a single winner
+  for (const criterion of criteria) {
+    if (candidates.length === 1) {
+      break;
+    }
+    
+    // Evaluate all candidates on this criterion
+    const scores = candidates.map(plan => ({
+      plan,
+      score: criterion.evaluate(plan),
+    }));
+    
+    // Find best score
+    const bestScore = criterion.higherIsBetter
+      ? Math.max(...scores.map(s => s.score))
+      : Math.min(...scores.map(s => s.score));
+    
+    // Filter to plans matching best score (with tiny tolerance for floating point)
+    const epsilon = 1e-9;
+    candidates = scores
+      .filter(({ score }) => Math.abs(score - bestScore) < epsilon)
+      .map(({ plan }) => plan);
+  }
+  
+  // Should have a single winner by now, but if not, take first (deterministic by construction)
+  return candidates[0];
+}
+
+/**
+ * Enhanced plan ranking with full tie-breaking
+ * 
+ * Returns plans in deterministic order with primary scores and tie-break metadata
+ * 
+ * @param plans Plans to rank
+ * @param goals Goals to satisfy
+ * @param constraints Constraints to respect
+ * @returns Ranked plans with scoring details
+ */
+export interface RankedPlan {
+  readonly plan: CPLPlan;
+  readonly score: PlanScore;
+  readonly rank: number;
+  readonly tieBreakLevel: number; // Which criterion was used (0 = no tie-break needed)
+  readonly tieBreakCriterion?: string;
+}
+
+export function rankPlansWithTieBreaking(
+  plans: readonly CPLPlan[],
+  goals: readonly CPLGoal[],
+  constraints: readonly CPLConstraint[],
+  criteria: readonly TieBreakingCriteria[] = STANDARD_TIE_BREAKING_CRITERIA
+): readonly RankedPlan[] {
+  if (plans.length === 0) {
+    return [];
+  }
+  
+  // Score all plans
+  const scored = plans.map(plan => ({
+    plan,
+    score: scorePlan(plan, goals, constraints),
+  }));
+  
+  // Group by primary score (within tolerance)
+  const scoreGroups: Array<typeof scored> = [];
+  const sortedScores = [...scored].sort((a, b) => b.score.overallScore - a.score.overallScore);
+  
+  let currentGroup: typeof scored = [];
+  let currentScore = sortedScores[0]?.score.overallScore ?? 0;
+  const scoreTolerance = 0.001; // Very tight tolerance for primary score
+  
+  for (const item of sortedScores) {
+    if (Math.abs(item.score.overallScore - currentScore) < scoreTolerance) {
+      currentGroup.push(item);
+    } else {
+      if (currentGroup.length > 0) {
+        scoreGroups.push(currentGroup);
+      }
+      currentGroup = [item];
+      currentScore = item.score.overallScore;
+    }
+  }
+  if (currentGroup.length > 0) {
+    scoreGroups.push(currentGroup);
+  }
+  
+  // Apply tie-breaking within each group
+  const rankedResults: RankedPlan[] = [];
+  let currentRank = 1;
+  
+  for (const group of scoreGroups) {
+    if (group.length === 1) {
+      // No tie to break
+      rankedResults.push({
+        plan: group[0].plan,
+        score: group[0].score,
+        rank: currentRank,
+        tieBreakLevel: 0,
+      });
+      currentRank++;
+    } else {
+      // Apply tie-breaking
+      const groupPlans = group.map(g => g.plan);
+      const tieBreakResult = applyTieBreakingWithMetadata(groupPlans, criteria);
+      
+      for (let i = 0; i < tieBreakResult.length; i++) {
+        const item = tieBreakResult[i];
+        const originalScore = group.find(g => g.plan.id === item.plan.id)!.score;
+        
+        rankedResults.push({
+          plan: item.plan,
+          score: originalScore,
+          rank: currentRank + i,
+          tieBreakLevel: item.tieBreakLevel,
+          tieBreakCriterion: item.criterionUsed,
+        });
+      }
+      currentRank += tieBreakResult.length;
+    }
+  }
+  
+  return rankedResults;
+}
+
+/**
+ * Apply tie-breaking and return metadata about which criteria were used
+ */
+interface TieBreakResult {
+  readonly plan: CPLPlan;
+  readonly tieBreakLevel: number;
+  readonly criterionUsed?: string;
+}
+
+function applyTieBreakingWithMetadata(
+  plans: readonly CPLPlan[],
+  criteria: readonly TieBreakingCriteria[]
+): readonly TieBreakResult[] {
+  if (plans.length <= 1) {
+    return plans.map(plan => ({
+      plan,
+      tieBreakLevel: 0,
+    }));
+  }
+  
+  let candidates = [...plans];
+  const results: TieBreakResult[] = [];
+  let criterionLevel = 0;
+  
+  for (const criterion of criteria) {
+    criterionLevel++;
+    
+    if (candidates.length === 1) {
+      // Last remaining candidate wins at this level
+      results.push({
+        plan: candidates[0],
+        tieBreakLevel: criterionLevel,
+        criterionUsed: criterion.name,
+      });
+      candidates = [];
+      break;
+    }
+    
+    // Evaluate and sort by this criterion
+    const scored = candidates.map(plan => ({
+      plan,
+      score: criterion.evaluate(plan),
+    }));
+    
+    scored.sort((a, b) => {
+      const diff = criterion.higherIsBetter
+        ? b.score - a.score
+        : a.score - b.score;
+      return diff;
+    });
+    
+    // Find best score and separate winners from losers
+    const bestScore = scored[0].score;
+    const epsilon = 1e-9;
+    
+    const winners: CPLPlan[] = [];
+    const stillTied: CPLPlan[] = [];
+    
+    for (const item of scored) {
+      if (Math.abs(item.score - bestScore) < epsilon) {
+        stillTied.push(item.plan);
+      } else {
+        // This plan lost at this criterion level
+        results.push({
+          plan: item.plan,
+          tieBreakLevel: criterionLevel,
+          criterionUsed: criterion.name,
+        });
+      }
+    }
+    
+    candidates = stillTied;
+  }
+  
+  // Any remaining candidates are still tied after all criteria
+  // Order them by plan ID (last resort)
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => a.id.localeCompare(b.id));
+    for (const plan of candidates) {
+      results.push({
+        plan,
+        tieBreakLevel: criteria.length + 1,
+        criterionUsed: 'plan_id',
+      });
+    }
+  }
+  
+  // Sort results by rank (winners first)
+  results.sort((a, b) => a.tieBreakLevel - b.tieBreakLevel);
+  
+  return results;
+}
+
+/**
+ * Explain why one plan was chosen over another
+ * 
+ * Provides human-readable explanation of scoring and tie-breaking decisions
+ */
+export interface PlanComparisonExplanation {
+  readonly winner: CPLPlan;
+  readonly loser: CPLPlan;
+  readonly primaryScoreDifference: number;
+  readonly tieBreakCriterion?: string;
+  readonly explanation: string;
+}
+
+export function explainPlanChoice(
+  winner: CPLPlan,
+  loser: CPLPlan,
+  goals: readonly CPLGoal[],
+  constraints: readonly CPLConstraint[],
+  criteria: readonly TieBreakingCriteria[] = STANDARD_TIE_BREAKING_CRITERIA
+): PlanComparisonExplanation {
+  const winnerScore = scorePlan(winner, goals, constraints);
+  const loserScore = scorePlan(loser, goals, constraints);
+  
+  const scoreDiff = winnerScore.overallScore - loserScore.overallScore;
+  
+  let explanation: string;
+  let tieBreakCriterion: string | undefined;
+  
+  if (Math.abs(scoreDiff) > 0.01) {
+    // Winner by primary score
+    explanation = `Plan ${winner.id} has a higher overall score (${winnerScore.overallScore.toFixed(3)}) than Plan ${loser.id} (${loserScore.overallScore.toFixed(3)}). `;
+    
+    // Add details about what made it better
+    const satisfactionDiff = winnerScore.satisfactionScore - loserScore.satisfactionScore;
+    const costDiff = winnerScore.normalizedCost - loserScore.normalizedCost;
+    const riskDiff = winnerScore.constraintRisk - loserScore.constraintRisk;
+    
+    const factors: string[] = [];
+    if (Math.abs(satisfactionDiff) > 0.05) {
+      factors.push(`${satisfactionDiff > 0 ? 'better' : 'worse'} goal satisfaction`);
+    }
+    if (Math.abs(costDiff) > 0.05) {
+      factors.push(`${costDiff < 0 ? 'lower' : 'higher'} cost`);
+    }
+    if (Math.abs(riskDiff) > 0.05) {
+      factors.push(`${riskDiff < 0 ? 'lower' : 'higher'} constraint risk`);
+    }
+    
+    if (factors.length > 0) {
+      explanation += `This is due to: ${factors.join(', ')}.`;
+    }
+  } else {
+    // Tie-broken by secondary criteria
+    explanation = `Plans have nearly equal scores (difference: ${Math.abs(scoreDiff).toFixed(4)}). `;
+    
+    // Find which criterion broke the tie
+    for (const criterion of criteria) {
+      const winnerValue = criterion.evaluate(winner);
+      const loserValue = criterion.evaluate(loser);
+      const diff = Math.abs(winnerValue - loserValue);
+      
+      if (diff > 1e-9) {
+        tieBreakCriterion = criterion.name;
+        const betterOrWorse = criterion.higherIsBetter
+          ? (winnerValue > loserValue ? 'better' : 'worse')
+          : (winnerValue < loserValue ? 'better' : 'worse');
+        
+        explanation += `Tie broken by ${criterion.name.replace(/_/g, ' ')}: Plan ${winner.id} has ${betterOrWorse} value (${winnerValue.toFixed(2)} vs ${loserValue.toFixed(2)}).`;
+        break;
+      }
+    }
+    
+    if (!tieBreakCriterion) {
+      tieBreakCriterion = 'plan_id';
+      explanation += `Tie broken by plan ID for deterministic ordering.`;
+    }
+  }
+  
+  return {
+    winner,
+    loser,
+    primaryScoreDifference: scoreDiff,
+    tieBreakCriterion,
+    explanation,
+  };
+}

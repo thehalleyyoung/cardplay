@@ -9,8 +9,7 @@
  * @module gofai/canon/domain-nouns-techniques
  */
 
-import type { Lexeme, LexemeId, GofaiId } from './types';
-import { createLexemeId } from './types';
+import type { Lexeme, LexemeId } from './types';
 
 /**
  * Technique category classifications
@@ -28,11 +27,13 @@ export type TechniqueCategory =
 /**
  * Technique lexeme with extended metadata
  */
-export interface TechniqueLexeme extends Lexeme {
+export interface TechniqueLexeme extends Omit<Lexeme, 'description' | 'examples'> {
   readonly techniqueCategory: TechniqueCategory;
   readonly applicableToInstruments: readonly string[];  // Which instruments can use this
   readonly affectsAspects: readonly string[];           // What aspects it modifies
-  readonly typicalParameters?: Record<string, number>;  // Default parameter values
+  readonly typicalParameters?: Record<string, number | number[] | boolean | string>;  // Default parameter values
+  readonly description?: string;  // Optional, can be derived from lemma
+  readonly examples?: readonly string[];  // Optional usage examples
 }
 
 // =============================================================================

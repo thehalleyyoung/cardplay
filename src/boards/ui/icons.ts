@@ -108,6 +108,7 @@ export const DECK_TYPE_ICONS: Record<DeckType, IconName> = {
   'reference-track-deck': 'samples',
   'spectrum-analyzer-deck': 'mixer',
   'waveform-editor-deck': 'samples',
+  'registry-devtool-deck': 'properties',
 };
 
 /**

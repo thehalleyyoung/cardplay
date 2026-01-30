@@ -59,6 +59,10 @@ export const CAPABILITIES = {
     description: 'Extend music ontology',
     riskLevel: 'safe' as CapabilityRiskLevel,
   },
+  'write:spec': {
+    description: 'Modify music specification',
+    riskLevel: 'safe' as CapabilityRiskLevel,
+  },
   
   // -------------------------------------------------------------------------
   // ELEVATED CAPABILITIES

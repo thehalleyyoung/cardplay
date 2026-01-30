@@ -9,7 +9,6 @@
 import type { BoardState, LayoutState, DeckState } from './types';
 import { DEFAULT_BOARD_STATE } from './types';
 import { normalizeDeckType } from '../../canon/legacy-aliases';
-import { asDeckId, type DeckType } from '../types';
 
 // ============================================================================
 // STORAGE KEY
@@ -162,12 +161,12 @@ function migrateDeckStateKey(
     // Also normalize any deck type fields within the state (Change 148)
     const migratedState = migrateDeckStateValues(deckState);
     
-    return { [newKey]: migratedState as DeckState };
+    return { [newKey]: migratedState as unknown as DeckState };
   }
   
   // Not a legacy key, but still normalize values
   const migratedState = migrateDeckStateValues(deckState);
-  return { [key]: migratedState as DeckState };
+  return { [key]: migratedState as unknown as DeckState };
 }
 
 /**

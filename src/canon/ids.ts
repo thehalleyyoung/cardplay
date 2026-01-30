@@ -83,7 +83,9 @@ export type DeckType =
   // Analysis
   | 'spectrum-analyzer-deck'
   // Waveform
-  | 'waveform-editor-deck';
+  | 'waveform-editor-deck'
+  // Developer tools
+  | 'registry-devtool-deck';
 
 /**
  * Array of all canonical deck types for validation.
@@ -115,6 +117,7 @@ export const DECK_TYPES: readonly DeckType[] = [
   'reference-track-deck',
   'spectrum-analyzer-deck',
   'waveform-editor-deck',
+  'registry-devtool-deck',
 ] as const;
 
 /**

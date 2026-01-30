@@ -140,7 +140,7 @@ export async function discoverExtensions(
 async function discoverFromPath(
   _path: string,
   source: 'project-local' | 'user' | 'system',
-  requiresConfirmation: boolean
+  _requiresConfirmation: boolean
 ): Promise<DiscoveryResult[]> {
   // Placeholder: In production, implement directory scanning
   // Example implementation:

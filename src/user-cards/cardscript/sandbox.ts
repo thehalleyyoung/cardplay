@@ -7,7 +7,7 @@
  * @module @cardplay/user-cards/cardscript/sandbox
  */
 
-import type { CapabilityId } from '../../extensions/capabilities';
+import type { Capability } from '../../extensions/capabilities';
 
 // ============================================================================
 // SANDBOX TYPES
@@ -18,7 +18,7 @@ import type { CapabilityId } from '../../extensions/capabilities';
  */
 export interface SandboxContext {
   /** Allowed capabilities for this card */
-  readonly allowedCapabilities: readonly CapabilityId[];
+  readonly allowedCapabilities: readonly Capability[];
   /** Maximum execution time (ms) */
   readonly maxExecutionTime: number;
   /** Maximum memory usage (bytes) */
@@ -93,7 +93,7 @@ export const TRUSTED_EXTENSION_SANDBOX_CONTEXT: SandboxContext = {
  * Check if a capability is allowed in the sandbox context.
  */
 export function isCapabilityAllowed(
-  capability: CapabilityId,
+  capability: Capability,
   context: SandboxContext
 ): boolean {
   return context.allowedCapabilities.includes(capability);
@@ -104,7 +104,7 @@ export function isCapabilityAllowed(
  * @throws {Error} if capability is not allowed
  */
 export function enforceCapability(
-  capability: CapabilityId,
+  capability: Capability,
   context: SandboxContext,
   operation: string
 ): void {
@@ -121,7 +121,7 @@ export function enforceCapability(
  * Check multiple capabilities at once.
  */
 export function hasAllCapabilities(
-  capabilities: readonly CapabilityId[],
+  capabilities: readonly Capability[],
   context: SandboxContext
 ): boolean {
   return capabilities.every(cap => isCapabilityAllowed(cap, context));
@@ -182,7 +182,7 @@ export class ExecutionTimeout {
 export function createSandboxedAPI<T extends object>(
   api: T,
   context: SandboxContext,
-  capabilityMap: Map<keyof T, CapabilityId>
+  capabilityMap: Map<keyof T, Capability>
 ): T {
   const handler: ProxyHandler<T> = {
     get(target, prop, receiver) {
@@ -237,7 +237,7 @@ export interface SandboxViolation {
   readonly timestamp: number;
   readonly cardId: string;
   readonly violation: string;
-  readonly capability?: CapabilityId;
+  readonly capability?: Capability;
   readonly severity: 'error' | 'warning';
 }
 

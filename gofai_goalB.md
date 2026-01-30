@@ -91,11 +91,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 273 [Sem] — Implement “capability-aware planning”: if production layer disabled, map “wider” to orchestration levers instead of DSP.
 - [ ] Step 274 [Sem][HCI] — Implement “ask vs act” planning: if satisfaction requires risky ops, produce a clarification/choice rather than auto-select.
 - [ ] Step 275 [Type] — Implement an “effect typing” rule: plans with mutation effects cannot be executed in `full-manual` without explicit confirmation.
-- [ ] Step 276 [Sem] — Add plan opcodes for musical structure edits: duplicate section, shorten/extend, insert pickup, add break/build/drop.
-- [ ] Step 277 [Sem] — Add plan opcodes for rhythm edits: swing adjustment, quantize strength, humanize timing, halftime/doubletime transforms.
-- [ ] Step 278 [Sem] — Add plan opcodes for harmony edits: revoice, add extensions, substitute chords under melody constraints, functional reharmonization.
-- [ ] Step 279 [Sem] — Add plan opcodes for melody edits: ornamentation, contour shaping, register shifts under range constraints (must be optional/high cost).
-- [ ] Step 280 [Sem] — Add plan opcodes for arrangement edits: add/remove layers, role redistribution, density shaping across sections.
+- [x] Step 276 [Sem] — Add plan opcodes for musical structure edits: duplicate section, shorten/extend, insert pickup, add break/build/drop.
+- [x] Step 277 [Sem] — Add plan opcodes for rhythm edits: swing adjustment, quantize strength, humanize timing, halftime/doubletime transforms.
+- [x] Step 278 [Sem] — Add plan opcodes for harmony edits: revoice, add extensions, substitute chords under melody constraints, functional reharmonization.
+- [x] Step 279 [Sem] — Add plan opcodes for melody edits: ornamentation, contour shaping, register shifts under range constraints (must be optional/high cost).
+- [x] Step 280 [Sem] — Add plan opcodes for arrangement edits: add/remove layers, role redistribution, density shaping across sections.
 - [ ] Step 281 [Type] — Define a typed “plan execution preflight” that checks project world invariants and gathers required entity bindings.
 - [ ] Step 282 [Type] — Define a typed “plan postflight” that recomputes diffs and verifies constraints; if fail, rollback automatically.
 - [ ] Step 283 [Type] — Define a deterministic “plan-to-diff summary” mapping for UI (what changed by layer/section).

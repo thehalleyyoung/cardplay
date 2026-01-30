@@ -10,7 +10,7 @@
  * @module gofai/canon/domain-nouns-instruments
  */
 
-import type { Lexeme, LexemeId, GofaiId } from './types';
+import type { Lexeme, LexemeId } from './types';
 
 /**
  * Instrument category classifications

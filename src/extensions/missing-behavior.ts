@@ -9,7 +9,7 @@
  * @module @cardplay/extensions/missing-behavior
  */
 
-import type { PackManifest } from '../user-cards/manifest';
+// PackManifest was not used - removed unused import
 
 // ============================================================================
 // TYPES

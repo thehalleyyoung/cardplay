@@ -175,6 +175,11 @@ export interface SharedEventStore {
    * Cancels a batch operation (rolls back changes).
    */
   cancelBatch(): void;
+  
+  /**
+   * Gets the current version number for invalidation tracking.
+   */
+  getVersion(): number;
 }
 
 // ============================================================================
@@ -189,6 +194,7 @@ interface StoreState {
   subscriptions: Map<SubscriptionId, EventStreamSubscription>;
   batchDepth: number;
   batchChanges: Map<EventStreamId, StreamChangeType[]>;
+  version: number;  // Incremented on every mutation for invalidation tracking
 }
 
 /**
@@ -200,11 +206,15 @@ export function createEventStore(): SharedEventStore {
     subscriptions: new Map(),
     batchDepth: 0,
     batchChanges: new Map(),
+    version: 0,
   };
   
   // --- Internal helpers ---
   
   function notify(streamId: EventStreamId, changeType: StreamChangeType): void {
+    // Increment version on every mutation
+    state.version++;
+    
     // If in batch mode, accumulate changes
     if (state.batchDepth > 0) {
       const existing = state.batchChanges.get(streamId) ?? [];
@@ -540,6 +550,10 @@ export function createEventStore(): SharedEventStore {
         // Note: This doesn't actually roll back changes.
         // For true rollback, we'd need to store snapshots at batch start.
       }
+    },
+    
+    getVersion(): number {
+      return state.version;
     },
   };
   

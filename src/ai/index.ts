@@ -71,7 +71,53 @@ export {
 } from './queries/spec-queries';
 
 // Theory types (Branch C)
-export * from './theory';
+// Re-export everything from theory except HostAction which is already exported from ./engine
+export {
+  // MusicSpec types
+  type RootName,
+  type ModeName,
+  type ChordQuality,
+  type CultureTag,
+  type StyleTag,
+  type TonalityModel,
+  type GalantSchemaName,
+  type OrnamentType,
+  type AccentModel,
+  type TalaName,
+  type JatiType,
+  type CelticTuneType,
+  type ChineseModeName,
+  type RagaName,
+  type FilmMood,
+  type FilmDevice,
+  type DensityLevel,
+  type TensionDevice,
+  type RegisterModel,
+  type HarmonicRhythmLevel,
+  // Note: Individual constraint subtypes not exported; use MusicConstraint union
+  type ConstraintKey,
+  type MusicSpec,
+  // Note: SpecId removed - not in canon
+  
+  // MusicSpec helpers
+  // Note: Normalizers not exported separately; use constraint factories
+  
+  // Host actions helpers (but not the HostAction type itself)
+  type HostActionEnvelope,
+  // Note: HostActionConfidence removed - not in canon
+  // Note: validateHostAction not exported separately
+  parseHostActionFromPrologTerm,
+  // Note: formatHostActionForLogging removed - not in canon
+  
+  // Custom constraints
+  type CustomConstraintDefinition,
+  // Note: CustomConstraintRegistry not exported; use constraintRegistry
+  // Note: register/unregister functions not exported; use provided API
+  isCustomConstraint,
+  // Note: listCustomConstraints removed - not in canon
+  constraintRegistry,
+  validateConstraintParams,
+} from './theory';
 
 // Generator exports
 export * from './generators';

@@ -520,6 +520,10 @@ export function applyActionToSpec(action: HostAction, spec: MusicSpec): MusicSpe
     case 'add_deck':
     case 'show_warning':
       return spec;
+    
+    default:
+      // Unknown action or extension action - return spec unchanged
+      return spec;
   }
 }
 

@@ -308,7 +308,7 @@ export function kbHealthReport(
   // Build ontology module info
   const loadedOntologies = getLoadedOntologies(adapter);
   const ontologyModules: KBModuleInfo[] = loadedOntologies.map(ontId => {
-    const ont = ontologyRegistry.get(ontId);
+    // const ont = ontologyRegistry.get(ontId); // Unused for now
     return {
       name: ontId,
       loaded: true,

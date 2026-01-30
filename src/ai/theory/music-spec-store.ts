@@ -11,6 +11,7 @@
  */
 
 import type { MusicSpec, MusicConstraint } from './music-spec';
+import { DEFAULT_MUSIC_SPEC } from './music-spec';
 import type { SpecContextId } from '../../boards/context/types';
 import { SpecEventBus, type SpecChangeEvent } from './spec-event-bus';
 
@@ -55,7 +56,7 @@ class MusicSpecStore {
     let entry = this.contexts.get(contextId);
     if (!entry) {
       entry = {
-        spec: defaultSpec ?? { constraints: [] },
+        spec: defaultSpec ?? DEFAULT_MUSIC_SPEC,
         eventBus: new SpecEventBus(),
         lastModified: Date.now(),
       };
@@ -92,7 +93,7 @@ class MusicSpecStore {
 
     // Publish change event
     const event: SpecChangeEvent = {
-      source: changedConstraints.length === 1 ? changedConstraints[0].type : 'spec',
+      source: changedConstraints.length === 1 && changedConstraints[0] ? changedConstraints[0].type : 'spec',
       cardId,
       spec: newSpec,
       changedConstraints,
@@ -139,7 +140,7 @@ class MusicSpecStore {
     let entry = this.contexts.get(contextId);
     if (!entry) {
       entry = {
-        spec: { constraints: [] },
+        spec: DEFAULT_MUSIC_SPEC,
         eventBus: new SpecEventBus(),
         lastModified: Date.now(),
       };

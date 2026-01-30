@@ -8,7 +8,7 @@
  * @module @cardplay/extensions/pack-storage
  */
 
-import type { PackManifest } from '../user-cards/manifest';
+import type { CardManifest } from '../user-cards/manifest';
 
 // ============================================================================
 // TYPES
@@ -56,7 +56,7 @@ export class PackStorageManager {
    */
   private parseKey(namespacedKey: string): NamespacedStorageKey | null {
     const parts = namespacedKey.split('::');
-    if (parts.length !== 2) return null;
+    if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
     return {
       packNamespace: parts[0],
       key: parts[1],
@@ -74,13 +74,18 @@ export class PackStorageManager {
     const existing = this.storage.get(namespacedKey);
     const now = Date.now();
     
-    this.storage.set(namespacedKey, {
+    const entry: StorageEntry<T> = {
       value,
       packNamespace,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
-      version,
-    });
+    };
+    
+    if (version !== undefined) {
+      (entry as { version: string }).version = version;
+    }
+    
+    this.storage.set(namespacedKey, entry);
   }
   
   /**
@@ -278,7 +283,7 @@ export function getPackStorage(): PackStorageManager {
  * Create a scoped storage API for a specific pack.
  * This is what extensions receive - they can only access their own namespace.
  */
-export function createPackStorageAPI(packManifest: PackManifest) {
+export function createPackStorageAPI(packManifest: CardManifest) {
   const packNamespace = packManifest.name;
   const storage = getPackStorage();
   

@@ -499,9 +499,7 @@ export function getBoardOntologies(board: Board): readonly OntologyId[] {
   if (!board.ontology) return [DEFAULT_ONTOLOGY];
   if (typeof board.ontology === 'string') return [board.ontology];
   if (Array.isArray(board.ontology)) return board.ontology;
-  // Handle { primary, fallback } structure
-  const withFallback = board.ontology as { primary: OntologyId; fallback?: readonly OntologyId[] };
-  return [withFallback.primary, ...(withFallback.fallback || [])];
+  return [DEFAULT_ONTOLOGY]; // Fallback
 }
 
 // ============================================================================

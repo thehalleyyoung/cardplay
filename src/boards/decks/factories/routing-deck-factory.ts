@@ -88,8 +88,8 @@ export const routingFactory: DeckFactory = {
             id: nodeId,
             type: 'deck',
             name: `Node ${graph.getState().nodes.size + 1}`,
-            inputs: ['input'],
-            outputs: ['output'],
+            inputs: [{ id: 'input', name: 'Input', type: 'audio' }],
+            outputs: [{ id: 'output', name: 'Output', type: 'audio' }],
             bypassed: false,
           });
         });
@@ -166,7 +166,9 @@ export const routingFactory: DeckFactory = {
               const graph = getRoutingGraph();
               suggestedGraph.connections.forEach(conn => {
                 // Map connection type to EdgeType
-                const edgeType = conn.type === 'modulation' ? 'cv' : conn.type as 'audio' | 'midi';
+                // conn.type from suggestRouting is 'audio' or 'control'
+                const edgeType: 'audio' | 'midi' | 'cv' | 'trigger' = 
+                  conn.type === 'control' ? 'cv' : 'audio';
                 graph.connect(conn.from, 'output', conn.to, 'input', edgeType);
               });
             }

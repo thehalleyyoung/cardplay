@@ -14,7 +14,8 @@
  * @module @cardplay/ui/projections/event-projections
  */
 
-import type { Event, EventStreamId } from '../../types/event';
+import type { Event } from '../../types/event';
+import type { EventStreamId } from '../../state/types';
 import type { Tick } from '../../types/primitives';
 import { getSharedEventStore } from '../../state/ssot';
 
@@ -109,7 +110,7 @@ export function projectTrackerRows(
     length,
     ticksPerStep,
     rows,
-    playheadStep,
+    ...(playheadStep !== undefined && { playheadStep }),
     version: store.getVersion(),
   };
 }
@@ -392,7 +393,7 @@ export function subscribeToProjectionInvalidation(
 ): () => void {
   const store = getSharedEventStore();
   
-  const subscriptionId = store.subscribe(() => {
+  const subscriptionId = store.subscribeAll(() => {
     callback();
   });
   

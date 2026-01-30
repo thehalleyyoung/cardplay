@@ -63,7 +63,7 @@ export function normalizeOntologySelection(selection?: OntologySelection): reado
     return selection;
   }
   
-  return [selection];
+  return [selection as OntologyId];
 }
 
 /**
@@ -234,9 +234,11 @@ export function getOntologyDiagnostics(board: Board): {
   if (allowed.length > 1) {
     for (let i = 0; i < allowed.length; i++) {
       for (let j = i + 1; j < allowed.length; j++) {
-        if (!ontologyRegistry.areCompatible(allowed[i], allowed[j])) {
+        const ontA = allowed[i];
+        const ontB = allowed[j];
+        if (ontA && ontB && !ontologyRegistry.areCompatible(ontA, ontB)) {
           warnings.push(
-            `Ontologies "${allowed[i]}" and "${allowed[j]}" may require bridging`
+            `Ontologies "${ontA}" and "${ontB}" may require bridging`
           );
         }
       }

@@ -61,11 +61,9 @@ export class ExtensionError extends Error {
   /** Pack ID if applicable */
   readonly packId?: string;
   /** Underlying cause if any */
-  readonly cause?: Error;
+  override readonly cause?: Error;
   /** Additional metadata */
   readonly metadata?: Record<string, unknown>;
-
-  override readonly name = 'ExtensionError';
 
   constructor(options: {
     code: ExtensionErrorCode;
@@ -76,7 +74,12 @@ export class ExtensionError extends Error {
     metadata?: Record<string, unknown>;
   }) {
     super(options.message);
-    this.name = 'ExtensionError';
+    Object.defineProperty(this, 'name', {
+      value: 'ExtensionError',
+      writable: false,
+      configurable: true,
+      enumerable: false,
+    });
     this.code = options.code;
     if (options.extensionId) this.extensionId = options.extensionId;
     if (options.packId) this.packId = options.packId;
@@ -130,7 +133,12 @@ export class InvalidIdError extends ExtensionError {
       message: `Invalid extension ID "${id}": ${reason}`,
       extensionId: id,
     });
-    this.name = 'InvalidIdError';
+    Object.defineProperty(this, 'name', {
+      value: 'InvalidIdError',
+      writable: false,
+      configurable: true,
+      enumerable: false,
+    });
   }
 }
 
@@ -145,7 +153,12 @@ export class DuplicateIdError extends ExtensionError {
       extensionId: id,
       metadata: { type },
     });
-    this.name = 'DuplicateIdError';
+    Object.defineProperty(this, 'name', {
+      value: 'DuplicateIdError',
+      writable: false,
+      configurable: true,
+      enumerable: false,
+    });
   }
 }
 
@@ -159,7 +172,12 @@ export class PackNotFoundError extends ExtensionError {
       message: `Pack "${packId}" not found`,
       packId,
     });
-    this.name = 'PackNotFoundError';
+    Object.defineProperty(this, 'name', {
+      value: 'PackNotFoundError',
+      writable: false,
+      configurable: true,
+      enumerable: false,
+    });
   }
 }
 
@@ -173,7 +191,12 @@ export class ManifestError extends ExtensionError {
       message: `Invalid manifest for pack "${packId}": ${issue}`,
       packId,
     });
-    this.name = 'ManifestError';
+    Object.defineProperty(this, 'name', {
+      value: 'ManifestError',
+      writable: false,
+      configurable: true,
+      enumerable: false,
+    });
   }
 }
 

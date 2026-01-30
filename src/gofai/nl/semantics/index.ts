@@ -38,3 +38,15 @@ export * from './scope-ambiguity';
 
 // Pragmatic bias layer (Step 139)
 export * from './pragmatic-bias';
+
+// Event-to-CPL bridge (Step 154)
+export * from './event-to-cpl';
+
+// Degree-to-CPL bridge (Step 155)
+export * from './degree-to-cpl';
+
+// Montague-style compositional pipeline (Step 156)
+export * from './compositional-pipeline';
+
+// FrameNet / Frame semantics integration (Step 157)
+export * from './frame-semantics';

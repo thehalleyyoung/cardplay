@@ -12,7 +12,7 @@
  */
 
 import type { CustomConstraintDefinition, CustomConstraint } from '../custom-constraints';
-import { registerConstraint } from '../custom-constraints';
+import { constraintRegistry } from '../custom-constraints';
 import type { OntologyPack, OntologyId } from './index';
 import { ontologyRegistry } from './index';
 
@@ -79,7 +79,7 @@ const melakartaConstraintDef: CustomConstraintDefinition<CarnaticMelakartaConstr
   type: 'carnatic:melakarta',
   displayName: 'Melakarta Raga',
   description: 'Specifies one of the 72 melakarta (parent) ragas in Carnatic music',
-  category: 'scale', // Would map to custom category if needed
+  category: 'pitch', // Scale/pitch category
 
   toPrologFact(constraint, specId) {
     const name = constraint.name || `melakarta_${constraint.melakartaNumber}`;
@@ -105,12 +105,12 @@ const melakartaConstraintDef: CustomConstraintDefinition<CarnaticMelakartaConstr
   getConflicts(constraint, others) {
     const conflicts = [];
     
-    // Check for conflicts with Western mode constraints
+    // Check for conflicts with Western key constraints (which include mode)
     for (const other of others) {
-      if (other.type === 'mode') {
+      if (other.type === 'key') {
         conflicts.push({
-          conflictingType: 'mode',
-          reason: 'Melakarta raga conflicts with Western mode. Use one or the other.',
+          conflictingType: 'key',
+          reason: 'Melakarta raga conflicts with Western key/mode. Use one or the other.',
           severity: 'error' as const,
         });
       }
@@ -180,8 +180,8 @@ export function registerCarnaticConstraints(): void {
   );
 
   // Register custom constraints with namespaced IDs
-  registerConstraint(melakartaConstraintDef);
-  registerConstraint(gamakaConstraintDef);
+  constraintRegistry.register(melakartaConstraintDef);
+  constraintRegistry.register(gamakaConstraintDef);
 }
 
 // ============================================================================

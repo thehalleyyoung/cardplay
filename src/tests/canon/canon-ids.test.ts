@@ -84,6 +84,7 @@ describe('Canon IDs', () => {
         'reference-track-deck',
         'spectrum-analyzer-deck',
         'waveform-editor-deck',
+        'registry-devtool-deck',
       ];
 
       expect(DECK_TYPES).toEqual(expect.arrayContaining(expectedDeckTypes));

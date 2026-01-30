@@ -20,9 +20,7 @@
 import type {
   InvariantId,
   InvariantDefinition,
-  InvariantCheckResult,
   InvariantCategory,
-  InvariantSeverity,
   ViolationEvidence,
 } from './types.js';
 import { invariantId } from './types.js';
@@ -82,7 +80,7 @@ export const INV_NO_SILENT_AMBIGUITY: InvariantDefinition<unknown, unknown> = {
     'When multiple parse interpretations exist with materially different ' +
     'execution effects, the system must not silently choose one. Instead, ' +
     'it must trigger clarification or show options.',
-  severity: 'critical',
+  severity: 'critical', enabled: true,
   check: (state, operation) => {
     // Implementation note: This check happens in parse/disambiguate stage
     // Check that ambiguity score threshold is not exceeded without clarification
@@ -120,7 +118,7 @@ export const INV_CONSTRAINTS_EXECUTABLE: InvariantDefinition<unknown, unknown> =
     'Every constraint in CPL must have a corresponding executable checker ' +
     'that can validate whether the constraint is satisfied by comparing ' +
     'before and after states.',
-  severity: 'critical',
+  severity: 'critical', enabled: true,
   check: (state, operation) => {
     const result = checkConstraintExecutability(state, operation);
     if (!result.ok) {
@@ -156,7 +154,7 @@ export const INV_REFERENTS_RESOLVE: InvariantDefinition<unknown, unknown> = {
     'All referential expressions (pronouns, demonstratives, definite NPs) ' +
     'must resolve to unique entities in the project world or dialogue state. ' +
     'If ambiguous, system must clarify.',
-  severity: 'error',
+  severity: 'error', enabled: true,
   check: (state, operation) => {
     const result = checkReferentResolution(state, operation);
     if (!result.ok) {
@@ -191,7 +189,7 @@ export const INV_SCOPE_VISIBLE: InvariantDefinition<unknown, unknown> = {
     'Every CPL scope expression must resolve to existing entities in the ' +
     'current project state. References to non-existent sections, layers, ' +
     'or cards must be rejected with helpful error messages.',
-  severity: 'error',
+  severity: 'error', enabled: true,
   check: (state, operation) => {
     const result = checkScopeVisibility(state, operation);
     if (!result.ok) {
@@ -225,7 +223,7 @@ export const INV_PRESUPPOSITIONS_SATISFIED: InvariantDefinition<unknown, unknown
     'Utterances carry presuppositions (implicit requirements). These must ' +
     'be validated against project world before planning. Examples: "keep X" ' +
     'presupposes X exists; "wider" presupposes production capability.',
-  severity: 'error',
+  severity: 'error', enabled: true,
   check: (state, operation) => {
     const result = checkPresuppositions(state, operation);
     if (!result.ok) {
@@ -260,7 +258,7 @@ export const INV_EFFECT_TYPES_MATCH_POLICY: InvariantDefinition<unknown, unknown
     'level determines which are allowed. Manual boards require explicit ' +
     'apply for mutations; collaborative boards allow propose; generative ' +
     'boards may allow direct mutation with undo.',
-  severity: 'critical',
+  severity: 'critical', enabled: true,
   check: (state, operation) => {
     const result = checkEffectTypePolicy(state, operation);
     if (!result.ok) {
@@ -295,7 +293,7 @@ export const INV_PRESERVATION_VERIFIED: InvariantDefinition<unknown, unknown> = 
     'exact), the system must verify after execution that the constraint ' +
     'is satisfied by comparing before/after diffs. Violations must trigger ' +
     'rollback or explicit override.',
-  severity: 'critical',
+  severity: 'critical', enabled: true,
   check: (state, operation) => {
     const result = checkPreservationConstraints(state, operation);
     if (!result.ok) {
@@ -329,7 +327,7 @@ export const INV_COMPILER_DETERMINISTIC: InvariantDefinition<unknown, unknown> =
     'Given identical input utterance and project state, the compiler must ' +
     'produce identical CPL and plan. No randomness, no Date.now() in core ' +
     'pipeline. Timestamps are metadata only.',
-  severity: 'error',
+  severity: 'error', enabled: true,
   check: (state, operation) => {
     const result = checkDeterminism(state, operation);
     if (!result.ok) {
@@ -362,7 +360,7 @@ export const INV_EDITS_UNDOABLE: InvariantDefinition<unknown, unknown> = {
   description:
     'Every applied edit must yield an undo token that can be consumed to ' +
     'restore the previous state. Undo must be deterministic and complete.',
-  severity: 'critical',
+  severity: 'critical', enabled: true,
   check: (state, operation) => {
     const result = checkUndoability(state, operation);
     if (!result.ok) {
@@ -396,7 +394,7 @@ export const INV_ACTIONS_EXPLAINABLE: InvariantDefinition<unknown, unknown> = {
     'Every plan step and diff item must have provenance linking it back to ' +
     'user goals. System must be able to answer "what changed?" and "why?" ' +
     'with specific references to CPL intent.',
-  severity: 'error',
+  severity: 'error', enabled: true,
   check: (state, operation) => {
     const result = checkExplainability(state, operation);
     if (!result.ok) {
@@ -430,7 +428,7 @@ export const INV_CONSTRAINTS_COMPATIBLE: InvariantDefinition<unknown, unknown> =
     'The set of constraints in a CPL request must be mutually satisfiable. ' +
     'Conflicting constraints must be detected and reported with suggestions ' +
     'for relaxation.',
-  severity: 'error',
+  severity: 'error', enabled: true,
   check: (state, operation) => {
     const result = checkConstraintCompatibility(state, operation);
     if (!result.ok) {
@@ -465,7 +463,7 @@ export const INV_EXTENSIONS_ISOLATED: InvariantDefinition<unknown, unknown> = {
     'Extension handlers must not directly mutate project state. They return ' +
     'proposed EditPackages which core execution validates and applies. This ' +
     'ensures all mutations flow through undo/diff/constraint system.',
-  severity: 'critical',
+  severity: 'critical', enabled: true,
   check: (state, operation) => {
     const result = checkExtensionIsolation(state, operation);
     if (!result.ok) {

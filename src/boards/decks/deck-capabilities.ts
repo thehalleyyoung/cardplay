@@ -55,12 +55,6 @@ export const DECK_CAPABILITIES: Record<DeckType, DeckCapabilities> = {
     requestsProlog: false,
     supportsSlotGrid: false,
   },
-  'staff-deck': {
-    readsSpec: true,
-    writesSpec: false,
-    requestsProlog: false,
-    supportsSlotGrid: false,
-  },
 
   // Piano roll
   'piano-roll-deck': {
@@ -157,12 +151,6 @@ export const DECK_CAPABILITIES: Record<DeckType, DeckCapabilities> = {
     requestsProlog: true, // main AI query deck
     supportsSlotGrid: false,
   },
-  'ai-composer-deck': {
-    readsSpec: true,
-    writesSpec: true,
-    requestsProlog: true,
-    supportsSlotGrid: false,
-  },
 
   // Utility decks
   'transport-deck': {
@@ -214,6 +202,12 @@ export const DECK_CAPABILITIES: Record<DeckType, DeckCapabilities> = {
     supportsSlotGrid: false,
   },
   'waveform-editor-deck': {
+    readsSpec: false,
+    writesSpec: false,
+    requestsProlog: false,
+    supportsSlotGrid: false,
+  },
+  'registry-devtool-deck': {
     readsSpec: false,
     writesSpec: false,
     requestsProlog: false,

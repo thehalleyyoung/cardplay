@@ -317,7 +317,7 @@ export interface Lexeme {
  */
 export type LexemeSemantics =
   | { type: 'axis_modifier'; axis: AxisId; direction: 'increase' | 'decrease' }
-  | { type: 'action'; opcode: OpcodeId; role: 'main' | 'modifier' }
+  | { type: 'action'; opcode: OpcodeId; role: 'main' | 'modifier'; actionType?: string; [key: string]: any }
   | { type: 'constraint'; constraintType: ConstraintTypeId }
   | { type: 'reference'; referenceType: ReferenceType }
   | { type: 'scope'; scopeType: ScopeType }
@@ -413,6 +413,36 @@ export interface LexemeRestrictions {
  * Domain Noun Lexeme (compatibility type for batch files using different structure)
  * @deprecated Batch files should migrate to base Lexeme interface
  */
+// =============================================================================
+// Domain Noun Types
+// =============================================================================
+
+/**
+ * Simplified domain noun for batch registration.
+ * Legacy alias for backward compatibility.
+ */
+export interface DomainNoun {
+  readonly id: string;
+  readonly category: string;
+  readonly canonical: string;
+  readonly synonyms?: readonly string[];
+}
+
+/**
+ * Domain noun category.
+ * Legacy type alias for backward compatibility.
+ */
+export type DomainNounCategory =
+  | 'harmony'
+  | 'melody'
+  | 'rhythm'
+  | 'tempo'
+  | 'production'
+  | 'arrangement'
+  | 'instruments'
+  | 'techniques'
+  | 'general';
+
 export interface DomainNounLexeme {
   readonly id: string;
   readonly term: string;

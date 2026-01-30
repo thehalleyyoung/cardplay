@@ -13,7 +13,7 @@
  * @see Change 441
  */
 
-import type { PackCapability } from '../extensions/capabilities';
+import type { Capability } from '../extensions/capabilities';
 
 // ============================================================================
 // PACK LOCATION
@@ -63,7 +63,7 @@ export function getTrustLevel(location: PackLocation): PackTrustLevel {
  * - Access user settings/credentials
  * - Modify global CardPlay configuration
  */
-export const PROJECT_LOCAL_ALLOWED_CAPABILITIES: readonly PackCapability[] = [
+export const PROJECT_LOCAL_ALLOWED_CAPABILITIES: readonly Capability[] = [
   'read-project',
   'write-project',
   'register-cards',
@@ -82,7 +82,7 @@ export const PROJECT_LOCAL_ALLOWED_CAPABILITIES: readonly PackCapability[] = [
  * - Register system-wide extensions
  * - Modify user preferences
  */
-export const GLOBAL_USER_ALLOWED_CAPABILITIES: readonly PackCapability[] = [
+export const GLOBAL_USER_ALLOWED_CAPABILITIES: readonly Capability[] = [
   ...PROJECT_LOCAL_ALLOWED_CAPABILITIES,
   'filesystem-read',
   'filesystem-write',
@@ -102,7 +102,7 @@ export const GLOBAL_USER_ALLOWED_CAPABILITIES: readonly PackCapability[] = [
  */
 export function isCapabilityAllowed(
   location: PackLocation,
-  capability: PackCapability
+  capability: Capability
 ): boolean {
   if (location === 'builtin') {
     // Builtins can do anything
@@ -126,8 +126,8 @@ export function isCapabilityAllowed(
  */
 export function filterAllowedCapabilities(
   location: PackLocation,
-  requestedCapabilities: readonly PackCapability[]
-): readonly PackCapability[] {
+  requestedCapabilities: readonly Capability[]
+): readonly Capability[] {
   return requestedCapabilities.filter(cap => isCapabilityAllowed(location, cap));
 }
 
@@ -141,7 +141,7 @@ export function filterAllowedCapabilities(
 export interface SecurityError {
   readonly code: string;
   readonly message: string;
-  readonly capability?: PackCapability;
+  readonly capability?: Capability;
   readonly severity: 'error' | 'warning';
 }
 
@@ -154,7 +154,7 @@ export interface SecurityError {
  */
 export function validatePackSecurity(
   location: PackLocation,
-  requestedCapabilities: readonly PackCapability[]
+  requestedCapabilities: readonly Capability[]
 ): readonly SecurityError[] {
   const errors: SecurityError[] = [];
   
@@ -206,7 +206,7 @@ export const DEFAULT_SECURITY_POLICY: SecurityPolicy = {
  */
 export function validateAgainstPolicy(
   location: PackLocation,
-  requestedCapabilities: readonly PackCapability[],
+  requestedCapabilities: readonly Capability[],
   policy: SecurityPolicy = DEFAULT_SECURITY_POLICY
 ): readonly SecurityError[] {
   const errors: SecurityError[] = [];
@@ -268,7 +268,7 @@ export interface SecurePackLoadResult {
   /** Whether pack loaded successfully */
   readonly success: boolean;
   /** Allowed capabilities after security filtering */
-  readonly allowedCapabilities: readonly PackCapability[];
+  readonly allowedCapabilities: readonly Capability[];
   /** Security errors/warnings */
   readonly securityIssues: readonly SecurityError[];
   /** Trust level assigned */
@@ -283,7 +283,7 @@ export interface SecurePackLoadResult {
  * @returns Load result with security information
  */
 export function prepareSecurePackLoad(
-  requestedCapabilities: readonly PackCapability[],
+  requestedCapabilities: readonly Capability[],
   options: SecurePackLoadOptions
 ): SecurePackLoadResult {
   const { location, policy = DEFAULT_SECURITY_POLICY, warnOnRestrictions = false } = options;

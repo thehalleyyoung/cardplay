@@ -308,8 +308,6 @@ export function validateBoard(board: Board): ValidationResult {
   if (board.ontology) {
     const ontologyIds: OntologyId[] = Array.isArray(board.ontology)
       ? board.ontology
-      : typeof board.ontology === 'object' && 'primary' in board.ontology
-      ? [board.ontology.primary, ...(board.ontology.fallback || [])]
       : [board.ontology];
     
     // Validate all referenced ontologies exist

@@ -8,6 +8,28 @@ All legacy symbols should be migrated to their canonical equivalents.
 
 ---
 
+## Disambiguated Symbol Names
+
+Some symbols are legitimately exported from multiple modules with different meanings.
+These are NOT legacy aliases—they represent different concepts that happen to share a name.
+
+| Symbol | Context | Description | Location |
+|--------|---------|-------------|----------|
+| `CardState` (core) | Core card state | Generic interface for card state management | `src/cards/card.ts` |
+| `CardState` (UI enum) | UI render state | Type alias for CardSurfaceStateEnum | `src/ui/cards.ts` |
+| `CardState` (UI union) | Component state | Union type for card component states | `src/ui/components/card-component.ts` |
+| `PortType` (canon) | Canonical types | Union of builtin port types (audio/midi/etc) | `src/canon/ids.ts` |
+| `PortType` (extensible) | Runtime registry | Branded string type for all port types | `src/cards/card.ts` |
+| `Track` (freeze) | **DEPRECATED** | Use `FreezeTrackModel` instead | `src/tracks/clip-operations.ts` |
+| `Track` (arrangement) | **DEPRECATED** | Use `ArrangementTrack` instead | `src/ui/components/arrangement-panel.ts` |
+
+**Guidance:**
+- **CardState:** Import from the appropriate module for your use case. Core cards use the generic version; UI code uses the enum.
+- **PortType:** Use `canon/ids.ts` for validation/documentation; use `cards/card.ts` for runtime port operations and registry.
+- **Track:** These ARE legacy aliases and should be migrated to their canonical names.
+
+---
+
 ## Type Aliases
 
 | Legacy Name | Canonical Name | Location |

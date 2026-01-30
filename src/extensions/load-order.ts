@@ -9,7 +9,7 @@
  * @module @cardplay/extensions/load-order
  */
 
-import type { PackManifest } from '../user-cards/manifest';
+import type { CardManifest } from '../user-cards/manifest';
 
 // ============================================================================
 // TYPES
@@ -28,7 +28,7 @@ export interface PackDependency {
  * Pack with load metadata.
  */
 export interface LoadablePack {
-  readonly manifest: PackManifest;
+  readonly manifest: CardManifest;
   readonly isBuiltin: boolean;
   readonly loadPriority: number;
   readonly dependencies: readonly PackDependency[];
@@ -104,7 +104,7 @@ export function resolveLoadOrder(packs: readonly LoadablePack[]): LoadOrderResul
   });
   
   // Check for ID collisions
-  const idRegistry = new Map<string, string>(); // id -> pack name
+  const _idRegistry = new Map<string, string>(); // id -> pack name (placeholder for future use)
   
   function checkCollisions(pack: LoadablePack): boolean {
     // Check for collisions in exported entities
@@ -226,7 +226,7 @@ export function resolveLoadOrder(packs: readonly LoadablePack[]): LoadOrderResul
  * Builtins always win; conflicts are logged.
  */
 export function resolveIDConflict(
-  id: string,
+  _id: string,
   packA: LoadablePack,
   packB: LoadablePack
 ): LoadablePack {
