@@ -32,3 +32,6 @@ export * from './event-semantics';
 
 // Quantifier semantics (Step 137)
 export * from './quantifier-semantics';
+
+// Scope ambiguity — MRS-style (Step 138)
+export * from './scope-ambiguity';

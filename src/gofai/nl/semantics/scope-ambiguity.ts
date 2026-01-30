@@ -495,7 +495,7 @@ function buildScopedLogicalForm(
  */
 function scoreScopeOrdering(
   ordering: readonly ElementaryPredication[],
-  mrs: MRS,
+  _mrs: MRS,
 ): number {
   let score = 0.5; // Base score
 
@@ -620,7 +620,7 @@ export function generateScopeClarification(
 
   const top2 = result.readings.slice(0, 2);
 
-  const options: ScopeClarificationOption[] = top2.map((reading, i) => ({
+  const options: ScopeClarificationOption[] = top2.map((reading, _i) => ({
     label: `Reading ${reading.index}`,
     readingIndex: reading.index,
     paraphrase: reading.logicalForm,
@@ -634,7 +634,7 @@ export function generateScopeClarification(
     question: `This sentence has ${result.readingCount} possible interpretations. Which did you mean?`,
     readings: top2,
     options,
-    defaultOption: defaultOption !== undefined && defaultOption >= 0 ? defaultOption : null,
+    defaultOption: defaultOption !== null && defaultOption >= 0 ? defaultOption : null,
   };
 }
 
