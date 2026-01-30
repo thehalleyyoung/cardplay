@@ -557,7 +557,55 @@ Notes:
 - ✅ **Test files:** 284/319 passing (89.0%) ← UPDATED Session 28!
 - ⏸️ **Deferred:** Changes 488-489 (integration test design)
 
-### Session 28 Summary (2026-01-30) - LATEST
+### Session 29 Summary (2026-01-30) - LATEST
+
+**Major Achievements:**
+1. ✅ Fixed harmony-analysis tests (11/11 passing, was 7/11)
+   - Fixed addEvents API usage (returns boolean, not events array)
+   - Added 3rd note for reharmonization suggestions (needs 3+ notes)
+   - All chord tone, harmonization, and reharmonization tests passing
+2. ✅ Added plan-executor stub for GOFAI tests
+   - Created src/gofai/execution/plan-executor.ts with stubs
+   - Allows constraint-violation-tests to load (+20 tests discovered)
+3. ✅ Tests passing: 11,108 → 11,112 (+4 tests, +0.04%)
+4. ✅ Pass rate: 96.1% → 96.2% (+0.1%)
+5. ✅ Test files: 286 → 287 (+1 file)
+
+**Test Improvements:**
+1. harmony-analysis.test.ts (11/11, was 7/11):
+   - Fixed snapToChordTones test: get event from stream after adding
+   - Fixed harmonizeMelody test: get event from stream after adding
+   - Fixed getReharmonizationSuggestions test: added 3rd note (C-E-G)
+   - All tests now use correct addEvents API (boolean return, not events[])
+
+2. constraint-violation-tests.test.ts (0/20, was failing to load):
+   - Created plan-executor.ts stub with applyPlanToFork, computeDiff
+   - Test file now loads (20 tests discovered, need API updates to pass)
+
+**Progress Metrics:**
+- Starting: 11,108 tests passing (286 files), 427 failing
+- Ending: 11,112 tests passing (287 files), 443 failing
+- Pass rate: 96.2% (11,112/11,588)
+- Net improvement: +4 tests passing, +1 file passing, +16 new tests discovered
+
+**Commits:**
+1. 61612af: Fix harmony-analysis tests: correct addEvents API usage and add 3rd note for reharmonization
+2. 4c7b556: Add plan-executor stub to fix constraint-violation-tests import
+
+**Remaining Work:**
+- 32 test files still failing (down from 33, mostly GOFAI experimental, UI timing, integration tests)
+- 443 tests failing (3.8% failure rate)
+- Most failures in: integration tests (deferred), GOFAI experimental modules, UI animation timing
+- All production code is type-safe and canon tests pass (85/85)
+
+**Quality Metrics:**
+- ✅ Canon tests: 85/85 passing (100%)
+- ✅ SSOT tests: 14/14 passing (100%)
+- ✅ Production code: 0 non-GOFAI type errors
+- ✅ Test suite: 11,112/11,588 passing (96.2%)
+- ✅ Test files: 287/319 passing (90.0%)
+
+### Session 28 Summary (2026-01-30)
 
 **Major Achievements:**
 1. ✅ Fixed entity-binding-stability tests (role consistency tests now pass, +2 tests)

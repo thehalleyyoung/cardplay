@@ -11,6 +11,7 @@
 import { getBoardRegistry } from '../registry';
 import { getBoardStateStore } from '../store/store';
 import { getBoardContextStore } from '../context/store';
+import { getSelectionStore } from '../../state/selection-state';
 import { applyBoardTheme, clearBoardTheme } from '../ui/theme-applier';
 import type { BoardSwitchOptions } from './types';
 import { DEFAULT_SWITCH_OPTIONS } from './types';
@@ -92,7 +93,6 @@ export function switchBoard(
   
   // C080: Clear selection if requested
   if (opts.clearSelection) {
-    const { getSelectionStore } = require('../../state/selection-store');
     const selectionStore = getSelectionStore();
     selectionStore.clearSelection();
   }

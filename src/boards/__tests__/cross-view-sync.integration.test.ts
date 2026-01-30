@@ -129,11 +129,11 @@ describe('Cross-View Synchronization', () => {
       // Simulate selecting a clip (would set active stream context)
       // In real implementation, session grid would do this
       const selectionStore = getSelectionStore();
-      selectionStore.setSelection({ events: [event.id] });
+      selectionStore.setSelection([event.id], streamId);
 
       // Verify selection is set
       const selection = selectionStore.getState();
-      expect(selection.selected.events).toContain(event.id);
+      expect(selection.selected.has(event.id)).toBe(true);
     });
 
     it('should maintain selection across board switches', () => {
@@ -159,9 +159,7 @@ describe('Cross-View Synchronization', () => {
       store.addEvents(streamId, events);
 
       // Select events
-      selectionStore.setSelection({
-        events: events.map((e) => e.id)
-      });
+      selectionStore.setSelection(events.map((e) => e.id), streamId);
 
       // Switch boards
       const registry = getBoardRegistry();
@@ -175,9 +173,9 @@ describe('Cross-View Synchronization', () => {
 
       // Verify selection persists
       const selection = selectionStore.getState();
-      expect(selection.selected.events).toHaveLength(2);
-      expect(selection.selected.events).toContain(events[0]!.id);
-      expect(selection.selected.events).toContain(events[1]!.id);
+      expect(selection.selected.size).toBe(2);
+      expect(selection.selected.has(events[0]!.id)).toBe(true);
+      expect(selection.selected.has(events[1]!.id)).toBe(true);
     });
   });
 
@@ -314,16 +312,14 @@ describe('Cross-View Synchronization', () => {
       store.addEvents(streamId, events);
 
       // Select events (simulating user selection)
-      selectionStore.setSelection({
-        events: [events[0]!.id, events[2]!.id] // Select first and third
-      });
+      selectionStore.setSelection([events[0]!.id, events[2]!.id], streamId); // Select first and third
 
       // Verify selection state
       const selection = selectionStore.getState();
-      expect(selection.selected.events).toHaveLength(2);
-      expect(selection.selected.events).toContain(events[0]!.id);
-      expect(selection.selected.events).toContain(events[2]!.id);
-      expect(selection.selected.events).not.toContain(events[1]!.id);
+      expect(selection.selected.size).toBe(2);
+      expect(selection.selected.has(events[0]!.id)).toBe(true);
+      expect(selection.selected.has(events[2]!.id)).toBe(true);
+      expect(selection.selected.has(events[1]!.id)).toBe(false);
     });
 
     it('should clear selection when switching with clearSelection option', () => {
@@ -339,7 +335,7 @@ describe('Cross-View Synchronization', () => {
       });
 
       store.addEvents(streamId, [event]);
-      selectionStore.setSelection({ events: [event.id] });
+      selectionStore.setSelection([event.id], streamId);
 
       // Switch with clearSelection: true
       const registry = getBoardRegistry();
@@ -352,7 +348,7 @@ describe('Cross-View Synchronization', () => {
 
       // Verify selection cleared
       const selection = selectionStore.getState();
-      expect(selection.selected.events).toHaveLength(0);
+      expect(selection.selected.size).toBe(0);
     });
   });
 });
