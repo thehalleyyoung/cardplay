@@ -103,18 +103,21 @@ describe('validateBoard', () => {
   it('should reject duplicate panel ids', () => {
     const board: Board = {
       ...validBoard,
-      panels: [
-        {
-          id: 'panel-1',
-          role: 'composition',
-          position: 'center',
-        },
-        {
-          id: 'panel-1', // Duplicate!
-          role: 'browser',
-          position: 'left',
-        },
-      ],
+      layout: {
+        ...validBoard.layout,
+        panels: [
+          {
+            id: 'panel-1',
+            role: 'composition',
+            position: 'center',
+          },
+          {
+            id: 'panel-1', // Duplicate!
+            role: 'browser',
+            position: 'left',
+          },
+        ],
+      },
     };
     const result = validateBoard(board);
     expect(result.valid).toBe(false);

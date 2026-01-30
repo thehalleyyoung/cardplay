@@ -85,12 +85,12 @@ describe('Port types', () => {
 
   it('should register custom port types', () => {
     registerPortType({
-      type: 'custom' as typeof PortTypes.AUDIO,
+      type: 'test:custom' as typeof PortTypes.AUDIO,
       name: 'Custom Type',
       color: '#123456',
     });
     
-    const entry = getPortTypeEntry('custom' as typeof PortTypes.AUDIO);
+    const entry = getPortTypeEntry('test:custom' as typeof PortTypes.AUDIO);
     expect(entry?.name).toBe('Custom Type');
   });
 
