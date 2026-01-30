@@ -6,3 +6,6 @@
 
 // Dialogue state, DRT referents, anaphora, definite descriptions, demonstratives (Steps 201–205)
 export * from './dialogue-state';
+
+// Presupposition, implicature, QUD, clarification, accept/override (Steps 206–210)
+export * from './presupposition-qud';

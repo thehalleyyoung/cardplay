@@ -179,11 +179,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 203 [Prag] — Implement anaphora resolution rules for "it/that/this/there" using salience + UI focus + recency weighting.
 - [x] Step 204 [Prag] — Implement definite description resolution ("the chorus", "the bridge") with ambiguity to clarification when multiple matches exist.
 - [x] Step 205 [Prag] — Implement demonstrative resolution tied to UI selection ("these notes") with fallback to last selection.
-- [ ] Step 206 [Prag] — Implement presupposition checking/accommodation for “again”, “still”, “back”, “return”, “keep”, and “continue”.
-- [ ] Step 207 [Prag] — Implement conversational implicature defaults: “make it tighter” defaults to microtiming and density levers unless user overrides.
-- [ ] Step 208 [Prag] — Implement QUD stack tracking: interpret utterances relative to the current question under discussion to decide what “it” refers to.
-- [ ] Step 209 [Prag] — Implement clarification generation as QUD refinement: questions should reduce candidate set cardinality maximally.
-- [ ] Step 210 [Prag] — Implement “accept defaults” and “override” dialogue moves (“yes”, “no, I meant harmony”) as edits to holes.
+- [x] Step 206 [Prag] — Implement presupposition checking/accommodation for "again", "still", "back", "return", "keep", and "continue".
+- [x] Step 207 [Prag] — Implement conversational implicature defaults: "make it tighter" defaults to microtiming and density levers unless user overrides.
+- [x] Step 208 [Prag] — Implement QUD stack tracking: interpret utterances relative to the current question under discussion to decide what "it" refers to.
+- [x] Step 209 [Prag] — Implement clarification generation as QUD refinement: questions should reduce candidate set cardinality maximally.
+- [x] Step 210 [Prag] — Implement "accept defaults" and "override" dialogue moves ("yes", "no, I meant harmony") as edits to holes.
 - [ ] Step 211 [Prag] — Implement ellipsis resolution (“same but bigger”) by referencing the last plan step or last edit package as antecedent.
 - [ ] Step 212 [Prag] — Implement modal subordination-like behavior for “if possible” (store conditional intent and prefer satisfying it).
 - [ ] Step 213 [Prag] — Implement a “common ground” model: track what has been mutually established (selected chorus = Chorus 2) to stabilize references.
