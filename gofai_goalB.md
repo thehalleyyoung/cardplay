@@ -60,7 +60,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 090 [Infra] — Write an “ontology drift” lint that fails if docs and canon vocab disagree.
 - [x] Step 091 [Type] — Define a typed “reference to historical edit package” to support “undo that”, “redo the chorus widening”.
 - [x] Step 098 [Infra] — Add a “vocab coverage report” script: which cards/boards/decks have no language bindings or weak bindings.
-- [ ] Step 099 [Eval] — Add regression tests asserting entity bindings remain stable across refactors (ID-based, not display-name fragile).
+- [x] Step 099 [Eval] — Add regression tests asserting entity bindings remain stable across refactors (ID-based, not display-name fragile).
 - [ ] Step 100 [Infra] — Define the “GOFAI docs SSOT rule”: canonical vocab lives in code; docs are generated or validated from that code.
 ---
 
