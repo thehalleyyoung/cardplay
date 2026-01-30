@@ -8,7 +8,7 @@
  * arrangement decisions, and form-building operations.
  */
 
-import type { LexemeEntry, VerbFrame } from './types.js';
+import type { Lexeme } from './types.js';
 
 /**
  * Structural organization verbs for expressing how musicians
@@ -24,7 +24,7 @@ import type { LexemeEntry, VerbFrame } from './types.js';
  * - Expanding and contracting
  */
 
-export const STRUCTURAL_ORGANIZATION_VERBS: readonly LexemeEntry[] = [
+export const STRUCTURAL_ORGANIZATION_VERBS: readonly Lexeme[] = [
   // ============================================================================
   // ARRANGE AND ORGANIZE - Layout and placement
   // ============================================================================

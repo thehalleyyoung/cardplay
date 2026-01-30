@@ -8,7 +8,7 @@
  * concrete musical levers for planning and execution.
  */
 
-import type { LexemeEntry, PerceptualAxis } from './types.js';
+import type { Lexeme } from './types.js';
 
 /**
  * Perceptual and emotional adjectives for musical description.
@@ -25,7 +25,7 @@ import type { LexemeEntry, PerceptualAxis } from './types.js';
  * - Stylistic and aesthetic qualities
  */
 
-export const PERCEPTUAL_ADJECTIVES: readonly LexemeEntry[] = [
+export const PERCEPTUAL_ADJECTIVES: readonly Lexeme[] = [
   // ============================================================================
   // BRIGHTNESS / DARKNESS - Spectral balance
   // ============================================================================

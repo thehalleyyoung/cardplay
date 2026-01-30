@@ -8,7 +8,7 @@
  * for expression, and articulation marks that affect musical execution.
  */
 
-import type { LexemeEntry, ArticulationType } from './types.js';
+import type { Lexeme } from './types.js';
 
 /**
  * Performance technique vocabulary covering articulations, playing
@@ -26,7 +26,7 @@ import type { LexemeEntry, ArticulationType } from './types.js';
  * - Dynamic articulations
  */
 
-export const PERFORMANCE_TECHNIQUES: readonly LexemeEntry[] = [
+export const PERFORMANCE_TECHNIQUES: readonly Lexeme[] = [
   // ============================================================================
   // BASIC ARTICULATIONS - Universal across instruments
   // ============================================================================
