@@ -20,3 +20,6 @@ export * from './grammar';
 
 // HCI — Human-Computer Interaction specs (Steps 146-150)
 export * from './hci';
+
+// Pragmatics — Dialogue, Context, Anaphora, QUD (Steps 201–250)
+export * from './pragmatics';

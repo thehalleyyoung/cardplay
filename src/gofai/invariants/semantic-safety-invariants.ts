@@ -302,7 +302,7 @@ export const INV_PRESERVATION_VERIFIED: InvariantDefinition<unknown, unknown> = 
         invariantId: INV_PRESERVATION_VERIFIED.id,
         severity: INV_PRESERVATION_VERIFIED.severity,
         message: 'Preservation constraint violated after execution',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -336,7 +336,7 @@ export const INV_COMPILER_DETERMINISTIC: InvariantDefinition<unknown, unknown> =
         invariantId: INV_COMPILER_DETERMINISTIC.id,
         severity: INV_COMPILER_DETERMINISTIC.severity,
         message: 'Non-deterministic behavior detected',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -369,7 +369,7 @@ export const INV_EDITS_UNDOABLE: InvariantDefinition<unknown, unknown> = {
         invariantId: INV_EDITS_UNDOABLE.id,
         severity: INV_EDITS_UNDOABLE.severity,
         message: 'Edit applied without undo token',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -403,7 +403,7 @@ export const INV_ACTIONS_EXPLAINABLE: InvariantDefinition<unknown, unknown> = {
         invariantId: INV_ACTIONS_EXPLAINABLE.id,
         severity: INV_ACTIONS_EXPLAINABLE.severity,
         message: 'Action lacks explanation provenance',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -437,7 +437,7 @@ export const INV_CONSTRAINTS_COMPATIBLE: InvariantDefinition<unknown, unknown> =
         invariantId: INV_CONSTRAINTS_COMPATIBLE.id,
         severity: INV_CONSTRAINTS_COMPATIBLE.severity,
         message: 'Conflicting constraints detected',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };
@@ -472,7 +472,7 @@ export const INV_EXTENSIONS_ISOLATED: InvariantDefinition<unknown, unknown> = {
         invariantId: INV_EXTENSIONS_ISOLATED.id,
         severity: INV_EXTENSIONS_ISOLATED.severity,
         message: 'Extension violated isolation boundary',
-        evidence: result.evidence,
+        evidence: (result as { ok: false; evidence: ViolationEvidence }).evidence,
       };
     }
     return { ok: true };

@@ -364,7 +364,8 @@ export function validateVocabularyTable(
   const existingIds = new Set<string>();
   const namespaceCount: Record<string, number> = { core: 0 };
 
-  for (const [id, isExtension] of ids) {
+  for (const entry of Array.from(ids.entries())) {
+    const [id, isExtension] = entry;
     let idViolations: readonly PolicyViolation[];
 
     switch (idType) {

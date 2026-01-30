@@ -8,14 +8,14 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 ## Phase 0 — Charter, Invariants, and Non‑Negotiables (Steps 001–050)
 
-- [ ] Step 002 [Type] — Define “semantic safety invariants” (e.g., preserve constraints are executable checks; no silent ambiguity resolution) and treat them as first-class testable requirements.
-- [ ] Step 003 [Infra] — Decide and document the compilation pipeline stages (normalize → parse → semantics → pragmatics → typecheck → plan → execute → diff/explain).
-- [ ] Step 004 [Type] — Introduce a vocabulary policy: builtin meaning IDs un-namespaced; extension meaning IDs must be `namespace:*` (mirrors CardPlayId rules).
+- [x] Step 002 [Type] — Define “semantic safety invariants” (e.g., preserve constraints are executable checks; no silent ambiguity resolution) and treat them as first-class testable requirements.
+- [x] Step 003 [Infra] — Decide and document the compilation pipeline stages (normalize → parse → semantics → pragmatics → typecheck → plan → execute → diff/explain).
+- [x] Step 004 [Type] — Introduce a vocabulary policy: builtin meaning IDs un-namespaced; extension meaning IDs must be `namespace:*` (mirrors CardPlayId rules).
 - [ ] Step 006 [Infra] — Create a “GOFAI build matrix” mapping features to required tests (unit, golden NL→CPL, paraphrase invariance, safety diffs, UX interaction tests).
 - [ ] Step 007 [Type] — Define a stable “CPL schema versioning” strategy compatible with CardPlay canon serialization/versioning conventions.
 - [ ] Step 008 [Type] — Define an effect taxonomy for compiler outputs: `inspect` vs `propose` vs `mutate`, to forbid silent mutation in manual boards.
 - [ ] Step 010 [Infra] — Identify the minimal “project world API” needed by GOFAI (section markers, tracks/layers, card registry, selected range, undo stack).
-- [ ] Step 011 [Type] — Specify the difference between **goals**, **constraints**, and **preferences** (hard vs soft), with a stable typed model.
+- [x] Step 011 [Type] — Specify the difference between **goals**, **constraints**, and **preferences** (hard vs soft), with a stable typed model.
 - [ ] Step 016 [Infra] — Add a glossary of key terms (scope, referent, salience, presupposition, implicature, constraint) and require it in docs review.
 - [ ] Step 017 [Type] — Decide how “unknown-but-declared” extension semantics are represented (opaque namespaced nodes with schemas).
 - [ ] Step 020 [Infra][Eval] — Define success metrics: semantic reliability under paraphrase, constraint correctness, edit reversibility, workflow speed, user trust.
@@ -39,7 +39,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 - [ ] Step 052 [Type] — Define `GofaiId` as a namespaced ID type that composes with `CardPlayId` rules; reject non-namespaced extension entries.
 - [ ] Step 053 [Infra] — Build a “canon check” script for GOFAI (like existing canon checks) that validates all vocab tables and IDs.
-- [ ] Step 061 [Type] — Create a single “unit system” type layer: `Bpm`, `Semitones`, `Bars`, `Beats`, `Ticks`, with conversion rules and refinements.
+- [x] Step 061 [Type] — Create a single “unit system” type layer: `Bpm`, `Semitones`, `Bars`, `Beats`, `Ticks`, with conversion rules and refinements.
 - [ ] Step 062 [Infra] — Add a stable, human-readable ID pretty-printer and parser for all GOFAI entity references.
 - [ ] Step 063 [Type] — Define a “capability lattice” (e.g., production enabled, routing editable, AI allowed) to control which semantics can compile to execution.
 - [ ] Step 064 [Ext][Type] — Define extension namespaces as first-class provenance on lexeme senses, constraints, and opcodes.
@@ -78,7 +78,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
 - [x] Step 261 [Sem][Type] — Implement a “plan skeleton” step that maps from CPL-Intent to a set of lever candidates with open parameters.
 - [ ] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
-- [ ] Step 263 [Sem] — Implement “plan legality” checks: ensure opcodes only touch allowed scope and do not mutate forbidden targets.
+- [x] Step 263 [Sem] — Implement “plan legality” checks: ensure opcodes only touch allowed scope and do not mutate forbidden targets.
 - [ ] Step 264 [Sem] — Implement “plan explainability”: each opcode carries a reason string linked to the goal it serves.
 - [ ] Step 265 [Sem] — Implement “plan provenance”: preserve lexeme/rule origins through to plan steps for end-to-end explanations.
 - [ ] Step 266 [Sem][Infra] — Integrate Prolog for symbolic suggestions: query theory KB for chord substitutions, cadence options, mode inference.

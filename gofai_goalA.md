@@ -174,11 +174,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 ## Phase 4 — Deep Pragmatics + Dialogue: Context, Anaphora, Presupposition, QUD (Steps 201–250)
 
-- [ ] Step 201 [Prag] — Define a dialogue state model that stores: last focused scope, salient entities, last CPL, last plan, last diff, user prefs.
-- [ ] Step 202 [Prag] — Implement DRT-style discourse referents for entities (sections, layers, cards, motifs) that persist across turns.
-- [ ] Step 203 [Prag] — Implement anaphora resolution rules for “it/that/this/there” using salience + UI focus + recency weighting.
-- [ ] Step 204 [Prag] — Implement definite description resolution (“the chorus”, “the bridge”) with ambiguity to clarification when multiple matches exist.
-- [ ] Step 205 [Prag] — Implement demonstrative resolution tied to UI selection (“these notes”) with fallback to last selection.
+- [x] Step 201 [Prag] — Define a dialogue state model that stores: last focused scope, salient entities, last CPL, last plan, last diff, user prefs.
+- [x] Step 202 [Prag] — Implement DRT-style discourse referents for entities (sections, layers, cards, motifs) that persist across turns.
+- [x] Step 203 [Prag] — Implement anaphora resolution rules for "it/that/this/there" using salience + UI focus + recency weighting.
+- [x] Step 204 [Prag] — Implement definite description resolution ("the chorus", "the bridge") with ambiguity to clarification when multiple matches exist.
+- [x] Step 205 [Prag] — Implement demonstrative resolution tied to UI selection ("these notes") with fallback to last selection.
 - [ ] Step 206 [Prag] — Implement presupposition checking/accommodation for “again”, “still”, “back”, “return”, “keep”, and “continue”.
 - [ ] Step 207 [Prag] — Implement conversational implicature defaults: “make it tighter” defaults to microtiming and density levers unless user overrides.
 - [ ] Step 208 [Prag] — Implement QUD stack tracking: interpret utterances relative to the current question under discussion to decide what “it” refers to.

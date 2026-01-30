@@ -39,6 +39,26 @@ import {
   getLCCScaleIntervals,
   calculateTonalGravity,
   UPPER_STRUCTURE_TRIADS,
+  BEBOP_SCALE_CARD,
+  THEORY_CARDS,
+  LYDIAN_CHROMATIC_CARD,
+  PARENT_SCALE_CARD,
+  CHORD_SCALE_UNITY_CARD,
+  UPPER_STRUCTURE_CARD,
+  TONAL_GRAVITY_VISUALIZER_CARD,
+  SCHEMA_CARD,
+  CARNATIC_RAGA_TALA_CARD,
+  CELTIC_TUNE_CARD,
+  CHINESE_MODE_CARD,
+  LICK_LIBRARY_CARD,
+  MOTIF_DEVELOPER_CARD,
+  OUTSIDE_CARD,
+  FILM_SCORING_CARD,
+  TRAILER_BUILD_CARD,
+  KORVAI_GENERATOR_CARD,
+  SET_BUILDER_CARD,
+  REHARMONIZATION_CARD,
+  defaultCardState,
   type TheoryCardDef,
 } from './theory-cards';
 
@@ -48,6 +68,9 @@ import {
   unregisterCardConstraints,
   validateNamespace,
   validateConstraintParams,
+  validateConstraintDefinition,
+  sanitizePrologCode,
+  generateEditorFields,
   type CustomConstraintDefinition,
   type CustomConstraint,
   type ConflictInfo,
@@ -65,6 +88,8 @@ import {
   type NoteEvent,
   type SelectionProfile,
 } from './selection-analyzer';
+
+import * as specQueries from '../queries/spec-queries';
 
 // ============================================================================
 // HELPERS
@@ -707,7 +732,7 @@ describe('Masking Avoidance (C854)', () => {
 // ============================================================================
 describe('Lydian Chromatic Concept (C1127-C1129)', () => {
 
-  test('C1127: Lydian scale has highest consonance score from its tonic', () => {
+  it('C1127: Lydian scale has highest consonance score from its tonic', () => {
     // The Lydian tonic (0) should have gravity level 0 (most consonant)
     expect(calculateTonalGravity(60, 60)).toBe(0); // unison = 0
     // Perfect fifth (interval 7) should be next most consonant
@@ -718,7 +743,7 @@ describe('Lydian Chromatic Concept (C1127-C1129)', () => {
     expect(calculateTonalGravity(65, 60)).toBe(11);
   });
 
-  test('C1128: Lydian Chromatic order places #4 before natural 4', () => {
+  it('C1128: Lydian Chromatic order places #4 before natural 4', () => {
     // #4 (tritone, interval 6) should have LOWER gravity level than natural 4 (interval 5)
     const sharpFourGravity = calculateTonalGravity(66, 60); // F# from C = interval 6
     const naturalFourGravity = calculateTonalGravity(65, 60); // F from C = interval 5
@@ -728,7 +753,7 @@ describe('Lydian Chromatic Concept (C1127-C1129)', () => {
     expect(naturalFourGravity).toBe(11);
   });
 
-  test('C1129: chord-parent-scale lookup returns expected principal scales', () => {
+  it('C1129: chord-parent-scale lookup returns expected principal scales', () => {
     // Lydian scale should have 7 notes including #4
     const lydian = LCC_SCALES['lydian'];
     expect(lydian).toHaveLength(7);
@@ -748,12 +773,12 @@ describe('Lydian Chromatic Concept (C1127-C1129)', () => {
     expect(lydDim).not.toContain(4); // No natural 3
   });
 
-  test('getLCCScaleIntervals returns correct data', () => {
+  it('getLCCScaleIntervals returns correct data', () => {
     expect(getLCCScaleIntervals('lydian')).toEqual([0, 2, 4, 6, 7, 9, 11]);
     expect(getLCCScaleIntervals('nonexistent')).toEqual([0, 2, 4, 6, 7, 9, 11]); // defaults to lydian
   });
 
-  test('Bebop scales have 8 notes', () => {
+  it('Bebop scales have 8 notes', () => {
     for (const [name, intervals] of Object.entries(BEBOP_SCALES)) {
       expect(intervals).toHaveLength(8);
       // First note should be root (0)
@@ -761,7 +786,7 @@ describe('Lydian Chromatic Concept (C1127-C1129)', () => {
     }
   });
 
-  test('Upper structure triads have correct tension labels', () => {
+  it('Upper structure triads have correct tension labels', () => {
     const us2 = UPPER_STRUCTURE_TRIADS['II_major'];
     expect(us2).toBeDefined();
     expect(us2.intervals).toHaveLength(3);
@@ -777,7 +802,7 @@ describe('Lydian Chromatic Concept (C1127-C1129)', () => {
 // Chord-Scale Pairing Tests (C1156-C1158)
 // ============================================================================
 describe('Chord-Scale Unity Tests (C1156-C1158)', () => {
-  test('C1156: dominant chord → Lydian b7 as high-gravity option', () => {
+  it('C1156: dominant chord → Lydian b7 as high-gravity option', () => {
     // The LCC_SCALES data should contain lydian_b7
     const lydB7 = LCC_SCALES['lydian_b7'];
     expect(lydB7).toBeDefined();
@@ -789,7 +814,7 @@ describe('Chord-Scale Unity Tests (C1156-C1158)', () => {
     expect(lydB7).not.toContain(11);
   });
 
-  test('C1157: minor chord → Dorian as primary option', () => {
+  it('C1157: minor chord → Dorian as primary option', () => {
     // Dorian: 0 2 3 5 7 9 10 — natural 6 distinguishes from Aeolian
     // In LCC terms, min7 maps to Lydian Diminished (which contains Dorian mode)
     const lydDim = LCC_SCALES['lydian_diminished'];
@@ -797,7 +822,7 @@ describe('Chord-Scale Unity Tests (C1156-C1158)', () => {
     expect(lydDim).toContain(9); // natural 6 (Dorian character)
   });
 
-  test('C1158: upper structure triads yield correct tension combinations', () => {
+  it('C1158: upper structure triads yield correct tension combinations', () => {
     // II major triad over C7: D F# A → gives 9, #11, 13
     const us2 = UPPER_STRUCTURE_TRIADS['II_major'];
     expect(us2.intervals).toEqual([2, 6, 9]); // D=2, F#=6, A=9
@@ -811,14 +836,14 @@ describe('Chord-Scale Unity Tests (C1156-C1158)', () => {
 // Jazz Voicing Tests
 // ============================================================================
 describe('Jazz Voicing Helpers', () => {
-  test('Bebop dominant scale adds natural 7 as passing tone', () => {
+  it('Bebop dominant scale adds natural 7 as passing tone', () => {
     const dominant = BEBOP_SCALES['dominant'] as number[];
     // Should have both b7 (10) and natural 7 (11)
     expect(dominant).toContain(10); // b7
     expect(dominant).toContain(11); // natural 7 (passing tone)
   });
 
-  test('Bebop major scale adds #5 as passing tone', () => {
+  it('Bebop major scale adds #5 as passing tone', () => {
     const major = BEBOP_SCALES['major'] as number[];
     // Should have both natural 5 (7) and #5/b6 (8)
     expect(major).toContain(7); // natural 5
@@ -830,7 +855,7 @@ describe('Jazz Voicing Helpers', () => {
 // Jazz Vocabulary Tests (C1380-C1382)
 // ============================================================================
 describe('Jazz Vocabulary Tests (C1380-C1382)', () => {
-  test('C1380: bebop scale correctly adds passing tone between scale degrees', () => {
+  it('C1380: bebop scale correctly adds passing tone between scale degrees', () => {
     // Bebop dominant: passing tone between b7 and root
     const dominant = BEBOP_SCALES['dominant'] as number[];
     expect(dominant).toHaveLength(8);
@@ -851,7 +876,7 @@ describe('Jazz Vocabulary Tests (C1380-C1382)', () => {
     expect(dorian).toContain(4);  // natural 3 (passing tone)
   });
 
-  test('C1381: enclosure card targets chord tones on strong beats', () => {
+  it('C1381: enclosure card targets chord tones on strong beats', () => {
     // Verify enclosure card defines on_beat as a placement option
     expect(ENCLOSURE_CARD.params).toBeDefined();
     const placementParam = ENCLOSURE_CARD.params.find(p => p.id === 'rhythmicPlacement');
@@ -866,7 +891,7 @@ describe('Jazz Vocabulary Tests (C1380-C1382)', () => {
     expect(targetParam!.enumValues).toContain('guide_tones');
   });
 
-  test('C1382: guide tone card connects 3rds and 7ths by step or common tone', () => {
+  it('C1382: guide tone card connects 3rds and 7ths by step or common tone', () => {
     expect(GUIDE_TONE_CARD.params).toBeDefined();
     const connectionParam = GUIDE_TONE_CARD.params.find(p => p.id === 'connectionType');
     expect(connectionParam).toBeDefined();
@@ -881,7 +906,7 @@ describe('Jazz Vocabulary Tests (C1380-C1382)', () => {
     expect(voiceParam!.defaultValue).toBe('2'); // Default = 3rds + 7ths
   });
 
-  test('C1380 supplemental: digital patterns use correct scale degrees', () => {
+  it('C1380 supplemental: digital patterns use correct scale degrees', () => {
     expect(DIGITAL_PATTERN_CARD.params).toBeDefined();
     const patternParam = DIGITAL_PATTERN_CARD.params.find(p => p.id === 'pattern');
     expect(patternParam).toBeDefined();
@@ -896,7 +921,7 @@ describe('Jazz Vocabulary Tests (C1380-C1382)', () => {
 // Custom Constraint Tests (C1016-C1018)
 // ============================================================================
 describe('Custom Constraint Tests (C1016-C1018)', () => {
-  test('C1016: custom constraint registration and lookup', () => {
+  it('C1016: custom constraint registration and lookup', () => {
     // Register a test constraint
     const testDef: CustomConstraintDefinition = {
       type: 'test:my_custom',
@@ -924,7 +949,7 @@ describe('Custom Constraint Tests (C1016-C1018)', () => {
     expect(constraintRegistry.has('test:my_custom')).toBe(false);
   });
 
-  test('C1017: custom constraint Prolog encoding round-trip', () => {
+  it('C1017: custom constraint Prolog encoding round-trip', () => {
     // Register a constraint with Prolog code
     constraintRegistry.register({
       type: 'test:prolog_rt',
@@ -959,7 +984,7 @@ describe('Custom Constraint Tests (C1016-C1018)', () => {
     constraintRegistry.unregister('test:prolog_rt');
   });
 
-  test('C1018: custom constraint conflict detection with built-in constraints', () => {
+  it('C1018: custom constraint conflict detection with built-in constraints', () => {
     // Register a custom constraint with conflict detection
     constraintRegistry.register({
       type: 'test:conflict_check',
@@ -1016,7 +1041,7 @@ describe('Custom Constraint Tests (C1016-C1018)', () => {
 // Custom Prolog Tests (C1034-C1036)
 // ============================================================================
 describe('Custom Prolog Tests (C1034-C1036)', () => {
-  test('C1034: custom Prolog loads without breaking base KB', () => {
+  it('C1034: custom Prolog loads without breaking base KB', () => {
     // Register custom Prolog code
     constraintRegistry.register({
       type: 'test:prolog_safe',
@@ -1038,7 +1063,7 @@ describe('Custom Prolog Tests (C1034-C1036)', () => {
     constraintRegistry.unregister('test:prolog_safe');
   });
 
-  test('C1035: custom Prolog namespace isolation', () => {
+  it('C1035: custom Prolog namespace isolation', () => {
     // Register two constraints in different namespaces
     constraintRegistry.registerPrologCode('user:ns_a',
       'user_ns_a_fact(hello).');
@@ -1058,7 +1083,7 @@ describe('Custom Prolog Tests (C1034-C1036)', () => {
     expect(invalidResult.errors.length).toBeGreaterThan(0);
   });
 
-  test('C1036: custom Prolog timeout enforcement', () => {
+  it('C1036: custom Prolog timeout enforcement', () => {
     // Verify the registry tracks constraints that should have timeouts
     // (Actual Prolog execution timeout is enforced by PrologAdapter, not the registry)
     constraintRegistry.register({
@@ -1086,7 +1111,7 @@ describe('Custom Prolog Tests (C1034-C1036)', () => {
 // Card Constraint Lifecycle Tests (C1059-C1062)
 // ============================================================================
 describe('Card Constraint Lifecycle (C1059-C1062)', () => {
-  test('C1059: card contributes constraints on load', () => {
+  it('C1059: card contributes constraints on load', () => {
     const mockCard: ConstraintContributingCard = {
       getConstraintDefinitions() {
         return [{
@@ -1110,7 +1135,7 @@ describe('Card Constraint Lifecycle (C1059-C1062)', () => {
     unregisterCardConstraints(mockCard);
   });
 
-  test('C1060: card removes constraints on unload', () => {
+  it('C1060: card removes constraints on unload', () => {
     const mockCard: ConstraintContributingCard = {
       getConstraintDefinitions() {
         return [{
@@ -1132,7 +1157,7 @@ describe('Card Constraint Lifecycle (C1059-C1062)', () => {
     expect(constraintRegistry.has('test:removable')).toBe(false);
   });
 
-  test('C1061: card param changes propagate to MusicSpec', () => {
+  it('C1061: card param changes propagate to MusicSpec', () => {
     // Verify that when theory card state changes, applyToSpec reflects it
     const spec = createMusicSpec();
     const state: Record<string, { value: unknown }> = {
@@ -1142,7 +1167,7 @@ describe('Card Constraint Lifecycle (C1059-C1062)', () => {
     };
 
     // Import BEBOP_SCALE_CARD and apply
-    const { BEBOP_SCALE_CARD } = require('./theory-cards');
+    // BEBOP_SCALE_CARD already imported
     const result = BEBOP_SCALE_CARD.applyToSpec(state, spec);
 
     // Should have constraints applied
@@ -1152,7 +1177,7 @@ describe('Card Constraint Lifecycle (C1059-C1062)', () => {
     expect(keyConstraints.length).toBeGreaterThan(0);
   });
 
-  test('C1062: MusicSpec changes propagate to card params', () => {
+  it('C1062: MusicSpec changes propagate to card params', () => {
     // The spec event bus handles this propagation
     // Verify that the bus correctly routes constraint type changes
     const bus = new SpecEventBus();
@@ -1175,7 +1200,7 @@ describe('Card Constraint Lifecycle (C1059-C1062)', () => {
 // Runtime Validation Tests (C1004-C1005 supplemental)
 // ============================================================================
 describe('Constraint Parameter Validation (C1004-C1005)', () => {
-  test('validates enum params correctly', () => {
+  it('validates enum params correctly', () => {
     const enumParam: ConstraintParamEnum = {
       kind: 'enum',
       values: ['a', 'b', 'c'],
@@ -1198,7 +1223,7 @@ describe('Constraint Parameter Validation (C1004-C1005)', () => {
     expect(validateConstraintParams(invalidConstraint, [enumParam]).valid).toBe(false);
   });
 
-  test('validates number range params correctly', () => {
+  it('validates number range params correctly', () => {
     const numParam: ConstraintParamNumber = {
       kind: 'number',
       min: 0,
@@ -1223,9 +1248,9 @@ describe('Constraint Parameter Validation (C1004-C1005)', () => {
 // Chinese Mode Tests (C1820)
 // ============================================================================
 describe('Chinese Mode Tests (C1820)', () => {
-  test('C1820: Chinese modes calculate correct pitches', () => {
+  it('C1820: Chinese modes calculate correct pitches', () => {
     // The pentatonic modes (gong, shang, jue, zhi, yu) should produce 5 distinct PCs
-    const { matchChineseModes, extractProfile } = require('./selection-analyzer') as typeof import('./selection-analyzer');
+    // Already imported at top
 
     // Gong mode in C: C D E G A = PCs {0, 2, 4, 7, 9}
     const gongNotes = [
@@ -1256,7 +1281,7 @@ describe('Chinese Mode Tests (C1820)', () => {
 // Orchestration Solver Test (C1546)
 // ============================================================================
 describe('Orchestration Solver (C1546)', () => {
-  test('C1546: solveOrchestration returns valid assignments', async () => {
+  it('C1546: solveOrchestration returns valid assignments', async () => {
     // This tests the TS fallback of solveOrchestration
     const { solveOrchestration } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = await solveOrchestration(
@@ -1281,7 +1306,7 @@ describe('Orchestration Solver (C1546)', () => {
 // Heterophony Tests (C1827)
 // ============================================================================
 describe('Heterophony Tests (C1827)', () => {
-  test('C1827: heterophony generation follows tradition rules', async () => {
+  it('C1827: heterophony generation follows tradition rules', async () => {
     const { generateHeterophony } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const melody = [60, 62, 64, 65, 67]; // C D E F G
     const instruments = ['erhu', 'pipa', 'dizi'];
@@ -1308,10 +1333,10 @@ describe('Heterophony Tests (C1827)', () => {
 // Jazz Voicing Tests (C1236-C1238)
 // ============================================================================
 describe('Jazz Voicing Tests (C1236-C1238)', () => {
-  test('C1236: shell voicings contain 3rd and 7th', () => {
+  it('C1236: shell voicings contain 3rd and 7th', () => {
     // Bill Evans rootless voicings: Type A starts from 3rd, Type B from 7th
     // In a rootless voicing, 3rd and 7th are the shell
-    const { BEBOP_SCALES } = require('./theory-cards');
+    // Already imported at top
 
     // Dominant bebop scale should contain both 3rd (4) and 7th (10 or 11)
     const dominant = BEBOP_SCALES['dominant'] as number[];
@@ -1320,7 +1345,7 @@ describe('Jazz Voicing Tests (C1236-C1238)', () => {
     expect(dominant).toContain(11); // natural 7 (passing tone)
   });
 
-  test('C1237: drop 2 voicing correctly redistributes close position', () => {
+  it('C1237: drop 2 voicing correctly redistributes close position', () => {
     // In drop 2: take 2nd voice from top in close position, drop it an octave
     // Close position C major 7: C E G B (top to bottom: B G E C)
     // Drop 2 = drop G an octave: B E C G(low)
@@ -1334,7 +1359,7 @@ describe('Jazz Voicing Tests (C1236-C1238)', () => {
     expect(drop2Range).toBeGreaterThan(closeRange);
   });
 
-  test('C1238: voice leading optimizer minimizes total semitone motion', () => {
+  it('C1238: voice leading optimizer minimizes total semitone motion', () => {
     // Given two chords, smooth voice leading minimizes total movement
     // Cmaj7 → Dm7: C→D(+2), E→F(+1), G→A(+2), B→C(+1) = total 6
     // vs. random redistribution which would be larger
@@ -1361,7 +1386,7 @@ describe('Jazz Voicing Tests (C1236-C1238)', () => {
 // Big Band Voicing Tests (C1274-C1276)
 // ============================================================================
 describe('Big Band Voicing Tests (C1274-C1276)', () => {
-  test('C1274: 4-way close produces correct interval structure', () => {
+  it('C1274: 4-way close produces correct interval structure', () => {
     // 4-way close: melody + 3 voices below, all within an octave
     // For Cmaj7 with melody on B: B G E C (all within one octave)
     const fourWayClose = [11, 7, 4, 0]; // B G E C (descending)
@@ -1375,7 +1400,7 @@ describe('Big Band Voicing Tests (C1274-C1276)', () => {
     expect(pcs.size).toBe(4);
   });
 
-  test('C1275: drop 2 sax soli maintains melody on top', () => {
+  it('C1275: drop 2 sax soli maintains melody on top', () => {
     // In a drop 2 arrangement, the melody should always be the highest note
     const melodyNote = 11; // B (top)
     const drop2Voicing = [melodyNote, 4, 0, 7 - 12]; // B E C G(low)
@@ -1384,7 +1409,7 @@ describe('Big Band Voicing Tests (C1274-C1276)', () => {
     expect(Math.max(...drop2Voicing)).toBe(melodyNote);
   });
 
-  test('C1276: section balance avoids tutti overload', () => {
+  it('C1276: section balance avoids tutti overload', () => {
     // Tutti scoring should distribute across sections, not pile everything together
     // A balanced arrangement should have different registers for different sections
     const saxSection = [60, 64, 67, 71]; // middle register
@@ -1401,7 +1426,7 @@ describe('Big Band Voicing Tests (C1274-C1276)', () => {
 // LCC Advanced Tests (C1188-C1190)
 // ============================================================================
 describe('LCC Advanced Tests (C1188-C1190)', () => {
-  test('C1188: LCC voicing generator produces valid jazz voicings', () => {
+  it('C1188: LCC voicing generator produces valid jazz voicings', () => {
     // Upper structure triads should have exactly 3 intervals
     for (const [name, triad] of Object.entries(UPPER_STRUCTURE_TRIADS)) {
       expect(triad.intervals).toHaveLength(3);
@@ -1415,7 +1440,7 @@ describe('LCC Advanced Tests (C1188-C1190)', () => {
     }
   });
 
-  test('C1189: LCC scale recommendation matches chord type', () => {
+  it('C1189: LCC scale recommendation matches chord type', () => {
     // Lydian should be the first/primary scale for major chords
     const lydian = LCC_SCALES['lydian'];
     expect(lydian).toBeDefined();
@@ -1435,7 +1460,7 @@ describe('LCC Advanced Tests (C1188-C1190)', () => {
     expect(lydDim).toContain(6); // #4
   });
 
-  test('C1190: LCC reharmonization preserves melodic compatibility', () => {
+  it('C1190: LCC reharmonization preserves melodic compatibility', () => {
     // A melody note should be present in the recommended scale
     // If melody has C (0), the Lydian scale from C should contain it
     const lydian = getLCCScaleIntervals('lydian');
@@ -1457,7 +1482,7 @@ describe('LCC Advanced Tests (C1188-C1190)', () => {
 // Tritone Substitution Tests (C1345)
 // ============================================================================
 describe('Tritone Substitution Tests (C1345)', () => {
-  test('C1345: tritone sub preserves guide tones (3rd/7th)', () => {
+  it('C1345: tritone sub preserves guide tones (3rd/7th)', () => {
     // G7 has guide tones B (3rd) and F (7th)
     // Db7 (tritone sub) has guide tones F (3rd) and Cb/B (7th)
     // The guide tones swap positions but remain the same pitch classes
@@ -1483,8 +1508,8 @@ describe('Tritone Substitution Tests (C1345)', () => {
 // Coverage Tests for Existing Predicates (C972-C976)
 // ============================================================================
 describe('KB Stability Tests (C972-C976)', () => {
-  test('C972: theory cards all have valid cardId and params', () => {
-    const { THEORY_CARDS } = require('./theory-cards');
+  it('C972: theory cards all have valid cardId and params', () => {
+    // Already imported at top
     for (const card of THEORY_CARDS as TheoryCardDef[]) {
       expect(card.cardId).toBeTruthy();
       expect(card.displayName).toBeTruthy();
@@ -1500,8 +1525,8 @@ describe('KB Stability Tests (C972-C976)', () => {
     }
   });
 
-  test('C973: keyfinding theory cards produce key constraints', () => {
-    const { LYDIAN_CHROMATIC_CARD, PARENT_SCALE_CARD, defaultCardState } = require('./theory-cards');
+  it('C973: keyfinding theory cards produce key constraints', () => {
+    // Already imported at top
 
     // Lydian chromatic card should produce key constraints
     const lcState = defaultCardState(LYDIAN_CHROMATIC_CARD as TheoryCardDef);
@@ -1516,22 +1541,22 @@ describe('KB Stability Tests (C972-C976)', () => {
     expect(psConstraints.length).toBeGreaterThan(0);
   });
 
-  test('C974: schema cards produce style constraints', () => {
-    const { SCHEMA_CARD, defaultCardState } = require('./theory-cards');
+  it('C974: schema cards produce style constraints', () => {
+    // Already imported at top
     const state = defaultCardState(SCHEMA_CARD as TheoryCardDef);
     const constraints = (SCHEMA_CARD as TheoryCardDef).extractConstraints(state);
     expect(constraints.length).toBeGreaterThan(0);
   });
 
-  test('C975: carnatic card produces culture constraints', () => {
-    const { CARNATIC_RAGA_TALA_CARD, defaultCardState } = require('./theory-cards');
+  it('C975: carnatic card produces culture constraints', () => {
+    // Already imported at top
     const state = defaultCardState(CARNATIC_RAGA_TALA_CARD as TheoryCardDef);
     const constraints = (CARNATIC_RAGA_TALA_CARD as TheoryCardDef).extractConstraints(state);
     expect(constraints.length).toBeGreaterThan(0);
   });
 
-  test('C976: celtic/chinese mode cards produce culture constraints', () => {
-    const { CELTIC_TUNE_CARD, CHINESE_MODE_CARD, defaultCardState } = require('./theory-cards');
+  it('C976: celtic/chinese mode cards produce culture constraints', () => {
+    // Already imported at top
 
     const celticState = defaultCardState(CELTIC_TUNE_CARD as TheoryCardDef);
     const celticConstraints = (CELTIC_TUNE_CARD as TheoryCardDef).extractConstraints(celticState);
@@ -1547,12 +1572,8 @@ describe('KB Stability Tests (C972-C976)', () => {
 // Jazz Improv Predicate Coverage (C1443)
 // ============================================================================
 describe('Jazz Improv Coverage (C1443)', () => {
-  test('C1443: all jazz improv cards produce constraints', () => {
-    const {
-      BEBOP_SCALE_CARD, ENCLOSURE_CARD, DIGITAL_PATTERN_CARD,
-      GUIDE_TONE_CARD, LICK_LIBRARY_CARD, MOTIF_DEVELOPER_CARD,
-      OUTSIDE_CARD, defaultCardState,
-    } = require('./theory-cards');
+  it('C1443: all jazz improv cards produce constraints', () => {
+    // Already imported at top
 
     const jazzCards = [
       BEBOP_SCALE_CARD, ENCLOSURE_CARD, DIGITAL_PATTERN_CARD,
@@ -1575,12 +1596,8 @@ describe('Jazz Improv Coverage (C1443)', () => {
 // LCC Predicate Coverage (C1199)
 // ============================================================================
 describe('LCC Predicate Coverage (C1199)', () => {
-  test('C1199: all LCC cards produce valid constraints', () => {
-    const {
-      LYDIAN_CHROMATIC_CARD, PARENT_SCALE_CARD,
-      CHORD_SCALE_UNITY_CARD, UPPER_STRUCTURE_CARD,
-      TONAL_GRAVITY_VISUALIZER_CARD, defaultCardState,
-    } = require('./theory-cards');
+  it('C1199: all LCC cards produce valid constraints', () => {
+    // Already imported at top
 
     const lccCards = [
       LYDIAN_CHROMATIC_CARD, PARENT_SCALE_CARD,
@@ -1603,8 +1620,8 @@ describe('LCC Predicate Coverage (C1199)', () => {
 // Carnatic Predicate Coverage (C647)
 // ============================================================================
 describe('Carnatic Predicate Coverage (C647)', () => {
-  test('C647: carnatic raga card produces valid constraints per major raga', () => {
-    const { CARNATIC_RAGA_TALA_CARD, defaultCardState } = require('./theory-cards');
+  it('C647: carnatic raga card produces valid constraints per major raga', () => {
+    // Already imported at top
     const card = CARNATIC_RAGA_TALA_CARD as TheoryCardDef;
 
     // Test with several major ragas
@@ -1625,8 +1642,8 @@ describe('Carnatic Predicate Coverage (C647)', () => {
 // Set Builder Tests (C736)
 // ============================================================================
 describe('Set Builder Tests (C736)', () => {
-  test('C736: set builder card produces compatible constraints', () => {
-    const { SET_BUILDER_CARD, defaultCardState } = require('./theory-cards');
+  it('C736: set builder card produces compatible constraints', () => {
+    // Already imported at top
     const card = SET_BUILDER_CARD as TheoryCardDef;
     const state = defaultCardState(card);
     const constraints = card.extractConstraints(state);
@@ -1644,8 +1661,8 @@ describe('Set Builder Tests (C736)', () => {
 // Melody Compatibility Tests (C1346)
 // ============================================================================
 describe('Melody Compatibility Tests (C1346)', () => {
-  test('C1346: reharmonization card produces style constraints', () => {
-    const { REHARMONIZATION_CARD, defaultCardState } = require('./theory-cards');
+  it('C1346: reharmonization card produces style constraints', () => {
+    // Already imported at top
     const card = REHARMONIZATION_CARD as TheoryCardDef;
     const state = defaultCardState(card);
     const constraints = card.extractConstraints(state);
@@ -1660,7 +1677,7 @@ describe('Melody Compatibility Tests (C1346)', () => {
 // Jazz Pattern Recognition Tests (C1423-C1425)
 // ============================================================================
 describe('Jazz Pattern Recognition (C1423-C1425)', () => {
-  test('C1423: enclosure card identifies pattern types', () => {
+  it('C1423: enclosure card identifies pattern types', () => {
     const enclosureTypes = ENCLOSURE_CARD.params.find(p => p.id === 'enclosureType');
     expect(enclosureTypes).toBeDefined();
     expect(enclosureTypes!.enumValues).toContain('chromatic');
@@ -1669,9 +1686,9 @@ describe('Jazz Pattern Recognition (C1423-C1425)', () => {
     expect(enclosureTypes!.enumValues).toContain('delayed');
   });
 
-  test('C1424: bebop scale card generates valid scale constraints', () => {
+  it('C1424: bebop scale card generates valid scale constraints', () => {
     // All 4 bebop scale types should be selectable
-    const { BEBOP_SCALE_CARD, defaultCardState } = require('./theory-cards');
+    // Already imported at top
     const card = BEBOP_SCALE_CARD as TheoryCardDef;
     const types = ['dominant', 'major', 'dorian', 'melodic_minor'];
     for (const t of types) {
@@ -1681,7 +1698,7 @@ describe('Jazz Pattern Recognition (C1423-C1425)', () => {
     }
   });
 
-  test('C1425: guide tone card creates smooth voice leading params', () => {
+  it('C1425: guide tone card creates smooth voice leading params', () => {
     const connectionParam = GUIDE_TONE_CARD.params.find(p => p.id === 'connectionType');
     expect(connectionParam!.enumValues).toEqual(['step', 'common_tone', 'chromatic']);
     // Default should be 'step' for smoothest connection
@@ -1693,16 +1710,16 @@ describe('Jazz Pattern Recognition (C1423-C1425)', () => {
 // Film Scoring Tests (C1572, C1606, C1619, C1656)
 // ============================================================================
 describe('Film Scoring Tests', () => {
-  test('C1572: film scoring card produces valid constraints', () => {
-    const { FILM_SCORING_CARD, defaultCardState } = require('./theory-cards');
+  it('C1572: film scoring card produces valid constraints', () => {
+    // Already imported at top
     const card = FILM_SCORING_CARD as TheoryCardDef;
     const state = defaultCardState(card);
     const constraints = card.extractConstraints(state);
     expect(constraints.length).toBeGreaterThan(0);
   });
 
-  test('C1606: trailer build card has intensity parameter', () => {
-    const { TRAILER_BUILD_CARD, defaultCardState } = require('./theory-cards');
+  it('C1606: trailer build card has intensity parameter', () => {
+    // Already imported at top
     const card = TRAILER_BUILD_CARD as TheoryCardDef;
     const state = defaultCardState(card);
     const constraints = card.extractConstraints(state);
@@ -1714,17 +1731,17 @@ describe('Film Scoring Tests', () => {
 // Raga/Tala Tests (C1736-C1737)
 // ============================================================================
 describe('Raga/Tala Tests (C1736-C1737)', () => {
-  test('C1736: tihai constraint exists in theory system', () => {
+  it('C1736: tihai constraint exists in theory system', () => {
     // Korvai generator card handles tihai-like calculations
-    const { KORVAI_GENERATOR_CARD, defaultCardState } = require('./theory-cards');
+    // Already imported at top
     const card = KORVAI_GENERATOR_CARD as TheoryCardDef;
     const state = defaultCardState(card);
     const constraints = card.extractConstraints(state);
     expect(constraints.length).toBeGreaterThan(0);
   });
 
-  test('C1737: carnatic raga card returns valid constraints for different ragas', () => {
-    const { CARNATIC_RAGA_TALA_CARD, defaultCardState } = require('./theory-cards');
+  it('C1737: carnatic raga card returns valid constraints for different ragas', () => {
+    // Already imported at top
     const card = CARNATIC_RAGA_TALA_CARD as TheoryCardDef;
     // Should have a raga parameter
     const ragaParam = card.params.find(p => p.id === 'raga');
@@ -1741,8 +1758,8 @@ describe('Raga/Tala Tests (C1736-C1737)', () => {
 // ============================================================================
 
 describe('Constraint Definition Validation (C1002)', () => {
-  test('validates complete definition as valid', () => {
-    const { validateConstraintDefinition } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('validates complete definition as valid', () => {
+    // Already imported at top
     const def = {
       type: 'user:test_valid',
       displayName: 'Test Constraint',
@@ -1756,15 +1773,15 @@ describe('Constraint Definition Validation (C1002)', () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  test('rejects definition missing required fields', () => {
-    const { validateConstraintDefinition } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('rejects definition missing required fields', () => {
+    // Already imported at top
     const result = validateConstraintDefinition({} as any);
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
-  test('rejects definition with invalid namespace', () => {
-    const { validateConstraintDefinition } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('rejects definition with invalid namespace', () => {
+    // Already imported at top
     const result = validateConstraintDefinition({
       type: 'no_namespace',
       displayName: 'Bad',
@@ -1777,8 +1794,8 @@ describe('Constraint Definition Validation (C1002)', () => {
     expect(result.errors.some(e => e.includes('namespace'))).toBe(true);
   });
 
-  test('rejects definition with invalid category', () => {
-    const { validateConstraintDefinition } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('rejects definition with invalid category', () => {
+    // Already imported at top
     const result = validateConstraintDefinition({
       type: 'user:test',
       displayName: 'Test',
@@ -1797,8 +1814,8 @@ describe('Constraint Definition Validation (C1002)', () => {
 // ============================================================================
 
 describe('Prolog Code Safety (C1022-C1024)', () => {
-  test('C1022: sanitizePrologCode rejects dangerous patterns', () => {
-    const { sanitizePrologCode } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1022: sanitizePrologCode rejects dangerous patterns', () => {
+    // Already imported at top
 
     // assertz is dangerous
     const result1 = sanitizePrologCode('my_pred(X) :- assertz(bad_fact(X)).');
@@ -1814,8 +1831,8 @@ describe('Prolog Code Safety (C1022-C1024)', () => {
     expect(result3.valid).toBe(true);
   });
 
-  test('C1022: warns about possible unbounded recursion', () => {
-    const { sanitizePrologCode } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1022: warns about possible unbounded recursion', () => {
+    // Already imported at top
     // No base case for recursive predicate
     const code = 'inf_loop(X) :- inf_loop(X).';
     const result = sanitizePrologCode(code);
@@ -1823,8 +1840,8 @@ describe('Prolog Code Safety (C1022-C1024)', () => {
     expect(result.warnings.length).toBeGreaterThan(0);
   });
 
-  test('C1023: enforcePrologNamespace rejects non-prefixed predicates', () => {
-    const { enforcePrologNamespace } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1023: enforcePrologNamespace rejects non-prefixed predicates', () => {
+    // Already imported at top
     const code = `
 my_bad_pred(X) :- X > 0.
 user_good_pred(Y) :- Y < 10.
@@ -1834,8 +1851,8 @@ user_good_pred(Y) :- Y < 10.
     expect(result.errors.some(e => e.includes('my_bad_pred'))).toBe(true);
   });
 
-  test('C1023: accepts properly namespaced predicates', () => {
-    const { enforcePrologNamespace } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1023: accepts properly namespaced predicates', () => {
+    // Already imported at top
     const code = `
 user_scale(major, [0,2,4,5,7,9,11]).
 user_scale(minor, [0,2,3,5,7,8,10]).
@@ -1844,16 +1861,16 @@ user_scale(minor, [0,2,3,5,7,8,10]).
     expect(result.valid).toBe(true);
   });
 
-  test('C1024: validatePrologSyntax detects unclosed strings', () => {
-    const { validatePrologSyntax } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1024: validatePrologSyntax detects unclosed strings', () => {
+    // Already imported at top
     const code = `my_pred('unclosed string).`;
     const errors = validatePrologSyntax(code);
     expect(errors.length).toBeGreaterThan(0);
     expect(errors[0]!.message).toContain('string');
   });
 
-  test('C1024: validatePrologSyntax detects unclosed block comments', () => {
-    const { validatePrologSyntax } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1024: validatePrologSyntax detects unclosed block comments', () => {
+    // Already imported at top
     const code = `/* this comment never closes
 my_pred(X) :- X > 0.`;
     const errors = validatePrologSyntax(code);
@@ -1861,8 +1878,8 @@ my_pred(X) :- X > 0.`;
     expect(errors[0]!.message).toContain('block comment');
   });
 
-  test('C1024: valid Prolog passes syntax check', () => {
-    const { validatePrologSyntax } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1024: valid Prolog passes syntax check', () => {
+    // Already imported at top
     const code = `
 %% A valid Prolog module
 my_scale(major, [0,2,4,5,7,9,11]).
@@ -1879,8 +1896,8 @@ transpose(Scale, N, Result) :- maplist(plus(N), Scale, Result).
 // ============================================================================
 
 describe('Prolog Dependency Validation (C1025)', () => {
-  test('validates available dependencies', () => {
-    const { validatePrologDependencies } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('validates available dependencies', () => {
+    // Already imported at top
     const available = new Set(['chord_quality/2', 'scale_notes/2', 'transpose']);
     const deps = [
       { predicate: 'chord_quality/2' },
@@ -1890,8 +1907,8 @@ describe('Prolog Dependency Validation (C1025)', () => {
     expect(result.valid).toBe(true);
   });
 
-  test('rejects missing dependencies', () => {
-    const { validatePrologDependencies } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('rejects missing dependencies', () => {
+    // Already imported at top
     const available = new Set(['chord_quality/2']);
     const deps = [
       { predicate: 'chord_quality/2' },
@@ -1908,8 +1925,8 @@ describe('Prolog Dependency Validation (C1025)', () => {
 // ============================================================================
 
 describe('Prolog Load/Unload API (C1027-C1028)', () => {
-  test('C1027: loadCustomProlog validates and loads safe code', () => {
-    const { loadCustomProlog } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1027: loadCustomProlog validates and loads safe code', () => {
+    // Already imported at top
     const code = `
 test_pred(X) :- X > 0.
 test_other(Y) :- Y < 10.
@@ -1919,15 +1936,15 @@ test_other(Y) :- Y < 10.
     expect(result.valid).toBe(true);
   });
 
-  test('C1027: loadCustomProlog rejects unsafe code', () => {
-    const { loadCustomProlog } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1027: loadCustomProlog rejects unsafe code', () => {
+    // Already imported at top
     const code = `bad_pred :- assertz(evil(true)).`;
     const result = loadCustomProlog(code, 'test', { skipNamespaceCheck: true });
     expect(result.valid).toBe(false);
   });
 
-  test('C1031: timeout preamble is generated correctly', () => {
-    const { generateTimeoutPreamble, DEFAULT_PROLOG_TIMEOUT } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1031: timeout preamble is generated correctly', () => {
+    // Already imported at top
     const preamble = generateTimeoutPreamble();
     expect(preamble).toContain('max_inferences');
     expect(preamble).toContain(String(DEFAULT_PROLOG_TIMEOUT.maxInferences));
@@ -1939,8 +1956,8 @@ test_other(Y) :- Y < 10.
 // ============================================================================
 
 describe('Deprecation and Migration (C1009-C1010)', () => {
-  test('C1009: checkDeprecatedConstraints warns about deprecated constraints', () => {
-    const { checkDeprecatedConstraints, constraintRegistry } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1009: checkDeprecatedConstraints warns about deprecated constraints', () => {
+    // Already imported at top
 
     // Set up a deprecated version
     constraintRegistry.setVersion('test:deprecated_thing', {
@@ -1962,8 +1979,8 @@ describe('Deprecation and Migration (C1009-C1010)', () => {
     constraintRegistry.clear();
   });
 
-  test('C1010: registerConstraintMigration and migrateConstraint', () => {
-    const { registerConstraintMigration, migrateConstraint } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1010: registerConstraintMigration and migrateConstraint', () => {
+    // Already imported at top
 
     registerConstraintMigration('user:old_scale', 'user:new_scale', (old) => ({
       type: 'user:new_scale',
@@ -1978,8 +1995,8 @@ describe('Deprecation and Migration (C1009-C1010)', () => {
     expect(migrated.params.notes).toEqual([0, 2, 4]);
   });
 
-  test('C1010: migrateConstraint returns original if no migration exists', () => {
-    const { migrateConstraint } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1010: migrateConstraint returns original if no migration exists', () => {
+    // Already imported at top
     const original = { type: 'user:unchanged', hard: false, params: {} };
     const result = migrateConstraint(original, 'user:nonexistent_target');
     expect(result).toBe(original);
@@ -1991,7 +2008,7 @@ describe('Deprecation and Migration (C1009-C1010)', () => {
 // ============================================================================
 
 describe('Voice-Leading Checker (C938, C940)', () => {
-  test('C938: detects parallel fifths in classical profile', async () => {
+  it('C938: detects parallel fifths in classical profile', async () => {
     const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Two chords with parallel fifths (C-G → D-A)
     const voicings = [
@@ -2003,7 +2020,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
     expect(result.value.issues.some(i => i.issue.includes('Parallel fifths'))).toBe(true);
   });
 
-  test('C938: accepts parallel fifths in jazz profile', async () => {
+  it('C938: accepts parallel fifths in jazz profile', async () => {
     const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const voicings = [
       [60, 67],
@@ -2015,7 +2032,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
     expect(result.value.issues.filter(i => i.severity === 'error')).toHaveLength(0);
   });
 
-  test('C940: culture-aware carnatic profile limits leap size', async () => {
+  it('C940: culture-aware carnatic profile limits leap size', async () => {
     const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Large leap of 12 semitones (octave) — fine in classical, too big for carnatic
     const voicings = [
@@ -2029,7 +2046,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
     expect(classicalResult.value.largeLeaps).toBe(0); // 12 is within maxLeap=12
   });
 
-  test('C938: good voice leading gets high score', async () => {
+  it('C938: good voice leading gets high score', async () => {
     const { analyzeVoiceLeading, VOICE_LEADING_PROFILES } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Smooth contrary motion
     const voicings = [
@@ -2046,7 +2063,7 @@ describe('Voice-Leading Checker (C938, C940)', () => {
 // ============================================================================
 
 describe('Schema Matching Score (C890)', () => {
-  test('romanesca bass pattern gets partial match', async () => {
+  it('romanesca bass pattern gets partial match', async () => {
     const { calculateSchemaMatchScore } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Romanesca bass: I-V-IV-ii → [0, 7, 5, 3]
     const bass = [0, 7, 5, 3];
@@ -2057,7 +2074,7 @@ describe('Schema Matching Score (C890)', () => {
     expect(result.value.matchedStages).toBeGreaterThan(0);
   });
 
-  test('non-matching bass gets low score', async () => {
+  it('non-matching bass gets low score', async () => {
     const { calculateSchemaMatchScore } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const bass = [1, 3, 6, 10]; // random
     const melody = [5, 5, 5, 5];
@@ -2072,7 +2089,7 @@ describe('Schema Matching Score (C890)', () => {
 // ============================================================================
 
 describe('Carnatic KB Coverage (C650)', () => {
-  test('all major melakarta ragas should have defined scales', () => {
+  it('all major melakarta ragas should have defined scales', () => {
     // The 72 melakarta system has well-defined scales; test a representative set
     const melakartas = [
       'Kanakangi', 'Ratnangi', 'Ganamurthi', 'Vanaspati',
@@ -2101,7 +2118,7 @@ describe('Carnatic KB Coverage (C650)', () => {
 });
 
 describe('Celtic KB Coverage (C749)', () => {
-  test('Celtic tune types should all be defined', () => {
+  it('Celtic tune types should all be defined', () => {
     const tuneTypes = ['reel', 'jig', 'slip_jig', 'hornpipe', 'polka', 'air', 'strathspey', 'march', 'waltz', 'barndance'];
     expect(tuneTypes.length).toBeGreaterThanOrEqual(8);
     for (const t of tuneTypes) {
@@ -2109,7 +2126,7 @@ describe('Celtic KB Coverage (C749)', () => {
     }
   });
 
-  test('Celtic modes map to correct intervals', () => {
+  it('Celtic modes map to correct intervals', () => {
     // Celtic commonly uses Dorian (D mode), Mixolydian (G mode), Aeolian (A mode)
     const modeIntervals: Record<string, number[]> = {
       dorian: [0, 2, 3, 5, 7, 9, 10],
@@ -2124,7 +2141,7 @@ describe('Celtic KB Coverage (C749)', () => {
 });
 
 describe('Chinese Predicate Coverage (C832)', () => {
-  test('Chinese pentatonic modes should all be defined', () => {
+  it('Chinese pentatonic modes should all be defined', () => {
     const modes = ['gong', 'shang', 'jue', 'zhi', 'yu'];
     expect(modes).toHaveLength(5);
     // Each corresponds to a rotation of the pentatonic scale
@@ -2137,7 +2154,7 @@ describe('Chinese Predicate Coverage (C832)', () => {
     }
   });
 
-  test('bian tones extend pentatonic to 7 notes', () => {
+  it('bian tones extend pentatonic to 7 notes', () => {
     // Bian zhi and bian gong add two auxiliary tones
     const gongMode = [0, 2, 4, 7, 9];
     const bianZhi = 6;  // Augmented 4th (leading to zhi)
@@ -2153,8 +2170,8 @@ describe('Chinese Predicate Coverage (C832)', () => {
 // ============================================================================
 
 describe('Prolog Syntax Lint (C982)', () => {
-  test('valid Prolog passes lint', () => {
-    const { validatePrologSyntax } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('valid Prolog passes lint', () => {
+    // Already imported at top
     const code = `
 %% Valid predicates
 chord_quality(major, [0, 4, 7]).
@@ -2165,8 +2182,8 @@ chord_quality(dim, [0, 3, 6]).
     expect(errors).toHaveLength(0);
   });
 
-  test('detects unmatched parentheses', () => {
-    const { validatePrologSyntax } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('detects unmatched parentheses', () => {
+    // Already imported at top
     const code = `bad_pred(X, Y :- X > Y.`;
     const errors = validatePrologSyntax(code);
     // Unclosed paren — the line has 2 opens, 0 closes => won't trigger negative depth
@@ -2181,7 +2198,7 @@ chord_quality(dim, [0, 3, 6]).
 // ============================================================================
 
 describe('LCC Melody-Parent Scale Lint (C1196)', () => {
-  test('melody notes within parent scale are ok', () => {
+  it('melody notes within parent scale are ok', () => {
     // C Lydian scale: C D E F# G A B
     const cLydian = [0, 2, 4, 6, 7, 9, 11];
     const melody = [0, 2, 4, 7, 9]; // All within Lydian
@@ -2189,7 +2206,7 @@ describe('LCC Melody-Parent Scale Lint (C1196)', () => {
     expect(conflicts).toHaveLength(0);
   });
 
-  test('warns when melody note clashes with parent scale gravity', () => {
+  it('warns when melody note clashes with parent scale gravity', () => {
     const cLydian = [0, 2, 4, 6, 7, 9, 11];
     const melodyWithClash = [0, 2, 5, 7, 9]; // F natural (5) not in C Lydian
     const conflicts = melodyWithClash.filter(n => !cLydian.includes(n % 12));
@@ -2203,7 +2220,7 @@ describe('LCC Melody-Parent Scale Lint (C1196)', () => {
 // ============================================================================
 
 describe('Jazz Line Tension Resolution (C1431)', () => {
-  test('line ending on chord tone is resolved', () => {
+  it('line ending on chord tone is resolved', () => {
     // Cm7 chord tones: C(0), Eb(3), G(7), Bb(10)
     const chordTones = [0, 3, 7, 10];
     const lineEndNote = 7; // G — a chord tone
@@ -2211,14 +2228,14 @@ describe('Jazz Line Tension Resolution (C1431)', () => {
     expect(isResolved).toBe(true);
   });
 
-  test('line ending on non-chord tone is unresolved', () => {
+  it('line ending on non-chord tone is unresolved', () => {
     const chordTones = [0, 3, 7, 10];
     const lineEndNote = 6; // Gb — not a chord tone (tension)
     const isResolved = chordTones.includes(lineEndNote % 12);
     expect(isResolved).toBe(false);
   });
 
-  test('outside tension followed by resolution is acceptable', () => {
+  it('outside tension followed by resolution is acceptable', () => {
     const chordTones = [0, 4, 7, 11]; // Cmaj7
     const line = [1, 3, 6, 8, 7]; // Starts outside, resolves to G (chord tone)
     const lastNote = line[line.length - 1]!;
@@ -2232,8 +2249,8 @@ describe('Jazz Line Tension Resolution (C1431)', () => {
 // ============================================================================
 
 describe('Predicate Versioning (C1026)', () => {
-  test('registerPredicateInfo and getPredicateInfo', () => {
-    const { registerPredicateInfo, getPredicateInfo, isPredicateDeprecated } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('registerPredicateInfo and getPredicateInfo', () => {
+    // Already imported at top
     registerPredicateInfo({
       name: 'old_chord_quality',
       arity: 2,
@@ -2257,8 +2274,8 @@ describe('Predicate Versioning (C1026)', () => {
 // ============================================================================
 
 describe('Prolog Error Reporting (C1030)', () => {
-  test('parsePrologErrors extracts line numbers', () => {
-    const { parsePrologErrors } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('parsePrologErrors extracts line numbers', () => {
+    // Already imported at top
     const errorMsg = 'ERROR: line 5: Syntax error: Unexpected token';
     const source = `
 a(1).
@@ -2273,8 +2290,8 @@ bad syntax here
     expect(errors[0]!.message).toContain('Unexpected token');
   });
 
-  test('parsePrologErrors handles no line info', () => {
-    const { parsePrologErrors } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('parsePrologErrors handles no line info', () => {
+    // Already imported at top
     const errors = parsePrologErrors('General error occurred', 'some code');
     expect(errors.length).toBe(1);
     expect(errors[0]!.line).toBe(1);
@@ -2286,7 +2303,7 @@ bad syntax here
 // ============================================================================
 
 describe('Phrase Database (C926)', () => {
-  test('add and query phrases by tags', () => {
+  it('add and query phrases by tags', () => {
     const { phraseDatabase } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     phraseDatabase.clear();
 
@@ -2319,7 +2336,7 @@ describe('Phrase Database (C926)', () => {
     phraseDatabase.clear();
   });
 
-  test('remove phrase from database', () => {
+  it('remove phrase from database', () => {
     const { phraseDatabase } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     phraseDatabase.clear();
 
@@ -2345,8 +2362,8 @@ describe('Phrase Database (C926)', () => {
 // ============================================================================
 
 describe('Constraint Parameter Presets (C1076)', () => {
-  test('save and load presets', () => {
-    const { saveConstraintPreset, loadConstraintPresets, deleteConstraintPreset } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('save and load presets', () => {
+    // Already imported at top
 
     saveConstraintPreset('user:test_type', {
       name: 'Bright',
@@ -2373,8 +2390,8 @@ describe('Constraint Parameter Presets (C1076)', () => {
 });
 
 describe('Constraint Parameter Randomization (C1077)', () => {
-  test('randomize produces valid params', () => {
-    const { randomizeConstraintParams } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('randomize produces valid params', () => {
+    // Already imported at top
     const paramDefs = [
       { kind: 'enum' as const, values: ['a', 'b', 'c'], defaultValue: 'a', label: 'choice' },
       { kind: 'number' as const, min: 0, max: 100, step: 10, defaultValue: 50, label: 'amount' },
@@ -2391,8 +2408,8 @@ describe('Constraint Parameter Randomization (C1077)', () => {
 });
 
 describe('Constraint Parameter Interpolation (C1078)', () => {
-  test('interpolates numeric values', () => {
-    const { interpolateConstraintParams } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('interpolates numeric values', () => {
+    // Already imported at top
     const a = { tempo: 80, brightness: 0.2 };
     const b = { tempo: 120, brightness: 0.8 };
 
@@ -2407,8 +2424,8 @@ describe('Constraint Parameter Interpolation (C1078)', () => {
     expect(atB.tempo).toBeCloseTo(120);
   });
 
-  test('picks non-numeric values by threshold', () => {
-    const { interpolateConstraintParams } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('picks non-numeric values by threshold', () => {
+    // Already imported at top
     const a = { mode: 'major', active: true };
     const b = { mode: 'minor', active: false };
 
@@ -2421,8 +2438,8 @@ describe('Constraint Parameter Interpolation (C1078)', () => {
 });
 
 describe('Learn Constraints from Selection (C1083)', () => {
-  test('extracts pitch class set from notes', () => {
-    const { learnConstraintsFromSelection } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('extracts pitch class set from notes', () => {
+    // Already imported at top
     const notes = [
       { pitch: 60, time: 0, duration: 0.5 },   // C
       { pitch: 64, time: 0.5, duration: 0.5 },  // E
@@ -2434,8 +2451,8 @@ describe('Learn Constraints from Selection (C1083)', () => {
     expect(pcSet!.params.pitchClasses).toEqual([0, 4, 7]); // C, E, G
   });
 
-  test('infers register range', () => {
-    const { learnConstraintsFromSelection } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('infers register range', () => {
+    // Already imported at top
     const notes = [
       { pitch: 48, time: 0, duration: 1 },
       { pitch: 72, time: 1, duration: 1 },
@@ -2447,15 +2464,15 @@ describe('Learn Constraints from Selection (C1083)', () => {
     expect(register!.params.high).toBe(72);
   });
 
-  test('returns empty for no notes', () => {
-    const { learnConstraintsFromSelection } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('returns empty for no notes', () => {
+    // Already imported at top
     expect(learnConstraintsFromSelection([])).toHaveLength(0);
   });
 });
 
 describe('Constraint Export/Import (C1085-C1086)', () => {
-  test('round-trip JSON export and import', () => {
-    const { exportConstraintsToJSON, importConstraintsFromJSON } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('round-trip JSON export and import', () => {
+    // Already imported at top
     const original = [
       { type: 'user:scale', hard: true, params: { notes: [0, 2, 4, 5, 7, 9, 11] } },
       { type: 'user:tempo', hard: false, weight: 0.8, params: { bpm: 120 } },
@@ -2470,14 +2487,14 @@ describe('Constraint Export/Import (C1085-C1086)', () => {
     expect(imported[1]!.params.bpm).toBe(120);
   });
 
-  test('import handles invalid JSON', () => {
-    const { importConstraintsFromJSON } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('import handles invalid JSON', () => {
+    // Already imported at top
     expect(importConstraintsFromJSON('not valid json')).toHaveLength(0);
     expect(importConstraintsFromJSON('{}')).toHaveLength(0);
   });
 
-  test('export to Prolog generates valid facts', () => {
-    const { exportConstraintsToProlog } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('export to Prolog generates valid facts', () => {
+    // Already imported at top
     const constraints = [
       { type: 'user:test', hard: true, params: { value: 42 } },
     ];
@@ -2488,7 +2505,7 @@ describe('Constraint Export/Import (C1085-C1086)', () => {
 });
 
 describe('World Music Coverage', () => {
-  test('C1894: clave alignment can detect violations', async () => {
+  it('C1894: clave alignment can detect violations', async () => {
     const { checkClaveAlignment } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // A pattern that emphasizes every beat (all 1s) should still work
     const allBeats = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
@@ -2497,7 +2514,7 @@ describe('World Music Coverage', () => {
     expect(result.value.claveType).toBe('son_3_2');
   });
 
-  test('C1853: polyrhythm test - layers align at downbeat', () => {
+  it('C1853: polyrhythm test - layers align at downbeat', () => {
     // 3-against-4: both layers should start at beat 0
     const layer3 = [0, 4, 8]; // every 4 steps in 12-step cycle
     const layer4 = [0, 3, 6, 9]; // every 3 steps in 12-step cycle
@@ -2516,7 +2533,7 @@ describe('World Music Coverage', () => {
 // ============================================================================
 
 describe('Celtic Ornament Generators', () => {
-  test('C699: detects ornament insertion points on strong beats', async () => {
+  it('C699: detects ornament insertion points on strong beats', async () => {
     const { detectOrnamentInsertionPoints } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // 4 quarter notes, beats per measure = 4
     const notes = [60, 62, 64, 65];
@@ -2529,7 +2546,7 @@ describe('Celtic Ornament Generators', () => {
     expect(strongBeats[0]!.suggestedOrnament).toBe('cut');
   });
 
-  test('C699: detects phrase endings on long notes', async () => {
+  it('C699: detects phrase endings on long notes', async () => {
     const { detectOrnamentInsertionPoints } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const notes = [60, 62, 64];
     const durations = [480, 480, 1920]; // last note is a whole note
@@ -2539,7 +2556,7 @@ describe('Celtic Ornament Generators', () => {
     expect(endings[0]!.suggestedOrnament).toBe('roll');
   });
 
-  test('C701: generates roll with tempo-adaptive strike count', async () => {
+  it('C701: generates roll with tempo-adaptive strike count', async () => {
     const { generateRoll } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Fast reel tempo
     const fastResult = await generateRoll(64, 480, 160);
@@ -2550,7 +2567,7 @@ describe('Celtic Ornament Generators', () => {
     expect(slowResult.value.strikeCount).toBe(5); // slow tempo = more strikes
   });
 
-  test('C703: generates cut (grace note above)', async () => {
+  it('C703: generates cut (grace note above)', async () => {
     const { generateCutTap } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const cut = await generateCutTap(64, 'cut', 120);
     expect(cut.value.type).toBe('cut');
@@ -2558,14 +2575,14 @@ describe('Celtic Ornament Generators', () => {
     expect(cut.value.midiEvents.length).toBe(2); // grace + main
   });
 
-  test('C703: generates tap (grace note below)', async () => {
+  it('C703: generates tap (grace note below)', async () => {
     const { generateCutTap } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const tap = await generateCutTap(64, 'tap', 120);
     expect(tap.value.type).toBe('tap');
     expect(tap.value.graceNote).toBeLessThan(tap.value.mainNote); // below
   });
 
-  test('C707: fiddle double-stop finds open string resonance', async () => {
+  it('C707: fiddle double-stop finds open string resonance', async () => {
     const { generateFiddleDoubleStop } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // A4 (69) should resonate with open A string
     const result = await generateFiddleDoubleStop(69);
@@ -2573,7 +2590,7 @@ describe('Celtic Ornament Generators', () => {
     expect(result.value).not.toBeNull();
   });
 
-  test('C746: harp voicing produces open sonority', async () => {
+  it('C746: harp voicing produces open sonority', async () => {
     const { generateHarpVoicing } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = await generateHarpVoicing('Cmaj', 'mid');
     expect(result.value.isOpenSonority).toBe(true);
@@ -2587,7 +2604,7 @@ describe('Celtic Ornament Generators', () => {
 // ============================================================================
 
 describe('Contrary Motion Detection (C1234)', () => {
-  test('detects contrary motion between two voices', async () => {
+  it('detects contrary motion between two voices', async () => {
     const { detectContraryMotion } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Voice 1 goes up: C4 D4 E4, Voice 2 goes down: G4 F4 E4
     const voice1 = [60, 62, 64];
@@ -2598,7 +2615,7 @@ describe('Contrary Motion Detection (C1234)', () => {
     expect(result.value.independenceScore).toBeGreaterThan(0);
   });
 
-  test('no contrary motion in parallel voices', async () => {
+  it('no contrary motion in parallel voices', async () => {
     const { detectContraryMotion } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Both voices go up in parallel
     const voice1 = [60, 62, 64];
@@ -2614,7 +2631,7 @@ describe('Contrary Motion Detection (C1234)', () => {
 // ============================================================================
 
 describe('Korvai Search (C632, C634)', () => {
-  test('fills tala cycle with phrase candidates', async () => {
+  it('fills tala cycle with phrase candidates', async () => {
     const { searchKorvai } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const phrases = [
       { notes: [60, 62, 64], syllables: ['tha', 'dhi', 'thom'] },
@@ -2625,7 +2642,7 @@ describe('Korvai Search (C632, C634)', () => {
     expect(result.value.phrases.length).toBeGreaterThan(0);
   });
 
-  test('respects maxDepth bound (C634)', async () => {
+  it('respects maxDepth bound (C634)', async () => {
     const { searchKorvai } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const phrases = [
       { notes: [60], syllables: ['ta'] }, // 1-beat phrase, cycle is 8 beats
@@ -2641,7 +2658,7 @@ describe('Korvai Search (C632, C634)', () => {
 // ============================================================================
 
 describe('Export Formats (C945-C950)', () => {
-  test('C945/C946: exports to notation format', async () => {
+  it('C945/C946: exports to notation format', async () => {
     const { exportToNotation } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = await exportToNotation([60, 62, 64, 65], [480, 480, 480, 480], 'C');
     expect(result.value.measures.length).toBeGreaterThan(0);
@@ -2649,13 +2666,13 @@ describe('Export Formats (C945-C950)', () => {
     expect(result.value.keySignature).toBe('C');
   });
 
-  test('C945: low notes get bass clef', async () => {
+  it('C945: low notes get bass clef', async () => {
     const { exportToNotation } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = await exportToNotation([36, 40, 43], [480, 480, 480], 'C');
     expect(result.value.clef).toBe('bass');
   });
 
-  test('C947/C948: exports to tracker format', async () => {
+  it('C947/C948: exports to tracker format', async () => {
     const { exportToTracker } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = await exportToTracker([60, 64, 67], [480, 480, 480], 1);
     expect(result.value.rows.length).toBe(3);
@@ -2664,7 +2681,7 @@ describe('Export Formats (C945-C950)', () => {
     expect(result.value.speed).toBe(6);
   });
 
-  test('C949/C950: exports to arranger format', async () => {
+  it('C949/C950: exports to arranger format', async () => {
     const { exportToArranger, createMusicSpec, withTempo, withStyle } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const { createMusicSpec: cms, withTempo: wt, withStyle: ws } = require('./music-spec') as typeof import('./music-spec');
     const spec = ws(wt(cms(), 140), 'jazz');
@@ -2680,7 +2697,7 @@ describe('Export Formats (C945-C950)', () => {
 // ============================================================================
 
 describe('Phrase Recommendation (C928, C930)', () => {
-  test('C928: recommends phrases matching spec culture', async () => {
+  it('C928: recommends phrases matching spec culture', async () => {
     const { recommendPhrases, phraseDatabase } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const { createMusicSpec, withCulture } = require('./music-spec') as typeof import('./music-spec');
 
@@ -2705,7 +2722,7 @@ describe('Phrase Recommendation (C928, C930)', () => {
     phraseDatabase.clear();
   });
 
-  test('C930: suggests arranger variation based on energy', async () => {
+  it('C930: suggests arranger variation based on energy', async () => {
     const { suggestArrangerVariation } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
 
     const highEnergy = await suggestArrangerVariation('chorus', 0.9, 0.5);
@@ -2722,7 +2739,7 @@ describe('Phrase Recommendation (C928, C930)', () => {
 // ============================================================================
 
 describe('Jazz Line Lint (C1432)', () => {
-  test('detects large leaps', async () => {
+  it('detects large leaps', async () => {
     const { lintJazzLine } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Line with a large leap (> octave)
     const notes = [60, 62, 64, 80, 82]; // 64 -> 80 = 16 semitones
@@ -2731,7 +2748,7 @@ describe('Jazz Line Lint (C1432)', () => {
     expect(leapIssues.length).toBeGreaterThan(0);
   });
 
-  test('clean line has high score', async () => {
+  it('clean line has high score', async () => {
     const { lintJazzLine } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     // Stepwise bebop line
     const notes = [60, 62, 63, 64, 65, 67, 69, 71, 72];
@@ -2745,7 +2762,7 @@ describe('Jazz Line Lint (C1432)', () => {
 // ============================================================================
 
 describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
-  test('C983: default flags all enabled', () => {
+  it('C983: default flags all enabled', () => {
     const { DEFAULT_FEATURE_FLAGS, getActiveFeatureFlags } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     expect(DEFAULT_FEATURE_FLAGS.lccExtended).toBe(true);
     expect(DEFAULT_FEATURE_FLAGS.jazzAdvanced).toBe(true);
@@ -2753,7 +2770,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
     expect(flags.spiralDFT).toBe(true);
   });
 
-  test('C983: override specific flags', () => {
+  it('C983: override specific flags', () => {
     const { getActiveFeatureFlags } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const flags = getActiveFeatureFlags({ spiralDFT: false, lccExtended: false });
     expect(flags.spiralDFT).toBe(false);
@@ -2761,7 +2778,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
     expect(flags.jazzAdvanced).toBe(true); // not overridden
   });
 
-  test('C984: capabilities report lists all modules', () => {
+  it('C984: capabilities report lists all modules', () => {
     const { generateCapabilitiesReport, DEFAULT_FEATURE_FLAGS } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const report = generateCapabilitiesReport(DEFAULT_FEATURE_FLAGS);
     expect(report.length).toBe(7);
@@ -2769,7 +2786,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
     expect(report.some(r => r.name.includes('Lydian'))).toBe(true);
   });
 
-  test('C986: migration hides advanced cards for old projects', () => {
+  it('C986: migration hides advanced cards for old projects', () => {
     const { migrateProjectTheoryDefaults } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = migrateProjectTheoryDefaults('1.0.0', []);
     expect(result.hiddenCards.length).toBeGreaterThan(0);
@@ -2778,7 +2795,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
     expect(result.migratedVersion).toBe('2.0.0');
   });
 
-  test('C986: v2 projects do not hide cards', () => {
+  it('C986: v2 projects do not hide cards', () => {
     const { migrateProjectTheoryDefaults } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = migrateProjectTheoryDefaults('2.0.0', []);
     expect(result.hiddenCards.length).toBe(0);
@@ -2790,7 +2807,7 @@ describe('Feature Flags & Capabilities (C983, C984, C986)', () => {
 // ============================================================================
 
 describe('Free-Rhythm Grid (C799)', () => {
-  test('creates relative time grid from note events', () => {
+  it('creates relative time grid from note events', () => {
     const { createFreeRhythmGrid } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const notes = [
       { pitch: 60, timeMs: 0, durationMs: 500, velocity: 100 },
@@ -2805,7 +2822,7 @@ describe('Free-Rhythm Grid (C799)', () => {
     expect(grid[0]!.intensity).toBeCloseTo(100 / 127);
   });
 
-  test('round-trips free-rhythm grid to events', () => {
+  it('round-trips free-rhythm grid to events', () => {
     const { createFreeRhythmGrid, freeRhythmToEvents } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const original = [
       { pitch: 60, timeMs: 0, durationMs: 500, velocity: 100 },
@@ -2819,7 +2836,7 @@ describe('Free-Rhythm Grid (C799)', () => {
     expect(events[1]!.timeMs).toBeCloseTo(1000);
   });
 
-  test('empty input returns empty grid', () => {
+  it('empty input returns empty grid', () => {
     const { createFreeRhythmGrid } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     expect(createFreeRhythmGrid([], 1000)).toHaveLength(0);
     expect(createFreeRhythmGrid([{ pitch: 60, timeMs: 0, durationMs: 100, velocity: 64 }], 0)).toHaveLength(0);
@@ -2831,7 +2848,7 @@ describe('Free-Rhythm Grid (C799)', () => {
 // ============================================================================
 
 describe('Piano & Guitar Voicing (C1224, C1226)', () => {
-  test('C1224: two-handed voicing has LH and RH', async () => {
+  it('C1224: two-handed voicing has LH and RH', async () => {
     const { generateTwoHandedVoicing } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = await generateTwoHandedVoicing('Dm7', 50, 'jazz');
     expect(result.value.leftHand.length).toBeGreaterThanOrEqual(2);
@@ -2843,7 +2860,7 @@ describe('Piano & Guitar Voicing (C1224, C1226)', () => {
     expect(lhMax).toBeLessThan(rhMin);
   });
 
-  test('C1226: guitar voicing respects fret span', async () => {
+  it('C1226: guitar voicing respects fret span', async () => {
     const { generateGuitarVoicing } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const result = await generateGuitarVoicing('Am', 45, 0);
     expect(result.value.frets.length).toBe(6);
@@ -2861,7 +2878,7 @@ describe('Piano & Guitar Voicing (C1224, C1226)', () => {
 // ============================================================================
 
 describe('Schema-as-Constraints (C347)', () => {
-  test('applies schema constraints suggesting relevant cards', async () => {
+  it('applies schema constraints suggesting relevant cards', async () => {
     const { applySchemaConstraintsToDeck } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     const { createMusicSpec, withConstraints, schemaConstraint } = require('./music-spec') as typeof import('./music-spec');
     const spec = withConstraints(createMusicSpec(), [schemaConstraint('romanesca')]);
@@ -2877,7 +2894,7 @@ describe('Schema-as-Constraints (C347)', () => {
 // ============================================================================
 
 describe('Contemporary Jazz Pack (C1415)', () => {
-  test('pack has required fields', () => {
+  it('pack has required fields', () => {
     const { CONTEMPORARY_JAZZ_PACK } = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
     expect(CONTEMPORARY_JAZZ_PACK.name).toBe('contemporary_jazz');
     expect(CONTEMPORARY_JAZZ_PACK.constraints.length).toBeGreaterThanOrEqual(3);
@@ -2891,8 +2908,8 @@ describe('Contemporary Jazz Pack (C1415)', () => {
 // ============================================================================
 
 describe('Constraint Pack Format (C1014)', () => {
-  test('validates a complete manifest', () => {
-    const { validatePackManifest } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('validates a complete manifest', () => {
+    // Already imported at top
     const result = validatePackManifest({
       packId: 'test-pack',
       name: 'Test Pack',
@@ -2907,15 +2924,15 @@ describe('Constraint Pack Format (C1014)', () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  test('rejects manifest with missing fields', () => {
-    const { validatePackManifest } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('rejects manifest with missing fields', () => {
+    // Already imported at top
     const result = validatePackManifest({});
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
-  test('serialize and parse round-trip', () => {
-    const { serializePackManifest, parsePackManifest } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('serialize and parse round-trip', () => {
+    // Already imported at top
     const manifest = {
       packId: 'roundtrip',
       name: 'Round Trip',
@@ -2938,8 +2955,8 @@ describe('Constraint Pack Format (C1014)', () => {
 // ============================================================================
 
 describe('Pack Signing (C1015)', () => {
-  test('hash is deterministic', () => {
-    const { hashPackContent } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('hash is deterministic', () => {
+    // Already imported at top
     const manifest = {
       packId: 'sign-test',
       name: 'Sign Test',
@@ -2954,8 +2971,8 @@ describe('Pack Signing (C1015)', () => {
     expect(h1.length).toBeGreaterThan(0);
   });
 
-  test('verify succeeds with correct hash', () => {
-    const { hashPackContent, verifyPackSignature } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('verify succeeds with correct hash', () => {
+    // Already imported at top
     const manifest = {
       packId: 'verify-test',
       name: 'Verify Test',
@@ -2976,8 +2993,8 @@ describe('Pack Signing (C1015)', () => {
 // ============================================================================
 
 describe('Prolog Sandbox (C1029)', () => {
-  test('sandbox validates safe code', () => {
-    const { sandboxPrologCode } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('sandbox validates safe code', () => {
+    // Already imported at top
     const result = sandboxPrologCode(
       'user_test_pred(X) :- X > 0.\nuser_test_helper(1).',
       'user_test'
@@ -2987,15 +3004,15 @@ describe('Prolog Sandbox (C1029)', () => {
     expect(result.predicatesDefined).toContain('user_test_pred');
   });
 
-  test('sandbox rejects unsafe code', () => {
-    const { sandboxPrologCode } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('sandbox rejects unsafe code', () => {
+    // Already imported at top
     const result = sandboxPrologCode('assertz(hack(1)).', 'user_test');
     expect(result.success).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
-  test('sandbox rejects wrong namespace', () => {
-    const { sandboxPrologCode } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('sandbox rejects wrong namespace', () => {
+    // Already imported at top
     const result = sandboxPrologCode('wrong_name(1).', 'user_test');
     expect(result.success).toBe(false);
   });
@@ -3006,8 +3023,8 @@ describe('Prolog Sandbox (C1029)', () => {
 // ============================================================================
 
 describe('Theory Card Template (C1047)', () => {
-  test('creates template with required fields', () => {
-    const { createTheoryCardTemplate } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('creates template with required fields', () => {
+    // Already imported at top
     const template = createTheoryCardTemplate('my_card', 'My Card', 'pitch', 'user');
     expect(template.cardId).toBe('user:my_card');
     expect(template.displayName).toBe('My Card');
@@ -3021,8 +3038,8 @@ describe('Theory Card Template (C1047)', () => {
 // ============================================================================
 
 describe('Bidirectional Sync (C1048-C1051)', () => {
-  test('C1049: constraint → param sync', () => {
-    const { syncConstraintToParam } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1049: constraint → param sync', () => {
+    // Already imported at top
     const mappings = [
       { paramPath: 'rootNote', constraintType: 'key', constraintField: 'root' },
     ];
@@ -3031,8 +3048,8 @@ describe('Bidirectional Sync (C1048-C1051)', () => {
     expect(updated.rootNote).toBe('C');
   });
 
-  test('C1050: param → constraint sync', () => {
-    const { syncParamToConstraint } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1050: param → constraint sync', () => {
+    // Already imported at top
     const mappings = [
       { paramPath: 'rootNote', constraintType: 'key', constraintField: 'root' },
     ];
@@ -3041,8 +3058,8 @@ describe('Bidirectional Sync (C1048-C1051)', () => {
     expect((updated[0] as any).root).toBe('D');
   });
 
-  test('C1051: card-to-card links', () => {
-    const { registerCardLink, getCardLinks, clearCardLinks } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1051: card-to-card links', () => {
+    // Already imported at top
     clearCardLinks();
     registerCardLink({
       sourceCardId: 'key_card',
@@ -3062,8 +3079,8 @@ describe('Bidirectional Sync (C1048-C1051)', () => {
 // ============================================================================
 
 describe('Card Pack Management (C1056-C1058)', () => {
-  test('C1056: install and uninstall pack', () => {
-    const { createCardPack, installCardPack, uninstallCardPack, getInstalledPacks } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1056: install and uninstall pack', () => {
+    // Already imported at top
     const pack = createCardPack('test-pack', 'Test', '1.0.0', 'test pack', [
       { cardId: 'test:card1', displayName: 'Card 1', category: 'pitch' },
     ]);
@@ -3074,8 +3091,8 @@ describe('Card Pack Management (C1056-C1058)', () => {
     uninstallCardPack('test-pack');
   });
 
-  test('C1057: resolve dependencies', () => {
-    const { createCardPack, resolvePackDependencies } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1057: resolve dependencies', () => {
+    // Already imported at top
     const pack = createCardPack('dep-pack', 'Dep', '1.0.0', 'has deps', []);
     const withDeps = { ...pack, dependencies: [{ packId: 'nonexistent', minVersion: '1.0.0' }] };
     const resolution = resolvePackDependencies(withDeps);
@@ -3083,8 +3100,8 @@ describe('Card Pack Management (C1056-C1058)', () => {
     expect(resolution.missing.length).toBe(1);
   });
 
-  test('C1058: check pack update', () => {
-    const { createCardPack, installCardPack, checkPackUpdate, uninstallCardPack } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1058: check pack update', () => {
+    // Already imported at top
     const pack = createCardPack('update-pack', 'Update', '1.0.0', 'check update', []);
     installCardPack(pack);
     const check = checkPackUpdate('update-pack', '2.0.0');
@@ -3099,8 +3116,8 @@ describe('Card Pack Management (C1056-C1058)', () => {
 // ============================================================================
 
 describe('Generic Constraint Editor (C1071)', () => {
-  test('generates editor fields from param defs', () => {
-    const { generateEditorFields } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('generates editor fields from param defs', () => {
+    // Already imported at top
     const defs = [
       { kind: 'number' as const, label: 'tempo', defaultValue: 120, min: 40, max: 300 },
       { kind: 'boolean' as const, label: 'swing', defaultValue: false },
@@ -3118,8 +3135,8 @@ describe('Generic Constraint Editor (C1071)', () => {
 // ============================================================================
 
 describe('Project Persistence (C1091-C1098)', () => {
-  test('C1091: save and load project constraints', () => {
-    const { saveProjectConstraints, loadProjectConstraints } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1091: save and load project constraints', () => {
+    // Already imported at top
     const constraints = [
       { type: 'user:test', hard: true, params: { value: 42 } },
     ];
@@ -3130,8 +3147,8 @@ describe('Project Persistence (C1091-C1098)', () => {
     expect(state!.customConstraints).toHaveLength(1);
   });
 
-  test('C1094: constraint profile lifecycle', () => {
-    const { saveConstraintProfile, loadConstraintProfile, listConstraintProfiles, deleteConstraintProfile } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1094: constraint profile lifecycle', () => {
+    // Already imported at top
     saveConstraintProfile({
       id: 'test-profile',
       name: 'Test Profile',
@@ -3145,8 +3162,8 @@ describe('Project Persistence (C1091-C1098)', () => {
     expect(loadConstraintProfile('test-profile')).toBeUndefined();
   });
 
-  test('C1095/C1096: project bundle export and import', () => {
-    const { exportProjectBundle, importProjectBundle } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1095/C1096: project bundle export and import', () => {
+    // Already imported at top
     const constraints = [{ type: 'user:test', hard: false, params: { x: 1 } }];
     const json = exportProjectBundle('proj2', constraints, []);
     const result = importProjectBundle(json);
@@ -3154,8 +3171,8 @@ describe('Project Persistence (C1091-C1098)', () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  test('C1098: health check detects duplicate types', () => {
-    const { runConstraintHealthCheck } = require('./custom-constraints') as typeof import('./custom-constraints');
+  it('C1098: health check detects duplicate types', () => {
+    // Already imported at top
     const constraints = [
       { type: 'user:dup', hard: true, params: {} },
       { type: 'user:dup', hard: false, params: {} },
@@ -5050,7 +5067,7 @@ describe('Constraint Visualization Updates (C1089)', () => {
 
 describe('Generic Editor Parameter Types (C1087)', () => {
   it('editor fields handle all basic theory card params', () => {
-    const { generateEditorFields } = require('./custom-constraints') as typeof import('./custom-constraints');
+    // Already imported at top
 
     // Test with various param types
     const fields = generateEditorFields([
@@ -5308,7 +5325,7 @@ describe('Custom Constraint Ecosystem Integration (C1099)', () => {
 // C1447–C1450 Jazz Theory Cross-Phase Validations
 // ────────────────────────────────────────────────────────────
 describe('Jazz Theory Cross-Phase Validation', () => {
-  const sq = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+  const sq = specQueries;
 
   // C1447: LCC constraints work with jazz voicings
   it('C1447 LCC constraints work with jazz voicings', () => {
@@ -5391,7 +5408,7 @@ describe('Jazz Theory Cross-Phase Validation', () => {
 // C1474, C1490, C1509, C1530, C1550 — Phase C14 Orchestration Tests
 // ────────────────────────────────────────────────────────────
 describe('Phase C14 — Computational Orchestration Tests', () => {
-  const sq = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+  const sq = specQueries;
 
   // C1474: Spectral analysis produces correct centroids
   it('C1474 spectral analysis produces correct centroids', () => {
@@ -5483,7 +5500,7 @@ describe('Phase C14 — Computational Orchestration Tests', () => {
 // C1619, C1656, C1694, C1699 — Phase C15 Film Scoring Tests
 // ────────────────────────────────────────────────────────────
 describe('Phase C15 — Film Scoring Tests', () => {
-  const sq = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+  const sq = specQueries;
 
   // C1619: Chill patterns correctly identified
   it('C1619 chill/emotional response prediction works', async () => {
@@ -5550,7 +5567,7 @@ describe('Phase C15 — Film Scoring Tests', () => {
 // C1746, C1749, C1750, C1776, C1786, C1789, C1790 — Phase C16 World Music Tests
 // ────────────────────────────────────────────────────────────
 describe('Phase C16 — World Music Tests', () => {
-  const sq = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+  const sq = specQueries;
 
   // C1746: Fusion mappings preserve raga character
   it('C1746 raga details include fusion-compatible data', async () => {
@@ -5625,7 +5642,7 @@ describe('Phase C16 — World Music Tests', () => {
 // C1829–C1830, C1858–C1860, C1899–C1900 — World Music Continued
 // ────────────────────────────────────────────────────────────
 describe('Phase C16 — World Music Continued', () => {
-  const sq = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+  const sq = specQueries;
 
   // C1829: East Asian scales work with Western harmony
   it('C1829 East Asian + Western harmony cross-validation', async () => {
@@ -5715,7 +5732,7 @@ describe('Phase C16 — World Music Continued', () => {
 // C2090–C2097, C2100 — Phase C18 Final Integration
 // ────────────────────────────────────────────────────────────
 describe('Phase C18 — Cross-Cultural & Final Integration', () => {
-  const sq = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+  const sq = specQueries;
 
   // C2090: All cultures work with emotion models
   it('C2090 all cultures work with emotion models', async () => {
@@ -5836,7 +5853,7 @@ describe('Phase C18 — Cross-Cultural & Final Integration', () => {
 // C958, C959, C979, C980, C999 — Integration, Performance, Fuzz, Review
 // ────────────────────────────────────────────────────────────
 describe('Integration, Performance & Fuzz Tests', () => {
-  const sq = require('../queries/spec-queries') as typeof import('../queries/spec-queries');
+  const sq = specQueries;
 
   // C958: Each example workflow builds without errors
   it('C958 example workflows build without errors', () => {

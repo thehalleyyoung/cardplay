@@ -785,7 +785,7 @@ export function createPreserveConstraint(
   return {
     type: 'preserve',
     aspects: [aspect as PreservableAspect],
-    exactness: exactness as 'exact' | 'recognizable',
+    strictness: (exactness === 'unchanged' ? 'exact' : 'recognizable') as 'exact' | 'recognizable',
     target: options?.target as any,
   };
 }
@@ -800,7 +800,7 @@ export function createRangeConstraint(
 ): RangeConstraint {
   return {
     type: 'range',
-    property: targetName as EntityType,
+    parameter: targetName,
     min,
     max,
   };
@@ -814,8 +814,7 @@ export function createMinimalCostPreference(
 ): CostPreference {
   return {
     type: 'cost',
-    category: 'total' as any,
-    preference: 'minimize',
+    preferredCost: 'low',
     strength: strengthToEnum(strength),
   };
 }
@@ -828,7 +827,8 @@ export function createNaturalnessPreference(
 ): DefaultPreference {
   return {
     type: 'default',
-    preference: 'naturalness' as any,
+    parameter: 'naturalness',
+    defaultValue: true,
     strength: strengthToEnum(strength),
   };
 }
@@ -924,8 +924,8 @@ function constraintsConflict(c1: Constraint, c2: Constraint): boolean {
   if (c1.type === 'preserve' && c2.type === 'range') {
     const p = c1 as PreserveConstraint;
     const r = c2 as RangeConstraint;
-    // Simplified check
-    if (p.aspects[0] === (r.property as any)) {
+    // Simplified check - aspects are strings, parameter is a string
+    if (p.aspects[0] === r.parameter) {
       return true;
     }
   }
@@ -997,8 +997,12 @@ function goalConstraintConflict(goal: Goal, constraint: Constraint): boolean {
  */
 export function rankGoals(goals: readonly Goal[]): readonly Goal[] {
   return [...goals].sort((a, b) => {
-    const ap = getGoalPriorityValue(a.priority);
-    const bp = getGoalPriorityValue(b.priority);
+    const ap = getGoalPriorityValue(
+      (a.type !== 'query' && 'priority' in a) ? a.priority : undefined
+    );
+    const bp = getGoalPriorityValue(
+      (b.type !== 'query' && 'priority' in b) ? b.priority : undefined
+    );
     return bp - ap;
   });
 }
