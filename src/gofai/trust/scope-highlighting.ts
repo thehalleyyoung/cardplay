@@ -226,7 +226,7 @@ export interface ScopeStats {
  */
 export function computeScopeHighlights(
   scopeDef: ScopeDefinition,
-  projectState: ProjectStateForHighlighting,
+  _projectState: ProjectStateForHighlighting,
 ): ScopeVisualization {
   const highlights: ScopeHighlight[] = [];
   let highlightIdCounter = 0;
@@ -243,10 +243,10 @@ export function computeScopeHighlights(
         id: nextId(),
         tickStart: affected.tickStart,
         tickEnd: affected.tickEnd,
-        layerId: affected.layerId,
-        layerName: affected.layerName,
-        pitchMin: affected.pitchMin,
-        pitchMax: affected.pitchMax,
+        ...(affected.layerId !== undefined && { layerId: affected.layerId }),
+        ...(affected.layerName !== undefined && { layerName: affected.layerName }),
+        ...(affected.pitchMin !== undefined && { pitchMin: affected.pitchMin }),
+        ...(affected.pitchMax !== undefined && { pitchMax: affected.pitchMax }),
         description: affected.description ?? 'Affected region',
         eventCount: affected.eventCount ?? 0,
       },
@@ -270,8 +270,8 @@ export function computeScopeHighlights(
         id: nextId(),
         tickStart: preserved.tickStart,
         tickEnd: preserved.tickEnd,
-        layerId: preserved.layerId,
-        layerName: preserved.layerName,
+        ...(preserved.layerId !== undefined && { layerId: preserved.layerId }),
+        ...(preserved.layerName !== undefined && { layerName: preserved.layerName }),
         description: preserved.description ?? 'Preserved (protected)',
         eventCount: preserved.eventCount ?? 0,
       },
@@ -315,7 +315,7 @@ export function computeScopeHighlights(
           id: nextId(),
           tickStart: warning.tickStart,
           tickEnd: warning.tickEnd,
-          layerId: warning.layerId,
+          ...(warning.layerId !== undefined && { layerId: warning.layerId }),
           description: warning.description ?? 'Potential unexpected changes',
           eventCount: warning.eventCount ?? 0,
         },

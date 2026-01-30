@@ -77,7 +77,7 @@ export interface FixtureVersion {
  */
 export function parseFixtureVersion(version: string): FixtureVersion {
   const match = version.match(/^v?(\d+)\.(\d+)\.(\d+)$/);
-  if (!match) {
+  if (!match || !match[1] || !match[2] || !match[3]) {
     throw new Error(`Invalid fixture version: ${version}`);
   }
   return {
@@ -643,6 +643,7 @@ export function validateFixture(fixture: SongFixture): FixtureValidationResult {
   // Validate events
   for (let i = 0; i < fixture.events.length; i++) {
     const event = fixture.events[i];
+    if (!event) continue;
     
     if (event.startTick < 0 || event.startTick >= fixture.structure.lengthTicks) {
       errors.push({
@@ -752,6 +753,7 @@ export function validateFixture(fixture: SongFixture): FixtureValidationResult {
   // Validate sections
   for (let i = 0; i < fixture.structure.sections.length; i++) {
     const section = fixture.structure.sections[i];
+    if (!section) continue;
     
     if (section.startTick >= section.endTick) {
       errors.push({

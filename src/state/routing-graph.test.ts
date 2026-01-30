@@ -74,16 +74,17 @@ describe('RoutingGraphStore', () => {
   describe('adapter-required connections (Change 216)', () => {
     it('should record adapterId when port types differ', () => {
       store.addNode(createTestNode({
-        id: 'midi-src',
-        outputs: [{ id: 'out', name: 'MIDI Out', type: 'midi' }],
+        id: 'notes-src',
+        outputs: [{ id: 'out', name: 'Notes Out', type: 'notes' }],
       }));
       store.addNode(createTestNode({
-        id: 'audio-tgt',
-        inputs: [{ id: 'in', name: 'Audio In', type: 'audio' }],
+        id: 'midi-tgt',
+        inputs: [{ id: 'in', name: 'MIDI In', type: 'midi' }],
       }));
 
-      const edge = store.connect('midi-src', 'out', 'audio-tgt', 'in', 'midi');
-      expect(edge.adapterId).toBe('midi-to-audio');
+      // notes→midi requires adapter per canonical port compatibility
+      const edge = store.connect('notes-src', 'out', 'midi-tgt', 'in', 'notes');
+      expect(edge.adapterId).toBe('adapter:notes-to-midi');
     });
   });
 

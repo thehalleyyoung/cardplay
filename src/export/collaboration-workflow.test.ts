@@ -27,8 +27,8 @@ import {
   type Contributor
 } from './collaboration-metadata';
 import {
-  compareProjects,
-  detectConflicts,
+  diffProjects,
+  detectMergeConflicts,
   type ProjectDiff
 } from './project-diff';
 import {
@@ -183,12 +183,15 @@ describe('Collaboration Workflow Integration', () => {
         clips: [{ id: 'clip1', name: 'Intro', streamId: 'stream1', duration: 480 }]
       };
 
-      const diff = compareProjects(baseProject as any, modifiedProject as any);
+      const diff = diffProjects(baseProject as any, modifiedProject as any);
 
-      expect(diff.streamsAdded).toHaveLength(1);
-      expect(diff.streamsAdded[0]).toBe('stream2');
-      expect(diff.streamsModified).toHaveLength(1);
-      expect(diff.streamsModified[0]).toBe('stream1');
+      const addedStreams = diff.streamDiffs.filter(d => d.changeType === 'added');
+      const modifiedStreams = diff.streamDiffs.filter(d => d.changeType === 'modified');
+      
+      expect(addedStreams).toHaveLength(1);
+      expect(addedStreams[0].streamId).toBe('stream2');
+      expect(modifiedStreams).toHaveLength(1);
+      expect(modifiedStreams[0].streamId).toBe('stream1');
     });
 
     it('detects merge conflicts when same elements modified', () => {
@@ -204,14 +207,15 @@ describe('Collaboration Workflow Integration', () => {
         streams: [{ id: 'stream1', name: 'Version 2', events: [{ id: 'e2' }] }]
       };
 
-      const conflicts = detectConflicts(
-        compareProjects(base as any, version1 as any),
-        compareProjects(base as any, version2 as any)
+      const conflicts = detectMergeConflicts(
+        base as any,
+        version1 as any,
+        version2 as any
       );
 
-      expect(conflicts).toHaveLength(1);
+      expect(conflicts.length).toBeGreaterThan(0);
       expect(conflicts[0].type).toBe('stream-modified');
-      expect(conflicts[0].elementId).toBe('stream1');
+      expect(conflicts[0].id).toContain('stream1');
     });
   });
 

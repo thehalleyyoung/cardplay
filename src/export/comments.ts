@@ -68,7 +68,8 @@ export function replyToComment(
   authorName: string,
   content: string
 ): CommentsMetadata {
-  const parentComment = metadata.comments.find(c => c.id === parentCommentId);
+  const comments = metadata.comments || [];
+  const parentComment = comments.find(c => c.id === parentCommentId);
   
   if (!parentComment) {
     throw new Error(`Parent comment ${parentCommentId} not found`);
@@ -88,7 +89,7 @@ export function replyToComment(
   
   return {
     ...metadata,
-    comments: [...metadata.comments, reply]
+    comments: [...comments, reply]
   };
 }
 
@@ -101,7 +102,8 @@ export function resolveComment(
   resolvedBy: string,
   resolveThread: boolean = true
 ): CommentsMetadata {
-  const comment = metadata.comments.find(c => c.id === commentId);
+  const comments = metadata.comments || [];
+  const comment = comments.find(c => c.id === commentId);
   
   if (!comment) {
     throw new Error(`Comment ${commentId} not found`);
@@ -109,7 +111,7 @@ export function resolveComment(
   
   const now = Date.now();
   
-  const updatedComments = metadata.comments.map(c => {
+  const updatedComments = comments.map(c => {
     // Resolve the target comment
     if (c.id === commentId) {
       return {
@@ -146,7 +148,8 @@ export function unresolveComment(
   metadata: CommentsMetadata,
   commentId: string
 ): CommentsMetadata {
-  const updatedComments = metadata.comments.map(c => {
+  const comments = metadata.comments || [];
+  const updatedComments = comments.map(c => {
     if (c.id === commentId) {
       const { resolvedBy, resolvedAt, ...rest } = c;
       return {
@@ -172,7 +175,8 @@ export function getCommentsForAttachment(
   attachmentId: string,
   includeResolved: boolean = true
 ): readonly Comment[] {
-  return metadata.comments.filter(
+  const comments = metadata.comments || [];
+  return comments.filter(
     c =>
       c.attachmentType === attachmentType &&
       c.attachmentId === attachmentId &&
@@ -356,7 +360,7 @@ export function addComment(
 ): CommentsMetadata {
   return {
     ...metadata,
-    comments: [...metadata.comments, comment]
+    comments: [...(metadata.comments || []), comment]
   };
 }
 

@@ -317,7 +317,7 @@ export interface Lexeme {
  */
 export type LexemeSemantics =
   | { type: 'axis_modifier'; axis: AxisId; direction: 'increase' | 'decrease' }
-  | { type: 'action'; opcode: OpcodeId; role: 'main' | 'modifier'; actionType?: string; [key: string]: any }
+  | { type: 'action'; opcode?: OpcodeId; role?: 'main' | 'modifier'; actionType?: string; [key: string]: any }
   | { type: 'constraint'; constraintType: ConstraintTypeId }
   | { type: 'reference'; referenceType: ReferenceType }
   | { type: 'scope'; scopeType: ScopeType }
@@ -326,7 +326,18 @@ export type LexemeSemantics =
   | { type: 'entity'; entityType?: EntityType; [key: string]: any }
   | { type: 'concept'; domain: string; aspect: string; [key: string]: any }
   | { type: 'modifier'; modifierType?: string; [key: string]: any }
-  | { type: 'custom'; handler: string };
+  | { type: 'custom'; handler: string }
+  | { type: 'intent_expression'; frame: string; maps_to: string; [key: string]: any }
+  | { type: 'preference_expression'; frame: string; maps_to: string; [key: string]: any }
+  | { type: 'experimental_action'; frame: string; maps_to: string; [key: string]: any }
+  | { type: 'quality_assessment'; frame: string; [key: string]: any }
+  | { type: 'perception_report'; frame: string; [key: string]: any }
+  | { type: 'belief_statement'; frame: string; [key: string]: any }
+  | { type: 'hypothetical_statement'; frame: string; [key: string]: any }
+  | { type: 'comparison'; frame: string; [key: string]: any }
+  | { type: 'structural_operation'; frame: string; [key: string]: any }
+  | { type: 'collaborative_proposal'; frame: string; [key: string]: any }
+  | { type: 'dialogue_response'; frame: string; [key: string]: any };
 
 /**
  * Reference types for pronouns and demonstratives.

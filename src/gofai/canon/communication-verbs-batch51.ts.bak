@@ -8,7 +8,7 @@
  * meta-operations on musical structure.
  */
 
-import type { Lexeme, LexemeId } from './types.js';
+import type { Lexeme } from './types.js';
 
 /**
  * Communication verbs for expressing musical intentions, reflections,
@@ -30,7 +30,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   // ============================================================================
   
   {
-    id: 'lex:verb:want' as LexemeId,
+    id: 'lex:verb:want',
     lemma: 'want',
     variants: ['want', 'wants', 'wanted', 'wanting'],
     category: 'verb',
@@ -48,7 +48,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:need' as LexemeId,
+    id: 'lex:verb:need',
     lemma: 'need',
     variants: ['need', 'needs', 'needed', 'needing'],
     category: 'verb',
@@ -67,7 +67,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:prefer' as LexemeId,
+    id: 'lex:verb:prefer',
     lemma: 'prefer',
     variants: ['prefer', 'prefers', 'preferred', 'preferring'],
     category: 'verb',
@@ -85,7 +85,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:aim' as LexemeId,
+    id: 'lex:verb:aim',
     lemma: 'aim',
     variants: ['aim', 'aims', 'aimed', 'aiming'],
     category: 'verb',
@@ -103,7 +103,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:intend' as LexemeId,
+    id: 'lex:verb:intend',
     lemma: 'intend',
     variants: ['intend', 'intends', 'intended', 'intending'],
     category: 'verb',
@@ -121,7 +121,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:hope' as LexemeId,
+    id: 'lex:verb:hope',
     lemma: 'hope',
     variants: ['hope', 'hopes', 'hoped', 'hoping'],
     category: 'verb',
@@ -140,7 +140,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:try' as LexemeId,
+    id: 'lex:verb:try',
     lemma: 'try',
     variants: ['try', 'tries', 'tried', 'trying'],
     category: 'verb',
@@ -159,7 +159,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:experiment' as LexemeId,
+    id: 'lex:verb:experiment',
     lemma: 'experiment',
     variants: ['experiment', 'experiments', 'experimented', 'experimenting'],
     category: 'verb',
@@ -178,7 +178,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:explore' as LexemeId,
+    id: 'lex:verb:explore',
     lemma: 'explore',
     variants: ['explore', 'explores', 'explored', 'exploring'],
     category: 'verb',
@@ -197,7 +197,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:test' as LexemeId,
+    id: 'lex:verb:test',
     lemma: 'test',
     variants: ['test', 'tests', 'tested', 'testing'],
     category: 'verb',
@@ -220,7 +220,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   // ============================================================================
   
   {
-    id: 'lex:verb:sound' as LexemeId,
+    id: 'lex:verb:sound',
     lemma: 'sound',
     variants: ['sound', 'sounds', 'sounded', 'sounding'],
     category: 'verb',
@@ -238,7 +238,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:feel' as LexemeId,
+    id: 'lex:verb:feel',
     lemma: 'feel',
     variants: ['feel', 'feels', 'felt', 'feeling'],
     category: 'verb',
@@ -256,7 +256,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:seem' as LexemeId,
+    id: 'lex:verb:seem',
     lemma: 'seem',
     variants: ['seem', 'seems', 'seemed', 'seeming'],
     category: 'verb',
@@ -275,7 +275,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:appear' as LexemeId,
+    id: 'lex:verb:appear',
     lemma: 'appear',
     variants: ['appear', 'appears', 'appeared', 'appearing'],
     category: 'verb',
@@ -293,7 +293,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:notice' as LexemeId,
+    id: 'lex:verb:notice',
     lemma: 'notice',
     variants: ['notice', 'notices', 'noticed', 'noticing'],
     category: 'verb',
@@ -311,7 +311,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:hear' as LexemeId,
+    id: 'lex:verb:hear',
     lemma: 'hear',
     variants: ['hear', 'hears', 'heard', 'hearing'],
     category: 'verb',
@@ -329,7 +329,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:detect' as LexemeId,
+    id: 'lex:verb:detect',
     lemma: 'detect',
     variants: ['detect', 'detects', 'detected', 'detecting'],
     category: 'verb',
@@ -347,7 +347,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:recognize' as LexemeId,
+    id: 'lex:verb:recognize',
     lemma: 'recognize',
     variants: ['recognize', 'recognizes', 'recognized', 'recognizing'],
     category: 'verb',
@@ -365,7 +365,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:think' as LexemeId,
+    id: 'lex:verb:think',
     lemma: 'think',
     variants: ['think', 'thinks', 'thought', 'thinking'],
     category: 'verb',
@@ -384,7 +384,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:believe' as LexemeId,
+    id: 'lex:verb:believe',
     lemma: 'believe',
     variants: ['believe', 'believes', 'believed', 'believing'],
     category: 'verb',
@@ -403,7 +403,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:suspect' as LexemeId,
+    id: 'lex:verb:suspect',
     lemma: 'suspect',
     variants: ['suspect', 'suspects', 'suspected', 'suspecting'],
     category: 'verb',
@@ -422,7 +422,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:imagine' as LexemeId,
+    id: 'lex:verb:imagine',
     lemma: 'imagine',
     variants: ['imagine', 'imagines', 'imagined', 'imagining'],
     category: 'verb',
@@ -440,7 +440,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:picture' as LexemeId,
+    id: 'lex:verb:picture',
     lemma: 'picture',
     variants: ['picture', 'pictures', 'pictured', 'picturing'],
     category: 'verb',
@@ -458,7 +458,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:envision' as LexemeId,
+    id: 'lex:verb:envision',
     lemma: 'envision',
     variants: ['envision', 'envisions', 'envisioned', 'envisioning'],
     category: 'verb',
@@ -480,7 +480,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   // ============================================================================
   
   {
-    id: 'lex:verb:compare' as LexemeId,
+    id: 'lex:verb:compare',
     lemma: 'compare',
     variants: ['compare', 'compares', 'compared', 'comparing'],
     category: 'verb',
@@ -498,7 +498,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:contrast' as LexemeId,
+    id: 'lex:verb:contrast',
     lemma: 'contrast',
     variants: ['contrast', 'contrasts', 'contrasted', 'contrasting'],
     category: 'verb',
@@ -516,7 +516,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:differ' as LexemeId,
+    id: 'lex:verb:differ',
     lemma: 'differ',
     variants: ['differ', 'differs', 'differed', 'differing'],
     category: 'verb',
@@ -534,7 +534,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:match' as LexemeId,
+    id: 'lex:verb:match',
     lemma: 'match',
     variants: ['match', 'matches', 'matched', 'matching'],
     category: 'verb',
@@ -552,7 +552,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:resemble' as LexemeId,
+    id: 'lex:verb:resemble',
     lemma: 'resemble',
     variants: ['resemble', 'resembles', 'resembled', 'resembling'],
     category: 'verb',
@@ -570,7 +570,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:mirror' as LexemeId,
+    id: 'lex:verb:mirror',
     lemma: 'mirror',
     variants: ['mirror', 'mirrors', 'mirrored', 'mirroring'],
     category: 'verb',
@@ -588,7 +588,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:echo' as LexemeId,
+    id: 'lex:verb:echo',
     lemma: 'echo',
     variants: ['echo', 'echoes', 'echoed', 'echoing'],
     category: 'verb',
@@ -606,7 +606,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:repeat' as LexemeId,
+    id: 'lex:verb:repeat',
     lemma: 'repeat',
     variants: ['repeat', 'repeats', 'repeated', 'repeating'],
     category: 'verb',
@@ -624,7 +624,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:recall' as LexemeId,
+    id: 'lex:verb:recall',
     lemma: 'recall',
     variants: ['recall', 'recalls', 'recalled', 'recalling'],
     category: 'verb',
@@ -642,7 +642,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:reference' as LexemeId,
+    id: 'lex:verb:reference',
     lemma: 'reference',
     variants: ['reference', 'references', 'referenced', 'referencing'],
     category: 'verb',
@@ -664,7 +664,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   // ============================================================================
   
   {
-    id: 'lex:verb:suggest' as LexemeId,
+    id: 'lex:verb:suggest',
     lemma: 'suggest',
     variants: ['suggest', 'suggests', 'suggested', 'suggesting'],
     category: 'verb',
@@ -682,7 +682,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:propose' as LexemeId,
+    id: 'lex:verb:propose',
     lemma: 'propose',
     variants: ['propose', 'proposes', 'proposed', 'proposing'],
     category: 'verb',
@@ -700,7 +700,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:recommend' as LexemeId,
+    id: 'lex:verb:recommend',
     lemma: 'recommend',
     variants: ['recommend', 'recommends', 'recommended', 'recommending'],
     category: 'verb',
@@ -718,7 +718,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:advise' as LexemeId,
+    id: 'lex:verb:advise',
     lemma: 'advise',
     variants: ['advise', 'advises', 'advised', 'advising'],
     category: 'verb',
@@ -736,7 +736,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:agree' as LexemeId,
+    id: 'lex:verb:agree',
     lemma: 'agree',
     variants: ['agree', 'agrees', 'agreed', 'agreeing'],
     category: 'verb',
@@ -755,7 +755,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:disagree' as LexemeId,
+    id: 'lex:verb:disagree',
     lemma: 'disagree',
     variants: ['disagree', 'disagrees', 'disagreed', 'disagreeing'],
     category: 'verb',
@@ -774,7 +774,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:concur' as LexemeId,
+    id: 'lex:verb:concur',
     lemma: 'concur',
     variants: ['concur', 'concurs', 'concurred', 'concurring'],
     category: 'verb',
@@ -794,7 +794,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:accept' as LexemeId,
+    id: 'lex:verb:accept',
     lemma: 'accept',
     variants: ['accept', 'accepts', 'accepted', 'accepting'],
     category: 'verb',
@@ -813,7 +813,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:reject' as LexemeId,
+    id: 'lex:verb:reject',
     lemma: 'reject',
     variants: ['reject', 'rejects', 'rejected', 'rejecting'],
     category: 'verb',
@@ -832,7 +832,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:approve' as LexemeId,
+    id: 'lex:verb:approve',
     lemma: 'approve',
     variants: ['approve', 'approves', 'approved', 'approving'],
     category: 'verb',
@@ -851,7 +851,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:veto' as LexemeId,
+    id: 'lex:verb:veto',
     lemma: 'veto',
     variants: ['veto', 'vetoes', 'vetoed', 'vetoing'],
     category: 'verb',
@@ -870,7 +870,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:question' as LexemeId,
+    id: 'lex:verb:question',
     lemma: 'question',
     variants: ['question', 'questions', 'questioned', 'questioning'],
     category: 'verb',
@@ -888,7 +888,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:wonder' as LexemeId,
+    id: 'lex:verb:wonder',
     lemma: 'wonder',
     variants: ['wonder', 'wonders', 'wondered', 'wondering'],
     category: 'verb',
@@ -906,7 +906,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:debate' as LexemeId,
+    id: 'lex:verb:debate',
     lemma: 'debate',
     variants: ['debate', 'debates', 'debated', 'debating'],
     category: 'verb',
@@ -924,7 +924,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:discuss' as LexemeId,
+    id: 'lex:verb:discuss',
     lemma: 'discuss',
     variants: ['discuss', 'discusses', 'discussed', 'discussing'],
     category: 'verb',
@@ -942,7 +942,7 @@ export const COMMUNICATION_VERBS: readonly Lexeme[] = [
   },
   
   {
-    id: 'lex:verb:negotiate' as LexemeId,
+    id: 'lex:verb:negotiate',
     lemma: 'negotiate',
     variants: ['negotiate', 'negotiates', 'negotiated', 'negotiating'],
     category: 'verb',

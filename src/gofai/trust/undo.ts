@@ -69,6 +69,9 @@ export function isValidEditPackageId(id: string): id is EditPackageId {
  */
 export function getEditPackageTimestamp(id: EditPackageId): number {
   const parts = id.split(':');
+  if (parts.length < 2 || !parts[1]) {
+    throw new Error(`Invalid EditPackageId format: ${id}`);
+  }
   return parseInt(parts[1], 10);
 }
 
@@ -360,6 +363,7 @@ export function undoLast(
 
   const targetIdx = history.currentPosition - 1;
   const pkg = history.packages[targetIdx];
+  if (!pkg) return undefined;
 
   const updatedPkg: EditPackage = { ...pkg, status: 'undone' };
   const updatedPackages = [...history.packages];
@@ -386,7 +390,7 @@ export function redoNext(
 
   const targetIdx = history.currentPosition;
   const pkg = history.packages[targetIdx];
-  if (pkg.status !== 'undone') return undefined;
+  if (!pkg || pkg.status !== 'undone') return undefined;
 
   const updatedPkg: EditPackage = { ...pkg, status: 'redone' };
   const updatedPackages = [...history.packages];
@@ -424,6 +428,7 @@ export function undoById(
 
   for (let i = history.currentPosition - 1; i >= targetIdx; i--) {
     const pkg = history.packages[i];
+    if (!pkg) continue;
     const updated: EditPackage = { ...pkg, status: 'undone' };
     updatedPackages[i] = updated;
     undone.push(updated);
