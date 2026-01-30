@@ -19,7 +19,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 016 [Infra] — Add a glossary of key terms (scope, referent, salience, presupposition, implicature, constraint) and require it in docs review.
 - [x] Step 017 [Type] — Decide how “unknown-but-declared” extension semantics are represented (opaque namespaced nodes with schemas).
 - [x] Step 020 [Infra][Eval] — Define success metrics: semantic reliability under paraphrase, constraint correctness, edit reversibility, workflow speed, user trust.
-- [ ] Step 022 [Infra] — Build a “risk register” (failure modes: wrong scope, wrong target, broken constraints, destructive edits) and map each to mitigation steps.
+- [x] Step 022 [Infra] — Build a “risk register” (failure modes: wrong scope, wrong target, broken constraints, destructive edits) and map each to mitigation steps.
 - [x] Step 023 [Type] — Define a “capability model” for the current environment: what can be edited (events vs routing vs DSP) depending on board policy.
 - [x] Step 024 [Infra] — Establish a policy for deterministic output ordering (stable sorting for entities, stable tie-breakers for parsing/planning).
 - [x] Step 025 [Infra] — Create a dedicated docs entrypoint for GOFAI (index + architecture + vocabulary + extension spec).
@@ -44,7 +44,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 063 [Type] — Define a “capability lattice” (e.g., production enabled, routing editable, AI allowed) to control which semantics can compile to execution.
 - [x] Step 064 [Ext][Type] — Define extension namespaces as first-class provenance on lexeme senses, constraints, and opcodes.
 - [x] Step 065 [Ext][Infra] — Add an extension registry conceptually mirroring BoardRegistry/CardRegistry, with register/unregister events.
-- [ ] Step 066 [Ext][Infra] — Define “auto-binding” rules: how card/board/deck metadata becomes baseline lexicon entries without custom code.
+- [x] Step 066 [Ext][Infra] — Define “auto-binding” rules: how card/board/deck metadata becomes baseline lexicon entries without custom code.
 - [x] Step 067 [Ext][Type] — Specify a schema for pack-provided GOFAI annotations (synonyms, roles, param semantics, default scopes).
 - [x] Step 068 [Sem] — Define the mapping between `MusicSpec` constraints and CPL constraints (lossless where possible).
 - [x] Step 069 [Sem] — Add a “constraint catalog” that includes both builtins and namespaced extension constraints with schemas.

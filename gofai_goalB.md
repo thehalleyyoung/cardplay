@@ -44,14 +44,14 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 063 [Type] — Define a “capability lattice” (e.g., production enabled, routing editable, AI allowed) to control which semantics can compile to execution.
 - [x] Step 064 [Ext][Type] — Define extension namespaces as first-class provenance on lexeme senses, constraints, and opcodes.
 - [x] Step 065 [Ext][Infra] — Add an extension registry conceptually mirroring BoardRegistry/CardRegistry, with register/unregister events.
-- [ ] Step 066 [Ext][Infra] — Define “auto-binding” rules: how card/board/deck metadata becomes baseline lexicon entries without custom code.
+- [x] Step 066 [Ext][Infra] — Define “auto-binding” rules: how card/board/deck metadata becomes baseline lexicon entries without custom code.
 - [x] Step 067 [Ext][Type] — Specify a schema for pack-provided GOFAI annotations (synonyms, roles, param semantics, default scopes).
 - [x] Step 068 [Sem] — Define the mapping between `MusicSpec` constraints and CPL constraints (lossless where possible).
 - [x] Step 069 [Sem] — Add a “constraint catalog” that includes both builtins and namespaced extension constraints with schemas.
 - [x] Step 070 [Type] — Define `ConstraintSchema` types (parametric) so unknown constraints remain typecheckable if declared.
 - [x] Step 073 [Prag] — Add a “speech situation” model (speaker, addressee, time, focused tool) to support situation semantics-like reasoning.
 - [x] Step 081 [Ext][Infra] — Integrate symbol table builder with CardRegistry and BoardRegistry listeners to auto-update referents when extensions load.
-- [ ] Step 082 [Ext][Infra] — Define how deck factories and deck types become referents (“open the waveform editor deck”), including namespaced deck types.
+- [x] Step 082 [Ext][Infra] — Define how deck factories and deck types become referents (“open the waveform editor deck”), including namespaced deck types.
 - [ ] Step 083 [Type] — Define “UI-only actions” vs “project mutation actions” with distinct effect types (prevents conflating navigation with edits).
 - [ ] Step 086 [Sem] — Define a typed representation for “musical dimensions” that can host both perceptual axes and symbolic-theory axes.
 - [ ] Step 087 [Ext][Sem] — Define how an extension can add a new axis (e.g., “grit”) and map it to levers without editing core.
