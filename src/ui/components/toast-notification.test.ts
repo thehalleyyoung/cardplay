@@ -12,6 +12,7 @@ import {
   toastError,
   dismissAllToasts,
   dismissToastsAtPosition,
+  resetToastSystem,
   type Toast
 } from './toast-notification';
 
@@ -44,18 +45,15 @@ describe('Toast Notification System', () => {
     // Mock Element.getAnimations
     HTMLElement.prototype.getAnimations = vi.fn().mockReturnValue([]);
 
-    // Clean up any existing toasts
-    dismissAllToasts();
-    // Clean up containers
-    if (typeof document !== 'undefined') {
-      document.querySelectorAll('.toast-container').forEach(el => el.remove());
-    }
+    // Reset toast system fully for clean state
+    resetToastSystem();
     vi.useFakeTimers();
   });
 
   afterEach(() => {
-    dismissAllToasts();
+    resetToastSystem();
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('showToast', () => {

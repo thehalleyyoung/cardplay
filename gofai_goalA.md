@@ -228,16 +228,16 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 
 ## Phase 7 — HCI: The GOFAI Deck, Clarifications, Trust, and Flow (Steps 351–400)
 
-- [ ] Step 351 [HCI] — Implement a GOFAI deck UI with three panes: English input, CPL viewer, Plan/Diff preview, aligned with CardPlay deck patterns.
-- [ ] Step 352 [HCI] — Add inline scope visualization: hovering “chorus” highlights the bound section in the timeline and editors.
-- [ ] Step 353 [HCI] — Add inline entity chips: resolved referents appear as chips (“Chorus 2”, “Drums track”) that can be clicked to change binding.
-- [ ] Step 354 [HCI] — Add “apply” gating UI: disabled until required clarifications resolved and plan preflight passes.
-- [ ] Step 355 [HCI] — Add a “quick actions” bar: undo, redo, explain, compare plans, export report.
-- [ ] Step 356 [HCI] — Implement a dedicated clarification modal that supports QUD-style options with defaults and consequences.
-- [ ] Step 357 [HCI] — Provide an “ask fewer questions” toggle that allows the user to set stronger defaults (with safety warnings).
-- [ ] Step 358 [HCI] — Provide a “strict mode” toggle for studios: always clarify ambiguous terms; never auto-default.
-- [ ] Step 359 [HCI] — Implement keyboard-first workflows: enter command, navigate clarifications, apply, undo, all without mouse.
-- [ ] Step 360 [HCI] — Implement accessibility semantics (ARIA labels, focus management, screen reader-friendly diff summaries).
+- [x] Step 351 [HCI] — Implement a GOFAI deck UI with three panes: English input, CPL viewer, Plan/Diff preview, aligned with CardPlay deck patterns.
+- [x] Step 352 [HCI] — Add inline scope visualization: hovering "chorus" highlights the bound section in the timeline and editors.
+- [x] Step 353 [HCI] — Add inline entity chips: resolved referents appear as chips ("Chorus 2", "Drums track") that can be clicked to change binding.
+- [x] Step 354 [HCI] — Add "apply" gating UI: disabled until required clarifications resolved and plan preflight passes.
+- [x] Step 355 [HCI] — Add a "quick actions" bar: undo, redo, explain, compare plans, export report.
+- [x] Step 356 [HCI] — Implement a dedicated clarification modal that supports QUD-style options with defaults and consequences.
+- [x] Step 357 [HCI] — Provide an "ask fewer questions" toggle that allows the user to set stronger defaults (with safety warnings).
+- [x] Step 358 [HCI] — Provide a "strict mode" toggle for studios: always clarify ambiguous terms; never auto-default.
+- [x] Step 359 [HCI] — Implement keyboard-first workflows: enter command, navigate clarifications, apply, undo, all without mouse.
+- [x] Step 360 [HCI] — Implement accessibility semantics (ARIA labels, focus management, screen reader-friendly diff summaries).
 - [ ] Step 361 [HCI] — Add a “plan comparison” UI: show two candidate plans with side-by-side diff summaries and lever explanations.
 - [ ] Step 362 [HCI] — Add a “lever editing” UI: user can tweak plan parameters (amounts, ranges) before apply and revalidate.
 - [ ] Step 363 [HCI] — Add a “scope editing” UI: user can expand/narrow scope via timeline brushing; CPL updates live.

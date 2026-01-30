@@ -159,6 +159,22 @@ export function dismissAllToasts(): void {
 }
 
 /**
+ * Reset toast system (for testing).
+ * Clears all internal state including container references.
+ */
+export function resetToastSystem(): void {
+  toastsByPosition.forEach(toasts => {
+    toasts.forEach(toast => {
+      toast.element.remove();
+    });
+  });
+  toastsByPosition.clear();
+  containers.forEach(container => container.remove());
+  containers.clear();
+  toastIdCounter = 0;
+}
+
+/**
  * Dismiss toasts at a specific position
  */
 export function dismissToastsAtPosition(position: ToastPosition): void {
