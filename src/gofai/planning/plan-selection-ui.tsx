@@ -351,7 +351,7 @@ export const PlanSelectionUI: React.FC<PlanSelectionUIProps> = ({
         <h3>Choose a plan</h3>
         <p className="instruction-text">
           {candidates.length === 1
-            ? 'Here's the proposed change:'
+            ? "Here's the proposed change:"
             : `${candidates.length} options available. Compare and choose:`}
         </p>
       </div>
