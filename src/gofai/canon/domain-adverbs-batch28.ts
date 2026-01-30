@@ -420,7 +420,7 @@ export const DIMINISHER_ADVERBS: readonly AdverbLexeme[] = [
   },
 
   {
-    id: createLexemeId('adv', 'a_bit'),
+    id: createLexemeId('adv', 'a-bit'),
     lemma: 'a bit',
     variants: ['a little', 'a little bit'],
     category: 'degree',
@@ -441,7 +441,7 @@ export const DIMINISHER_ADVERBS: readonly AdverbLexeme[] = [
   },
 
   {
-    id: createLexemeId('adv', 'a_little'),
+    id: createLexemeId('adv', 'a-little'),
     lemma: 'a little',
     variants: ['a little bit'],
     category: 'degree',

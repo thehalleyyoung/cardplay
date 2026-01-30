@@ -443,7 +443,7 @@ export const CONVERSATIONAL_SPATIAL: readonly ConversationalAdjective[] = [
   },
 
   {
-    id: createLexemeId('adj', 'pushed_back'),
+    id: createLexemeId('adj', 'pushed-back'),
     lemma: 'pushed back',
     variants: ['pushed-down', 'recessed', 'distant'],
     category: 'adjective',

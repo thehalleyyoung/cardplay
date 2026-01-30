@@ -260,7 +260,7 @@ const TRANSITION_CONNECTIVES: readonly Lexeme[] = [
 
 const FORMAL_PATTERNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'binary_form'),
+    id: createLexemeId('noun', 'binary-form'),
     lemma: 'binary form',
     variants: ['binary form', 'AB form', 'two-part form'] as const,
     category: 'noun' as const,
@@ -274,7 +274,7 @@ const FORMAL_PATTERNS: readonly Lexeme[] = [
     examples: ['structure as binary form', 'use AB form', 'arrange in two-part form'] as const,
   },
   {
-    id: createLexemeId('noun', 'ternary_form'),
+    id: createLexemeId('noun', 'ternary-form'),
     lemma: 'ternary form',
     variants: ['ternary form', 'ABA form', 'three-part form', 'song form'] as const,
     category: 'noun' as const,
@@ -288,7 +288,7 @@ const FORMAL_PATTERNS: readonly Lexeme[] = [
     examples: ['structure as ternary form', 'use ABA form', 'arrange in song form'] as const,
   },
   {
-    id: createLexemeId('noun', 'rondo_form'),
+    id: createLexemeId('noun', 'rondo-form'),
     lemma: 'rondo',
     variants: ['rondo', 'rondo form', 'ABACA form'] as const,
     category: 'noun' as const,
@@ -302,7 +302,7 @@ const FORMAL_PATTERNS: readonly Lexeme[] = [
     examples: ['structure as rondo', 'use rondo form', 'create ABACA pattern'] as const,
   },
   {
-    id: createLexemeId('noun', 'strophic_form'),
+    id: createLexemeId('noun', 'strophic-form'),
     lemma: 'strophic',
     variants: ['strophic', 'strophic form', 'verse form', 'AAA form'] as const,
     category: 'noun' as const,
@@ -316,7 +316,7 @@ const FORMAL_PATTERNS: readonly Lexeme[] = [
     examples: ['arrange strophically', 'use verse form', 'structure as AAA'] as const,
   },
   {
-    id: createLexemeId('adj', 'through_composed'),
+    id: createLexemeId('adj', 'through-composed'),
     lemma: 'through-composed',
     variants: ['through-composed', 'non-repeating', 'continuous form'] as const,
     category: 'adj' as const,
@@ -329,7 +329,7 @@ const FORMAL_PATTERNS: readonly Lexeme[] = [
     examples: ['make it through-composed', 'create non-repeating structure', 'use continuous form'] as const,
   },
   {
-    id: createLexemeId('noun', 'arch_form'),
+    id: createLexemeId('noun', 'arch-form'),
     lemma: 'arch form',
     variants: ['arch form', 'palindrome', 'mirror form', 'ABCBA'] as const,
     category: 'noun' as const,
@@ -343,7 +343,7 @@ const FORMAL_PATTERNS: readonly Lexeme[] = [
     examples: ['structure as arch form', 'create palindromic structure', 'use mirror form'] as const,
   },
   {
-    id: createLexemeId('noun', 'sonata_form'),
+    id: createLexemeId('noun', 'sonata-form'),
     lemma: 'sonata form',
     variants: ['sonata form', 'sonata-allegro', 'first-movement form'] as const,
     category: 'noun' as const,
@@ -357,7 +357,7 @@ const FORMAL_PATTERNS: readonly Lexeme[] = [
     examples: ['structure in sonata form', 'use sonata-allegro', 'follow first-movement form'] as const,
   },
   {
-    id: createLexemeId('noun', 'theme_and_variations'),
+    id: createLexemeId('noun', 'theme-and-variations'),
     lemma: 'theme and variations',
     variants: ['theme and variations', 'variation form', 'variational structure'] as const,
     category: 'noun' as const,
@@ -530,7 +530,7 @@ const PROPORTIONS_BALANCE: readonly Lexeme[] = [
     examples: ['make it asymmetrical', 'create unbalanced structure', 'use irregular proportions'] as const,
   },
   {
-    id: createLexemeId('noun', 'golden_ratio'),
+    id: createLexemeId('noun', 'golden-ratio'),
     lemma: 'golden ratio',
     variants: ['golden ratio', 'golden section', 'phi proportion'] as const,
     category: 'noun' as const,

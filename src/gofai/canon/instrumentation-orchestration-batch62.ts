@@ -167,7 +167,7 @@ const INSTRUMENT_FAMILY_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'rhythm_section'),
+    id: createLexemeId('noun', 'rhythm-section'),
     lemma: 'rhythm section',
     variants: ['rhythm', 'backline', 'band'],
     category: 'noun',
@@ -327,7 +327,7 @@ const ENSEMBLE_SIZE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'big_band'),
+    id: createLexemeId('noun', 'big-band'),
     lemma: 'big band',
     variants: ['jazz orchestra', 'large jazz ensemble'],
     category: 'noun',
@@ -575,7 +575,7 @@ const SECTION_ROLE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'bass_line'),
+    id: createLexemeId('noun', 'bass-line'),
     lemma: 'bass line',
     variants: ['bassline', 'bass', 'foundation', 'root motion'],
     category: 'noun',
@@ -593,7 +593,7 @@ const SECTION_ROLE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'inner_voices'),
+    id: createLexemeId('noun', 'inner-voices'),
     lemma: 'inner voices',
     variants: ['inner parts', 'middle voices', 'filler'],
     category: 'noun',
@@ -681,7 +681,7 @@ const SECTION_ROLE_LEXEMES: readonly Lexeme[] = [
  */
 const SPACING_REGISTER_LEXEMES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'close_voicing'),
+    id: createLexemeId('adj', 'close-voicing'),
     lemma: 'close',
     variants: ['close voicing', 'tight', 'compact', 'narrow'],
     category: 'adj',
@@ -699,7 +699,7 @@ const SPACING_REGISTER_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'open_voicing'),
+    id: createLexemeId('adj', 'open-voicing'),
     lemma: 'open',
     variants: ['open voicing', 'spread', 'wide', 'spacious'],
     category: 'adj',
@@ -717,7 +717,7 @@ const SPACING_REGISTER_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'drop_voicing'),
+    id: createLexemeId('adj', 'drop-voicing'),
     lemma: 'drop',
     variants: ['drop-2', 'drop-3', 'dropped voice'],
     category: 'adj',
@@ -735,7 +735,7 @@ const SPACING_REGISTER_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'quartl_voicing'),
+    id: createLexemeId('adj', 'quartl-voicing'),
     lemma: 'quartal',
     variants: ['fourths', 'stacked fourths', 'quartal harmony'],
     category: 'adj',
@@ -789,7 +789,7 @@ const SPACING_REGISTER_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'low_register'),
+    id: createLexemeId('adj', 'low-register'),
     lemma: 'low',
     variants: ['bass register', 'deep', 'bottom', 'low range'],
     category: 'adj',
@@ -807,7 +807,7 @@ const SPACING_REGISTER_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'high_register'),
+    id: createLexemeId('adj', 'high-register'),
     lemma: 'high',
     variants: ['treble register', 'bright', 'top', 'high range'],
     category: 'adj',

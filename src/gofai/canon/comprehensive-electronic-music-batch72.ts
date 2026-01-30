@@ -48,7 +48,7 @@ export const houseMusicLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:genre:deep_house'),
+    id: createLexemeId('lex:genre:deep-house'),
     lemma: 'deep house',
     variants: ['deep', 'soulful house'],
     category: 'noun',
@@ -71,7 +71,7 @@ export const houseMusicLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:genre:tech_house'),
+    id: createLexemeId('lex:genre:tech-house'),
     lemma: 'tech house',
     variants: ['techy', 'minimal house'],
     category: 'noun',
@@ -94,7 +94,7 @@ export const houseMusicLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:filter_sweep'),
+    id: createLexemeId('lex:technique:filter-sweep'),
     lemma: 'filter sweep',
     variants: ['filter automation', 'sweeping filter', 'resonant sweep'],
     category: 'noun',
@@ -117,7 +117,7 @@ export const houseMusicLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:pattern:groove_shuffle'),
+    id: createLexemeId('lex:pattern:groove-shuffle'),
     lemma: 'shuffle',
     variants: ['shuffled', 'swing', 'shuffly'],
     category: 'noun',
@@ -167,7 +167,7 @@ export const technoLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:genre:acid_techno'),
+    id: createLexemeId('lex:genre:acid-techno'),
     lemma: 'acid techno',
     variants: ['acid', 'acidic'],
     category: 'noun',
@@ -190,7 +190,7 @@ export const technoLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:303_bassline'),
+    id: createLexemeId('lex:technique:303-bassline'),
     lemma: '303 bassline',
     variants: ['acid bassline', 'squelchy bass', 'resonant bass'],
     category: 'noun',
@@ -284,7 +284,7 @@ export const bassLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:sub_bass'),
+    id: createLexemeId('lex:technique:sub-bass'),
     lemma: 'sub bass',
     variants: ['sub', 'sub-bass', 'low end'],
     category: 'noun',
@@ -306,7 +306,7 @@ export const bassLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:pattern:half_time'),
+    id: createLexemeId('lex:pattern:half-time'),
     lemma: 'half time',
     variants: ['half-time', 'halftime'],
     category: 'noun',
@@ -327,7 +327,7 @@ export const bassLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:genre:drum_and_bass'),
+    id: createLexemeId('lex:genre:drum-and-bass'),
     lemma: 'drum and bass',
     variants: ['dnb', 'd&b', 'jungle'],
     category: 'noun',
@@ -350,7 +350,7 @@ export const bassLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:reese_bass'),
+    id: createLexemeId('lex:technique:reese-bass'),
     lemma: 'reese bass',
     variants: ['reese', 'detuned bass', 'thick bass'],
     category: 'noun',
@@ -424,7 +424,7 @@ export const trapLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:pattern:hi_hat_roll'),
+    id: createLexemeId('lex:pattern:hi-hat-roll'),
     lemma: 'hi-hat roll',
     variants: ['hat roll', 'rapid hats', 'hi-hat triplets'],
     category: 'noun',
@@ -446,7 +446,7 @@ export const trapLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:pattern:snare_roll'),
+    id: createLexemeId('lex:pattern:snare-roll'),
     lemma: 'snare roll',
     variants: ['roll', 'drum roll', 'buildup'],
     category: 'noun',
@@ -649,7 +649,7 @@ export const synthesisLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:synthesis:filter_resonance'),
+    id: createLexemeId('lex:synthesis:filter-resonance'),
     lemma: 'resonance',
     variants: ['filter resonance', 'Q', 'emphasis'],
     category: 'noun',
@@ -739,7 +739,7 @@ export const spatialLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:spatial:stereo_width'),
+    id: createLexemeId('lex:spatial:stereo-width'),
     lemma: 'stereo width',
     variants: ['width', 'stereo spread', 'wideness'],
     category: 'noun',
@@ -760,7 +760,7 @@ export const spatialLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:spatial:haas_effect'),
+    id: createLexemeId('lex:spatial:haas-effect'),
     lemma: 'Haas effect',
     variants: ['precedence effect', 'delay panning'],
     category: 'noun',
@@ -803,7 +803,7 @@ export const spatialLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:spatial:automation_movement'),
+    id: createLexemeId('lex:spatial:automation-movement'),
     lemma: 'movement',
     variants: ['motion', 'traveling', 'sweeping'],
     category: 'noun',
@@ -851,7 +851,7 @@ export const grooveLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:groove:laid_back'),
+    id: createLexemeId('lex:groove:laid-back'),
     lemma: 'laid back',
     variants: ['behind the beat', 'relaxed', 'late timing'],
     category: 'adjective',

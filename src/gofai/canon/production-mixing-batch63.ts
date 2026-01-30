@@ -146,7 +146,7 @@ const MIX_BALANCE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'wide_mix'),
+    id: createLexemeId('adj', 'wide-mix'),
     lemma: 'wide',
     variants: ['wider', 'spread', 'stereo'],
     category: 'adj',
@@ -164,7 +164,7 @@ const MIX_BALANCE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'narrow_mix'),
+    id: createLexemeId('adj', 'narrow-mix'),
     lemma: 'narrow',
     variants: ['narrower', 'focused', 'tight'],
     category: 'adj',
@@ -234,7 +234,7 @@ const SPATIAL_POSITIONING_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'close_sound'),
+    id: createLexemeId('adj', 'close-sound'),
     lemma: 'close',
     variants: ['intimate', 'near', 'dry', 'direct'],
     category: 'adj',
@@ -306,7 +306,7 @@ const SPATIAL_POSITIONING_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'point_source'),
+    id: createLexemeId('adj', 'point-source'),
     lemma: 'point source',
     variants: ['focused', 'localized', 'pinpoint'],
     category: 'adj',
@@ -466,7 +466,7 @@ const FREQUENCY_EQ_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'midrange_rich'),
+    id: createLexemeId('adj', 'midrange-rich'),
     lemma: 'midrange-rich',
     variants: ['mid-forward', 'present', 'bold mids'],
     category: 'adj',
@@ -572,7 +572,7 @@ const DYNAMICS_PROCESSING_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'smooth_dynamics'),
+    id: createLexemeId('adj', 'smooth-dynamics'),
     lemma: 'smooth',
     variants: ['gentle', 'soft transients', 'rounded'],
     category: 'adj',
@@ -928,7 +928,7 @@ const CLARITY_DEFINITION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'diffuse_mix'),
+    id: createLexemeId('adj', 'diffuse-mix'),
     lemma: 'diffuse',
     variants: ['blurred', 'vague', 'unfocused', 'soft'],
     category: 'adj',

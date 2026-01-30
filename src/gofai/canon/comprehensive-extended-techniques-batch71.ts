@@ -23,7 +23,7 @@ import { createLexemeId, type LexemeId } from './gofai-id';
 
 export const stringExtendedLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:technique:col_legno'),
+    id: createLexemeId('lex:technique:col-legno'),
     lemma: 'col legno',
     variants: ['col legno battuto', 'with the wood', 'wooden sound'],
     category: 'noun',
@@ -46,7 +46,7 @@ export const stringExtendedLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:sul_ponticello'),
+    id: createLexemeId('lex:technique:sul-ponticello'),
     lemma: 'sul ponticello',
     variants: ['ponticello', 'on the bridge', 'glassy sound'],
     category: 'noun',
@@ -69,7 +69,7 @@ export const stringExtendedLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:sul_tasto'),
+    id: createLexemeId('lex:technique:sul-tasto'),
     lemma: 'sul tasto',
     variants: ['sul tasto', 'on the fingerboard', 'flautando'],
     category: 'noun',
@@ -115,7 +115,7 @@ export const stringExtendedLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:bartok_pizz'),
+    id: createLexemeId('lex:technique:bartok-pizz'),
     lemma: 'bartok pizzicato',
     variants: ['snap pizzicato', 'snap pizz', 'bartók pizz'],
     category: 'noun',
@@ -212,7 +212,7 @@ export const stringExtendedLexemes: readonly Lexeme[] = [
 
 export const windExtendedLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:technique:flutter_tongue'),
+    id: createLexemeId('lex:technique:flutter-tongue'),
     lemma: 'flutter tongue',
     variants: ['flutter-tongue', 'fluttertongue', 'frullato'],
     category: 'noun',
@@ -281,7 +281,7 @@ export const windExtendedLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:circular_breathing'),
+    id: createLexemeId('lex:technique:circular-breathing'),
     lemma: 'circular breathing',
     variants: ['circular breath', 'continuous breathing'],
     category: 'noun',
@@ -304,7 +304,7 @@ export const windExtendedLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:key_clicks'),
+    id: createLexemeId('lex:technique:key-clicks'),
     lemma: 'key clicks',
     variants: ['key-clicks', 'key percussion', 'click sounds'],
     category: 'noun',
@@ -465,7 +465,7 @@ export const vocalExtendedLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:vocal_fry'),
+    id: createLexemeId('lex:technique:vocal-fry'),
     lemma: 'vocal fry',
     variants: ['fry', 'creaky voice', 'pulse register'],
     category: 'noun',
@@ -515,7 +515,7 @@ export const productionLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:production:parallel_compression'),
+    id: createLexemeId('lex:production:parallel-compression'),
     lemma: 'parallel compression',
     variants: ['new york compression', 'parallel processing'],
     category: 'noun',
@@ -675,7 +675,7 @@ export const productionLexemes: readonly Lexeme[] = [
 
 export const soundDesignLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:sounddesign:fm_synthesis'),
+    id: createLexemeId('lex:sounddesign:fm-synthesis'),
     lemma: 'FM synthesis',
     variants: ['FM', 'frequency modulation', 'FM synth'],
     category: 'noun',
@@ -717,7 +717,7 @@ export const soundDesignLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:sounddesign:physical_modeling'),
+    id: createLexemeId('lex:sounddesign:physical-modeling'),
     lemma: 'physical modeling',
     variants: ['physical modelling', 'modal synthesis'],
     category: 'noun',
@@ -801,7 +801,7 @@ export const soundDesignLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:sounddesign:noise_gate'),
+    id: createLexemeId('lex:sounddesign:noise-gate'),
     lemma: 'noise gate',
     variants: ['gate', 'gating', 'noise reduction'],
     category: 'noun',
@@ -849,7 +849,7 @@ export const engineeringLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:engineering:phase_cancellation'),
+    id: createLexemeId('lex:engineering:phase-cancellation'),
     lemma: 'phase cancellation',
     variants: ['phase issues', 'comb filtering', 'phase problems'],
     category: 'noun',
@@ -912,7 +912,7 @@ export const engineeringLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:engineering:gain_staging'),
+    id: createLexemeId('lex:engineering:gain-staging'),
     lemma: 'gain staging',
     variants: ['gain structure', 'level optimization'],
     category: 'noun',

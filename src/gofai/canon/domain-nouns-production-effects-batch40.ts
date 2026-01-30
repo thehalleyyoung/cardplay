@@ -103,7 +103,7 @@ export const DYNAMIC_PROCESSOR_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'multiband_compressor'),
+    id: createLexemeId('noun', 'multiband-compressor'),
     lemma: 'multiband compressor',
     variants: ['multiband compressor', 'multi-band comp', 'frequency-specific compression', 'split-band compressor'],
     category: 'noun',
@@ -122,7 +122,7 @@ export const DYNAMIC_PROCESSOR_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'sidechain_compressor'),
+    id: createLexemeId('noun', 'sidechain-compressor'),
     lemma: 'sidechain compressor',
     variants: ['sidechain compressor', 'sidechain compression', 'ducking', 'key compression'],
     category: 'noun',
@@ -141,7 +141,7 @@ export const DYNAMIC_PROCESSOR_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'transient_shaper'),
+    id: createLexemeId('noun', 'transient-shaper'),
     lemma: 'transient shaper',
     variants: ['transient shaper', 'transient designer', 'attack shaper', 'envelope shaper'],
     category: 'noun',
@@ -160,7 +160,7 @@ export const DYNAMIC_PROCESSOR_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'de_esser'),
+    id: createLexemeId('noun', 'de-esser'),
     lemma: 'de-esser',
     variants: ['de-esser', 'de-essing', 'sibilance remover', 'ess reducer'],
     category: 'noun',
@@ -223,7 +223,7 @@ export const TIME_BASED_EFFECTS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'ping_pong_delay'),
+    id: createLexemeId('noun', 'ping-pong-delay'),
     lemma: 'ping-pong delay',
     variants: ['ping-pong delay', 'stereo delay', 'bouncing delay', 'alternating delay'],
     category: 'noun',
@@ -438,7 +438,7 @@ export const DISTORTION_SATURATION_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'tube_emulation'),
+    id: createLexemeId('noun', 'tube-emulation'),
     lemma: 'tube emulation',
     variants: ['tube emulation', 'valve emulation', 'tube amp', 'valve sound'],
     category: 'noun',
@@ -482,7 +482,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'parametric_eq'),
+    id: createLexemeId('noun', 'parametric-eq'),
     lemma: 'parametric EQ',
     variants: ['parametric EQ', 'parametric equalizer', 'para EQ', 'fully parametric'],
     category: 'noun',
@@ -501,7 +501,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'graphic_eq'),
+    id: createLexemeId('noun', 'graphic-eq'),
     lemma: 'graphic EQ',
     variants: ['graphic EQ', 'graphic equalizer', 'fixed-band EQ', 'multi-band EQ'],
     category: 'noun',
@@ -520,7 +520,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'low_pass_filter'),
+    id: createLexemeId('noun', 'low-pass-filter'),
     lemma: 'low-pass filter',
     variants: ['low-pass filter', 'lowpass', 'LPF', 'high-cut filter', 'high cut'],
     category: 'noun',
@@ -539,7 +539,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'high_pass_filter'),
+    id: createLexemeId('noun', 'high-pass-filter'),
     lemma: 'high-pass filter',
     variants: ['high-pass filter', 'highpass', 'HPF', 'low-cut filter', 'low cut'],
     category: 'noun',
@@ -558,7 +558,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'band_pass_filter'),
+    id: createLexemeId('noun', 'band-pass-filter'),
     lemma: 'band-pass filter',
     variants: ['band-pass filter', 'bandpass', 'BPF', 'mid-pass'],
     category: 'noun',
@@ -577,7 +577,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'notch_filter'),
+    id: createLexemeId('noun', 'notch-filter'),
     lemma: 'notch filter',
     variants: ['notch filter', 'band-reject filter', 'band-stop filter', 'notch'],
     category: 'noun',
@@ -596,7 +596,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'comb_filter'),
+    id: createLexemeId('noun', 'comb-filter'),
     lemma: 'comb filter',
     variants: ['comb filter', 'comb filtering', 'resonant peaks', 'harmonic filter'],
     category: 'noun',
@@ -615,7 +615,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'shelving_eq'),
+    id: createLexemeId('noun', 'shelving-eq'),
     lemma: 'shelving EQ',
     variants: ['shelving EQ', 'shelf filter', 'high shelf', 'low shelf'],
     category: 'noun',
@@ -640,7 +640,7 @@ export const FILTER_EQ_NOUNS: readonly Lexeme[] = [
 
 export const SPATIAL_EFFECTS_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'stereo_widener'),
+    id: createLexemeId('noun', 'stereo-widener'),
     lemma: 'stereo widener',
     variants: ['stereo widener', 'width enhancer', 'stereo spread', 'widening'],
     category: 'noun',
@@ -678,7 +678,7 @@ export const SPATIAL_EFFECTS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'auto_panner'),
+    id: createLexemeId('noun', 'auto-panner'),
     lemma: 'auto-panner',
     variants: ['auto-panner', 'auto pan', 'panning LFO', 'stereo modulation'],
     category: 'noun',
@@ -697,7 +697,7 @@ export const SPATIAL_EFFECTS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'binaural_processor'),
+    id: createLexemeId('noun', 'binaural-processor'),
     lemma: 'binaural processor',
     variants: ['binaural processor', 'HRTF', 'head-related transfer', '3D audio', 'spatial audio'],
     category: 'noun',
@@ -716,7 +716,7 @@ export const SPATIAL_EFFECTS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'haas_effect'),
+    id: createLexemeId('noun', 'haas-effect'),
     lemma: 'Haas effect',
     variants: ['Haas effect', 'precedence effect', 'psychoacoustic delay', 'stereo trick'],
     category: 'noun',
@@ -735,7 +735,7 @@ export const SPATIAL_EFFECTS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'mid_side_processor'),
+    id: createLexemeId('noun', 'mid-side-processor'),
     lemma: 'mid-side processor',
     variants: ['mid-side processor', 'M/S processing', 'sum-difference', 'stereo imaging'],
     category: 'noun',
@@ -760,7 +760,7 @@ export const SPATIAL_EFFECTS_NOUNS: readonly Lexeme[] = [
 
 export const CREATIVE_PROCESSORS_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'granular_synth'),
+    id: createLexemeId('noun', 'granular-synth'),
     lemma: 'granular synth',
     variants: ['granular synth', 'granular synthesis', 'grain cloud', 'microsound'],
     category: 'noun',
@@ -779,7 +779,7 @@ export const CREATIVE_PROCESSORS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'pitch_shifter'),
+    id: createLexemeId('noun', 'pitch-shifter'),
     lemma: 'pitch shifter',
     variants: ['pitch shifter', 'pitch shift', 'transpose effect', 'harmonizer'],
     category: 'noun',
@@ -817,7 +817,7 @@ export const CREATIVE_PROCESSORS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'ring_modulator'),
+    id: createLexemeId('noun', 'ring-modulator'),
     lemma: 'ring modulator',
     variants: ['ring modulator', 'ring mod', 'amplitude modulation', 'metallic effect'],
     category: 'noun',
@@ -836,7 +836,7 @@ export const CREATIVE_PROCESSORS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'frequency_shifter'),
+    id: createLexemeId('noun', 'frequency-shifter'),
     lemma: 'frequency shifter',
     variants: ['frequency shifter', 'freq shift', 'bode shifter', 'dissonant shift'],
     category: 'noun',
@@ -855,7 +855,7 @@ export const CREATIVE_PROCESSORS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'formant_filter'),
+    id: createLexemeId('noun', 'formant-filter'),
     lemma: 'formant filter',
     variants: ['formant filter', 'vowel filter', 'formant shift', 'vocal shaping'],
     category: 'noun',
@@ -874,7 +874,7 @@ export const CREATIVE_PROCESSORS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'convolution_reverb'),
+    id: createLexemeId('noun', 'convolution-reverb'),
     lemma: 'convolution reverb',
     variants: ['convolution reverb', 'impulse response', 'IR reverb', 'sampled space'],
     category: 'noun',
@@ -893,7 +893,7 @@ export const CREATIVE_PROCESSORS_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'spectral_processor'),
+    id: createLexemeId('noun', 'spectral-processor'),
     lemma: 'spectral processor',
     variants: ['spectral processor', 'FFT processor', 'frequency domain effect', 'spectral editing'],
     category: 'noun',

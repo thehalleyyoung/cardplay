@@ -17,7 +17,7 @@ import { type Lexeme, createLexemeId, createAxisId, createOpcodeId } from './typ
 
 const CHORD_EXTENSIONS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'ninth_chord'),
+    id: createLexemeId('noun', 'ninth-chord'),
     lemma: 'ninth',
     variants: ['ninth', '9th', 'add9', 'ninth chord'],
     category: 'noun',
@@ -31,7 +31,7 @@ const CHORD_EXTENSIONS: readonly Lexeme[] = [
     examples: ['add ninth', 'use 9th chords', 'extend with ninths'],
   },
   {
-    id: createLexemeId('noun', 'eleventh_chord'),
+    id: createLexemeId('noun', 'eleventh-chord'),
     lemma: 'eleventh',
     variants: ['eleventh', '11th', 'add11', 'eleventh chord'],
     category: 'noun',
@@ -45,7 +45,7 @@ const CHORD_EXTENSIONS: readonly Lexeme[] = [
     examples: ['add eleventh', 'use 11th chords', 'extend with elevenths'],
   },
   {
-    id: createLexemeId('noun', 'thirteenth_chord'),
+    id: createLexemeId('noun', 'thirteenth-chord'),
     lemma: 'thirteenth',
     variants: ['thirteenth', '13th', 'add13', 'thirteenth chord'],
     category: 'noun',
@@ -85,7 +85,7 @@ const CHORD_EXTENSIONS: readonly Lexeme[] = [
     examples: ['make it suspended', 'use sus chords', 'suspend the harmony'],
   },
   {
-    id: createLexemeId('noun', 'quartal_harmony'),
+    id: createLexemeId('noun', 'quartal-harmony'),
     lemma: 'quartal',
     variants: ['quartal', 'fourths', 'stacked fourths', 'quartal voicing'],
     category: 'noun',
@@ -99,7 +99,7 @@ const CHORD_EXTENSIONS: readonly Lexeme[] = [
     examples: ['use quartal harmony', 'stack fourths', 'create quartal voicing'],
   },
   {
-    id: createLexemeId('noun', 'quintal_harmony'),
+    id: createLexemeId('noun', 'quintal-harmony'),
     lemma: 'quintal',
     variants: ['quintal', 'fifths', 'stacked fifths', 'quintal voicing'],
     category: 'noun',
@@ -176,7 +176,7 @@ const HARMONIC_FUNCTIONS: readonly Lexeme[] = [
     examples: ['strengthen dominant', 'use V chord', 'add dominant seventh'],
   },
   {
-    id: createLexemeId('noun', 'secondary_dominant'),
+    id: createLexemeId('noun', 'secondary-dominant'),
     lemma: 'secondary dominant',
     variants: ['secondary dominant', 'applied dominant', 'V of V', 'tonicization'],
     category: 'noun',
@@ -204,7 +204,7 @@ const HARMONIC_FUNCTIONS: readonly Lexeme[] = [
     examples: ['use Neapolitan', 'add Neapolitan sixth', 'insert bII chord'],
   },
   {
-    id: createLexemeId('noun', 'augmented_sixth'),
+    id: createLexemeId('noun', 'augmented-sixth'),
     lemma: 'augmented sixth',
     variants: ['augmented sixth', 'Italian sixth', 'French sixth', 'German sixth'],
     category: 'noun',
@@ -218,7 +218,7 @@ const HARMONIC_FUNCTIONS: readonly Lexeme[] = [
     examples: ['add augmented sixth', 'use Italian sixth', 'insert German sixth'],
   },
   {
-    id: createLexemeId('noun', 'diminished_seventh'),
+    id: createLexemeId('noun', 'diminished-seventh'),
     lemma: 'diminished seventh',
     variants: ['diminished seventh', 'dim7', 'fully diminished', 'vii°7'],
     category: 'noun',
@@ -232,7 +232,7 @@ const HARMONIC_FUNCTIONS: readonly Lexeme[] = [
     examples: ['add diminished seventh', 'use dim7 chord', 'insert fully diminished'],
   },
   {
-    id: createLexemeId('noun', 'common_tone'),
+    id: createLexemeId('noun', 'common-tone'),
     lemma: 'common tone',
     variants: ['common tone', 'shared note', 'pivot', 'pivot tone'],
     category: 'noun',
@@ -253,7 +253,7 @@ const HARMONIC_FUNCTIONS: readonly Lexeme[] = [
 
 const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'tritone_substitution'),
+    id: createLexemeId('noun', 'tritone-substitution'),
     lemma: 'tritone substitution',
     variants: ['tritone sub', 'tritone substitution', 'flat-five sub', 'bV7'],
     category: 'noun',
@@ -268,7 +268,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
     examples: ['apply tritone sub', 'use flat-five substitution', 'replace with bV7'],
   },
   {
-    id: createLexemeId('noun', 'relative_substitute'),
+    id: createLexemeId('noun', 'relative-substitute'),
     lemma: 'relative substitute',
     variants: ['relative sub', 'relative substitution', 'minor for major', 'major for minor'],
     category: 'noun',
@@ -283,7 +283,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
     examples: ['use relative substitute', 'swap with relative', 'substitute related chord'],
   },
   {
-    id: createLexemeId('noun', 'parallel_substitute'),
+    id: createLexemeId('noun', 'parallel-substitute'),
     lemma: 'parallel substitute',
     variants: ['parallel sub', 'parallel substitution', 'borrowed chord', 'modal mixture'],
     category: 'noun',
@@ -298,7 +298,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
     examples: ['use parallel substitute', 'borrow from parallel mode', 'apply modal mixture'],
   },
   {
-    id: createLexemeId('noun', 'chord_extension_sub'),
+    id: createLexemeId('noun', 'chord-extension-sub'),
     lemma: 'extension substitution',
     variants: ['extension sub', 'extended substitute', 'thirteenth for dominant'],
     category: 'noun',
@@ -313,7 +313,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
     examples: ['use extension substitution', 'replace with extended chord', 'add extensions'],
   },
   {
-    id: createLexemeId('noun', 'chromatic_mediant'),
+    id: createLexemeId('noun', 'chromatic-mediant'),
     lemma: 'chromatic mediant',
     variants: ['chromatic mediant', 'mediant relationship', 'third relation'],
     category: 'noun',
@@ -327,7 +327,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
     examples: ['move by chromatic mediant', 'use mediant relationship', 'leap by third'],
   },
   {
-    id: createLexemeId('noun', 'backdoor_progression'),
+    id: createLexemeId('noun', 'backdoor-progression'),
     lemma: 'backdoor',
     variants: ['backdoor', 'backdoor progression', 'bVII-I', 'subtonic resolution'],
     category: 'noun',
@@ -341,7 +341,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
     examples: ['use backdoor progression', 'resolve via bVII', 'add subtonic approach'],
   },
   {
-    id: createLexemeId('noun', 'deceptive_cadence'),
+    id: createLexemeId('noun', 'deceptive-cadence'),
     lemma: 'deceptive cadence',
     variants: ['deceptive cadence', 'interrupted cadence', 'V-vi', 'avoided resolution'],
     category: 'noun',
@@ -355,7 +355,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
     examples: ['add deceptive cadence', 'use interrupted cadence', 'avoid resolution'],
   },
   {
-    id: createLexemeId('noun', 'modal_interchange'),
+    id: createLexemeId('noun', 'modal-interchange'),
     lemma: 'modal interchange',
     variants: ['modal interchange', 'modal borrowing', 'mode mixture', 'borrowed chords'],
     category: 'noun',
@@ -376,7 +376,7 @@ const CHORD_SUBSTITUTIONS: readonly Lexeme[] = [
 
 const VOICE_LEADING: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'contrary_motion'),
+    id: createLexemeId('noun', 'contrary-motion'),
     lemma: 'contrary motion',
     variants: ['contrary motion', 'contrary', 'voices moving apart'],
     category: 'noun',
@@ -390,7 +390,7 @@ const VOICE_LEADING: readonly Lexeme[] = [
     examples: ['use contrary motion', 'move voices apart', 'create contrary movement'],
   },
   {
-    id: createLexemeId('noun', 'parallel_motion'),
+    id: createLexemeId('noun', 'parallel-motion'),
     lemma: 'parallel motion',
     variants: ['parallel motion', 'parallel', 'parallel fifths', 'parallel octaves'],
     category: 'noun',
@@ -404,7 +404,7 @@ const VOICE_LEADING: readonly Lexeme[] = [
     examples: ['use parallel motion', 'move in parallel', 'create parallel movement'],
   },
   {
-    id: createLexemeId('noun', 'oblique_motion'),
+    id: createLexemeId('noun', 'oblique-motion'),
     lemma: 'oblique motion',
     variants: ['oblique motion', 'oblique', 'one voice static'],
     category: 'noun',
@@ -418,7 +418,7 @@ const VOICE_LEADING: readonly Lexeme[] = [
     examples: ['use oblique motion', 'hold one voice', 'create oblique movement'],
   },
   {
-    id: createLexemeId('noun', 'stepwise_motion'),
+    id: createLexemeId('noun', 'stepwise-motion'),
     lemma: 'stepwise',
     variants: ['stepwise', 'conjunct', 'scalar motion', 'by step'],
     category: 'noun',
@@ -446,7 +446,7 @@ const VOICE_LEADING: readonly Lexeme[] = [
     examples: ['use leaps', 'skip intervals', 'move disjunctly'],
   },
   {
-    id: createLexemeId('noun', 'voice_crossing'),
+    id: createLexemeId('noun', 'voice-crossing'),
     lemma: 'voice crossing',
     variants: ['voice crossing', 'crossed voices', 'voices overlap'],
     category: 'noun',
@@ -460,7 +460,7 @@ const VOICE_LEADING: readonly Lexeme[] = [
     examples: ['allow voice crossing', 'cross voices', 'create overlapping lines'],
   },
   {
-    id: createLexemeId('noun', 'voice_exchange'),
+    id: createLexemeId('noun', 'voice-exchange'),
     lemma: 'voice exchange',
     variants: ['voice exchange', 'swap voices', 'voices trade notes'],
     category: 'noun',
@@ -474,7 +474,7 @@ const VOICE_LEADING: readonly Lexeme[] = [
     examples: ['use voice exchange', 'swap voice notes', 'exchange between voices'],
   },
   {
-    id: createLexemeId('noun', 'pedal_point'),
+    id: createLexemeId('noun', 'pedal-point'),
     lemma: 'pedal point',
     variants: ['pedal point', 'pedal', 'drone', 'sustained bass'],
     category: 'noun',
@@ -495,7 +495,7 @@ const VOICE_LEADING: readonly Lexeme[] = [
 
 const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'authentic_cadence'),
+    id: createLexemeId('noun', 'authentic-cadence'),
     lemma: 'authentic cadence',
     variants: ['authentic cadence', 'perfect cadence', 'V-I', 'PAC'],
     category: 'noun',
@@ -509,7 +509,7 @@ const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
     examples: ['use authentic cadence', 'end with perfect cadence', 'resolve V-I'],
   },
   {
-    id: createLexemeId('noun', 'plagal_cadence'),
+    id: createLexemeId('noun', 'plagal-cadence'),
     lemma: 'plagal cadence',
     variants: ['plagal cadence', 'amen cadence', 'IV-I', 'subdominant to tonic'],
     category: 'noun',
@@ -523,7 +523,7 @@ const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
     examples: ['use plagal cadence', 'end with amen cadence', 'resolve IV-I'],
   },
   {
-    id: createLexemeId('noun', 'half_cadence'),
+    id: createLexemeId('noun', 'half-cadence'),
     lemma: 'half cadence',
     variants: ['half cadence', 'imperfect cadence', 'ends on V', 'open cadence'],
     category: 'noun',
@@ -537,7 +537,7 @@ const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
     examples: ['use half cadence', 'end on dominant', 'leave open'],
   },
   {
-    id: createLexemeId('noun', 'circle_of_fifths'),
+    id: createLexemeId('noun', 'circle-of-fifths'),
     lemma: 'circle of fifths',
     variants: ['circle of fifths', 'cycle of fifths', 'fifth progression', 'descending fifths'],
     category: 'noun',
@@ -551,7 +551,7 @@ const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
     examples: ['follow circle of fifths', 'use fifth progression', 'descend by fifths'],
   },
   {
-    id: createLexemeId('noun', 'coltrane_changes'),
+    id: createLexemeId('noun', 'coltrane-changes'),
     lemma: 'Coltrane changes',
     variants: ['Coltrane changes', 'Giant Steps', 'three-tonic system'],
     category: 'noun',
@@ -565,7 +565,7 @@ const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
     examples: ['use Coltrane changes', 'apply Giant Steps pattern', 'three-tonic system'],
   },
   {
-    id: createLexemeId('noun', 'rhythm_changes'),
+    id: createLexemeId('noun', 'rhythm-changes'),
     lemma: 'rhythm changes',
     variants: ['rhythm changes', 'Gershwin changes', 'I Got Rhythm'],
     category: 'noun',
@@ -579,7 +579,7 @@ const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
     examples: ['use rhythm changes', 'follow Gershwin pattern', 'I Got Rhythm form'],
   },
   {
-    id: createLexemeId('noun', 'two_five_one'),
+    id: createLexemeId('noun', 'two-five-one'),
     lemma: 'two-five-one',
     variants: ['two-five-one', 'ii-V-I', 'turnaround', '2-5-1'],
     category: 'noun',
@@ -593,7 +593,7 @@ const CADENCES_PROGRESSIONS: readonly Lexeme[] = [
     examples: ['add two-five-one', 'use ii-V-I', 'insert turnaround'],
   },
   {
-    id: createLexemeId('noun', 'descending_bassline'),
+    id: createLexemeId('noun', 'descending-bassline'),
     lemma: 'descending bassline',
     variants: ['descending bassline', 'falling bass', 'lament bass', 'ground bass'],
     category: 'noun',

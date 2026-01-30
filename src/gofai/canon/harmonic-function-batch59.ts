@@ -93,7 +93,7 @@ const FUNCTIONAL_HARMONY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'pre_dominant'),
+    id: createLexemeId('adj', 'pre-dominant'),
     lemma: 'pre-dominant',
     variants: ['predominant', 'ii chord', 'approach'],
     category: 'adj',
@@ -128,7 +128,7 @@ const FUNCTIONAL_HARMONY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'authentic_cadence'),
+    id: createLexemeId('adj', 'authentic-cadence'),
     lemma: 'authentic',
     variants: ['perfect cadence', 'V-I', 'full cadence'],
     category: 'adj',
@@ -146,7 +146,7 @@ const FUNCTIONAL_HARMONY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'plagal_cadence'),
+    id: createLexemeId('adj', 'plagal-cadence'),
     lemma: 'plagal',
     variants: ['IV-I', 'amen cadence', 'subdominant cadence'],
     category: 'adj',
@@ -164,7 +164,7 @@ const FUNCTIONAL_HARMONY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'deceptive_cadence'),
+    id: createLexemeId('adj', 'deceptive-cadence'),
     lemma: 'deceptive',
     variants: ['interrupted', 'false cadence', 'surprise ending'],
     category: 'adj',
@@ -198,7 +198,7 @@ const FUNCTIONAL_HARMONY_DESCRIPTORS: readonly Lexeme[] = [
  */
 const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'major_chord'),
+    id: createLexemeId('adj', 'major-chord'),
     lemma: 'major',
     variants: ['maj', 'major triad', 'bright chord'],
     category: 'adj',
@@ -216,7 +216,7 @@ const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'minor_chord'),
+    id: createLexemeId('adj', 'minor-chord'),
     lemma: 'minor',
     variants: ['min', 'minor triad', 'dark chord'],
     category: 'adj',
@@ -234,7 +234,7 @@ const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'diminished_chord'),
+    id: createLexemeId('adj', 'diminished-chord'),
     lemma: 'diminished',
     variants: ['dim', 'diminished triad', 'tense chord'],
     category: 'adj',
@@ -252,7 +252,7 @@ const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'augmented_chord'),
+    id: createLexemeId('adj', 'augmented-chord'),
     lemma: 'augmented',
     variants: ['aug', 'augmented triad', 'raised fifth'],
     category: 'adj',
@@ -270,7 +270,7 @@ const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'seventh_chord'),
+    id: createLexemeId('adj', 'seventh-chord'),
     lemma: 'seventh',
     variants: ['7th', 'dominant seventh', 'seventh chord'],
     category: 'adj',
@@ -288,7 +288,7 @@ const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'major_seventh'),
+    id: createLexemeId('adj', 'major-seventh'),
     lemma: 'major seventh',
     variants: ['maj7', 'major 7th', 'M7'],
     category: 'adj',
@@ -306,7 +306,7 @@ const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'minor_seventh'),
+    id: createLexemeId('adj', 'minor-seventh'),
     lemma: 'minor seventh',
     variants: ['min7', 'minor 7th', 'm7'],
     category: 'adj',
@@ -324,7 +324,7 @@ const CHORD_QUALITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'dominant_seventh'),
+    id: createLexemeId('adj', 'dominant-seventh'),
     lemma: 'dominant seventh',
     variants: ['dom7', 'V7', 'dominant 7th'],
     category: 'adj',
@@ -392,7 +392,7 @@ const TENSION_RESOLUTION_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'tense_harmony'),
+    id: createLexemeId('adj', 'tense-harmony'),
     lemma: 'tense',
     variants: ['tension', 'unresolved', 'expectant'],
     category: 'adj',
@@ -409,7 +409,7 @@ const TENSION_RESOLUTION_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'resolved_harmony'),
+    id: createLexemeId('adj', 'resolved-harmony'),
     lemma: 'resolved',
     variants: ['resolution', 'relaxed', 'settled'],
     category: 'adj',
@@ -444,7 +444,7 @@ const TENSION_RESOLUTION_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'stable_harmony'),
+    id: createLexemeId('adj', 'stable-harmony'),
     lemma: 'stable',
     variants: ['settled', 'at rest', 'grounded'],
     category: 'adj',
@@ -461,7 +461,7 @@ const TENSION_RESOLUTION_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'unstable_harmony'),
+    id: createLexemeId('adj', 'unstable-harmony'),
     lemma: 'unstable',
     variants: ['unsettled', 'restless', 'floating'],
     category: 'adj',
@@ -620,7 +620,7 @@ const MODAL_CHARACTERISTICS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'modal_mixture'),
+    id: createLexemeId('adj', 'modal-mixture'),
     lemma: 'modal mixture',
     variants: ['borrowed chords', 'mode mixture', 'modal interchange'],
     category: 'adj',
@@ -638,7 +638,7 @@ const MODAL_CHARACTERISTICS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'modal_ambiguity'),
+    id: createLexemeId('adj', 'modal-ambiguity'),
     lemma: 'modal ambiguity',
     variants: ['ambiguous mode', 'unclear tonality'],
     category: 'adj',
@@ -671,7 +671,7 @@ const MODAL_CHARACTERISTICS_DESCRIPTORS: readonly Lexeme[] = [
  */
 const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'ninth_chord'),
+    id: createLexemeId('adj', 'ninth-chord'),
     lemma: 'ninth',
     variants: ['9th', 'ninth chord', 'add9'],
     category: 'adj',
@@ -689,7 +689,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'eleventh_chord'),
+    id: createLexemeId('adj', 'eleventh-chord'),
     lemma: 'eleventh',
     variants: ['11th', 'eleventh chord', 'add11'],
     category: 'adj',
@@ -707,7 +707,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'thirteenth_chord'),
+    id: createLexemeId('adj', 'thirteenth-chord'),
     lemma: 'thirteenth',
     variants: ['13th', 'thirteenth chord', 'add13'],
     category: 'adj',
@@ -725,7 +725,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'altered_dominant'),
+    id: createLexemeId('adj', 'altered-dominant'),
     lemma: 'altered',
     variants: ['altered dominant', 'altered V', 'chromatic alteration'],
     category: 'adj',
@@ -743,7 +743,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'flat_five'),
+    id: createLexemeId('adj', 'flat-five'),
     lemma: 'flat five',
     variants: ['b5', 'diminished fifth', 'tritone sub'],
     category: 'adj',
@@ -761,7 +761,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'sharp_five'),
+    id: createLexemeId('adj', 'sharp-five'),
     lemma: 'sharp five',
     variants: ['#5', 'augmented fifth', 'raised fifth'],
     category: 'adj',
@@ -779,7 +779,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'flat_nine'),
+    id: createLexemeId('adj', 'flat-nine'),
     lemma: 'flat nine',
     variants: ['b9', 'minor ninth', 'lowered ninth'],
     category: 'adj',
@@ -797,7 +797,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'sharp_nine'),
+    id: createLexemeId('adj', 'sharp-nine'),
     lemma: 'sharp nine',
     variants: ['#9', 'augmented ninth', 'raised ninth', 'Hendrix chord'],
     category: 'adj',
@@ -831,7 +831,7 @@ const CHORD_EXTENSIONS_DESCRIPTORS: readonly Lexeme[] = [
  */
 const PROGRESSION_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'circle_of_fifths'),
+    id: createLexemeId('noun', 'circle-of-fifths'),
     lemma: 'circle of fifths',
     variants: ['fifths progression', 'descending fifths'],
     category: 'noun',
@@ -849,7 +849,7 @@ const PROGRESSION_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'chromatic_progression'),
+    id: createLexemeId('noun', 'chromatic-progression'),
     lemma: 'chromatic progression',
     variants: ['chromatic harmony', 'half-step motion'],
     category: 'noun',
@@ -903,7 +903,7 @@ const PROGRESSION_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'two_five_one'),
+    id: createLexemeId('noun', 'two-five-one'),
     lemma: 'ii-V-I',
     variants: ['two-five-one', '2-5-1', 'jazz progression'],
     category: 'noun',
@@ -921,7 +921,7 @@ const PROGRESSION_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'tritone_substitution'),
+    id: createLexemeId('noun', 'tritone-substitution'),
     lemma: 'tritone substitution',
     variants: ['tritone sub', 'flat-five substitution'],
     category: 'noun',
@@ -939,7 +939,7 @@ const PROGRESSION_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'modal_interchange'),
+    id: createLexemeId('adj', 'modal-interchange'),
     lemma: 'borrowed',
     variants: ['modal borrowing', 'parallel mode'],
     category: 'adj',
@@ -957,7 +957,7 @@ const PROGRESSION_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'pedal_point'),
+    id: createLexemeId('adj', 'pedal-point'),
     lemma: 'pedal',
     variants: ['pedal point', 'sustained bass', 'drone'],
     category: 'adj',

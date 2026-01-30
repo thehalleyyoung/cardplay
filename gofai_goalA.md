@@ -204,11 +204,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 228 [Prag] — Implement "intention recognition" for multi-turn editing: recognize that user is optimizing a section and keep stable scope.
 - [x] Step 229 [Prag] — Implement "plan confirmation" moves: user says "yes, do that" to commit and execute; nothing executes before that.
 - [x] Step 230 [Prag] — Implement "counterfactual exploration": user says "what if we…" to produce alternative plans without mutation.
-- [ ] Step 231 [HCI] — Add UI for “clarification cards”: each ambiguity is a small card with radio options and a default explanation.
-- [ ] Step 232 [HCI] — Add UI for “context strip”: shows current focus (board/deck/section/range/layer) and how pronouns will resolve.
-- [ ] Step 233 [HCI] — Add UI for “conversation memory”: show last N turns with CPL and diffs; allow bookmarking.
-- [ ] Step 234 [HCI] — Add UI for “undo target selection”: user can undo last, undo specific package, or undo by scope (chorus only).
-- [ ] Step 235 [HCI] — Add UI for “preference tuning”: user can set “dark means…” via a simple toggle matrix.
+- [x] Step 231 [HCI] — Add UI for "clarification cards": each ambiguity is a small card with radio options and a default explanation.
+- [x] Step 232 [HCI] — Add UI for "context strip": shows current focus (board/deck/section/range/layer) and how pronouns will resolve.
+- [x] Step 233 [HCI] — Add UI for "conversation memory": show last N turns with CPL and diffs; allow bookmarking.
+- [x] Step 234 [HCI] — Add UI for "undo target selection": user can undo last, undo specific package, or undo by scope (chorus only).
+- [x] Step 235 [HCI] — Add UI for "preference tuning": user can set "dark means…" via a simple toggle matrix.
 - [ ] Step 236 [Eval] — Create a dialogue fixture suite: multi-turn conversations with expected referent bindings and clarifications.
 - [ ] Step 237 [Eval] — Add tests for anaphora correctness across turns (it/that/again) using DRT-style referents.
 - [ ] Step 238 [Eval] — Add tests for presupposition handling: “again” must fail/clarify if no antecedent edit exists.

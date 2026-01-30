@@ -53,7 +53,7 @@ export const DYNAMIC_LEVELS: readonly Lexeme[] = [
     examples: ['make it piano', 'soft dynamics', 'play it quietly'],
   },
   {
-    id: createLexemeId('adj', 'mezzo_piano'),
+    id: createLexemeId('adj', 'mezzo-piano'),
     lemma: 'mezzo_piano',
     variants: ['mezzo_piano', 'moderately_soft', 'mp', 'medium_soft'],
     category: 'adj',
@@ -66,7 +66,7 @@ export const DYNAMIC_LEVELS: readonly Lexeme[] = [
     examples: ['mezzo piano in the verse', 'moderately soft', 'mp dynamics'],
   },
   {
-    id: createLexemeId('adj', 'mezzo_forte'),
+    id: createLexemeId('adj', 'mezzo-forte'),
     lemma: 'mezzo_forte',
     variants: ['mezzo_forte', 'moderately_loud', 'mf', 'medium_loud'],
     category: 'adj',
@@ -177,7 +177,7 @@ export const DYNAMIC_CHANGES: readonly Lexeme[] = [
     examples: ['add a swell', 'make it swell up and back down', 'bloom the strings'],
   },
   {
-    id: createLexemeId('verb', 'fade_in'),
+    id: createLexemeId('verb', 'fade-in'),
     lemma: 'fade_in',
     variants: ['fade_in', 'fade_up', 'bring_in', 'introduce'],
     category: 'verb',
@@ -190,7 +190,7 @@ export const DYNAMIC_CHANGES: readonly Lexeme[] = [
     examples: ['fade in the pad', 'bring in the vocals', 'fade up over 2 bars'],
   },
   {
-    id: createLexemeId('verb', 'fade_out'),
+    id: createLexemeId('verb', 'fade-out'),
     lemma: 'fade_out',
     variants: ['fade_out', 'fade_down', 'fade_away', 'remove'],
     category: 'verb',
@@ -373,7 +373,7 @@ export const ARTICULATIONS: readonly Lexeme[] = [
 
 export const ATTACK_CHARACTERISTICS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'soft_attack'),
+    id: createLexemeId('adj', 'soft-attack'),
     lemma: 'soft_attack',
     variants: ['soft_attack', 'gentle_attack', 'slow_attack', 'smooth_onset'],
     category: 'adj',
@@ -386,7 +386,7 @@ export const ATTACK_CHARACTERISTICS: readonly Lexeme[] = [
     examples: ['soften the attacks', 'gentle attack', 'slow onset'],
   },
   {
-    id: createLexemeId('adj', 'hard_attack'),
+    id: createLexemeId('adj', 'hard-attack'),
     lemma: 'hard_attack',
     variants: ['hard_attack', 'sharp_attack', 'fast_attack', 'instant_onset'],
     category: 'adj',
@@ -458,7 +458,7 @@ export const ENVELOPE_SHAPING: readonly Lexeme[] = [
     examples: ['make it more sustained', 'longer sustain', 'hold the notes'],
   },
   {
-    id: createLexemeId('adj', 'short_envelope'),
+    id: createLexemeId('adj', 'short-envelope'),
     lemma: 'short_envelope',
     variants: ['short', 'brief', 'quick_decay', 'fast_release'],
     category: 'adj',
@@ -484,7 +484,7 @@ export const ENVELOPE_SHAPING: readonly Lexeme[] = [
     examples: ['make it plucky', 'plucked sound', 'struck character'],
   },
   {
-    id: createLexemeId('adj', 'smooth_envelope'),
+    id: createLexemeId('adj', 'smooth-envelope'),
     lemma: 'smooth_envelope',
     variants: ['smooth', 'flowing', 'gentle_curve', 'gradual'],
     category: 'adj',

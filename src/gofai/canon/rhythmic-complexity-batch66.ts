@@ -30,7 +30,7 @@ const SYNCOPATION_PATTERNS: readonly Lexeme[] = [
     examples: ['make it syncopated', 'add off-beat accents', 'displace rhythms'],
   },
   {
-    id: createLexemeId('adj', 'on_beat'),
+    id: createLexemeId('adj', 'on-beat'),
     lemma: 'on-beat',
     variants: ['on-beat', 'on the beat', 'straight', 'square'],
     category: 'adj',
@@ -148,7 +148,7 @@ const POLYRHYTHMS: readonly Lexeme[] = [
     examples: ['create polyrhythm', 'layer multiple rhythms', 'combine rhythmic patterns'],
   },
   {
-    id: createLexemeId('noun', 'cross_rhythm'),
+    id: createLexemeId('noun', 'cross-rhythm'),
     lemma: 'cross-rhythm',
     variants: ['cross-rhythm', 'conflicting rhythm', 'polymetric'],
     category: 'noun',
@@ -162,7 +162,7 @@ const POLYRHYTHMS: readonly Lexeme[] = [
     examples: ['add cross-rhythm', 'create conflicting pattern', 'use polymetric feel'],
   },
   {
-    id: createLexemeId('noun', 'three_against_two'),
+    id: createLexemeId('noun', 'three-against-two'),
     lemma: 'three against two',
     variants: ['three against two', '3:2', 'triplet feel', 'vertical hemiola'],
     category: 'noun',
@@ -176,7 +176,7 @@ const POLYRHYTHMS: readonly Lexeme[] = [
     examples: ['play three against two', 'use 3:2 ratio', 'create triplet feel'],
   },
   {
-    id: createLexemeId('noun', 'four_against_three'),
+    id: createLexemeId('noun', 'four-against-three'),
     lemma: 'four against three',
     variants: ['four against three', '4:3', 'quarternote triplets'],
     category: 'noun',
@@ -190,7 +190,7 @@ const POLYRHYTHMS: readonly Lexeme[] = [
     examples: ['play four against three', 'use 4:3 ratio', 'layer quarternote triplets'],
   },
   {
-    id: createLexemeId('noun', 'five_against_four'),
+    id: createLexemeId('noun', 'five-against-four'),
     lemma: 'five against four',
     variants: ['five against four', '5:4', 'quintuplets'],
     category: 'noun',
@@ -204,7 +204,7 @@ const POLYRHYTHMS: readonly Lexeme[] = [
     examples: ['play five against four', 'use 5:4 ratio', 'add quintuplets'],
   },
   {
-    id: createLexemeId('noun', 'metric_modulation'),
+    id: createLexemeId('noun', 'metric-modulation'),
     lemma: 'metric modulation',
     variants: ['metric modulation', 'tempo change via subdivision', 'Elliott Carter technique'],
     category: 'noun',
@@ -233,7 +233,7 @@ const POLYRHYTHMS: readonly Lexeme[] = [
     examples: ['use polymeter', 'layer multiple meters', 'create metric independence'],
   },
   {
-    id: createLexemeId('noun', 'phase_shift'),
+    id: createLexemeId('noun', 'phase-shift'),
     lemma: 'phase shift',
     variants: ['phase shift', 'phasing', 'gradual displacement', 'Steve Reich technique'],
     category: 'noun',
@@ -281,7 +281,7 @@ const GROOVE_FEEL: readonly Lexeme[] = [
     examples: ['make it straight', 'remove swing', 'play even eighths'],
   },
   {
-    id: createLexemeId('adj', 'laid_back'),
+    id: createLexemeId('adj', 'laid-back'),
     lemma: 'laid-back',
     variants: ['laid-back', 'behind the beat', 'relaxed', 'dragging'],
     category: 'adj',
@@ -321,7 +321,7 @@ const GROOVE_FEEL: readonly Lexeme[] = [
     examples: ['find the pocket', 'lock into groove', 'get in the pocket'],
   },
   {
-    id: createLexemeId('noun', 'ghost_note'),
+    id: createLexemeId('noun', 'ghost-note'),
     lemma: 'ghost note',
     variants: ['ghost note', 'grace note', 'quiet note', 'implied note'],
     category: 'noun',
@@ -461,7 +461,7 @@ const RHYTHMIC_DENSITY: readonly Lexeme[] = [
     examples: ['make it simple', 'simplify rhythms', 'keep it basic'],
   },
   {
-    id: createLexemeId('noun', 'irregular_meter'),
+    id: createLexemeId('noun', 'irregular-meter'),
     lemma: 'irregular meter',
     variants: ['irregular meter', 'odd time', 'asymmetric meter', 'complex time'],
     category: 'noun',
@@ -582,7 +582,7 @@ const TEMPORAL_ORGANIZATION: readonly Lexeme[] = [
     examples: ['start on upbeat', 'add pickup', 'begin with anacrusis'],
   },
   {
-    id: createLexemeId('noun', 'ostinato_rhythm'),
+    id: createLexemeId('noun', 'ostinato-rhythm'),
     lemma: 'ostinato',
     variants: ['ostinato', 'rhythmic ostinato', 'repeated pattern', 'loop'],
     category: 'noun',

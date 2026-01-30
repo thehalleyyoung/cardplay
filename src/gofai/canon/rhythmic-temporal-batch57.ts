@@ -74,7 +74,7 @@ const RHYTHMIC_FEEL_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'laid_back'),
+    id: createLexemeId('adj', 'laid-back'),
     lemma: 'laid-back',
     variants: ['behind the beat', 'relaxed timing', 'lazy', 'dragging'],
     category: 'adj',
@@ -91,7 +91,7 @@ const RHYTHMIC_FEEL_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'forward_pushing'),
+    id: createLexemeId('adj', 'forward-pushing'),
     lemma: 'forward-pushing',
     variants: ['pushing', 'ahead of the beat', 'urgent', 'rushing'],
     category: 'adj',
@@ -344,7 +344,7 @@ const TIMING_DESCRIPTORS: readonly Lexeme[] = [
  */
 const TEMPORAL_FLOW_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'fast_paced'),
+    id: createLexemeId('adj', 'fast-paced'),
     lemma: 'fast-paced',
     variants: ['quick', 'rapid', 'up-tempo'],
     category: 'adj',
@@ -361,7 +361,7 @@ const TEMPORAL_FLOW_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'slow_paced'),
+    id: createLexemeId('adj', 'slow-paced'),
     lemma: 'slow-paced',
     variants: ['slow', 'leisurely', 'down-tempo'],
     category: 'adj',
@@ -498,7 +498,7 @@ const TEMPORAL_FLOW_DESCRIPTORS: readonly Lexeme[] = [
  */
 const METRIC_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'simple_meter'),
+    id: createLexemeId('adj', 'simple-meter'),
     lemma: 'simple meter',
     variants: ['simple time', 'duple', 'triple'],
     category: 'adj',
@@ -516,7 +516,7 @@ const METRIC_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'compound_meter'),
+    id: createLexemeId('adj', 'compound-meter'),
     lemma: 'compound meter',
     variants: ['compound time', '6/8 feel', '9/8 feel'],
     category: 'adj',
@@ -534,7 +534,7 @@ const METRIC_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'regular_meter'),
+    id: createLexemeId('adj', 'regular-meter'),
     lemma: 'regular',
     variants: ['even meter', 'standard time'],
     category: 'adj',
@@ -552,7 +552,7 @@ const METRIC_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'irregular_meter'),
+    id: createLexemeId('adj', 'irregular-meter'),
     lemma: 'irregular',
     variants: ['asymmetric', 'odd meter', 'complex meter'],
     category: 'adj',
@@ -587,7 +587,7 @@ const METRIC_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'on_beat'),
+    id: createLexemeId('adj', 'on-beat'),
     lemma: 'on-beat',
     variants: ['downbeat', 'strong beats', 'on the one'],
     category: 'adj',
@@ -621,7 +621,7 @@ const METRIC_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'even_accents'),
+    id: createLexemeId('adj', 'even-accents'),
     lemma: 'even',
     variants: ['unaccented', 'uniform', 'flat dynamics'],
     category: 'adj',
@@ -654,7 +654,7 @@ const METRIC_DESCRIPTORS: readonly Lexeme[] = [
  */
 const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'simple_rhythm'),
+    id: createLexemeId('adj', 'simple-rhythm'),
     lemma: 'simple',
     variants: ['basic rhythm', 'straightforward', 'uncomplicated'],
     category: 'adj',
@@ -671,7 +671,7 @@ const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'complex_rhythm'),
+    id: createLexemeId('adj', 'complex-rhythm'),
     lemma: 'complex',
     variants: ['intricate', 'sophisticated', 'elaborate'],
     category: 'adj',
@@ -688,7 +688,7 @@ const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'regular_pattern'),
+    id: createLexemeId('adj', 'regular-pattern'),
     lemma: 'regular',
     variants: ['repeating', 'cyclical', 'periodic'],
     category: 'adj',
@@ -705,7 +705,7 @@ const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'irregular_pattern'),
+    id: createLexemeId('adj', 'irregular-pattern'),
     lemma: 'irregular',
     variants: ['varied', 'unpredictable', 'non-repeating'],
     category: 'adj',
@@ -722,7 +722,7 @@ const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'busy_rhythm'),
+    id: createLexemeId('adj', 'busy-rhythm'),
     lemma: 'busy',
     variants: ['active', 'dense rhythm', 'many notes'],
     category: 'adj',
@@ -739,7 +739,7 @@ const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'sparse_rhythm'),
+    id: createLexemeId('adj', 'sparse-rhythm'),
     lemma: 'sparse',
     variants: ['minimal', 'spacious rhythm', 'few notes'],
     category: 'adj',
@@ -756,7 +756,7 @@ const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'predictable_rhythm'),
+    id: createLexemeId('adj', 'predictable-rhythm'),
     lemma: 'predictable',
     variants: ['expected', 'obvious', 'foreseeable'],
     category: 'adj',
@@ -773,7 +773,7 @@ const RHYTHMIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'surprising_rhythm'),
+    id: createLexemeId('adj', 'surprising-rhythm'),
     lemma: 'surprising',
     variants: ['unexpected', 'unpredictable', 'irregular accents'],
     category: 'adj',
@@ -894,7 +894,7 @@ const TEMPORAL_RELATIONSHIP_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'call_and_response'),
+    id: createLexemeId('noun', 'call-and-response'),
     lemma: 'call-and-response',
     variants: ['call and answer', 'antiphonal', 'question-answer'],
     category: 'noun',

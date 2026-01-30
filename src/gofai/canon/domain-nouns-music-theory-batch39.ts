@@ -29,7 +29,7 @@ import { createLexemeId } from './types';
 
 export const TRIAD_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'major_triad'),
+    id: createLexemeId('noun', 'major-triad'),
     lemma: 'major triad',
     variants: ['major triad', 'major chord', 'major', 'maj'],
     category: 'noun',
@@ -48,7 +48,7 @@ export const TRIAD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'minor_triad'),
+    id: createLexemeId('noun', 'minor-triad'),
     lemma: 'minor triad',
     variants: ['minor triad', 'minor chord', 'minor', 'min', 'm'],
     category: 'noun',
@@ -67,7 +67,7 @@ export const TRIAD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'diminished_triad'),
+    id: createLexemeId('noun', 'diminished-triad'),
     lemma: 'diminished triad',
     variants: ['diminished triad', 'diminished chord', 'diminished', 'dim', 'º'],
     category: 'noun',
@@ -86,7 +86,7 @@ export const TRIAD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'augmented_triad'),
+    id: createLexemeId('noun', 'augmented-triad'),
     lemma: 'augmented triad',
     variants: ['augmented triad', 'augmented chord', 'augmented', 'aug', '+'],
     category: 'noun',
@@ -105,7 +105,7 @@ export const TRIAD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'suspended_chord'),
+    id: createLexemeId('noun', 'suspended-chord'),
     lemma: 'suspended chord',
     variants: ['suspended chord', 'sus chord', 'sus2', 'sus4', 'suspended'],
     category: 'noun',
@@ -130,7 +130,7 @@ export const TRIAD_NOUNS: readonly Lexeme[] = [
 
 export const SEVENTH_CHORD_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'major_seventh'),
+    id: createLexemeId('noun', 'major-seventh'),
     lemma: 'major seventh',
     variants: ['major seventh', 'maj7', 'M7', 'major 7th', 'major seven'],
     category: 'noun',
@@ -149,7 +149,7 @@ export const SEVENTH_CHORD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'minor_seventh'),
+    id: createLexemeId('noun', 'minor-seventh'),
     lemma: 'minor seventh',
     variants: ['minor seventh', 'min7', 'm7', 'minor 7th', 'minor seven'],
     category: 'noun',
@@ -168,7 +168,7 @@ export const SEVENTH_CHORD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'dominant_seventh'),
+    id: createLexemeId('noun', 'dominant-seventh'),
     lemma: 'dominant seventh',
     variants: ['dominant seventh', '7', 'dom7', 'dominant 7th', 'seventh'],
     category: 'noun',
@@ -187,7 +187,7 @@ export const SEVENTH_CHORD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'half_diminished_seventh'),
+    id: createLexemeId('noun', 'half-diminished-seventh'),
     lemma: 'half diminished seventh',
     variants: ['half diminished seventh', 'half-diminished', 'm7b5', 'ø7', 'minor seven flat five'],
     category: 'noun',
@@ -206,7 +206,7 @@ export const SEVENTH_CHORD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'fully_diminished_seventh'),
+    id: createLexemeId('noun', 'fully-diminished-seventh'),
     lemma: 'fully diminished seventh',
     variants: ['fully diminished seventh', 'diminished seventh', 'dim7', 'º7', 'fully dim'],
     category: 'noun',
@@ -225,7 +225,7 @@ export const SEVENTH_CHORD_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'major_minor_seventh'),
+    id: createLexemeId('noun', 'major-minor-seventh'),
     lemma: 'major-minor seventh',
     variants: ['major-minor seventh', 'minor-major seventh', 'mM7', 'm(maj7)', 'minor major 7'],
     category: 'noun',
@@ -250,7 +250,7 @@ export const SEVENTH_CHORD_NOUNS: readonly Lexeme[] = [
 
 export const CHORD_EXTENSION_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'ninth_chord'),
+    id: createLexemeId('noun', 'ninth-chord'),
     lemma: 'ninth chord',
     variants: ['ninth chord', '9', 'add9', 'major ninth', 'minor ninth', 'ninth'],
     category: 'noun',
@@ -269,7 +269,7 @@ export const CHORD_EXTENSION_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'eleventh_chord'),
+    id: createLexemeId('noun', 'eleventh-chord'),
     lemma: 'eleventh chord',
     variants: ['eleventh chord', '11', 'add11', 'eleventh', '11th chord'],
     category: 'noun',
@@ -288,7 +288,7 @@ export const CHORD_EXTENSION_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'thirteenth_chord'),
+    id: createLexemeId('noun', 'thirteenth-chord'),
     lemma: 'thirteenth chord',
     variants: ['thirteenth chord', '13', 'add13', 'thirteenth', '13th chord'],
     category: 'noun',
@@ -307,7 +307,7 @@ export const CHORD_EXTENSION_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'altered_chord'),
+    id: createLexemeId('noun', 'altered-chord'),
     lemma: 'altered chord',
     variants: ['altered chord', 'alt chord', '7alt', 'altered dominant', 'super-locrian'],
     category: 'noun',
@@ -326,7 +326,7 @@ export const CHORD_EXTENSION_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'sharp_eleven'),
+    id: createLexemeId('noun', 'sharp-eleven'),
     lemma: 'sharp eleven',
     variants: ['sharp eleven', '#11', 'sharp 11', 'raised eleven', 'lydian chord'],
     category: 'noun',
@@ -345,7 +345,7 @@ export const CHORD_EXTENSION_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'flat_nine'),
+    id: createLexemeId('noun', 'flat-nine'),
     lemma: 'flat nine',
     variants: ['flat nine', 'b9', 'flat 9', 'minor nine', 'lowered ninth'],
     category: 'noun',
@@ -370,7 +370,7 @@ export const CHORD_EXTENSION_NOUNS: readonly Lexeme[] = [
 
 export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'ionian_mode'),
+    id: createLexemeId('noun', 'ionian-mode'),
     lemma: 'ionian mode',
     variants: ['ionian', 'ionian mode', 'major scale', 'major mode'],
     category: 'noun',
@@ -389,7 +389,7 @@ export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'dorian_mode'),
+    id: createLexemeId('noun', 'dorian-mode'),
     lemma: 'dorian mode',
     variants: ['dorian', 'dorian mode', 'dorian minor'],
     category: 'noun',
@@ -408,7 +408,7 @@ export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'phrygian_mode'),
+    id: createLexemeId('noun', 'phrygian-mode'),
     lemma: 'phrygian mode',
     variants: ['phrygian', 'phrygian mode', 'phrygian minor'],
     category: 'noun',
@@ -427,7 +427,7 @@ export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'lydian_mode'),
+    id: createLexemeId('noun', 'lydian-mode'),
     lemma: 'lydian mode',
     variants: ['lydian', 'lydian mode', 'lydian major'],
     category: 'noun',
@@ -446,7 +446,7 @@ export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'mixolydian_mode'),
+    id: createLexemeId('noun', 'mixolydian-mode'),
     lemma: 'mixolydian mode',
     variants: ['mixolydian', 'mixolydian mode', 'dominant mode'],
     category: 'noun',
@@ -465,7 +465,7 @@ export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'aeolian_mode'),
+    id: createLexemeId('noun', 'aeolian-mode'),
     lemma: 'aeolian mode',
     variants: ['aeolian', 'aeolian mode', 'natural minor', 'minor scale'],
     category: 'noun',
@@ -484,7 +484,7 @@ export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'locrian_mode'),
+    id: createLexemeId('noun', 'locrian-mode'),
     lemma: 'locrian mode',
     variants: ['locrian', 'locrian mode', 'half-diminished mode'],
     category: 'noun',
@@ -509,7 +509,7 @@ export const DIATONIC_MODE_NOUNS: readonly Lexeme[] = [
 
 export const MINOR_SCALE_VARIANT_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'harmonic_minor'),
+    id: createLexemeId('noun', 'harmonic-minor'),
     lemma: 'harmonic minor',
     variants: ['harmonic minor', 'harmonic minor scale', 'minor with raised seventh'],
     category: 'noun',
@@ -528,7 +528,7 @@ export const MINOR_SCALE_VARIANT_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'melodic_minor'),
+    id: createLexemeId('noun', 'melodic-minor'),
     lemma: 'melodic minor',
     variants: ['melodic minor', 'melodic minor scale', 'jazz minor'],
     category: 'noun',
@@ -547,7 +547,7 @@ export const MINOR_SCALE_VARIANT_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'phrygian_dominant'),
+    id: createLexemeId('noun', 'phrygian-dominant'),
     lemma: 'phrygian dominant',
     variants: ['phrygian dominant', 'spanish phrygian', 'freygish', 'fifth mode harmonic minor'],
     category: 'noun',
@@ -566,7 +566,7 @@ export const MINOR_SCALE_VARIANT_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'lydian_augmented'),
+    id: createLexemeId('noun', 'lydian-augmented'),
     lemma: 'lydian augmented',
     variants: ['lydian augmented', 'lydian #5', 'third mode melodic minor'],
     category: 'noun',
@@ -585,7 +585,7 @@ export const MINOR_SCALE_VARIANT_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'super_locrian'),
+    id: createLexemeId('noun', 'super-locrian'),
     lemma: 'super locrian',
     variants: ['super locrian', 'altered scale', 'diminished whole tone', 'seventh mode melodic minor'],
     category: 'noun',
@@ -610,7 +610,7 @@ export const MINOR_SCALE_VARIANT_NOUNS: readonly Lexeme[] = [
 
 export const PENTATONIC_BLUES_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'major_pentatonic'),
+    id: createLexemeId('noun', 'major-pentatonic'),
     lemma: 'major pentatonic',
     variants: ['major pentatonic', 'pentatonic major', 'five-note major scale'],
     category: 'noun',
@@ -629,7 +629,7 @@ export const PENTATONIC_BLUES_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'minor_pentatonic'),
+    id: createLexemeId('noun', 'minor-pentatonic'),
     lemma: 'minor pentatonic',
     variants: ['minor pentatonic', 'pentatonic minor', 'five-note minor scale'],
     category: 'noun',
@@ -648,7 +648,7 @@ export const PENTATONIC_BLUES_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'blues_scale'),
+    id: createLexemeId('noun', 'blues-scale'),
     lemma: 'blues scale',
     variants: ['blues scale', 'blues', 'blue notes', 'blues pentatonic'],
     category: 'noun',
@@ -667,7 +667,7 @@ export const PENTATONIC_BLUES_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'hexatonic_scale'),
+    id: createLexemeId('noun', 'hexatonic-scale'),
     lemma: 'hexatonic scale',
     variants: ['hexatonic', 'six-note scale', 'augmented scale', 'prometheus scale'],
     category: 'noun',
@@ -692,7 +692,7 @@ export const PENTATONIC_BLUES_NOUNS: readonly Lexeme[] = [
 
 export const SYNTHETIC_SCALE_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'whole_tone_scale'),
+    id: createLexemeId('noun', 'whole-tone-scale'),
     lemma: 'whole tone scale',
     variants: ['whole tone', 'whole-tone scale', 'augmented scale', 'six-tone scale'],
     category: 'noun',
@@ -711,7 +711,7 @@ export const SYNTHETIC_SCALE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'diminished_scale'),
+    id: createLexemeId('noun', 'diminished-scale'),
     lemma: 'diminished scale',
     variants: ['diminished scale', 'octatonic scale', 'half-whole scale', 'whole-half scale'],
     category: 'noun',
@@ -730,7 +730,7 @@ export const SYNTHETIC_SCALE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'chromatic_scale'),
+    id: createLexemeId('noun', 'chromatic-scale'),
     lemma: 'chromatic scale',
     variants: ['chromatic', 'chromatic scale', 'twelve-tone scale', 'all notes'],
     category: 'noun',
@@ -749,7 +749,7 @@ export const SYNTHETIC_SCALE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'bebop_scale'),
+    id: createLexemeId('noun', 'bebop-scale'),
     lemma: 'bebop scale',
     variants: ['bebop scale', 'bebop', 'jazz bebop scale', 'bebop dominant'],
     category: 'noun',
@@ -869,7 +869,7 @@ export const HARMONIC_FUNCTION_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'leading_tone'),
+    id: createLexemeId('noun', 'leading-tone'),
     lemma: 'leading tone',
     variants: ['leading tone', 'leading-tone chord', 'VII chord', 'vii°', 'diminished seventh'],
     category: 'noun',
@@ -894,7 +894,7 @@ export const HARMONIC_FUNCTION_NOUNS: readonly Lexeme[] = [
 
 export const CADENCE_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'perfect_cadence'),
+    id: createLexemeId('noun', 'perfect-cadence'),
     lemma: 'perfect cadence',
     variants: ['perfect cadence', 'authentic cadence', 'V-I', 'PAC', 'full cadence'],
     category: 'noun',
@@ -913,7 +913,7 @@ export const CADENCE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'plagal_cadence'),
+    id: createLexemeId('noun', 'plagal-cadence'),
     lemma: 'plagal cadence',
     variants: ['plagal cadence', 'IV-I', 'amen cadence', 'subdominant cadence'],
     category: 'noun',
@@ -932,7 +932,7 @@ export const CADENCE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'half_cadence'),
+    id: createLexemeId('noun', 'half-cadence'),
     lemma: 'half cadence',
     variants: ['half cadence', 'imperfect cadence', 'HC', 'ending on V', 'semi-cadence'],
     category: 'noun',
@@ -951,7 +951,7 @@ export const CADENCE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'deceptive_cadence'),
+    id: createLexemeId('noun', 'deceptive-cadence'),
     lemma: 'deceptive cadence',
     variants: ['deceptive cadence', 'interrupted cadence', 'V-vi', 'false cadence', 'surprise resolution'],
     category: 'noun',
@@ -970,7 +970,7 @@ export const CADENCE_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'picardy_third'),
+    id: createLexemeId('noun', 'picardy-third'),
     lemma: 'picardy third',
     variants: ['picardy third', 'tierce de picardie', 'major ending', 'raised third'],
     category: 'noun',
@@ -995,7 +995,7 @@ export const CADENCE_NOUNS: readonly Lexeme[] = [
 
 export const VOICE_LEADING_NOUNS: readonly Lexeme[] = [
   {
-    id: createLexemeId('noun', 'contrary_motion'),
+    id: createLexemeId('noun', 'contrary-motion'),
     lemma: 'contrary motion',
     variants: ['contrary motion', 'opposite motion', 'countermotion'],
     category: 'noun',
@@ -1014,7 +1014,7 @@ export const VOICE_LEADING_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'parallel_motion'),
+    id: createLexemeId('noun', 'parallel-motion'),
     lemma: 'parallel motion',
     variants: ['parallel motion', 'parallel voices', 'parallel movement'],
     category: 'noun',
@@ -1033,7 +1033,7 @@ export const VOICE_LEADING_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'oblique_motion'),
+    id: createLexemeId('noun', 'oblique-motion'),
     lemma: 'oblique motion',
     variants: ['oblique motion', 'pedal point', 'sustained voice'],
     category: 'noun',
@@ -1052,7 +1052,7 @@ export const VOICE_LEADING_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'stepwise_motion'),
+    id: createLexemeId('noun', 'stepwise-motion'),
     lemma: 'stepwise motion',
     variants: ['stepwise', 'conjunct motion', 'scalar motion', 'step motion'],
     category: 'noun',
@@ -1071,7 +1071,7 @@ export const VOICE_LEADING_NOUNS: readonly Lexeme[] = [
   },
 
   {
-    id: createLexemeId('noun', 'leap_motion'),
+    id: createLexemeId('noun', 'leap-motion'),
     lemma: 'leap motion',
     variants: ['leap', 'skip', 'disjunct motion', 'jump'],
     category: 'noun',

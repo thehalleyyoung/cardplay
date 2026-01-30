@@ -30,7 +30,7 @@ import { createLexemeId, createAxisId } from './types';
 
 export const TIMBRAL_QUALITIES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'rich_timbre'),
+    id: createLexemeId('adj', 'rich-timbre'),
     lemma: 'rich',
     variants: ['rich', 'full', 'lush', 'opulent', 'luxurious', 'abundant'],
     category: 'adj',
@@ -43,7 +43,7 @@ export const TIMBRAL_QUALITIES: readonly Lexeme[] = [
     examples: ['make it richer', 'add richness', 'lush sound'],
   },
   {
-    id: createLexemeId('adj', 'thin_timbre'),
+    id: createLexemeId('adj', 'thin-timbre'),
     lemma: 'thin',
     variants: ['thin', 'lean', 'sparse', 'anemic', 'weak'],
     category: 'adj',
@@ -69,7 +69,7 @@ export const TIMBRAL_QUALITIES: readonly Lexeme[] = [
     examples: ['make it hollow', 'scoop the mids', 'empty sound'],
   },
   {
-    id: createLexemeId('adj', 'full_bodied'),
+    id: createLexemeId('adj', 'full-bodied'),
     lemma: 'full_bodied',
     variants: ['full', 'substantial', 'meaty', 'solid', 'weighty'],
     category: 'adj',
@@ -167,7 +167,7 @@ export const TIMBRAL_QUALITIES: readonly Lexeme[] = [
 
 export const TEXTURAL_DENSITY: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'dense_texture'),
+    id: createLexemeId('adj', 'dense-texture'),
     lemma: 'dense',
     variants: ['dense', 'thick', 'heavy', 'packed', 'crowded'],
     category: 'adj',
@@ -180,7 +180,7 @@ export const TEXTURAL_DENSITY: readonly Lexeme[] = [
     examples: ['make it denser', 'thicken the texture', 'more packed'],
   },
   {
-    id: createLexemeId('adj', 'sparse_texture'),
+    id: createLexemeId('adj', 'sparse-texture'),
     lemma: 'sparse',
     variants: ['sparse', 'thin_texture', 'light', 'airy', 'open'],
     category: 'adj',
@@ -206,7 +206,7 @@ export const TEXTURAL_DENSITY: readonly Lexeme[] = [
     examples: ['more layered', 'add layers', 'multi-layered sound'],
   },
   {
-    id: createLexemeId('adj', 'minimal_texture'),
+    id: createLexemeId('adj', 'minimal-texture'),
     lemma: 'minimal',
     variants: ['minimal', 'simple', 'bare', 'stripped', 'reduced'],
     category: 'adj',
@@ -278,7 +278,7 @@ export const TEXTURAL_DENSITY: readonly Lexeme[] = [
 
 export const SURFACE_QUALITIES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'smooth_surface'),
+    id: createLexemeId('adj', 'smooth-surface'),
     lemma: 'smooth',
     variants: ['smooth', 'silky', 'polished', 'refined', 'sleek'],
     category: 'adj',
@@ -291,7 +291,7 @@ export const SURFACE_QUALITIES: readonly Lexeme[] = [
     examples: ['make it smoother', 'silky texture', 'polished sound'],
   },
   {
-    id: createLexemeId('adj', 'rough_surface'),
+    id: createLexemeId('adj', 'rough-surface'),
     lemma: 'rough',
     variants: ['rough', 'coarse', 'raw', 'unpolished', 'edgy'],
     category: 'adj',
@@ -389,7 +389,7 @@ export const SURFACE_QUALITIES: readonly Lexeme[] = [
 
 export const WARMTH_AND_COLOR: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'warm_color'),
+    id: createLexemeId('adj', 'warm-color'),
     lemma: 'warm',
     variants: ['warm', 'warmer', 'cozy', 'inviting', 'homey'],
     category: 'adj',
@@ -402,7 +402,7 @@ export const WARMTH_AND_COLOR: readonly Lexeme[] = [
     examples: ['make it warmer', 'add warmth', 'cozy sound'],
   },
   {
-    id: createLexemeId('adj', 'cold_color'),
+    id: createLexemeId('adj', 'cold-color'),
     lemma: 'cold',
     variants: ['cold', 'cool', 'icy', 'chilly', 'frigid'],
     category: 'adj',
@@ -428,7 +428,7 @@ export const WARMTH_AND_COLOR: readonly Lexeme[] = [
     examples: ['add color', 'give it character', 'tinted sound'],
   },
   {
-    id: createLexemeId('adj', 'neutral_color'),
+    id: createLexemeId('adj', 'neutral-color'),
     lemma: 'neutral',
     variants: ['neutral', 'uncolored', 'transparent_color', 'clinical'],
     category: 'adj',
@@ -454,7 +454,7 @@ export const WARMTH_AND_COLOR: readonly Lexeme[] = [
     examples: ['add vintage character', 'retro sound', 'analog quality'],
   },
   {
-    id: createLexemeId('adj', 'modern_sound'),
+    id: createLexemeId('adj', 'modern-sound'),
     lemma: 'modern',
     variants: ['modern', 'contemporary', 'current', 'hi_fi', 'digital'],
     category: 'adj',
@@ -513,7 +513,7 @@ export const RESONANCE_SUSTAIN: readonly Lexeme[] = [
     examples: ['make it more resonant', 'add resonance', 'ringing tone'],
   },
   {
-    id: createLexemeId('adj', 'dead_sound'),
+    id: createLexemeId('adj', 'dead-sound'),
     lemma: 'dead',
     variants: ['dead', 'dampened', 'muted_resonance', 'lifeless'],
     category: 'adj',
@@ -565,7 +565,7 @@ export const RESONANCE_SUSTAIN: readonly Lexeme[] = [
     examples: ['reduce boom', 'less tubby', 'control low resonance'],
   },
   {
-    id: createLexemeId('adj', 'tight_sound'),
+    id: createLexemeId('adj', 'tight-sound'),
     lemma: 'tight',
     variants: ['tight', 'controlled', 'focused', 'precise'],
     category: 'adj',
@@ -578,7 +578,7 @@ export const RESONANCE_SUSTAIN: readonly Lexeme[] = [
     examples: ['tighten it up', 'more controlled', 'precise sound'],
   },
   {
-    id: createLexemeId('adj', 'loose_sound'),
+    id: createLexemeId('adj', 'loose-sound'),
     lemma: 'loose',
     variants: ['loose', 'relaxed', 'uncontrolled', 'sloppy'],
     category: 'adj',
@@ -598,7 +598,7 @@ export const RESONANCE_SUSTAIN: readonly Lexeme[] = [
 
 export const HARMONIC_CONTENT: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'harmonically_rich'),
+    id: createLexemeId('adj', 'harmonically-rich'),
     lemma: 'harmonically_rich',
     variants: ['rich_harmonics', 'overtone_rich', 'harmonic_full'],
     category: 'adj',
@@ -611,7 +611,7 @@ export const HARMONIC_CONTENT: readonly Lexeme[] = [
     examples: ['add harmonics', 'make it richer', 'more overtones'],
   },
   {
-    id: createLexemeId('adj', 'pure_tone'),
+    id: createLexemeId('adj', 'pure-tone'),
     lemma: 'pure',
     variants: ['pure', 'sine_like', 'fundamental_only', 'simple_tone'],
     category: 'adj',
@@ -624,7 +624,7 @@ export const HARMONIC_CONTENT: readonly Lexeme[] = [
     examples: ['purify the tone', 'sine-like quality', 'fundamental only'],
   },
   {
-    id: createLexemeId('adj', 'complex_harmonics'),
+    id: createLexemeId('adj', 'complex-harmonics'),
     lemma: 'complex_harmonics',
     variants: ['complex', 'intricate_harmonics', 'multifaceted'],
     category: 'adj',
@@ -637,7 +637,7 @@ export const HARMONIC_CONTENT: readonly Lexeme[] = [
     examples: ['complex harmonics', 'intricate overtones', 'multifaceted sound'],
   },
   {
-    id: createLexemeId('adj', 'simple_harmonics'),
+    id: createLexemeId('adj', 'simple-harmonics'),
     lemma: 'simple_harmonics',
     variants: ['simple', 'plain_harmonics', 'straightforward'],
     category: 'adj',
@@ -650,7 +650,7 @@ export const HARMONIC_CONTENT: readonly Lexeme[] = [
     examples: ['simplify harmonics', 'plain tone', 'straightforward sound'],
   },
   {
-    id: createLexemeId('adj', 'odd_harmonics'),
+    id: createLexemeId('adj', 'odd-harmonics'),
     lemma: 'odd_harmonics',
     variants: ['odd', 'hollow_harmonics', 'square_like'],
     category: 'adj',
@@ -663,7 +663,7 @@ export const HARMONIC_CONTENT: readonly Lexeme[] = [
     examples: ['odd harmonics', 'hollow character', 'square-wave quality'],
   },
   {
-    id: createLexemeId('adj', 'even_harmonics'),
+    id: createLexemeId('adj', 'even-harmonics'),
     lemma: 'even_harmonics',
     variants: ['even', 'full_harmonics', 'sawtooth_like'],
     category: 'adj',
@@ -683,7 +683,7 @@ export const HARMONIC_CONTENT: readonly Lexeme[] = [
 
 export const DISTORTION_SATURATION: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'clean_sound'),
+    id: createLexemeId('adj', 'clean-sound'),
     lemma: 'clean',
     variants: ['clean', 'pristine', 'pure_signal', 'undistorted'],
     category: 'adj',
@@ -696,7 +696,7 @@ export const DISTORTION_SATURATION: readonly Lexeme[] = [
     examples: ['make it cleaner', 'pristine sound', 'remove distortion'],
   },
   {
-    id: createLexemeId('adj', 'dirty_sound'),
+    id: createLexemeId('adj', 'dirty-sound'),
     lemma: 'dirty',
     variants: ['dirty', 'gritty', 'distorted', 'grungy', 'filthy'],
     category: 'adj',
@@ -722,7 +722,7 @@ export const DISTORTION_SATURATION: readonly Lexeme[] = [
     examples: ['saturate it', 'drive it harder', 'push it'],
   },
   {
-    id: createLexemeId('adj', 'pristine_signal'),
+    id: createLexemeId('adj', 'pristine-signal'),
     lemma: 'pristine',
     variants: ['pristine', 'untouched', 'virgin', 'unprocessed'],
     category: 'adj',
@@ -735,7 +735,7 @@ export const DISTORTION_SATURATION: readonly Lexeme[] = [
     examples: ['keep it pristine', 'untouched quality', 'natural signal'],
   },
   {
-    id: createLexemeId('adj', 'crunchy_distortion'),
+    id: createLexemeId('adj', 'crunchy-distortion'),
     lemma: 'crunchy',
     variants: ['crunchy', 'brittle_distortion', 'crushing'],
     category: 'adj',
@@ -748,7 +748,7 @@ export const DISTORTION_SATURATION: readonly Lexeme[] = [
     examples: ['add crunch', 'crunchy distortion', 'crushing sound'],
   },
   {
-    id: createLexemeId('adj', 'fuzzy_distortion'),
+    id: createLexemeId('adj', 'fuzzy-distortion'),
     lemma: 'fuzzy_distortion',
     variants: ['fuzzy_dist', 'wooly', 'fuzzy_overdrive'],
     category: 'adj',
@@ -768,7 +768,7 @@ export const DISTORTION_SATURATION: readonly Lexeme[] = [
 
 export const SPATIAL_TEXTURE: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'wide_spatial'),
+    id: createLexemeId('adj', 'wide-spatial'),
     lemma: 'wide',
     variants: ['wide', 'expansive', 'broad', 'panoramic'],
     category: 'adj',
@@ -781,7 +781,7 @@ export const SPATIAL_TEXTURE: readonly Lexeme[] = [
     examples: ['make it wider', 'expand the stereo', 'panoramic sound'],
   },
   {
-    id: createLexemeId('adj', 'narrow_spatial'),
+    id: createLexemeId('adj', 'narrow-spatial'),
     lemma: 'narrow',
     variants: ['narrow', 'focused_spatial', 'centered', 'mono_like'],
     category: 'adj',
@@ -794,7 +794,7 @@ export const SPATIAL_TEXTURE: readonly Lexeme[] = [
     examples: ['make it narrower', 'focus the stereo', 'center it'],
   },
   {
-    id: createLexemeId('adj', 'deep_spatial'),
+    id: createLexemeId('adj', 'deep-spatial'),
     lemma: 'deep',
     variants: ['deep', 'dimensional', 'three_dimensional', 'depthful'],
     category: 'adj',
@@ -807,7 +807,7 @@ export const SPATIAL_TEXTURE: readonly Lexeme[] = [
     examples: ['add depth', 'make it deeper', 'three-dimensional sound'],
   },
   {
-    id: createLexemeId('adj', 'flat_spatial'),
+    id: createLexemeId('adj', 'flat-spatial'),
     lemma: 'flat',
     variants: ['flat', 'two_dimensional', 'shallow', 'depthless'],
     category: 'adj',
@@ -820,7 +820,7 @@ export const SPATIAL_TEXTURE: readonly Lexeme[] = [
     examples: ['flatten it', 'reduce depth', 'two-dimensional sound'],
   },
   {
-    id: createLexemeId('adj', 'layered_spatial'),
+    id: createLexemeId('adj', 'layered-spatial'),
     lemma: 'layered_spatial',
     variants: ['spatial_layers', 'stratified_depth', 'planes'],
     category: 'adj',

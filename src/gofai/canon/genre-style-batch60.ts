@@ -115,7 +115,7 @@ const MAJOR_GENRE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'hip_hop'),
+    id: createLexemeId('noun', 'hip-hop'),
     lemma: 'hip-hop',
     variants: ['hip hop', 'rap', 'hip-hop style'],
     category: 'noun',
@@ -222,7 +222,7 @@ const SUB_GENRE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'modal_jazz'),
+    id: createLexemeId('noun', 'modal-jazz'),
     lemma: 'modal',
     variants: ['modal jazz', 'modal style', 'modal approach'],
     category: 'noun',
@@ -604,7 +604,7 @@ const REGIONAL_CULTURAL_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'middle_eastern'),
+    id: createLexemeId('adj', 'middle-eastern'),
     lemma: 'Middle Eastern',
     variants: ['Arabic', 'Persian', 'Oriental'],
     category: 'adj',
@@ -795,7 +795,7 @@ const AESTHETIC_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'lo_fi'),
+    id: createLexemeId('adj', 'lo-fi'),
     lemma: 'lo-fi',
     variants: ['low-fi', 'lo-fi aesthetic', 'degraded'],
     category: 'adj',
@@ -812,7 +812,7 @@ const AESTHETIC_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'hi_fi'),
+    id: createLexemeId('adj', 'hi-fi'),
     lemma: 'hi-fi',
     variants: ['high-fi', 'pristine', 'clean production'],
     category: 'adj',
@@ -879,7 +879,7 @@ const PRODUCTION_STYLE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'live_feel'),
+    id: createLexemeId('adj', 'live-feel'),
     lemma: 'live',
     variants: ['live recording', 'performed', 'concert feel'],
     category: 'adj',
@@ -913,7 +913,7 @@ const PRODUCTION_STYLE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'natural_production'),
+    id: createLexemeId('adj', 'natural-production'),
     lemma: 'natural',
     variants: ['unprocessed', 'raw', 'untreated'],
     category: 'adj',
@@ -964,7 +964,7 @@ const PRODUCTION_STYLE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'raw_production'),
+    id: createLexemeId('adj', 'raw-production'),
     lemma: 'raw',
     variants: ['rough', 'unpolished', 'gritty'],
     category: 'adj',

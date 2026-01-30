@@ -60,7 +60,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 090 [Infra] — Write an “ontology drift” lint that fails if docs and canon vocab disagree.
 - [x] Step 091 [Type] — Define a typed “reference to historical edit package” to support “undo that”, “redo the chorus widening”.
 - [x] Step 098 [Infra] — Add a “vocab coverage report” script: which cards/boards/decks have no language bindings or weak bindings.
-- [ ] Step 099 [Eval] — Add regression tests asserting entity bindings remain stable across refactors (ID-based, not display-name fragile).
+- [x] Step 099 [Eval] — Add regression tests asserting entity bindings remain stable across refactors (ID-based, not display-name fragile).
 - [x] Step 100 [Infra] — Define the “GOFAI docs SSOT rule”: canonical vocab lives in code; docs are generated or validated from that code.
 ---
 
@@ -73,14 +73,14 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 255 [Type] — Define a cost hierarchy aligned with user expectations (melody changes expensive; voicing changes cheap).
 - [x] Step 256 [Sem] — Implement a constraint satisfaction layer: candidate plans must be validated against preserve/only-change constraints.
 - [x] Step 257 [Sem] — Implement plan generation as bounded search over opcodes (depth limit, beam size) to keep runtime predictable offline.
-- [ ] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
-- [ ] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
+- [x] Step 258 [Sem] — Implement “least-change planning” as the default preference; allow explicit user overrides (“rewrite the harmony”).
+- [x] Step 259 [Sem] — Implement option sets: if multiple plans are near-equal, present top 2–3 with clear differences.
 - [ ] Step 260 [HCI] — Design plan selection UI: compare candidate plans by diff summary, not by abstract scoring numbers.
 - [x] Step 261 [Sem][Type] — Implement a “plan skeleton” step that maps from CPL-Intent to a set of lever candidates with open parameters.
-- [ ] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
+- [x] Step 262 [Sem] — Implement parameter inference: map “a little” to small amount; map explicit numbers to typed magnitudes.
 - [x] Step 263 [Sem] — Implement “plan legality” checks: ensure opcodes only touch allowed scope and do not mutate forbidden targets.
-- [ ] Step 264 [Sem] — Implement “plan explainability”: each opcode carries a reason string linked to the goal it serves.
-- [ ] Step 265 [Sem] — Implement “plan provenance”: preserve lexeme/rule origins through to plan steps for end-to-end explanations.
+- [x] Step 264 [Sem] — Implement “plan explainability”: each opcode carries a reason string linked to the goal it serves.
+- [x] Step 265 [Sem] — Implement “plan provenance”: preserve lexeme/rule origins through to plan steps for end-to-end explanations.
 - [ ] Step 266 [Sem][Infra] — Integrate Prolog for symbolic suggestions: query theory KB for chord substitutions, cadence options, mode inference.
 - [ ] Step 267 [Sem] — Define a typed Prolog query layer for GOFAI planning (wrap raw predicates; validate results).
 - [ ] Step 268 [Sem] — Define “theory-driven levers” that depend on analysis (e.g., tension increase via chromatic mediants if harmony permits).

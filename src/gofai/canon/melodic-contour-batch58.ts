@@ -72,7 +72,7 @@ const DIRECTIONAL_MOVEMENT_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'static_pitch'),
+    id: createLexemeId('adj', 'static-pitch'),
     lemma: 'static',
     variants: ['monotone', 'flat', 'unchanging pitch', 'pedal'],
     category: 'adj',
@@ -143,7 +143,7 @@ const DIRECTIONAL_MOVEMENT_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'inverted_arch'),
+    id: createLexemeId('adj', 'inverted-arch'),
     lemma: 'inverted arch',
     variants: ['valley', 'dip', 'U-shaped'],
     category: 'adj',
@@ -195,7 +195,7 @@ const DIRECTIONAL_MOVEMENT_DESCRIPTORS: readonly Lexeme[] = [
  */
 const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'high_register'),
+    id: createLexemeId('adj', 'high-register'),
     lemma: 'high',
     variants: ['upper register', 'treble', 'soprano range'],
     category: 'adj',
@@ -212,7 +212,7 @@ const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'low_register'),
+    id: createLexemeId('adj', 'low-register'),
     lemma: 'low',
     variants: ['lower register', 'bass', 'deep'],
     category: 'adj',
@@ -229,7 +229,7 @@ const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'wide_range'),
+    id: createLexemeId('adj', 'wide-range'),
     lemma: 'wide',
     variants: ['expansive', 'broad range', 'large compass'],
     category: 'adj',
@@ -246,7 +246,7 @@ const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'narrow_range'),
+    id: createLexemeId('adj', 'narrow-range'),
     lemma: 'narrow',
     variants: ['compact', 'limited range', 'small compass'],
     category: 'adj',
@@ -263,7 +263,7 @@ const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'tessitura_high'),
+    id: createLexemeId('adj', 'tessitura-high'),
     lemma: 'high tessitura',
     variants: ['sits high', 'upper tessitura'],
     category: 'adj',
@@ -281,7 +281,7 @@ const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'tessitura_low'),
+    id: createLexemeId('adj', 'tessitura-low'),
     lemma: 'low tessitura',
     variants: ['sits low', 'lower tessitura'],
     category: 'adj',
@@ -299,7 +299,7 @@ const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'extreme_register'),
+    id: createLexemeId('adj', 'extreme-register'),
     lemma: 'extreme',
     variants: ['very high or low', 'outer limits', 'extreme range'],
     category: 'adj',
@@ -317,7 +317,7 @@ const REGISTER_RANGE_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'middle_register'),
+    id: createLexemeId('adj', 'middle-register'),
     lemma: 'middle',
     variants: ['mid-range', 'central', 'comfortable range'],
     category: 'adj',
@@ -385,7 +385,7 @@ const INTERVAL_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'smooth_intervals'),
+    id: createLexemeId('adj', 'smooth-intervals'),
     lemma: 'smooth',
     variants: ['flowing', 'legato intervals', 'connected'],
     category: 'adj',
@@ -402,7 +402,7 @@ const INTERVAL_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'angular_intervals'),
+    id: createLexemeId('adj', 'angular-intervals'),
     lemma: 'angular',
     variants: ['jagged', 'disjointed', 'wide intervals'],
     category: 'adj',
@@ -419,7 +419,7 @@ const INTERVAL_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'chromatic_motion'),
+    id: createLexemeId('adj', 'chromatic-motion'),
     lemma: 'chromatic',
     variants: ['half-step motion', 'chromatic scale', 'semitone steps'],
     category: 'adj',
@@ -437,7 +437,7 @@ const INTERVAL_PATTERN_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'diatonic_motion'),
+    id: createLexemeId('adj', 'diatonic-motion'),
     lemma: 'diatonic',
     variants: ['scale-based', 'in key', 'diatonic steps'],
     category: 'adj',
@@ -524,7 +524,7 @@ const ORNAMENTATION_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'plain_melody'),
+    id: createLexemeId('adj', 'plain-melody'),
     lemma: 'plain',
     variants: ['simple', 'unadorned', 'skeletal'],
     category: 'adj',
@@ -631,7 +631,7 @@ const ORNAMENTATION_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'grace_note'),
+    id: createLexemeId('noun', 'grace-note'),
     lemma: 'grace note',
     variants: ['appoggiatura', 'acciaccatura', 'ornamental note'],
     category: 'noun',
@@ -665,7 +665,7 @@ const ORNAMENTATION_DESCRIPTORS: readonly Lexeme[] = [
  */
 const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'simple_melody'),
+    id: createLexemeId('adj', 'simple-melody'),
     lemma: 'simple',
     variants: ['basic', 'straightforward', 'uncomplicated'],
     category: 'adj',
@@ -682,7 +682,7 @@ const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'complex_melody'),
+    id: createLexemeId('adj', 'complex-melody'),
     lemma: 'complex',
     variants: ['intricate', 'sophisticated', 'elaborate'],
     category: 'adj',
@@ -699,7 +699,7 @@ const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'predictable_melody'),
+    id: createLexemeId('adj', 'predictable-melody'),
     lemma: 'predictable',
     variants: ['expected', 'formulaic', 'conventional'],
     category: 'adj',
@@ -716,7 +716,7 @@ const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'surprising_melody'),
+    id: createLexemeId('adj', 'surprising-melody'),
     lemma: 'surprising',
     variants: ['unexpected', 'unpredictable', 'novel'],
     category: 'adj',
@@ -733,7 +733,7 @@ const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'repetitive_melody'),
+    id: createLexemeId('adj', 'repetitive-melody'),
     lemma: 'repetitive',
     variants: ['recurring', 'repeating', 'ostinato-like'],
     category: 'adj',
@@ -750,7 +750,7 @@ const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'varied_melody'),
+    id: createLexemeId('adj', 'varied-melody'),
     lemma: 'varied',
     variants: ['diverse', 'changing', 'non-repetitive'],
     category: 'adj',
@@ -767,7 +767,7 @@ const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'structured_melody'),
+    id: createLexemeId('adj', 'structured-melody'),
     lemma: 'structured',
     variants: ['organized', 'formal', 'patterned'],
     category: 'adj',
@@ -784,7 +784,7 @@ const MELODIC_COMPLEXITY_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'free_melody'),
+    id: createLexemeId('adj', 'free-melody'),
     lemma: 'free',
     variants: ['unstructured', 'improvisatory', 'spontaneous'],
     category: 'adj',
@@ -834,7 +834,7 @@ const MELODIC_CHARACTER_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'mechanical_melody'),
+    id: createLexemeId('adj', 'mechanical-melody'),
     lemma: 'mechanical',
     variants: ['robotic', 'non-expressive', 'dry'],
     category: 'adj',
@@ -851,7 +851,7 @@ const MELODIC_CHARACTER_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'expressive_melody'),
+    id: createLexemeId('adj', 'expressive-melody'),
     lemma: 'expressive',
     variants: ['emotional', 'full of feeling', 'passionate'],
     category: 'adj',
@@ -868,7 +868,7 @@ const MELODIC_CHARACTER_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'neutral_melody'),
+    id: createLexemeId('adj', 'neutral-melody'),
     lemma: 'neutral',
     variants: ['emotionless', 'flat', 'objective'],
     category: 'adj',
@@ -903,7 +903,7 @@ const MELODIC_CHARACTER_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'vocal_like'),
+    id: createLexemeId('adj', 'vocal-like'),
     lemma: 'vocal',
     variants: ['voice-like', 'singable', 'human'],
     category: 'adj',
@@ -921,7 +921,7 @@ const MELODIC_CHARACTER_DESCRIPTORS: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'instrumental_character'),
+    id: createLexemeId('adj', 'instrumental-character'),
     lemma: 'instrumental',
     variants: ['idiomatic', 'instrumental-specific'],
     category: 'adj',

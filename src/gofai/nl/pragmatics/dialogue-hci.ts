@@ -2094,7 +2094,10 @@ function _groupByField(entries: readonly MemoryEntry[], _field: 'scope'): readon
   }
 
   const lines: string[] = [];
-  for (const [scope, scopeEntries] of groups) {
+  const groupEntries = Array.from(groups.entries());
+  for (const pair of groupEntries) {
+    const scope = pair[0];
+    const scopeEntries = pair[1];
     lines.push(`== ${scope} (${scopeEntries.length} entries) ==`);
     for (const e of scopeEntries) {
       lines.push(`  #${e.turnNumber}: ${e.userInput}`);
@@ -2126,7 +2129,10 @@ function _groupByEntityRef(entries: readonly MemoryEntry[]): readonly string[] {
   }
 
   const lines: string[] = [];
-  for (const [entity, entityEntries] of groups) {
+  const groupEntries = Array.from(groups.entries());
+  for (const pair of groupEntries) {
+    const entity = pair[0];
+    const entityEntries = pair[1];
     lines.push(`== ${entity} (${entityEntries.length} references) ==`);
     for (const en of entityEntries) {
       lines.push(`  #${en.turnNumber}: ${en.userInput}`);
@@ -2720,4 +2726,795 @@ export function getUndoInteractionPatterns(): readonly { name: string; targetTyp
     targetType: p.targetType,
     description: p.description,
   }));
+}
+
+
+// ===================== STEP 235: PREFERENCE TUNING UI =====================
+
+// ---- 235 Types ----
+
+/** Axis that a vocabulary term can map to. */
+export type TuningAxis =
+  | 'frequency'
+  | 'amplitude'
+  | 'resonance'
+  | 'saturation'
+  | 'compression'
+  | 'reverb'
+  | 'delay'
+  | 'distortion'
+  | 'stereo-width'
+  | 'brightness'
+  | 'warmth'
+  | 'density'
+  | 'attack'
+  | 'release'
+  | 'pitch'
+  | 'tempo'
+  | 'dynamics'
+  | 'texture'
+  | 'space'
+  | 'presence';
+
+/** Preset genre configuration. */
+export type TuningPresetGenre =
+  | 'studio-default'
+  | 'edm'
+  | 'jazz'
+  | 'classical'
+  | 'pop'
+  | 'hip-hop'
+  | 'rock'
+  | 'ambient'
+  | 'metal'
+  | 'folk'
+  | 'r-and-b'
+  | 'country'
+  | 'user-custom';
+
+/** Weight value for a mapping cell. */
+export type TuningWeight = 0 | 0.25 | 0.5 | 0.75 | 1;
+
+/** State of the calibration wizard. */
+export type CalibrationState =
+  | 'not-started'
+  | 'in-progress'
+  | 'paused'
+  | 'completed'
+  | 'skipped';
+
+/** A single cell in the tuning matrix. */
+export interface TuningCell {
+  readonly term: string;
+  readonly axis: TuningAxis;
+  readonly weight: TuningWeight;
+  readonly isActive: boolean;
+  readonly isDefault: boolean;
+  readonly confidence: number;
+  readonly source: 'default' | 'preset' | 'calibration' | 'manual';
+}
+
+/** A row in the tuning matrix (one vocabulary term). */
+export interface TuningRow {
+  readonly term: string;
+  readonly displayName: string;
+  readonly description: string;
+  readonly category: string;
+  readonly cells: readonly TuningCell[];
+  readonly primaryAxis: TuningAxis;
+  readonly secondaryAxes: readonly TuningAxis[];
+}
+
+/** The full tuning matrix. */
+export interface TuningMatrix {
+  readonly rows: readonly TuningRow[];
+  readonly axes: readonly TuningAxis[];
+  readonly lastModified: number;
+  readonly source: 'default' | 'preset' | 'calibration' | 'manual' | 'imported';
+}
+
+/** Configuration for the tuning UI. */
+export interface TuningConfig {
+  readonly showWeights: boolean;
+  readonly showConfidence: boolean;
+  readonly allowMultipleAxes: boolean;
+  readonly maxAxesPerTerm: number;
+  readonly enableCalibration: boolean;
+  readonly enableImportExport: boolean;
+  readonly showCategories: boolean;
+  readonly sortBy: 'alphabetical' | 'category' | 'usage' | 'confidence';
+  readonly filterCategory: string;
+  readonly compactMode: boolean;
+  readonly showDescriptions: boolean;
+  readonly highlightChanges: boolean;
+}
+
+/** A preset configuration. */
+export interface TuningPreset {
+  readonly id: string;
+  readonly name: string;
+  readonly genre: TuningPresetGenre;
+  readonly description: string;
+  readonly mappings: readonly TuningPresetMapping[];
+  readonly isBuiltIn: boolean;
+  readonly author: string;
+  readonly version: string;
+}
+
+/** A mapping within a preset. */
+export interface TuningPresetMapping {
+  readonly term: string;
+  readonly axis: TuningAxis;
+  readonly weight: TuningWeight;
+}
+
+/** Exported tuning profile for sharing. */
+export interface TuningProfile {
+  readonly version: string;
+  readonly name: string;
+  readonly description: string;
+  readonly exportedAt: number;
+  readonly genre: TuningPresetGenre;
+  readonly mappings: readonly TuningPresetMapping[];
+  readonly calibrationState: CalibrationState;
+  readonly stats: TuningStats;
+}
+
+/** Calibration wizard step. */
+export interface CalibrationStep {
+  readonly stepNumber: number;
+  readonly totalSteps: number;
+  readonly term: string;
+  readonly question: string;
+  readonly options: readonly CalibrationOption[];
+  readonly currentMapping: TuningAxis;
+  readonly suggestedMapping: TuningAxis;
+  readonly audioExampleHint: string;
+}
+
+/** An option in a calibration step. */
+export interface CalibrationOption {
+  readonly axis: TuningAxis;
+  readonly label: string;
+  readonly description: string;
+  readonly audioHint: string;
+  readonly isRecommended: boolean;
+}
+
+/** State of the calibration wizard. */
+export interface CalibrationWizard {
+  readonly state: CalibrationState;
+  readonly currentStep: number;
+  readonly totalSteps: number;
+  readonly completedMappings: readonly TuningPresetMapping[];
+  readonly skippedTerms: readonly string[];
+  readonly startedAt: number;
+  readonly genre: TuningPresetGenre;
+}
+
+/** Statistics about tuning mappings. */
+export interface TuningStats {
+  readonly totalTerms: number;
+  readonly mappedTerms: number;
+  readonly unmappedTerms: number;
+  readonly averageConfidence: number;
+  readonly axisCoverage: Record<string, number>;
+  readonly categoryCoverage: Record<string, number>;
+  readonly manualOverrides: number;
+  readonly calibratedTerms: number;
+}
+
+/** The full preference tuning UI state. */
+export interface PreferenceTuningUI {
+  readonly matrix: TuningMatrix;
+  readonly config: TuningConfig;
+  readonly activePreset: TuningPreset;
+  readonly calibration: CalibrationWizard;
+  readonly stats: TuningStats;
+}
+
+// ---- 235 Data: Default Vocabulary Terms ----
+
+interface VocabTermDef {
+  readonly term: string;
+  readonly displayName: string;
+  readonly description: string;
+  readonly category: string;
+  readonly primaryAxis: TuningAxis;
+  readonly secondaryAxes: readonly TuningAxis[];
+}
+
+const DEFAULT_VOCAB_TERMS: readonly VocabTermDef[] = [
+  { term: 'dark', displayName: 'Dark', description: 'Darker sound quality', category: 'tonal', primaryAxis: 'frequency', secondaryAxes: ['brightness', 'warmth'] },
+  { term: 'bright', displayName: 'Bright', description: 'Brighter, more present sound', category: 'tonal', primaryAxis: 'brightness', secondaryAxes: ['frequency', 'presence'] },
+  { term: 'warm', displayName: 'Warm', description: 'Warmer, rounder tone', category: 'tonal', primaryAxis: 'warmth', secondaryAxes: ['saturation', 'frequency'] },
+  { term: 'cold', displayName: 'Cold', description: 'Colder, thinner tone', category: 'tonal', primaryAxis: 'warmth', secondaryAxes: ['brightness', 'presence'] },
+  { term: 'thick', displayName: 'Thick', description: 'Thicker, denser sound', category: 'tonal', primaryAxis: 'density', secondaryAxes: ['saturation', 'compression'] },
+  { term: 'thin', displayName: 'Thin', description: 'Thinner, lighter sound', category: 'tonal', primaryAxis: 'density', secondaryAxes: ['frequency', 'amplitude'] },
+  { term: 'heavy', displayName: 'Heavy', description: 'Heavier, weightier sound', category: 'tonal', primaryAxis: 'compression', secondaryAxes: ['density', 'distortion'] },
+  { term: 'light', displayName: 'Light', description: 'Lighter, airy sound', category: 'tonal', primaryAxis: 'dynamics', secondaryAxes: ['density', 'reverb'] },
+  { term: 'loud', displayName: 'Loud', description: 'Louder volume', category: 'dynamics', primaryAxis: 'amplitude', secondaryAxes: ['compression', 'presence'] },
+  { term: 'quiet', displayName: 'Quiet', description: 'Quieter volume', category: 'dynamics', primaryAxis: 'amplitude', secondaryAxes: ['dynamics', 'space'] },
+  { term: 'punchy', displayName: 'Punchy', description: 'More transient impact', category: 'dynamics', primaryAxis: 'attack', secondaryAxes: ['compression', 'dynamics'] },
+  { term: 'smooth', displayName: 'Smooth', description: 'Smoother, less aggressive', category: 'dynamics', primaryAxis: 'attack', secondaryAxes: ['compression', 'saturation'] },
+  { term: 'tight', displayName: 'Tight', description: 'Tighter, more controlled', category: 'dynamics', primaryAxis: 'compression', secondaryAxes: ['attack', 'release'] },
+  { term: 'loose', displayName: 'Loose', description: 'Looser, more relaxed feel', category: 'dynamics', primaryAxis: 'release', secondaryAxes: ['dynamics', 'tempo'] },
+  { term: 'wet', displayName: 'Wet', description: 'More reverb/effects', category: 'space', primaryAxis: 'reverb', secondaryAxes: ['delay', 'space'] },
+  { term: 'dry', displayName: 'Dry', description: 'Less reverb/effects', category: 'space', primaryAxis: 'reverb', secondaryAxes: ['space', 'presence'] },
+  { term: 'wide', displayName: 'Wide', description: 'Wider stereo image', category: 'space', primaryAxis: 'stereo-width', secondaryAxes: ['space', 'reverb'] },
+  { term: 'narrow', displayName: 'Narrow', description: 'Narrower, more focused', category: 'space', primaryAxis: 'stereo-width', secondaryAxes: ['presence', 'space'] },
+  { term: 'spacious', displayName: 'Spacious', description: 'More spatial depth', category: 'space', primaryAxis: 'space', secondaryAxes: ['reverb', 'stereo-width'] },
+  { term: 'intimate', displayName: 'Intimate', description: 'Closer, more personal', category: 'space', primaryAxis: 'space', secondaryAxes: ['presence', 'reverb'] },
+  { term: 'crispy', displayName: 'Crispy', description: 'Sharp high-end detail', category: 'texture', primaryAxis: 'brightness', secondaryAxes: ['presence', 'saturation'] },
+  { term: 'muddy', displayName: 'Muddy', description: 'Unclear low-mid buildup', category: 'texture', primaryAxis: 'frequency', secondaryAxes: ['density', 'resonance'] },
+  { term: 'gritty', displayName: 'Gritty', description: 'Raw, textured distortion', category: 'texture', primaryAxis: 'distortion', secondaryAxes: ['saturation', 'texture'] },
+  { term: 'clean', displayName: 'Clean', description: 'Pure, undistorted signal', category: 'texture', primaryAxis: 'distortion', secondaryAxes: ['saturation', 'dynamics'] },
+  { term: 'fuzzy', displayName: 'Fuzzy', description: 'Soft, warm distortion', category: 'texture', primaryAxis: 'saturation', secondaryAxes: ['distortion', 'warmth'] },
+  { term: 'sharp', displayName: 'Sharp', description: 'Precise, defined transients', category: 'texture', primaryAxis: 'attack', secondaryAxes: ['brightness', 'presence'] },
+  { term: 'airy', displayName: 'Airy', description: 'Open, breathy quality', category: 'space', primaryAxis: 'presence', secondaryAxes: ['brightness', 'space'] },
+  { term: 'full', displayName: 'Full', description: 'Complete frequency spectrum', category: 'tonal', primaryAxis: 'density', secondaryAxes: ['compression', 'warmth'] },
+  { term: 'hollow', displayName: 'Hollow', description: 'Missing mid frequencies', category: 'tonal', primaryAxis: 'resonance', secondaryAxes: ['frequency', 'density'] },
+  { term: 'boomy', displayName: 'Boomy', description: 'Excessive low-end resonance', category: 'tonal', primaryAxis: 'resonance', secondaryAxes: ['frequency', 'compression'] },
+  { term: 'sizzling', displayName: 'Sizzling', description: 'High-frequency energy and sparkle', category: 'texture', primaryAxis: 'brightness', secondaryAxes: ['presence', 'frequency'] },
+  { term: 'lush', displayName: 'Lush', description: 'Rich, layered quality', category: 'texture', primaryAxis: 'texture', secondaryAxes: ['reverb', 'density'] },
+];
+
+// ---- 235 Data: Presets ----
+
+function _buildPresetMappings(genre: TuningPresetGenre, terms: readonly VocabTermDef[]): readonly TuningPresetMapping[] {
+  const genreWeightMultipliers: Record<string, Partial<Record<TuningAxis, number>>> = {
+    'studio-default': {},
+    'edm': { compression: 1.2, attack: 1.3, brightness: 1.1, density: 1.2 },
+    'jazz': { warmth: 1.3, dynamics: 1.2, space: 1.1, reverb: 1.1 },
+    'classical': { dynamics: 1.4, space: 1.3, reverb: 1.2, presence: 1.1 },
+    'pop': { compression: 1.3, brightness: 1.2, presence: 1.2, amplitude: 1.1 },
+    'hip-hop': { compression: 1.4, frequency: 1.2, attack: 1.2, density: 1.1 },
+    'rock': { distortion: 1.3, amplitude: 1.2, attack: 1.1, density: 1.1 },
+    'ambient': { reverb: 1.4, space: 1.4, texture: 1.2, delay: 1.2 },
+    'metal': { distortion: 1.5, compression: 1.3, attack: 1.3, amplitude: 1.2 },
+    'folk': { warmth: 1.2, dynamics: 1.2, presence: 1.1, space: 1.0 },
+    'r-and-b': { warmth: 1.3, compression: 1.1, reverb: 1.1, saturation: 1.1 },
+    'country': { warmth: 1.1, presence: 1.2, dynamics: 1.1, brightness: 1.0 },
+    'user-custom': {},
+  };
+
+  const multipliers = genreWeightMultipliers[genre] ?? {};
+
+  return terms.map(t => {
+    const axisMultiplier = multipliers[t.primaryAxis] ?? 1.0;
+    const rawWeight = 0.75 * axisMultiplier;
+    const clampedWeight = Math.min(1, Math.max(0, rawWeight));
+    const quantized: TuningWeight =
+      clampedWeight >= 0.875 ? 1 :
+      clampedWeight >= 0.625 ? 0.75 :
+      clampedWeight >= 0.375 ? 0.5 :
+      clampedWeight >= 0.125 ? 0.25 :
+      0;
+    return { term: t.term, axis: t.primaryAxis, weight: quantized };
+  });
+}
+
+const TUNING_PRESETS: readonly TuningPreset[] = [
+  { id: 'preset-studio', name: 'Studio Default', genre: 'studio-default', description: 'Balanced default mappings suitable for most genres', mappings: _buildPresetMappings('studio-default', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-edm', name: 'EDM', genre: 'edm', description: 'Electronic dance music: emphasis on compression, attack, density', mappings: _buildPresetMappings('edm', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-jazz', name: 'Jazz', genre: 'jazz', description: 'Jazz: emphasis on warmth, dynamics, space', mappings: _buildPresetMappings('jazz', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-classical', name: 'Classical', genre: 'classical', description: 'Classical: emphasis on dynamics, space, reverb', mappings: _buildPresetMappings('classical', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-pop', name: 'Pop', genre: 'pop', description: 'Pop: emphasis on compression, brightness, presence', mappings: _buildPresetMappings('pop', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-hiphop', name: 'Hip-Hop', genre: 'hip-hop', description: 'Hip-hop: emphasis on compression, low-end, attack', mappings: _buildPresetMappings('hip-hop', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-rock', name: 'Rock', genre: 'rock', description: 'Rock: emphasis on distortion, amplitude, attack', mappings: _buildPresetMappings('rock', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-ambient', name: 'Ambient', genre: 'ambient', description: 'Ambient: emphasis on reverb, space, texture, delay', mappings: _buildPresetMappings('ambient', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-metal', name: 'Metal', genre: 'metal', description: 'Metal: emphasis on distortion, compression, attack', mappings: _buildPresetMappings('metal', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-folk', name: 'Folk', genre: 'folk', description: 'Folk: emphasis on warmth, dynamics, presence', mappings: _buildPresetMappings('folk', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-rnb', name: 'R&B', genre: 'r-and-b', description: 'R&B: emphasis on warmth, compression, reverb', mappings: _buildPresetMappings('r-and-b', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+  { id: 'preset-country', name: 'Country', genre: 'country', description: 'Country: emphasis on warmth, presence, dynamics', mappings: _buildPresetMappings('country', DEFAULT_VOCAB_TERMS), isBuiltIn: true, author: 'system', version: '1.0.0' },
+];
+
+// ---- 235 Default Config ----
+
+const ALL_TUNING_AXES: readonly TuningAxis[] = [
+  'frequency', 'amplitude', 'resonance', 'saturation', 'compression',
+  'reverb', 'delay', 'distortion', 'stereo-width', 'brightness',
+  'warmth', 'density', 'attack', 'release', 'pitch',
+  'tempo', 'dynamics', 'texture', 'space', 'presence',
+];
+
+const DEFAULT_TUNING_CONFIG: TuningConfig = {
+  showWeights: true,
+  showConfidence: false,
+  allowMultipleAxes: true,
+  maxAxesPerTerm: 3,
+  enableCalibration: true,
+  enableImportExport: true,
+  showCategories: true,
+  sortBy: 'category',
+  filterCategory: '',
+  compactMode: false,
+  showDescriptions: true,
+  highlightChanges: true,
+};
+
+// ---- 235 Functions ----
+
+/** Create a new tuning matrix from default vocabulary. */
+export function createTuningMatrix(
+  preset?: TuningPreset,
+): TuningMatrix {
+  const mappingLookup = new Map<string, TuningPresetMapping>();
+  if (preset) {
+    for (const m of preset.mappings) {
+      mappingLookup.set(`${m.term}:${m.axis}`, m);
+    }
+  }
+
+  const rows: TuningRow[] = DEFAULT_VOCAB_TERMS.map(vt => {
+    const cells: TuningCell[] = ALL_TUNING_AXES.map(axis => {
+      const lookupKey = `${vt.term}:${axis}`;
+      const presetMapping = mappingLookup.get(lookupKey);
+      const isPrimary = axis === vt.primaryAxis;
+      const isSecondary = vt.secondaryAxes.includes(axis);
+
+      let weight: TuningWeight;
+      if (presetMapping) {
+        weight = presetMapping.weight;
+      } else if (isPrimary) {
+        weight = 0.75;
+      } else if (isSecondary) {
+        weight = 0.5;
+      } else {
+        weight = 0;
+      }
+
+      return {
+        term: vt.term,
+        axis,
+        weight,
+        isActive: weight > 0,
+        isDefault: !presetMapping,
+        confidence: isPrimary ? 0.95 : isSecondary ? 0.7 : 0.3,
+        source: presetMapping ? 'preset' : 'default',
+      };
+    });
+
+    return {
+      term: vt.term,
+      displayName: vt.displayName,
+      description: vt.description,
+      category: vt.category,
+      cells,
+      primaryAxis: vt.primaryAxis,
+      secondaryAxes: vt.secondaryAxes,
+    };
+  });
+
+  return {
+    rows,
+    axes: ALL_TUNING_AXES,
+    lastModified: Date.now(),
+    source: preset ? 'preset' : 'default',
+  };
+}
+
+/** Set a mapping weight for a specific term and axis. */
+export function setMapping(
+  matrix: TuningMatrix,
+  term: string,
+  axis: TuningAxis,
+  weight: TuningWeight,
+): TuningMatrix {
+  const newRows = matrix.rows.map(row => {
+    if (row.term !== term) return row;
+    const newCells = row.cells.map(cell => {
+      if (cell.axis !== axis) return cell;
+      return {
+        ...cell,
+        weight,
+        isActive: weight > 0,
+        isDefault: false,
+        source: 'manual' as const,
+      };
+    });
+    return { ...row, cells: newCells };
+  });
+
+  return {
+    ...matrix,
+    rows: newRows,
+    lastModified: Date.now(),
+    source: 'manual',
+  };
+}
+
+/** Get the current mapping for a term and axis. */
+export function getMapping(
+  matrix: TuningMatrix,
+  term: string,
+  axis: TuningAxis,
+): TuningCell | undefined {
+  const row = matrix.rows.find(r => r.term === term);
+  if (!row) return undefined;
+  return row.cells.find(c => c.axis === axis);
+}
+
+/** Apply a preset to the matrix. */
+export function applyPreset(
+  _matrix: TuningMatrix,
+  preset: TuningPreset,
+): TuningMatrix {
+  return createTuningMatrix(preset);
+}
+
+/** Get all available presets. */
+export function getPresets(): readonly TuningPreset[] {
+  return TUNING_PRESETS;
+}
+
+/** Export tuning profile for sharing. */
+export function exportTuningProfile(
+  matrix: TuningMatrix,
+  name: string,
+  description: string,
+  genre: TuningPresetGenre,
+  calibrationState: CalibrationState,
+): TuningProfile {
+  const mappings: TuningPresetMapping[] = [];
+  for (const row of matrix.rows) {
+    for (const cell of row.cells) {
+      if (cell.isActive && cell.weight > 0) {
+        mappings.push({ term: cell.term, axis: cell.axis, weight: cell.weight });
+      }
+    }
+  }
+
+  return {
+    version: '1.0.0',
+    name,
+    description,
+    exportedAt: Date.now(),
+    genre,
+    mappings,
+    calibrationState,
+    stats: _computeTuningStats(matrix),
+  };
+}
+
+/** Import a tuning profile. */
+export function importTuningProfile(
+  _matrix: TuningMatrix,
+  profile: TuningProfile,
+): TuningMatrix {
+  const mappingLookup = new Map<string, TuningPresetMapping>();
+  for (const m of profile.mappings) {
+    mappingLookup.set(`${m.term}:${m.axis}`, m);
+  }
+
+  const rows: TuningRow[] = DEFAULT_VOCAB_TERMS.map(vt => {
+    const cells: TuningCell[] = ALL_TUNING_AXES.map(axis => {
+      const lookupKey = `${vt.term}:${axis}`;
+      const imported = mappingLookup.get(lookupKey);
+      const isPrimary = axis === vt.primaryAxis;
+      const isSecondary = vt.secondaryAxes.includes(axis);
+
+      const weight: TuningWeight = imported ? imported.weight : 0;
+      const confidence = imported ? 0.9 : isPrimary ? 0.5 : isSecondary ? 0.3 : 0.1;
+
+      return {
+        term: vt.term,
+        axis,
+        weight,
+        isActive: weight > 0,
+        isDefault: !imported,
+        confidence,
+        source: imported ? 'manual' as const : 'default' as const,
+      };
+    });
+
+    return {
+      term: vt.term,
+      displayName: vt.displayName,
+      description: vt.description,
+      category: vt.category,
+      cells,
+      primaryAxis: vt.primaryAxis,
+      secondaryAxes: vt.secondaryAxes,
+    };
+  });
+
+  return {
+    rows,
+    axes: ALL_TUNING_AXES,
+    lastModified: Date.now(),
+    source: 'imported',
+  };
+}
+
+/** Start the calibration wizard. */
+export function startCalibrationWizard(genre: TuningPresetGenre): CalibrationWizard {
+  return {
+    state: 'in-progress',
+    currentStep: 0,
+    totalSteps: DEFAULT_VOCAB_TERMS.length,
+    completedMappings: [],
+    skippedTerms: [],
+    startedAt: Date.now(),
+    genre,
+  };
+}
+
+/** Get the current calibration step. */
+export function getCalibrationStep(wizard: CalibrationWizard): CalibrationStep | undefined {
+  if (wizard.state !== 'in-progress') return undefined;
+  if (wizard.currentStep >= wizard.totalSteps) return undefined;
+
+  const termDef = DEFAULT_VOCAB_TERMS[wizard.currentStep];
+  if (!termDef) return undefined;
+
+  const options: CalibrationOption[] = [termDef.primaryAxis, ...termDef.secondaryAxes].map((axis, idx) => ({
+    axis,
+    label: _formatAxisLabel(axis),
+    description: `Maps "${termDef.term}" to ${axis} adjustments`,
+    audioHint: `Adjusts ${axis} when you say "${termDef.term}"`,
+    isRecommended: idx === 0,
+  }));
+
+  // Add a few extra axes as alternatives
+  const usedAxes = new Set([termDef.primaryAxis, ...termDef.secondaryAxes]);
+  const extraAxes = ALL_TUNING_AXES.filter(a => !usedAxes.has(a)).slice(0, 2);
+  for (const axis of extraAxes) {
+    options.push({
+      axis,
+      label: _formatAxisLabel(axis),
+      description: `Alternative: map "${termDef.term}" to ${axis}`,
+      audioHint: `Would adjust ${axis} instead`,
+      isRecommended: false,
+    });
+  }
+
+  return {
+    stepNumber: wizard.currentStep + 1,
+    totalSteps: wizard.totalSteps,
+    term: termDef.term,
+    question: `When you say "${termDef.displayName}", what do you usually mean?`,
+    options,
+    currentMapping: termDef.primaryAxis,
+    suggestedMapping: termDef.primaryAxis,
+    audioExampleHint: `Example: "Make it more ${termDef.term}"`,
+  };
+}
+
+/** Advance the calibration wizard to the next step. */
+export function advanceCalibration(
+  wizard: CalibrationWizard,
+  selectedAxis: TuningAxis | null,
+  term: string,
+): CalibrationWizard {
+  if (wizard.state !== 'in-progress') return wizard;
+
+  const newMappings = selectedAxis
+    ? [...wizard.completedMappings, { term, axis: selectedAxis, weight: 0.75 as TuningWeight }]
+    : wizard.completedMappings;
+
+  const newSkipped = selectedAxis === null
+    ? [...wizard.skippedTerms, term]
+    : wizard.skippedTerms;
+
+  const nextStep = wizard.currentStep + 1;
+  const isComplete = nextStep >= wizard.totalSteps;
+
+  return {
+    ...wizard,
+    currentStep: nextStep,
+    completedMappings: newMappings,
+    skippedTerms: newSkipped,
+    state: isComplete ? 'completed' : 'in-progress',
+  };
+}
+
+/** Format the tuning matrix for text display. */
+export function formatMatrixForDisplay(
+  matrix: TuningMatrix,
+  config: TuningConfig,
+): readonly string[] {
+  const lines: string[] = [];
+
+  // Header row
+  const axisLabels = matrix.axes.map(a => a.substring(0, 6).padEnd(6));
+  lines.push(`${'Term'.padEnd(15)} ${axisLabels.join(' ')}`);
+  lines.push('-'.repeat(15 + matrix.axes.length * 7));
+
+  let rows = [...matrix.rows];
+  if (config.filterCategory && config.filterCategory.length > 0) {
+    rows = rows.filter(r => r.category === config.filterCategory);
+  }
+
+  if (config.sortBy === 'alphabetical') {
+    rows.sort((a, b) => a.term.localeCompare(b.term));
+  } else if (config.sortBy === 'category') {
+    rows.sort((a, b) => a.category.localeCompare(b.category) || a.term.localeCompare(b.term));
+  }
+
+  let currentCategory = '';
+  for (const row of rows) {
+    if (config.showCategories && row.category !== currentCategory) {
+      currentCategory = row.category;
+      lines.push(`\n[${currentCategory.toUpperCase()}]`);
+    }
+
+    const cellValues = row.cells.map(c => {
+      if (!c.isActive) return '  .   ';
+      if (config.showWeights) return ` ${c.weight.toFixed(2)} `;
+      return '  *   ';
+    });
+
+    const termLabel = row.displayName.padEnd(15);
+    lines.push(`${termLabel} ${cellValues.join(' ')}`);
+
+    if (config.showDescriptions) {
+      lines.push(`${''.padEnd(15)} ${row.description}`);
+    }
+  }
+
+  return lines;
+}
+
+/** Reset tuning matrix to defaults. */
+export function resetToDefaults(): TuningMatrix {
+  return createTuningMatrix();
+}
+
+/** Merge two tuning profiles, preferring the first for conflicts. */
+export function mergeTuningProfiles(
+  primary: TuningProfile,
+  secondary: TuningProfile,
+): TuningProfile {
+  const primaryLookup = new Map<string, TuningPresetMapping>();
+  for (const m of primary.mappings) {
+    primaryLookup.set(`${m.term}:${m.axis}`, m);
+  }
+
+  const mergedMappings: TuningPresetMapping[] = [...primary.mappings];
+  for (const m of secondary.mappings) {
+    const key = `${m.term}:${m.axis}`;
+    if (!primaryLookup.has(key)) {
+      mergedMappings.push(m);
+    }
+  }
+
+  return {
+    version: primary.version,
+    name: `${primary.name} + ${secondary.name}`,
+    description: `Merged profile: ${primary.name} (primary) with ${secondary.name}`,
+    exportedAt: Date.now(),
+    genre: primary.genre,
+    mappings: mergedMappings,
+    calibrationState: primary.calibrationState,
+    stats: {
+      ...primary.stats,
+      totalTerms: new Set(mergedMappings.map(m => m.term)).size,
+      mappedTerms: new Set(mergedMappings.map(m => m.term)).size,
+      unmappedTerms: 0,
+    },
+  };
+}
+
+/** Get statistics about the tuning matrix. */
+export function getTuningStats(matrix: TuningMatrix): TuningStats {
+  return _computeTuningStats(matrix);
+}
+
+/** Suggest mappings for unmapped terms. */
+export function suggestMissingMappings(
+  matrix: TuningMatrix,
+): readonly { term: string; suggestedAxis: TuningAxis; confidence: number; reason: string }[] {
+  const suggestions: { term: string; suggestedAxis: TuningAxis; confidence: number; reason: string }[] = [];
+
+  for (const row of matrix.rows) {
+    const hasActiveMapping = row.cells.some(c => c.isActive && !c.isDefault);
+    if (hasActiveMapping) continue;
+
+    const vocabDef = DEFAULT_VOCAB_TERMS.find(v => v.term === row.term);
+    if (!vocabDef) continue;
+
+    suggestions.push({
+      term: row.term,
+      suggestedAxis: vocabDef.primaryAxis,
+      confidence: 0.85,
+      reason: `"${vocabDef.displayName}" most commonly maps to ${vocabDef.primaryAxis} in music production.`,
+    });
+  }
+
+  return suggestions;
+}
+
+// ---- 235 Internal Helpers ----
+
+function _computeTuningStats(matrix: TuningMatrix): TuningStats {
+  let mappedTerms = 0;
+  let totalConfidence = 0;
+  let confidenceCount = 0;
+  let manualOverrides = 0;
+  let calibratedTerms = 0;
+  const axisCoverage: Record<string, number> = {};
+  const categoryCoverage: Record<string, number> = {};
+
+  for (const row of matrix.rows) {
+    let hasActive = false;
+    for (const cell of row.cells) {
+      if (cell.isActive) {
+        hasActive = true;
+        const current = axisCoverage[cell.axis] ?? 0;
+        axisCoverage[cell.axis] = current + 1;
+        totalConfidence += cell.confidence;
+        confidenceCount++;
+        if (cell.source === 'manual') manualOverrides++;
+        if (cell.source === 'calibration') calibratedTerms++;
+      }
+    }
+    if (hasActive) {
+      mappedTerms++;
+      const catCount = categoryCoverage[row.category] ?? 0;
+      categoryCoverage[row.category] = catCount + 1;
+    }
+  }
+
+  return {
+    totalTerms: matrix.rows.length,
+    mappedTerms,
+    unmappedTerms: matrix.rows.length - mappedTerms,
+    averageConfidence: confidenceCount > 0 ? totalConfidence / confidenceCount : 0,
+    axisCoverage,
+    categoryCoverage,
+    manualOverrides,
+    calibratedTerms,
+  };
+}
+
+function _formatAxisLabel(axis: TuningAxis): string {
+  const labels: Record<TuningAxis, string> = {
+    frequency: 'Frequency (EQ)',
+    amplitude: 'Volume Level',
+    resonance: 'Resonance',
+    saturation: 'Saturation',
+    compression: 'Compression',
+    reverb: 'Reverb',
+    delay: 'Delay',
+    distortion: 'Distortion',
+    'stereo-width': 'Stereo Width',
+    brightness: 'Brightness',
+    warmth: 'Warmth',
+    density: 'Density',
+    attack: 'Attack',
+    release: 'Release',
+    pitch: 'Pitch',
+    tempo: 'Tempo',
+    dynamics: 'Dynamics',
+    texture: 'Texture',
+    space: 'Spatial Depth',
+    presence: 'Presence',
+  };
+  return labels[axis];
+}
+
+// ---- 235 Exports ----
+
+export const TUNING_PRESET_COUNT = TUNING_PRESETS.length;
+export const TUNING_VOCAB_TERM_COUNT = DEFAULT_VOCAB_TERMS.length;
+export const TUNING_AXIS_COUNT = ALL_TUNING_AXES.length;
+
+export function getDefaultTuningConfig(): TuningConfig {
+  return DEFAULT_TUNING_CONFIG;
+}
+
+export function getAllTuningAxes(): readonly TuningAxis[] {
+  return ALL_TUNING_AXES;
+}
+
+export function getVocabTermCategories(): readonly string[] {
+  const categories = new Set(DEFAULT_VOCAB_TERMS.map(v => v.category));
+  return Array.from(categories);
+}
+
+export function getVocabTermsByCategory(category: string): readonly { term: string; displayName: string; description: string }[] {
+  return DEFAULT_VOCAB_TERMS
+    .filter(v => v.category === category)
+    .map(v => ({ term: v.term, displayName: v.displayName, description: v.description }));
 }

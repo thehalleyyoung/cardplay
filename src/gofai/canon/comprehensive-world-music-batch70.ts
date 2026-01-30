@@ -32,7 +32,7 @@ import { createLexemeId, type LexemeId } from './gofai-id';
 export const indianClassicalLexemes: readonly Lexeme[] = [
   // Ragas (melodic frameworks)
   {
-    id: createLexemeId('lex:scale:raga_yaman'),
+    id: createLexemeId('lex:scale:raga-yaman'),
     lemma: 'yaman',
     variants: ['kalyan', 'yaman kalyan'],
     category: 'noun',
@@ -56,7 +56,7 @@ export const indianClassicalLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:scale:raga_bhairav'),
+    id: createLexemeId('lex:scale:raga-bhairav'),
     lemma: 'bhairav',
     variants: ['bhairava', 'bhairavi'],
     category: 'noun',
@@ -80,7 +80,7 @@ export const indianClassicalLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:rhythm:tala_teental'),
+    id: createLexemeId('lex:rhythm:tala-teental'),
     lemma: 'teental',
     variants: ['teen taal', 'tintal', '16-beat cycle'],
     category: 'noun',
@@ -271,7 +271,7 @@ export const indianClassicalLexemes: readonly Lexeme[] = [
 
 export const middleEasternLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:scale:maqam_bayati'),
+    id: createLexemeId('lex:scale:maqam-bayati'),
     lemma: 'bayati',
     variants: ['maqam bayati', 'bayat'],
     category: 'noun',
@@ -294,7 +294,7 @@ export const middleEasternLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:scale:maqam_hijaz'),
+    id: createLexemeId('lex:scale:maqam-hijaz'),
     lemma: 'hijaz',
     variants: ['maqam hijaz', 'hejaz'],
     category: 'noun',
@@ -317,7 +317,7 @@ export const middleEasternLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:scale:maqam_rast'),
+    id: createLexemeId('lex:scale:maqam-rast'),
     lemma: 'rast',
     variants: ['maqam rast'],
     category: 'noun',
@@ -362,7 +362,7 @@ export const middleEasternLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:rhythm:iqa_samai'),
+    id: createLexemeId('lex:rhythm:iqa-samai'),
     lemma: 'samai',
     variants: ['sama\'i', 'semai', '10-beat'],
     category: 'noun',
@@ -384,7 +384,7 @@ export const middleEasternLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:quarter_tone'),
+    id: createLexemeId('lex:technique:quarter-tone'),
     lemma: 'quarter tone',
     variants: ['quarter-tone', 'half-flat', 'half-sharp', 'microtone'],
     category: 'noun',
@@ -458,7 +458,7 @@ export const africanMusicLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:technique:call_and_response'),
+    id: createLexemeId('lex:technique:call-and-response'),
     lemma: 'call and response',
     variants: ['call-and-response', 'call response', 'antiphony'],
     category: 'noun',
@@ -480,7 +480,7 @@ export const africanMusicLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:scale:pentatonic_african'),
+    id: createLexemeId('lex:scale:pentatonic-african'),
     lemma: 'african pentatonic',
     variants: ['anhemitonic pentatonic', 'gapped scale'],
     category: 'noun',
@@ -524,7 +524,7 @@ export const africanMusicLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:rhythm:triplet_feel'),
+    id: createLexemeId('lex:rhythm:triplet-feel'),
     lemma: 'triplet feel',
     variants: ['12/8 feel', 'compound meter', 'rolling rhythm'],
     category: 'noun',
@@ -553,7 +553,7 @@ export const africanMusicLexemes: readonly Lexeme[] = [
 
 export const eastAsianLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:scale:pentatonic_chinese'),
+    id: createLexemeId('lex:scale:pentatonic-chinese'),
     lemma: 'chinese pentatonic',
     variants: ['gong scale', 'yu scale'],
     category: 'noun',
@@ -575,7 +575,7 @@ export const eastAsianLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:scale:japanese_in'),
+    id: createLexemeId('lex:scale:japanese-in'),
     lemma: 'in scale',
     variants: ['in sen', 'japanese pentatonic'],
     category: 'noun',
@@ -714,7 +714,7 @@ export const latinAmericanLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:rhythm:son_clave'),
+    id: createLexemeId('lex:rhythm:son-clave'),
     lemma: 'son clave',
     variants: ['son', '2-3 son', '3-2 son'],
     category: 'noun',
@@ -802,7 +802,7 @@ export const latinAmericanLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:rhythm:bossa_nova'),
+    id: createLexemeId('lex:rhythm:bossa-nova'),
     lemma: 'bossa nova',
     variants: ['bossa', 'brazilian jazz'],
     category: 'noun',
@@ -852,7 +852,7 @@ export const latinAmericanLexemes: readonly Lexeme[] = [
 
 export const microtonalLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:concept:just_intonation'),
+    id: createLexemeId('lex:concept:just-intonation'),
     lemma: 'just intonation',
     variants: ['just tuning', 'pure intervals', 'harmonic tuning'],
     category: 'noun',
@@ -894,7 +894,7 @@ export const microtonalLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:concept:edo_19'),
+    id: createLexemeId('lex:concept:edo-19'),
     lemma: '19-edo',
     variants: ['19-equal', '19-tone equal temperament', '19-tet'],
     category: 'noun',
@@ -915,7 +915,7 @@ export const microtonalLexemes: readonly Lexeme[] = [
   },
   
   {
-    id: createLexemeId('lex:concept:edo_31'),
+    id: createLexemeId('lex:concept:edo-31'),
     lemma: '31-edo',
     variants: ['31-equal', '31-tone equal temperament', '31-tet'],
     category: 'noun',

@@ -197,7 +197,7 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
  */
 const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adj', 'hard_attack'),
+    id: createLexemeId('adj', 'hard-attack'),
     lemma: 'hard',
     variants: ['aggressive', 'forceful', 'strong attack', 'harsh attack'],
     category: 'adj',
@@ -215,7 +215,7 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'soft_attack'),
+    id: createLexemeId('adj', 'soft-attack'),
     lemma: 'soft',
     variants: ['gentle', 'delicate', 'subtle attack', 'light attack'],
     category: 'adj',
@@ -233,7 +233,7 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'sharp_attack'),
+    id: createLexemeId('adj', 'sharp-attack'),
     lemma: 'sharp',
     variants: ['crisp', 'clear', 'defined', 'precise attack'],
     category: 'adj',
@@ -251,7 +251,7 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'rounded_attack'),
+    id: createLexemeId('adj', 'rounded-attack'),
     lemma: 'rounded',
     variants: ['smooth', 'mellow attack', 'soft-edged'],
     category: 'adj',
@@ -305,7 +305,7 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'col_legno'),
+    id: createLexemeId('adj', 'col-legno'),
     lemma: 'col legno',
     variants: ['with the wood', 'wood of bow'],
     category: 'adj',
@@ -324,7 +324,7 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'sul_ponticello'),
+    id: createLexemeId('adj', 'sul-ponticello'),
     lemma: 'sul ponticello',
     variants: ['near bridge', 'ponticello'],
     category: 'adj',
@@ -430,7 +430,7 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'natural_release'),
+    id: createLexemeId('adj', 'natural-release'),
     lemma: 'natural',
     variants: ['organic release', 'gradual fade', 'dying away'],
     category: 'adj',
@@ -452,7 +452,7 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'abrupt_release'),
+    id: createLexemeId('adj', 'abrupt-release'),
     lemma: 'abrupt',
     variants: ['sudden stop', 'immediate cutoff', 'hard stop'],
     category: 'adj',
@@ -470,7 +470,7 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'crescendo_release'),
+    id: createLexemeId('adj', 'crescendo-release'),
     lemma: 'crescendo',
     variants: ['growing', 'swelling', 'building to end'],
     category: 'adj',
@@ -488,7 +488,7 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'diminuendo_release'),
+    id: createLexemeId('adj', 'diminuendo-release'),
     lemma: 'diminuendo',
     variants: ['fading', 'dying away', 'decrescendo'],
     category: 'adj',
@@ -539,7 +539,7 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'linear_phrase'),
+    id: createLexemeId('adj', 'linear-phrase'),
     lemma: 'linear',
     variants: ['flat', 'level', 'even phrase'],
     category: 'adj',
@@ -633,7 +633,7 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'long_lined'),
+    id: createLexemeId('adj', 'long-lined'),
     lemma: 'long-lined',
     variants: ['extended', 'long phrase', 'continuous line'],
     category: 'adj',
@@ -651,7 +651,7 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adj', 'short_phrased'),
+    id: createLexemeId('adj', 'short-phrased'),
     lemma: 'short-phrased',
     variants: ['brief', 'compact', 'concise phrases'],
     category: 'adj',
@@ -722,7 +722,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'grace_note'),
+    id: createLexemeId('noun', 'grace-note'),
     lemma: 'grace note',
     variants: ['acciaccatura', 'appoggiatura', 'ornament'],
     category: 'noun',
@@ -779,7 +779,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'hammer_on'),
+    id: createLexemeId('noun', 'hammer-on'),
     lemma: 'hammer-on',
     variants: ['hammer', 'slur up'],
     category: 'noun',
@@ -798,7 +798,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'pull_off'),
+    id: createLexemeId('noun', 'pull-off'),
     lemma: 'pull-off',
     variants: ['pull off', 'slur down'],
     category: 'noun',
@@ -817,7 +817,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('noun', 'ghost_note'),
+    id: createLexemeId('noun', 'ghost-note'),
     lemma: 'ghost note',
     variants: ['muted note', 'dead note', 'percussive hit'],
     category: 'noun',

@@ -21,3 +21,6 @@ export * from './pragmatic-typing';
 
 // Speech acts, hedging, intention, confirmation, counterfactual exploration (Steps 226–230)
 export * from './speech-acts';
+
+// HCI dialogue UI: clarification cards, context strip, memory, undo, tuning (Steps 231–235)
+export * from './dialogue-hci';
