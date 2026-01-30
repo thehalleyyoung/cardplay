@@ -71,7 +71,10 @@ export interface PortTypeEntry {
   readonly type: PortType;
   readonly name: string;
   readonly description?: string;
+  /** Port color for UI rendering (Change 233) */
   readonly color?: string;
+  /** Port icon identifier for UI rendering (Change 233) */
+  readonly icon?: string;
 }
 
 /**
@@ -99,24 +102,32 @@ export function getPortTypeEntry(type: PortType): PortTypeEntry | undefined {
   return portTypeRegistry.get(type);
 }
 
+/**
+ * Change 234: Get all registered port type entries (for UI display).
+ */
+export function getAllPortTypeEntries(): readonly PortTypeEntry[] {
+  return Array.from(portTypeRegistry.values());
+}
+
 // Register built-in types
 const builtInPortTypes: PortTypeEntry[] = [
-  { type: PortTypes.AUDIO, name: 'Audio', color: '#4CAF50' },
-  { type: PortTypes.MIDI, name: 'MIDI', color: '#2196F3' },
-  { type: PortTypes.NOTES, name: 'Notes', color: '#9C27B0' },
-  { type: PortTypes.CONTROL, name: 'Control', color: '#FF9800' },
-  { type: PortTypes.TRIGGER, name: 'Trigger', color: '#F44336' },
-  { type: PortTypes.GATE, name: 'Gate', color: '#E53935' },
-  { type: PortTypes.CLOCK, name: 'Clock', color: '#00ACC1' },
-  { type: PortTypes.TRANSPORT, name: 'Transport', color: '#039BE5' },
+  // Change 232-233: Builtin port types with metadata for UI rendering
+  { type: PortTypes.AUDIO, name: 'Audio', color: '#4CAF50', icon: 'waveform' },
+  { type: PortTypes.MIDI, name: 'MIDI', color: '#2196F3', icon: 'midi' },
+  { type: PortTypes.NOTES, name: 'Notes', color: '#9C27B0', icon: 'notes' },
+  { type: PortTypes.CONTROL, name: 'Control', color: '#FF9800', icon: 'knob' },
+  { type: PortTypes.TRIGGER, name: 'Trigger', color: '#F44336', icon: 'bolt' },
+  { type: PortTypes.GATE, name: 'Gate', color: '#E53935', icon: 'gate' },
+  { type: PortTypes.CLOCK, name: 'Clock', color: '#00ACC1', icon: 'clock' },
+  { type: PortTypes.TRANSPORT, name: 'Transport', color: '#039BE5', icon: 'transport' },
   // Legacy types
-  { type: PortTypes.NUMBER, name: 'Number (legacy)', color: '#607D8B' },
-  { type: PortTypes.STRING, name: 'String (legacy)', color: '#795548' },
-  { type: PortTypes.BOOLEAN, name: 'Boolean (legacy)', color: '#E91E63' },
-  { type: PortTypes.ANY, name: 'Any (legacy)', color: '#9E9E9E' },
-  { type: PortTypes.STREAM, name: 'Stream (legacy)', color: '#00BCD4' },
-  { type: PortTypes.CONTAINER, name: 'Container (legacy)', color: '#CDDC39' },
-  { type: PortTypes.PATTERN, name: 'Pattern (legacy)', color: '#FF5722' },
+  { type: PortTypes.NUMBER, name: 'Number (legacy)', color: '#607D8B', icon: 'hash' },
+  { type: PortTypes.STRING, name: 'String (legacy)', color: '#795548', icon: 'text' },
+  { type: PortTypes.BOOLEAN, name: 'Boolean (legacy)', color: '#E91E63', icon: 'toggle' },
+  { type: PortTypes.ANY, name: 'Any (legacy)', color: '#9E9E9E', icon: 'circle' },
+  { type: PortTypes.STREAM, name: 'Stream (legacy)', color: '#00BCD4', icon: 'waveform' },
+  { type: PortTypes.CONTAINER, name: 'Container (legacy)', color: '#CDDC39', icon: 'box' },
+  { type: PortTypes.PATTERN, name: 'Pattern (legacy)', color: '#FF5722', icon: 'grid' },
 ];
 
 for (const entry of builtInPortTypes) {

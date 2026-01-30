@@ -12,11 +12,15 @@
 
 import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
 import { loadBoardLayoutKB } from '../knowledge/board-layout-loader';
+import { getBoardRegistry } from '../../boards/registry';
+import type { ControlLevel, DeckType as CanonicalDeckType } from '../../boards/types';
 
 /**
  * Board control level type.
+ * Re-exported from canonical types for backward compatibility.
+ * @deprecated Import ControlLevel from '../../boards/types' instead.
  */
-export type ControlLevel = 'manual' | 'assisted' | 'generative' | 'hybrid';
+export type { ControlLevel } from '../../boards/types';
 
 /**
  * Board information returned from queries.
@@ -28,8 +32,9 @@ export interface BoardInfo {
 
 /**
  * Deck type identifier.
+ * Uses canonical DeckType when possible; falls back to string for Prolog results.
  */
-export type DeckType = string;
+export type DeckType = CanonicalDeckType | string;
 
 /**
  * Workflow type identifier.
@@ -119,10 +124,39 @@ async function ensureKBLoaded(adapter: PrologAdapter): Promise<void> {
 export async function getAllBoards(
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<BoardInfo[]> {
+  // Change 143/144: Pull board metadata from the board registry first
+  const registry = getBoardRegistry();
+  const registeredBoards = registry.list();
+
+  if (registeredBoards.length > 0) {
+    // Return registry boards augmented with Prolog-only boards
+    const registryInfos: BoardInfo[] = registeredBoards.map(b => ({
+      id: b.id,
+      controlLevel: b.controlLevel,
+    }));
+
+    // Also query Prolog for any boards not in the registry
+    await ensureKBLoaded(adapter);
+    const prologResults = await adapter.queryAll('board(Id, Level)');
+    const registryIds = new Set(registeredBoards.map(b => b.id));
+
+    for (const r of prologResults) {
+      const id = String(r.Id);
+      if (!registryIds.has(id)) {
+        registryInfos.push({
+          id,
+          controlLevel: String(r.Level) as ControlLevel,
+        });
+      }
+    }
+
+    return registryInfos;
+  }
+
+  // Fallback: Prolog-only query
   await ensureKBLoaded(adapter);
-  
   const results = await adapter.queryAll('board(Id, Level)');
-  
+
   return results
     .map(r => ({
       id: String(r.Id),
@@ -164,10 +198,18 @@ export async function getBoardDecks(
   boardId: string,
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<DeckType[]> {
+  // Change 143/144: Check board registry first for canonical deck types
+  const registry = getBoardRegistry();
+  const board = registry.get(boardId);
+
+  if (board) {
+    return board.decks.map(d => d.type);
+  }
+
+  // Fallback: Prolog query
   await ensureKBLoaded(adapter);
-  
   const results = await adapter.queryAll(`board_has_deck(${boardId}, Deck)`);
-  
+
   return results
     .map(r => String(r.Deck));
 }
@@ -739,14 +781,17 @@ export async function getHelpTopic(
   adapter: PrologAdapter = getPrologAdapter()
 ): Promise<string | null> {
   await ensureKBLoaded(adapter);
-  
+
   const result = await adapter.querySingle(`help_topic(${action}, Topic)`);
-  
+
   if (result === null) {
     return null;
   }
-  
-  return String(result.Topic);
+
+  // Change 144: Normalize doc path strings to canonical references
+  const topic = String(result.Topic);
+  // Strip legacy 'docs/' prefix if present — callers should use canonical IDs
+  return topic.replace(/^docs\//, '');
 }
 
 /**

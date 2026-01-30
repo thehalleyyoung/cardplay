@@ -1,11 +1,13 @@
 /**
  * Clip Operations: Consolidation, Freeze, and Bounce
- * 
+ *
  * Implements M261-M263:
  * - M261: Clip consolidation (merge clips to audio)
  * - M262: Freeze track (render to audio, disable plugins)
  * - M263: Bounce in place (render selection to clip)
  */
+
+import { generateClipId as generateClipIdFromSSOT } from '../state/types';
 
 // --------------------------------------------------------------------------
 // Types
@@ -60,8 +62,13 @@ export interface PluginState {
   parameters: Record<string, number>;
 }
 
-/** Track with plugins */
-export interface Track {
+/**
+ * Track model for freeze/unfreeze operations.
+ * 
+ * Renamed from `Track` to disambiguate from ArrangementTrack in arrangement-panel.
+ * Use this for track state during freeze/bounce operations.
+ */
+export interface FreezeTrackModel {
   id: string;
   name: string;
   clips: Clip[];
@@ -74,6 +81,9 @@ export interface Track {
   muted: boolean;
   solo: boolean;
 }
+
+/** @deprecated Use FreezeTrackModel instead */
+export type Track = FreezeTrackModel;
 
 /** Result of consolidation operation */
 export interface ConsolidationResult {
@@ -140,10 +150,11 @@ export interface BounceOptions {
 // --------------------------------------------------------------------------
 
 /**
- * Generate unique ID for clips
+ * Generate unique ID for clips.
+ * Change 327: Delegates to SSOT generateClipId from state/types.
  */
 function generateClipId(): string {
-  return `clip_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  return generateClipIdFromSSOT();
 }
 
 /**

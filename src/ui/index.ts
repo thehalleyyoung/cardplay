@@ -438,14 +438,16 @@ export {
 // ============================================================================
 
 export {
-  // Card Surface
-  type CardSize,
-  type CardStyle,
-  type CardState,
+  // Card Surface (Change 260: Canonical names exported alongside legacy aliases)
+  type CardSurfaceSize,
+  type CardSurfaceStyle,
+  type CardSurfaceState,
+  /** @deprecated Use CardSurfaceSize */ type CardSize,
+  /** @deprecated Use CardSurfaceStyle */ type CardStyle,
+  /** @deprecated Use CardSurfaceState as CardState */ type CardState,
   type PortDirection,
   type UISurfacePortType,
   type CardSurfaceConfig,
-  type CardSurfaceState,
   type ResizeHandle,
   DEFAULT_CARD_SURFACE_CONFIG,
   CARD_SIZE_PRESETS,

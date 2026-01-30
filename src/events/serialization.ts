@@ -135,8 +135,9 @@ export function eventToJSON<P>(
     json.automation = event.automation.map(laneToJSON);
   }
   
-  if (event.tags && event.tags.size > 0) {
-    json.tags = Array.from(event.tags);
+  // Change 316: tags are now stored as arrays (JSON-safe)
+  if (event.tags && event.tags.length > 0) {
+    json.tags = [...event.tags];
   }
   
   if (includeMeta && event.meta) {

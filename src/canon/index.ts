@@ -68,3 +68,9 @@ export * from './migrations';
 
 // Stable JSON serialization
 export * from './serialization';
+
+// Card ID rules and validation (Change 277)
+export * from './card-id';
+
+// Card kind mapping by control level (Change 287)
+export * from './card-kind';

@@ -527,6 +527,45 @@ export const AuditableProtocol = createProtocol<Auditable<unknown>>({
 });
 
 // ============================================================================
+// PORT COMPATIBILITY PROTOCOL (Change 212)
+// ============================================================================
+
+/**
+ * Change 212: Port compatibility/protocol negotiation.
+ *
+ * Cards that implement this protocol declare which port types they
+ * support and can negotiate compatible connections at runtime.
+ */
+export interface PortCompatible {
+  /** Get supported port types for inputs */
+  getSupportedInputTypes(): readonly string[];
+  /** Get supported port types for outputs */
+  getSupportedOutputTypes(): readonly string[];
+  /** Check if this card can connect to another via ports */
+  canConnectTo(targetPortType: string, sourcePortType: string): boolean;
+}
+
+export const PortCompatibleProtocol = createProtocol<PortCompatible>({
+  id: 'port-compatible',
+  name: 'PortCompatible',
+  version: '1.0.0',
+  methods: [
+    { name: 'getSupportedInputTypes', signature: '() => readonly string[]' },
+    { name: 'getSupportedOutputTypes', signature: '() => readonly string[]' },
+    { name: 'canConnectTo', signature: '(targetPortType: string, sourcePortType: string) => boolean' },
+  ],
+  check: (value): value is PortCompatible => {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'getSupportedInputTypes' in value &&
+      'getSupportedOutputTypes' in value &&
+      'canConnectTo' in value
+    );
+  },
+});
+
+// ============================================================================
 // PROTOCOL UTILITIES
 // ============================================================================
 
@@ -641,4 +680,5 @@ export function registerBuiltInProtocols(): void {
   registry.register(PatchableProtocol);
   registry.register(ContractableProtocol);
   registry.register(AuditableProtocol);
+  registry.register(PortCompatibleProtocol);
 }

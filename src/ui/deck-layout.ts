@@ -18,6 +18,7 @@ import type {
 import {
   getSharedEventStore,
 } from '../state';
+import type { PortRef, ConnectionId } from '../types/port-ref';
 
 // ============================================================================
 // TYPES
@@ -56,8 +57,18 @@ export interface CardSlot {
   readonly cardType: string; // Type of card
   readonly cardInstanceId: string; // Unique instance ID
   readonly parameters: Map<string, number>; // Current parameter values
-  readonly inputConnections: readonly string[]; // Connections from other slots
-  readonly outputConnections: readonly string[]; // Connections to other slots
+  /**
+   * Input connections.
+   * Change 219/221: Accepts both legacy string[] and typed PortRef[].
+   * New code should use PortRef[] or ConnectionId[].
+   */
+  readonly inputConnections: readonly (string | PortRef)[];
+  /**
+   * Output connections.
+   * Change 219/221: Accepts both legacy string[] and typed PortRef[].
+   * New code should use PortRef[] or ConnectionId[].
+   */
+  readonly outputConnections: readonly (string | PortRef)[];
   readonly muted: boolean;
   readonly bypassed: boolean;
 }

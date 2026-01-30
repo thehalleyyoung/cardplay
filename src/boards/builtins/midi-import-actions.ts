@@ -9,6 +9,7 @@
 
 import type { EventStreamId } from '../../state/types';
 import type { Event } from '../../types/event';
+import { createNoteEvent } from '../../types/event';
 import { asTick, asTickDuration } from '../../types/primitives';
 import { getSharedEventStore } from '../../state/event-store';
 import { getClipRegistry } from '../../state/clip-registry';
@@ -166,18 +167,15 @@ export function parseMIDIFile(_buffer: ArrayBuffer): ParsedMIDIFile {
 
 /**
  * Convert MIDI note event to internal Event.
+ * Change 312: Use createNoteEvent factory for centralized validation.
  */
-function midiNoteToEvent(note: MIDINoteEvent, tickOffset: number = 0): Event<{ note: number; velocity: number }> {
-  return {
-    id: `midi-${note.tick}-${note.note}` as any, // Will be replaced by store
-    kind: 'note',
-    start: asTick(note.tick + tickOffset),
-    duration: asTickDuration(note.duration),
-    payload: {
-      note: note.note,
-      velocity: note.velocity
-    }
-  };
+function midiNoteToEvent(note: MIDINoteEvent, tickOffset: number = 0): Event<{ pitch: number; velocity: number }> {
+  return createNoteEvent(
+    asTick(note.tick + tickOffset),
+    asTickDuration(note.duration),
+    note.note,
+    note.velocity
+  );
 }
 
 /**

@@ -90,7 +90,7 @@ export const CURRENT_SCHEMA_VERSIONS = {
   deck: createSchemaVersion(1, 1, 0), // v1.1: Added PPQ-based timing
   
   /** Routing state schema (port connections) */
-  routing: createSchemaVersion(1, 1, 0), // v1.1: Normalized port type vocabulary
+  routing: createSchemaVersion(1, 2, 0), // v1.2: Normalized connection ports + dedup (Changes 225-226)
   
   /** Event history schema (for undo/replay) */
   events: createSchemaVersion(1, 1, 0), // v1.1: Normalized EventKind names

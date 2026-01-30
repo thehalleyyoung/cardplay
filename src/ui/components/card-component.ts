@@ -216,9 +216,12 @@ export interface CardOptions {
 // ============================================================================
 
 /**
- * Base card component
+ * Base card component.
+ *
+ * Change 256: Renamed from CardComponent to UICardComponent to match canon
+ * "Card Systems" naming. CardComponent alias preserved for backward compat.
  */
-export class CardComponent {
+export class UICardComponent {
   // Identity
   readonly id: string;
   readonly type: string;
@@ -434,11 +437,22 @@ export class CardComponent {
     return el;
   }
   
-  private createPortElement(port: PortDefinition): HTMLElement {
+  private createPortElement(port: PortDefinition | PortDefinitionV2): HTMLElement {
     const el = document.createElement('div');
-    el.className = `card-port card-port-${port.type}`;
-    el.dataset.portId = port.id;
-    el.dataset.portType = port.type;
+    // Change 207: Support both legacy port type class and canonical direction+type classes
+    if ('direction' in port && 'portType' in port) {
+      // New PortDefinitionV2 model
+      const legacyCssClass = formatUIPortType({ direction: port.direction, type: port.portType });
+      el.className = `card-port card-port-${legacyCssClass} card-port-type-${port.portType} card-port-dir-${port.direction}`;
+      el.dataset.portId = port.id;
+      el.dataset.portType = port.portType;
+      el.dataset.portDirection = port.direction;
+    } else {
+      // Legacy PortDefinition
+      el.className = `card-port card-port-${port.type}`;
+      el.dataset.portId = port.id;
+      el.dataset.portType = port.type;
+    }
     el.title = port.label;
     
     // Position the port
@@ -821,15 +835,46 @@ export class CardComponent {
   // PORT HANDLING
   // ===========================================================================
   
+  /**
+   * Change 208: Port hover now checks canonical compatibility when a drag
+   * is in progress, highlighting only compatible targets.
+   */
   private onPortHover(portId: string, isHovering: boolean): void {
     const port = this.ports.get(portId);
     const el = this.portElements.get(portId);
-    
+
     if (port && el) {
       port.highlighted = isHovering;
       el.classList.toggle('card-port-highlighted', isHovering);
+      // If a connection drag is active, also apply compatibility styling
+      if (isHovering && this.activeDragSourcePort) {
+        const sourceSpec = this.resolvePortSpec(this.activeDragSourcePort);
+        const targetSpec = this.resolvePortSpec(port);
+        if (sourceSpec && targetSpec) {
+          const compatible = sourceSpec.type === targetSpec.type
+            && sourceSpec.direction !== targetSpec.direction;
+          el.classList.toggle('card-port-compatible', compatible);
+          el.classList.toggle('card-port-incompatible', !compatible);
+        }
+      } else if (!isHovering) {
+        el.classList.remove('card-port-compatible', 'card-port-incompatible');
+      }
     }
   }
+
+  /** Resolve a port definition to a canonical PortSpec (Change 208). */
+  private resolvePortSpec(port: PortDefinition | PortDefinitionV2): PortSpec | null {
+    if ('direction' in port && 'portType' in port) {
+      return { direction: port.direction, type: port.portType };
+    }
+    if ('type' in port && typeof port.type === 'string') {
+      return parseUIPortType(port.type as UIPortType);
+    }
+    return null;
+  }
+
+  /** Active drag source port reference (set externally during connection drag). */
+  private activeDragSourcePort: (PortDefinition | PortDefinitionV2) | null = null;
   
   private onPortDragStart(e: PointerEvent, portId: string): void {
     e.stopPropagation();
@@ -1407,23 +1452,33 @@ export const CARD_COMPONENT_CSS = `
   transition: transform 0.1s ease, background 0.1s ease;
 }
 
+/* Legacy direction-encoded port type classes */
 .card-port-audio_in,
-.card-port-audio_out {
+.card-port-audio_out,
+.card-port-type-audio {
   color: var(--stack-instrument, #6366f1);
 }
 
 .card-port-midi_in,
-.card-port-midi_out {
+.card-port-midi_out,
+.card-port-type-midi,
+.card-port-type-notes {
   color: var(--stack-midi, #22c55e);
 }
 
 .card-port-mod_in,
-.card-port-mod_out {
+.card-port-mod_out,
+.card-port-type-modulation,
+.card-port-type-control {
   color: var(--accent-warning, #f59e0b);
 }
 
 .card-port-trigger_in,
-.card-port-trigger_out {
+.card-port-trigger_out,
+.card-port-type-trigger,
+.card-port-type-gate,
+.card-port-type-clock,
+.card-port-type-transport {
   color: var(--accent-info, #ec4899);
 }
 
@@ -1577,3 +1632,9 @@ export const CARD_COMPONENT_CSS = `
   }
 }
 `;
+
+/**
+ * Change 256: Backward compatibility alias.
+ * @deprecated Use UICardComponent instead.
+ */
+export const CardComponent = UICardComponent;

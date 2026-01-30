@@ -19,7 +19,7 @@
 
 import type { Tick, TickDuration } from '../types/primitives';
 import { asTick, asTickDuration } from '../types/primitives';
-import type { Clip, Track } from './components/arrangement-panel';
+import type { Clip, ArrangementTrack as Track } from './components/arrangement-panel';
 
 // ============================================================================
 // EDIT MODE TYPES

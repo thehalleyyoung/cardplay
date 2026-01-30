@@ -13,18 +13,27 @@
 
 /**
  * Card size presets.
+ * Change 259: Canonical name is CardSurfaceSize; CardSize kept for compat.
  */
-export type CardSize = 'small' | 'medium' | 'large' | 'custom';
+export type CardSurfaceSize = 'small' | 'medium' | 'large' | 'custom';
+/** @deprecated Use CardSurfaceSize instead (Change 259). */
+export type CardSize = CardSurfaceSize;
 
 /**
  * Card visual style.
+ * Change 257: Canonical name is CardSurfaceStyle.
  */
-export type CardStyle = 'default' | 'minimal' | 'rounded' | 'sharp' | 'gradient';
+export type CardSurfaceStyle = 'default' | 'minimal' | 'rounded' | 'sharp' | 'gradient';
+/** @deprecated Use CardSurfaceStyle instead (Change 257). */
+export type CardStyle = CardSurfaceStyle;
 
 /**
  * Card state.
+ * Change 258: Canonical name is CardSurfaceState; CardState kept for compat.
  */
-export type CardState = 'normal' | 'selected' | 'focused' | 'disabled' | 'error' | 'loading';
+export type CardSurfaceState = 'normal' | 'selected' | 'focused' | 'disabled' | 'error' | 'loading';
+/** @deprecated Use CardSurfaceState instead (Change 258). */
+export type CardState = CardSurfaceState;
 
 /**
  * Card port direction.

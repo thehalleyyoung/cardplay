@@ -408,3 +408,40 @@ export function createEmptyRoutingGraph(): RoutingGraph {
     lastModified: Date.now(),
   };
 }
+
+// ============================================================================
+// COLLABORATION TYPES (Change 340)
+// ============================================================================
+
+/**
+ * Types of changes for collaboration/export metadata.
+ * 
+ * These are DISTINCT from DeckType values to avoid confusion.
+ * Use these when tracking change history for export/sync.
+ */
+export type ExportChangeType =
+  | 'export:stream-added'
+  | 'export:stream-removed'
+  | 'export:stream-modified'
+  | 'export:clip-added'
+  | 'export:clip-removed'
+  | 'export:clip-modified'
+  | 'export:routing-added'
+  | 'export:routing-removed'
+  | 'export:routing-modified'
+  | 'export:spec-updated'
+  | 'export:settings-changed'
+  | 'export:undo-checkpoint';
+
+/**
+ * Metadata for an export change record.
+ */
+export interface ExportChangeRecord {
+  readonly type: ExportChangeType;
+  readonly timestamp: number;
+  readonly entityId: string;
+  readonly description: string;
+  readonly userId?: string;
+  readonly sessionId?: string;
+}
+

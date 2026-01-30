@@ -8,8 +8,8 @@
  */
 
 import type { Event } from '../types/event';
+import { updateEvent, ensureCanonicalEvent, isLegacyEventShape } from '../types/event';
 import type { EventId } from '../types/event-id';
-import { updateEvent } from '../types/event';
 import type { Tick } from '../types/primitives';
 import {
   type EventStreamId,
@@ -295,8 +295,13 @@ export function createEventStore(): SharedEventStore {
     ): boolean {
       const stream = state.streams.get(streamId) as EventStreamRecord<P> | undefined;
       if (!stream || stream.locked) return false;
-      
-      const combined = [...stream.events, ...events] as Event<P>[];
+
+      // Change 314: Normalize legacy event shapes at the boundary
+      const normalized = events.map(e =>
+        isLegacyEventShape(e) ? ensureCanonicalEvent(e) as Event<P> : e
+      );
+
+      const combined = [...stream.events, ...normalized] as Event<P>[];
       const sorted = sortEventsByStart(combined);
       
       const updated: EventStreamRecord<P> = {

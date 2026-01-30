@@ -136,6 +136,19 @@ export {
   resetUndoStack,
 } from './undo-stack';
 
+// SSOT - Single Source of Truth utilities (Change 344)
+export type {
+  SSOTStores,
+  ProjectResetCallback,
+} from './ssot';
+
+export {
+  getSSOTStores,
+  onProjectReset,
+  resetProject,
+  validateSSOTConsistency,
+} from './ssot';
+
 // ============================================================================
 // CONVENIENCE RE-EXPORTS
 // ============================================================================

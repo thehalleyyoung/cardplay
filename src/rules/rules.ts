@@ -9,6 +9,8 @@
 
 import type { Tick, TickDuration } from '../types/primitives';
 import type { Event } from '../types/event';
+import { createEvent } from '../types/event';
+import { EventKinds } from '../types/event-kind';
 import type { Pitch } from '../voices/voice';
 
 // ============================================================================
@@ -474,14 +476,14 @@ export function rulesFromScale<P extends Pitch>(
         const degree = scale[i]!;
         const midi = octave * 12 + root + degree;
         const pitch = createPitch(midi);
+        // Change 312: Use createEvent factory for centralized validation
         suggestions.push({
-          event: {
-            id: '' as Event<{ pitch: P }>['id'],
-            kind: 'note' as Event<{ pitch: P }>['kind'],
-            start: 0 as Tick,
-            duration: 480 as TickDuration,
+          event: createEvent<{ pitch: P }>({
+            kind: EventKinds.NOTE,
+            start: 0,
+            duration: 480,
             payload: { pitch },
-          },
+          }),
           probability: 1 / (i + 1),
           reason: `Scale degree ${i + 1}`,
         });

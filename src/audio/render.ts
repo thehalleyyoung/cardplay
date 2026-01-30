@@ -9,14 +9,9 @@
 
 import type { EventStreamId } from '../state/event-store';
 import { getSharedEventStore } from '../state/event-store';
-import { PPQ, type Tick } from '../types/primitives';
-
-// Helper to convert ticks to seconds
-function ticksToSeconds(tick: Tick | number): number {
-  const BPM = 120; // Tempo
-  const ticksPerSecond = (BPM / 60) * PPQ;
-  return (tick as number) / ticksPerSecond;
-}
+import { type Tick } from '../types/primitives';
+import { ticksToSeconds } from '../types/time-conversion';
+import { getProjectTempo } from '../state/tempo';
 
 export interface RenderOptions {
   format: 'wav' | 'mp3' | 'ogg';
@@ -94,8 +89,10 @@ export async function renderToAudio(
       message: 'Preparing audio context...'
     });
 
-    const startTime = ticksToSeconds(options.startTick);
-    const endTime = ticksToSeconds(options.endTick);
+    // Change 307: Read tempo from SSOT instead of hardcoding BPM=120
+    const bpm = getProjectTempo();
+    const startTime = ticksToSeconds(options.startTick, bpm);
+    const endTime = ticksToSeconds(options.endTick, bpm);
     const duration = endTime - startTime;
 
     if (duration <= 0) {

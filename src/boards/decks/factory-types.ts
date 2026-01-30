@@ -19,9 +19,13 @@ import type { ActiveContext } from '../context/types';
 /**
  * Runtime instance of a deck.
  * Decks are UI components that render into panels.
- * 
+ *
  * Changes 151-152: Use DeckId (instance) and DeckType branded types.
  * Change 187: Add panelId field.
+ *
+ * SSOT INVARIANT (Change 195): Deck factories that read or write events
+ * MUST use the SharedEventStore obtained via getSharedEventStore() from
+ * '@cardplay/state/event-store'. No parallel event stores are allowed.
  */
 export interface DeckInstance {
   /** Deck ID (unique within board) - Change 152 */

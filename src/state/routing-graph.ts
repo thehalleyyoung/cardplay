@@ -105,6 +105,8 @@ export interface RoutingEdgeInfo extends RoutingEdge {
   readonly gain?: number;
   /** Whether edge is active */
   readonly active: boolean;
+  /** Change 216: Adapter ID if port types differ and an adapter is used */
+  readonly adapterId?: string;
 }
 
 /**
@@ -376,8 +378,30 @@ export function createRoutingGraphStore(): RoutingGraphStore {
       targetPort: string,
       type: EdgeType = 'audio'
     ): RoutingEdgeInfo {
+      // Change 215: Validate connection at insertion time
+      const sourceNode = nodes.get(sourceId);
+      const targetNode = nodes.get(targetId);
+
+      if (!sourceNode) {
+        throw new Error(`Source node '${sourceId}' not found in routing graph`);
+      }
+      if (!targetNode) {
+        throw new Error(`Target node '${targetId}' not found in routing graph`);
+      }
+
+      // Validate port types are compatible (same edge type)
+      const srcPort = sourceNode.outputs.find(p => p.id === sourcePort);
+      const tgtPort = targetNode.inputs.find(p => p.id === targetPort);
+
+      // Change 216: Determine adapter requirement
+      let adapterId: string | undefined;
+      if (srcPort && tgtPort && srcPort.type !== tgtPort.type) {
+        // Port types differ — an adapter is required
+        adapterId = `${srcPort.type}-to-${tgtPort.type}`;
+      }
+
       const edgeId = `edge-${++edgeIdCounter}`;
-      
+
       const edge: RoutingEdgeInfo = {
         id: edgeId,
         from: sourceId,
@@ -387,10 +411,11 @@ export function createRoutingGraphStore(): RoutingGraphStore {
         targetPort,
         gain: 1.0,
         active: true,
+        ...(adapterId ? { adapterId } : {}),
       };
-      
+
       const undo = getUndoStack();
-      
+
       edges = [...edges, edge];
       notify();
       

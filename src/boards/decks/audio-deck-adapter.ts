@@ -172,6 +172,48 @@ export class AudioDeckAdapter {
   }
 
   // ==========================================================================
+  // ROUTING GRAPH INTEGRATION (Changes 238-239)
+  // ==========================================================================
+
+  /**
+   * Change 238: Get routing-graph compatible node info for this deck.
+   * Uses routing graph node IDs instead of slot indices.
+   */
+  getRoutingNodeId(): string {
+    return `deck-audio-${this.adapter.getState().id}`;
+  }
+
+  /**
+   * Change 239: Translate DeckLayoutAdapter slot connections to
+   * RoutingGraphStore-compatible edge descriptors.
+   */
+  getSlotConnectionEdges(): Array<{
+    sourceSlot: string;
+    targetSlot: string;
+    type: 'audio' | 'midi' | 'cv';
+  }> {
+    const state = this.adapter.getState();
+    const edges: Array<{
+      sourceSlot: string;
+      targetSlot: string;
+      type: 'audio' | 'midi' | 'cv';
+    }> = [];
+
+    for (const slot of state.slots) {
+      for (const conn of slot.outputConnections) {
+        const connStr = typeof conn === 'string' ? conn : `${conn.ownerId}:${conn.portId}`;
+        edges.push({
+          sourceSlot: slot.slotId,
+          targetSlot: connStr,
+          type: 'audio', // Default; could be inferred from port metadata
+        });
+      }
+    }
+
+    return edges;
+  }
+
+  // ==========================================================================
   // CLEANUP
   // ==========================================================================
 

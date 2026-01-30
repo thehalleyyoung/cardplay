@@ -11,14 +11,14 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 001 [Infra][HCI] — Write a one-page "GOFAI Music+ product contract" (offline, deterministic, inspectable, undoable) and publish it as a repo doc with explicit non-goals.
 - [x] Step 005 [HCI] — Define user-facing trust primitives: **preview**, **diff**, **why**, **undo**, and **scope highlighting** are mandatory in UX.
 - [x] Step 009 [HCI] — Decide the default interaction loop: parse → show CPL → ask clarifications if needed → show plan/diff → user applies.
-- [ ] Step 012 [NLP][Prag] — Specify a formal ambiguity policy: allow underspecified meaning (holes) and require explicit resolution before execution.
-- [ ] Step 013 [NLP][Sem] — Choose a core semantic representation strategy: typed lambda calculus + event semantics + degree semantics, with MRS-like underspecification for scope.
-- [ ] Step 014 [Prag] — Choose a discourse model strategy: DRT/SDRT-style discourse referents + rhetorical relations for “and/but/then/after”.
-- [ ] Step 015 [Prag][HCI] — Define the “clarification question” contract (QUD-style): every question must (a) name the ambiguity, (b) offer defaults, (c) show impact.
-- [ ] Step 018 [HCI] — Define “error shapes” for UI: parse error, unresolved reference, unsatisfied constraint, unsafe plan, missing capability.
-- [ ] Step 019 [Infra] — Commit to “no magic”: any default (e.g., what “darker” means) must be inspectable and user-configurable.
-- [ ] Step 021 [HCI] — Write 10 canonical user scenarios spanning studio editing, education, live performance, and IP-sensitive workflows.
-- [ ] Step 026 [Type] — Decide on a “semantic provenance” mechanism: every CPL node retains spans + lexeme IDs + rule IDs that created it.
+- [x] Step 012 [NLP][Prag] — Specify a formal ambiguity policy: allow underspecified meaning (holes) and require explicit resolution before execution.
+- [x] Step 013 [NLP][Sem] — Choose a core semantic representation strategy: typed lambda calculus + event semantics + degree semantics, with MRS-like underspecification for scope.
+- [x] Step 014 [Prag] — Choose a discourse model strategy: DRT/SDRT-style discourse referents + rhetorical relations for "and/but/then/after".
+- [x] Step 015 [Prag][HCI] — Define the "clarification question" contract (QUD-style): every question must (a) name the ambiguity, (b) offer defaults, (c) show impact.
+- [x] Step 018 [HCI] — Define "error shapes" for UI: parse error, unresolved reference, unsatisfied constraint, unsafe plan, missing capability.
+- [x] Step 019 [Infra] — Commit to "no magic": any default (e.g., what "darker" means) must be inspectable and user-configurable.
+- [x] Step 021 [HCI] — Write 10 canonical user scenarios spanning studio editing, education, live performance, and IP-sensitive workflows.
+- [x] Step 026 [Type] — Decide on a "semantic provenance" mechanism: every CPL node retains spans + lexeme IDs + rule IDs that created it.
 - [ ] Step 028 [Eval] — Create a seed dataset: 200 English instructions with expected CPL (covering scope, constraints, comparatives, anaphora, negation).
 - [ ] Step 029 [Eval] — Create paraphrase sets for 50 of those instructions (≥5 paraphrases each) to enforce semantic invariance.
 - [ ] Step 030 [Eval][Prag] — Create an “ambiguity suite” of utterances that must trigger clarification (not allowed to auto-resolve).

@@ -12,6 +12,8 @@
  */
 
 import type { Event } from '../types/event';
+import { updateEvent, cloneEvent } from '../types/event';
+import { asTick, asTickDuration } from '../types/primitives';
 
 // ============================================================================
 // TYPES
@@ -241,16 +243,15 @@ function retrogradeVariation<P>(
   const minStart = Math.min(...starts);
   const maxEnd = Math.max(...ends);
   
-  // Reverse time
+  // Reverse time — Change 312: use updateEvent factory
   return events.map(event => {
     const start = event.start as number;
     const duration = (event.duration ?? 0) as number;
     const distanceFromEnd = maxEnd - (start + duration);
-    
-    return {
-      ...event,
-      start: (minStart + distanceFromEnd) as any,
-    };
+
+    return updateEvent(event, {
+      start: asTick(minStart + distanceFromEnd),
+    });
   }).reverse();
 }
 
@@ -329,16 +330,16 @@ function neighborEmbellishVariation<P>(
       const neighborPitch = payload.pitch + (Math.random() > 0.5 ? 1 : -1);
       const neighborDuration = ((event.duration ?? 0) as number) * 0.3;
       
-      result.push({
-        ...event,
-        start: ((event.start as number) + neighborDuration * 0.5) as any,
-        duration: neighborDuration as any,
+      // Change 312: use cloneEvent factory
+      result.push(cloneEvent(event, {
+        start: asTick((event.start as number) + neighborDuration * 0.5),
+        duration: asTickDuration(neighborDuration),
         payload: {
           ...payload,
           pitch: neighborPitch,
           velocity: (payload.velocity ?? 64) * 0.7,
         } as P,
-      });
+      }));
     }
   }
   
@@ -377,16 +378,16 @@ function passingTonesVariation<P>(
       const gapDuration = (next.start as number) - gapStart;
       
       if (gapDuration > 0) {
-        result.push({
-          ...current,
-          start: (gapStart + gapDuration * 0.25) as any,
-          duration: (gapDuration * 0.5) as any,
+        // Change 312: use cloneEvent factory
+        result.push(cloneEvent(current, {
+          start: asTick(gapStart + gapDuration * 0.25),
+          duration: asTickDuration(gapDuration * 0.5),
           payload: {
             ...currentPayload,
             pitch: passingPitch,
             velocity: (currentPayload.velocity ?? 64) * 0.8,
           } as P,
-        });
+        }));
       }
     }
   }
@@ -421,10 +422,10 @@ function augmentationVariation<P>(
 ): readonly Event<P>[] {
   const factor = 1 + config.amount; // 1.0 to 2.0
   
-  return events.map(event => ({
-    ...event,
-    start: ((event.start as number) * factor) as any,
-    duration: (((event.duration ?? 0) as number) * factor) as any,
+  // Change 312: use updateEvent factory
+  return events.map(event => updateEvent(event, {
+    start: asTick((event.start as number) * factor),
+    duration: asTickDuration(((event.duration ?? 0) as number) * factor),
   }));
 }
 
@@ -433,11 +434,11 @@ function diminutionVariation<P>(
   config: VariationConfig
 ): readonly Event<P>[] {
   const factor = 1 - config.amount * 0.5; // 1.0 to 0.5
-  
-  return events.map(event => ({
-    ...event,
-    start: ((event.start as number) * factor) as any,
-    duration: (((event.duration ?? 0) as number) * factor) as any,
+
+  // Change 312: use updateEvent factory
+  return events.map(event => updateEvent(event, {
+    start: asTick((event.start as number) * factor),
+    duration: asTickDuration(((event.duration ?? 0) as number) * factor),
   }));
 }
 

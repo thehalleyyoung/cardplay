@@ -194,6 +194,64 @@ export function getConnectionIncompatibilityReason(
 }
 
 /**
+ * Change 245-246: Extended validation result with adapter info.
+ * Used by UI to show diagnostics when a connection is attempted.
+ */
+export interface ConnectionDiagnostic {
+  /** Whether the connection is allowed (possibly with adapter) */
+  readonly allowed: boolean;
+  /** Whether an adapter is required for this connection */
+  readonly adapterRequired: boolean;
+  /** Adapter ID if one is needed */
+  readonly adapterId?: string;
+  /** Human-readable reason/message for UI display */
+  readonly message: string;
+}
+
+/**
+ * Change 245-246: Get full connection diagnostic including adapter info.
+ */
+export function getConnectionDiagnostic(
+  sourceType: PortType,
+  targetType: PortType,
+): ConnectionDiagnostic {
+  // Direct compatibility
+  const validation = validateConnection(sourceType, targetType);
+  if (validation.allowed) {
+    return {
+      allowed: true,
+      adapterRequired: false,
+      message: 'Direct connection available',
+    };
+  }
+
+  // Check if an adapter could bridge the gap
+  // Import dynamically to avoid circular deps at module level
+  const adapterId = `${sourceType}-to-${targetType}`;
+  // Adapters for known conversions
+  const knownAdapters = new Set([
+    'notes-to-midi', 'midi-to-notes',
+    'trigger-to-gate', 'gate-to-trigger',
+    'clock-to-trigger', 'control-to-audio',
+  ]);
+
+  if (knownAdapters.has(adapterId)) {
+    return {
+      allowed: true,
+      adapterRequired: true,
+      adapterId,
+      message: `Connection requires adapter: ${adapterId}`,
+    };
+  }
+
+  return {
+    allowed: false,
+    adapterRequired: false,
+    message: getConnectionIncompatibilityReason(sourceType, targetType),
+  };
+}
+
+/**
  * Validates a connection chain (multiple connections in sequence).
  * 
  * @param portTypes - Array of port types in connection order

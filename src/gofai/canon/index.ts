@@ -110,6 +110,9 @@ export {
   type DomainNounSemantics,
 } from './domain-nouns';
 
+// Default interpretations (no-magic inspectable defaults)
+export * from './default-interpretations';
+
 // Musical object ontology
 export {
   ALL_MUSICAL_OBJECTS,

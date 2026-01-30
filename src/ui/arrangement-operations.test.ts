@@ -34,7 +34,7 @@ import {
   type ArrangementSection,
 } from './arrangement-operations';
 import { asTick, asTickDuration } from '../types/primitives';
-import type { Clip, Track } from './components/arrangement-panel';
+import type { Clip, ArrangementTrack as Track } from './components/arrangement-panel';
 
 // ============================================================================
 // TEST FIXTURES

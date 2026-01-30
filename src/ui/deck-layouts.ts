@@ -62,21 +62,50 @@ export interface CardPosition {
 }
 
 /**
- * Connection between cards
- * 
- * TODO (Change 072): Migrate to { direction, type } port model instead of string ports.
- * Current: sourcePort: 'midi_out', targetPort: 'midi_in'
- * Target: sourcePort: { direction: 'out', type: 'midi' }, targetPort: { direction: 'in', type: 'midi' }
+ * Port reference in a connection (Change 206: direction + type model).
+ */
+export interface ConnectionPortRef {
+  direction: 'in' | 'out';
+  type: 'audio' | 'midi' | 'notes' | 'control' | 'trigger' | 'gate' | 'clock' | 'transport' | 'modulation';
+}
+
+/**
+ * Connection between cards.
+ *
+ * Change 206: sourcePort/targetPort now accept both the legacy string format
+ * ('midi_out') and the new { direction, type } model. Prefer the new model
+ * for new code.
  */
 export interface CardConnection {
   id: string;
   sourceCardId: string;
-  sourcePort: string;  // TODO: Change to { direction: PortDirection, type: PortType }
+  sourcePort: string | ConnectionPortRef;
   targetCardId: string;
-  targetPort: string;  // TODO: Change to { direction: PortDirection, type: PortType }
+  targetPort: string | ConnectionPortRef;
   connectionType: 'midi' | 'audio' | 'modulation' | 'trigger';
   color: string;
   visible: boolean;
+}
+
+/**
+ * Change 206: Normalize a port reference to the new model.
+ */
+export function normalizeConnectionPort(port: string | ConnectionPortRef): ConnectionPortRef {
+  if (typeof port !== 'string') return port;
+  const parts = port.split('_');
+  if (parts.length === 2 && parts[0] && parts[1] && (parts[1] === 'in' || parts[1] === 'out')) {
+    const typeMap: Record<string, ConnectionPortRef['type']> = {
+      'audio': 'audio',
+      'midi': 'midi',
+      'mod': 'modulation',
+      'trigger': 'trigger',
+    };
+    return {
+      direction: parts[1] as 'in' | 'out',
+      type: typeMap[parts[0]] ?? 'control',
+    };
+  }
+  return { direction: 'in', type: 'control' };
 }
 
 /** Zone definition for drag-drop */
@@ -292,7 +321,7 @@ export const BEGINNER_LAYOUT: LayoutPreset = {
       { id: 'main', name: 'Main', x: 0, y: 0, width: 800, height: 600, acceptsTypes: ['sampler', 'wavetable', 'hybrid', 'midi'], maxCards: 4, stackId: null },
     ],
     defaultConnections: [
-      { sourceCardId: 'pattern1', sourcePort: 'midi_out', targetCardId: 'instrument1', targetPort: 'midi_in', connectionType: 'midi', color: '#22c55e', visible: true },
+      { sourceCardId: 'pattern1', sourcePort: { direction: 'out', type: 'midi' }, targetCardId: 'instrument1', targetPort: { direction: 'in', type: 'midi' }, connectionType: 'midi', color: '#22c55e', visible: true },
     ],
     showGrid: false,
     gridSize: 20,

@@ -52,6 +52,11 @@ export interface DeckRoutingNode {
 
 /**
  * Audio routing connection.
+ *
+ * Change 237: This uses sourceOutput/targetInput indices for WebAudio routing,
+ * which maps to the canonical RoutingGraphStore edges via the bridge.
+ * The canonical port types (audio, midi, cv, trigger) from the unified
+ * routing graph are preserved — this module only handles audio-type edges.
  */
 export interface DeckRoutingConnection {
   readonly id: string;

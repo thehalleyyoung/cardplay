@@ -417,6 +417,15 @@ export interface Board {
   readonly onActivate?: () => void | Promise<void>;
   readonly onDeactivate?: () => void | Promise<void>;
 
+  // Ontology selection (Change 139)
+  /**
+   * Which ontology pack(s) this board supports.
+   * AI decks must respect this selection; only ontology-compatible
+   * tools/cards are allowed.
+   * Defaults to ['western-12tet'] if omitted.
+   */
+  readonly ontology?: OntologySelection;
+
   // Metadata
   readonly author: string;
   readonly version: string;
@@ -437,6 +446,44 @@ export type TypedBoard<
   readonly compositionTools: C;
   readonly primaryView: V;
 };
+
+// ============================================================================
+// ONTOLOGY SELECTION (Change 139)
+// ============================================================================
+
+/**
+ * Built-in ontology identifiers.
+ * Extension ontologies use namespaced IDs (e.g., 'carnatic:22-shruti').
+ */
+export type BuiltinOntologyId =
+  | 'western-12tet'      // Standard 12-tone equal temperament
+  | 'western-just'       // Just intonation
+  | 'microtonal';        // Generic microtonal support
+
+/**
+ * Ontology ID — either a built-in or a namespaced extension ontology.
+ */
+export type OntologyId = BuiltinOntologyId | (string & {});
+
+/**
+ * Per-board ontology selection.
+ * Can be a single ontology or a list for multi-ontology boards.
+ */
+export type OntologySelection = OntologyId | readonly OntologyId[];
+
+/**
+ * Default ontology applied when board.ontology is omitted.
+ */
+export const DEFAULT_ONTOLOGY: OntologyId = 'western-12tet';
+
+/**
+ * Get the effective ontology IDs for a board.
+ */
+export function getBoardOntologies(board: Board): readonly OntologyId[] {
+  if (!board.ontology) return [DEFAULT_ONTOLOGY];
+  if (typeof board.ontology === 'string') return [board.ontology];
+  return board.ontology;
+}
 
 // ============================================================================
 // CARD TAXONOMY

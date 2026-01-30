@@ -9,3 +9,6 @@
 
 export * from './types';
 export * from './interaction-loop';
+export * from './ambiguity-policy';
+export * from './error-shapes';
+export * from './provenance';

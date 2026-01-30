@@ -25,9 +25,12 @@ import type { SelectionStore } from '../../state/selection-state';
 // ============================================================================
 
 /**
- * Track information for display in sidebar.
+ * Track information for display in arrangement sidebar.
+ * 
+ * Renamed from `Track` to disambiguate from FreezeTrackModel in clip-operations.
+ * Use this for UI-facing track representations in the arrangement view.
  */
-export interface Track {
+export interface ArrangementTrack {
   /** Unique track identifier */
   readonly id: string;
   /** Display name */
@@ -63,6 +66,9 @@ export interface Track {
   /** Whether folder track is folded (children hidden) */
   readonly folded?: boolean;
 }
+
+/** @deprecated Use ArrangementTrack instead */
+export type Track = ArrangementTrack;
 
 /**
  * Track type enumeration.

@@ -44,8 +44,12 @@ export interface Event<P> {
   readonly triggers?: readonly Trigger<P>[];
   /** Automation lanes */
   readonly automation?: readonly Lane<Control>[];
-  /** Tags for filtering */
-  readonly tags?: Readonly<Set<string>>;
+  /**
+   * Tags for filtering.
+   * Change 316: Stored as readonly string[] for JSON safety.
+   * Use getEventTags() helper for Set-based lookups.
+   */
+  readonly tags?: readonly string[];
   /** Metadata */
   readonly meta?: EventMeta;
 }
@@ -116,7 +120,9 @@ export function createEvent<P>(options: CreateEventOptions<P>): Event<P> {
     (event as { automation: readonly Lane<Control>[] }).automation = [...options.automation];
   }
   if (options.tags !== undefined) {
-    (event as { tags: Readonly<Set<string>> }).tags = new Set(options.tags);
+    // Change 316: Store as sorted array for JSON safety and determinism
+    const tagArray = Array.from(options.tags).sort();
+    (event as { tags: readonly string[] }).tags = tagArray;
   }
   if (options.meta !== undefined) {
     (event as { meta: EventMeta }).meta = options.meta;
@@ -263,6 +269,25 @@ export function eventPositionEquals<P>(a: Event<P>, b: Event<P>): boolean {
 }
 
 // ============================================================================
+// TAG HELPERS
+// ============================================================================
+
+/**
+ * Gets event tags as a Set for efficient lookups.
+ * Change 316: Tags are stored as arrays for JSON safety; use this for Set ops.
+ */
+export function getEventTags<P>(event: Event<P>): ReadonlySet<string> {
+  return new Set(event.tags ?? []);
+}
+
+/**
+ * Checks if an event has a specific tag.
+ */
+export function hasEventTag<P>(event: Event<P>, tag: string): boolean {
+  return event.tags?.includes(tag) ?? false;
+}
+
+// ============================================================================
 // LEGACY NORMALIZATION
 // ============================================================================
 
@@ -282,7 +307,7 @@ export interface LegacyEventShape<P> {
   payload?: P;
   triggers?: readonly Trigger<P>[];
   automation?: readonly Lane<Control>[];
-  tags?: Iterable<string> | Set<string>;
+  tags?: Iterable<string> | Set<string> | readonly string[];
   meta?: EventMeta;
 }
 

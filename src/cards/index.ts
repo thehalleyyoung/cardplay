@@ -5,12 +5,13 @@
  */
 
 export {
-  // Port types
+  // Port types (canonical — this is the core PortType, Change 274)
   type PortType,
   PortTypes,
   type PortTypeEntry,
   registerPortType,
   getPortTypeEntry,
+  getAllPortTypeEntries,
   
   // Port
   type Port,

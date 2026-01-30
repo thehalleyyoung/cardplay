@@ -336,6 +336,50 @@ export function initializeRoutingForBoard(): void {
   });
 }
 
+// ============================================================================
+// ROUTING DIAGNOSTICS (Change 217)
+// ============================================================================
+
+/**
+ * Change 217: Diagnostic info about a routing connection's adapter requirements.
+ */
+export interface RoutingDiagnostic {
+  readonly edgeId: string;
+  readonly sourceNodeName: string;
+  readonly targetNodeName: string;
+  readonly adapterRequired: boolean;
+  readonly adapterId?: string;
+  readonly message: string;
+}
+
+/**
+ * Change 217: Get diagnostics for all connections, surfacing adapter requirements.
+ */
+export function getRoutingDiagnostics(): readonly RoutingDiagnostic[] {
+  const graph = getRoutingGraph();
+  const edges = graph.getEdges();
+  const diagnostics: RoutingDiagnostic[] = [];
+
+  for (const edge of edges) {
+    const sourceNode = graph.getNode(edge.from);
+    const targetNode = graph.getNode(edge.to);
+    const hasAdapter = 'adapterId' in edge && edge.adapterId !== undefined;
+
+    diagnostics.push({
+      edgeId: edge.id,
+      sourceNodeName: sourceNode?.name ?? edge.from,
+      targetNodeName: targetNode?.name ?? edge.to,
+      adapterRequired: hasAdapter,
+      adapterId: hasAdapter ? (edge as { adapterId?: string }).adapterId : undefined,
+      message: hasAdapter
+        ? `Connection requires adapter: ${(edge as { adapterId?: string }).adapterId}`
+        : 'Direct connection',
+    });
+  }
+
+  return diagnostics;
+}
+
 /**
  * Clean up routing integration when a board is deactivated.
  */

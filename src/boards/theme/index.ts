@@ -10,3 +10,5 @@
 export * from './control-level-colors';
 export * from './board-theme-defaults';
 export * from './theme-applier';
+export * from './registry';
+export * from './manager';
