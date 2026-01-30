@@ -47,10 +47,18 @@ describe('Layout Serialization', () => {
       }],
     ]);
 
+    // Create a proper root node as a PanelRuntime
     return {
       root: {
-        type: 'panel',
-        panelId: 'center',
+        id: 'center',
+        position: 'center',
+        size: '100%',
+        collapsed: false,
+        activeTabId: null,
+        tabOrder: [],
+        scrollTop: 50,
+        scrollLeft: 20,
+        visible: true,
       },
       panels,
       timestamp: Date.now(),
@@ -272,7 +280,17 @@ describe('Layout Serialization', () => {
   describe('edge cases', () => {
     it('should handle empty panels map', () => {
       const runtime: BoardLayoutRuntime = {
-        root: { type: 'panel', panelId: 'center' },
+        root: {
+          id: 'center',
+          position: 'center',
+          size: '100%',
+          collapsed: false,
+          activeTabId: null,
+          tabOrder: [],
+          scrollTop: 0,
+          scrollLeft: 0,
+          visible: true,
+        },
         panels: new Map(),
         timestamp: Date.now(),
       };
@@ -284,21 +302,21 @@ describe('Layout Serialization', () => {
     });
 
     it('should handle panel with all null/empty values', () => {
+      const emptyPanel: PanelRuntime = {
+        id: 'empty',
+        position: 'center',
+        size: '0px',
+        collapsed: false,
+        activeTabId: null,
+        tabOrder: [],
+        scrollTop: 0,
+        scrollLeft: 0,
+        visible: true,
+      };
+      
       const runtime: BoardLayoutRuntime = {
-        root: { type: 'panel', panelId: 'empty' },
-        panels: new Map([
-          ['empty', {
-            id: 'empty',
-            position: 'center',
-            size: '0px',
-            collapsed: false,
-            activeTabId: null,
-            tabOrder: [],
-            scrollTop: 0,
-            scrollLeft: 0,
-            visible: true,
-          }],
-        ]),
+        root: emptyPanel,
+        panels: new Map([['empty', emptyPanel]]),
         timestamp: 0,
       };
 
