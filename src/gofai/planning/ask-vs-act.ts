@@ -24,10 +24,26 @@
  * @see src/gofai/canon/capability-model.ts (board policies)
  */
 
-import type { CPLPlan, Opcode, PlanScore } from './plan-types';
+import type { CPLPlan, Opcode } from './plan-types';
+import type { PlanScore } from './cost-model';
 import type { Goal, Constraint } from '../canon/goals-constraints';
-import type { BoardPolicy, Capability } from '../canon/capability-model';
-import type { EffectType, MutationEffect } from '../execution/effect-system';
+import type { CapabilityId } from '../canon/capability-model';
+
+// ============================================================================
+// Temporary Types (TODO: Move to proper modules)
+// ============================================================================
+
+/**
+ * Board policy governing what operations are allowed.
+ * TODO: Move to capability-model.ts
+ */
+export interface BoardPolicy {
+  readonly id: string;
+  readonly allowedCapabilities: readonly CapabilityId[];
+  readonly requireExplicitConfirmation: boolean;
+  readonly allowAutoPreview: boolean;
+  readonly allowDirectExecution: boolean;
+}
 
 // ============================================================================
 // Risk Assessment Types
@@ -147,7 +163,7 @@ export function assessPlanRisk(
       const existingFactor = riskFactors.find((rf) => rf.type === factorType);
 
       if (existingFactor) {
-        existingFactor.affectedOpcodes.push(opcode.id);
+        (existingFactor.affectedOpcodes as string[]).push(opcode.id);
       } else {
         riskFactors.push({
           type: factorType,
@@ -235,7 +251,7 @@ function assessOpcodeRisk(opcode: Opcode, policy: BoardPolicy): OpcodeRiskAssess
 
   return {
     opcodeId: opcode.id,
-    opcodeType: opcode.type,
+    opcodeType: opcode.name,
     riskLevel,
     riskReasons,
     reversible,
@@ -254,7 +270,7 @@ function isDestructiveOpcode(opcode: Opcode): boolean {
     'remove_notes',
     'strip_automation',
   ];
-  return destructiveTypes.includes(opcode.type);
+  return destructiveTypes.includes(opcode.name);
 }
 
 /**
@@ -268,7 +284,7 @@ function isExpensiveOpcode(opcode: Opcode): boolean {
     'restructure_form',
     'transpose_key',
   ];
-  return expensiveTypes.includes(opcode.type);
+  return expensiveTypes.includes(opcode.name);
 }
 
 /**
@@ -282,7 +298,7 @@ function isStructuralOpcode(opcode: Opcode): boolean {
     'shorten_section',
     'rearrange_form',
   ];
-  return structuralTypes.includes(opcode.type);
+  return structuralTypes.includes(opcode.name);
 }
 
 /**
@@ -297,7 +313,7 @@ function isPolicySensitive(opcode: Opcode, policy: BoardPolicy): boolean {
   }
 
   // Check specific policy rules
-  if (policy.id === 'full-manual' && opcode.type.includes('generate')) {
+  if (policy.id === 'full-manual' && opcode.name.includes('generate')) {
     return true;
   }
 
@@ -315,20 +331,20 @@ function isMediumCostOpcode(opcode: Opcode): boolean {
     'change_density',
     'humanize_timing',
   ];
-  return mediumCostTypes.includes(opcode.type);
+  return mediumCostTypes.includes(opcode.name);
 }
 
 /**
  * Get required capability for opcode.
  */
-function getOpcodeRequiredCapability(opcode: Opcode): Capability {
-  if (opcode.type.includes('filter') || opcode.type.includes('reverb')) {
-    return 'production';
+function getOpcodeRequiredCapability(opcode: Opcode): CapabilityId {
+  if (opcode.name.includes('filter') || opcode.name.includes('reverb')) {
+    return 'production:add-card' as CapabilityId;
   }
-  if (opcode.type.includes('pan') || opcode.type.includes('routing')) {
-    return 'routing';
+  if (opcode.name.includes('pan') || opcode.name.includes('routing')) {
+    return 'routing:connect' as CapabilityId;
   }
-  return 'events';
+  return 'event:create' as CapabilityId;
 }
 
 /**
@@ -342,7 +358,7 @@ function assessConstraintRisks(
 
   // Check if plan comes close to violating constraints
   for (const constraint of constraints) {
-    if (constraint.priority === 'hard') {
+    if (constraint.strength === 'required') {
       // Hard constraints must never be violated
       // If planning got this far, we assume they're satisfied
       // But we can still warn about close calls
