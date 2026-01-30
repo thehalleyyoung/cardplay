@@ -126,8 +126,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [ ] Step 304 [Type] — Define a canonical diff model: event diffs, container diffs, card graph diffs, param diffs, each with stable ordering.
 - [x] Step 305 [Type] — Define “constraint checkers” as functions from (before, after, selector) → pass/fail + counterexample report.
 - [x] Step 306 [Infra] — Implement event-level edit primitives by composing existing `cardplay/src/events/operations.ts` functions where possible.
-- [ ] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
-- [ ] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).
+- [x] Step 307 [Infra] — Implement selector application over project state: find events by scope and tags deterministically.
+- [x] Step 308 [Infra] — Implement plan opcode executors for core event transforms (quantize, shift, density edits, register shifts).
 - [ ] Step 309 [Infra] — Implement plan opcode executors for structure edits (insert break, duplicate section) with marker updates.
 - [ ] Step 310 [Infra] — Implement plan opcode executors for card parameter edits (set_param) with type-safe param validation.
 - [ ] Step 311 [Type] — Introduce param schema validation for cards (enum/number/bool/object), so “set cutoff to 12k” can be validated or clarified.

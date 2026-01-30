@@ -86,9 +86,9 @@ describe('FirstRunBoardSelection', () => {
       decks: [],
     };
     
-    registry.register(basicTrackerBoard);
-    registry.register(notationManualBoard);
-    registry.register(basicSessionBoard);
+    registry.register(basicTrackerBoard, { isBuiltin: true });
+    registry.register(notationManualBoard, { isBuiltin: true });
+    registry.register(basicSessionBoard, { isBuiltin: true });
   });
   
   afterEach(() => {

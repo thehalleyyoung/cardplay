@@ -44,7 +44,7 @@ describe('BoardSwitcher', () => {
       },
       layout: { panels: [] },
       decks: [],
-    });
+    }, { isBuiltin: true });
     
     registry.register({
       id: 'board-2',
@@ -62,7 +62,7 @@ describe('BoardSwitcher', () => {
       },
       layout: { panels: [] },
       decks: [],
-    });
+    }, { isBuiltin: true });
   });
   
   afterEach(() => {

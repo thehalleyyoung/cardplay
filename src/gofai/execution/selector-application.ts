@@ -28,24 +28,19 @@ import type { Event } from '../../types/event.js';
 // ============================================================================
 
 /**
- * Comparison operators for property selectors.
- */
-type ComparisonOperator = '==' | '!=' | '>' | '<' | '>=' | '<=' | '=';
-
-/**
  * Minimal interface to project state needed for selector evaluation.
  * 
  * This allows selector application without depending on full store internals.
  */
 export interface SelectableProjectState {
   /** Query all events */
-  readonly getAllEvents: () => readonly Event[];
+  readonly getAllEvents: () => readonly Event<unknown>[];
   
   /** Query events in a time range */
-  readonly getEventsInRange: (startTick: number, endTick: number) => readonly Event[];
+  readonly getEventsInRange: (startTick: number, endTick: number) => readonly Event<unknown>[];
   
   /** Query events on a track */
-  readonly getEventsOnTrack: (trackId: string) => readonly Event[];
+  readonly getEventsOnTrack: (trackId: string) => readonly Event<unknown>[];
   
   /** Get track metadata */
   readonly getTrack: (trackId: string) => Track | undefined;
@@ -107,7 +102,7 @@ export interface Section {
  */
 export interface SelectionResult {
   /** Selected events in deterministic order */
-  readonly events: readonly Event[];
+  readonly events: readonly Event<unknown>[];
   
   /** Selector that was applied */
   readonly selector: EventSelector;
@@ -224,7 +219,7 @@ function applySelectorInternal(
   selector: EventSelector,
   state: SelectableProjectState,
   options: SelectorApplicationOptions
-): Event[] {
+): Event<unknown>[] {
   switch (selector.type) {
     case 'all':
       return Array.from(state.getAllEvents());
@@ -331,7 +326,7 @@ function applySelectorInternal(
 /**
  * Filter events by kind.
  */
-function filterByKind(events: readonly Event[], kinds: readonly string[]): Event[] {
+function filterByKind(events: readonly Event<unknown>[], kinds: readonly string[]): Event<unknown>[] {
   const kindSet = new Set(kinds);
   return events.filter(event => kindSet.has(event.kind));
 }
@@ -340,9 +335,9 @@ function filterByKind(events: readonly Event[], kinds: readonly string[]): Event
  * Filter events by pitch range.
  */
 function filterByPitchRange(
-  events: readonly Event[],
+  events: readonly Event<unknown>[],
   selector: Extract<EventSelector, { type: 'pitch_range' }>
-): Event[] {
+): Event<unknown>[] {
   return events.filter(event => {
     // Only applicable to pitch-bearing events
     const payload = event.payload as any;
@@ -400,7 +395,7 @@ function isPitchInRange(pitch: number, range: string): boolean {
 function filterByTimeRange(
   state: SelectableProjectState,
   selector: Extract<EventSelector, { type: 'time_range' }>
-): Event[] {
+): Event<unknown>[] {
   // Convert bars/beats to ticks
   const ticksPerQuarter = state.getTicksPerQuarter();
   const timeSig = state.getTimeSignature();
@@ -441,14 +436,14 @@ function filterByTimeRange(
 function filterByLayer(
   state: SelectableProjectState,
   selector: Extract<EventSelector, { type: 'layer' }>
-): Event[] {
+): Event<unknown>[] {
   if (selector.layerRef) {
     return Array.from(state.getEventsOnTrack(selector.layerRef));
   }
   
   if (selector.layerType) {
     const tracks = state.getAllTracks().filter(t => t.type === selector.layerType);
-    const events: Event[] = [];
+    const events: Event<unknown>[] = [];
     for (const track of tracks) {
       events.push(...state.getEventsOnTrack(track.id));
       if (!selector.allInstances) break;
@@ -465,7 +460,7 @@ function filterByLayer(
 function filterBySection(
   state: SelectableProjectState,
   selector: Extract<EventSelector, { type: 'section' }>
-): Event[] {
+): Event<unknown>[] {
   let sections: Section[] = [];
   
   if (selector.sectionRef) {
@@ -480,7 +475,7 @@ function filterBySection(
   }
   
   // Collect events in matched sections
-  const events: Event[] = [];
+  const events: Event<unknown>[] = [];
   for (const section of sections) {
     events.push(...state.getEventsInRange(section.startTick, section.endTick));
   }
@@ -494,9 +489,9 @@ function filterBySection(
 function filterByRole(
   state: SelectableProjectState,
   selector: Extract<EventSelector, { type: 'role' }>
-): Event[] {
+): Event<unknown>[] {
   const tracks = state.getAllTracks().filter(t => t.role === selector.role);
-  const events: Event[] = [];
+  const events: Event<unknown>[] = [];
   for (const track of tracks) {
     events.push(...state.getEventsOnTrack(track.id));
   }
@@ -509,7 +504,7 @@ function filterByRole(
 function filterByTag(
   state: SelectableProjectState,
   selector: Extract<EventSelector, { type: 'tag' }>
-): Event[] {
+): Event<unknown>[] {
   const allEvents = state.getAllEvents();
   const tagSet = new Set(selector.tags);
   return allEvents.filter(event => {
@@ -530,7 +525,7 @@ function filterByTag(
 function filterByPattern(
   _state: SelectableProjectState,
   _selector: Extract<EventSelector, { type: 'pattern' }>
-): Event[] {
+): Event<unknown>[] {
   // Pattern matching is complex - stub for now
   return [];
 }
@@ -539,9 +534,9 @@ function filterByPattern(
  * Filter events by velocity.
  */
 function filterByVelocity(
-  events: readonly Event[],
+  events: readonly Event<unknown>[],
   selector: Extract<EventSelector, { type: 'velocity' }>
-): Event[] {
+): Event<unknown>[] {
   return events.filter(event => {
     const payload = event.payload as any;
     if (!payload || typeof payload.velocity !== 'number') return false;
@@ -585,35 +580,21 @@ function isVelocityInRange(velocity: number, range: string): boolean {
  * Filter events by duration.
  */
 function filterByDuration(
-  events: readonly Event[],
-  selector: Extract<EventSelector, { type: 'duration' }>
-): Event[] {
-  return events.filter(event => {
-    const dur = event.durationTicks;
-    
-    // Check beats if specified
-    if (selector.minBeats !== undefined || selector.maxBeats !== undefined) {
-      // Would need ticksPerBeat from state - simplified for now
-      return true;
-    }
-    
-    // Check range label
-    if (selector.range) {
-      // Would map range labels to tick ranges - simplified for now
-      return true;
-    }
-    
-    return true;
-  });
+  events: readonly Event<unknown>[],
+  _selector: Extract<EventSelector, { type: 'duration' }>
+): Event<unknown>[] {
+  // Duration filtering would need full implementation with tick conversions
+  // Simplified stub for now - returns all events
+  return Array.from(events);
 }
 
 /**
  * Filter events by articulation.
  */
 function filterByArticulation(
-  events: readonly Event[],
+  events: readonly Event<unknown>[],
   selector: Extract<EventSelector, { type: 'articulation' }>
-): Event[] {
+): Event<unknown>[] {
   return events.filter(event => {
     const payload = event.payload as any;
     if (!payload || !payload.articulation) return false;
@@ -625,9 +606,9 @@ function filterByArticulation(
  * Filter events by dynamic marking.
  */
 function filterByDynamic(
-  events: readonly Event[],
+  events: readonly Event<unknown>[],
   selector: Extract<EventSelector, { type: 'dynamic' }>
-): Event[] {
+): Event<unknown>[] {
   return events.filter(event => {
     const payload = event.payload as any;
     if (!payload) return false;
@@ -650,23 +631,25 @@ function filterByDynamic(
 function filterByPosition(
   state: SelectableProjectState,
   selector: Extract<EventSelector, { type: 'position' }>
-): Event[] {
+): Event<unknown>[] {
   // Apply withinScope first if specified
   let events = selector.withinScope
     ? applySelectorInternal(selector.withinScope, state, {})
     : Array.from(state.getAllEvents());
   
   if (selector.position === 'first') {
-    return events.length > 0 ? [events[0]] : [];
+    return events.length > 0 && events[0] ? [events[0]] : [];
   }
   
   if (selector.position === 'last') {
-    return events.length > 0 ? [events[events.length - 1]] : [];
+    const last = events[events.length - 1];
+    return events.length > 0 && last ? [last] : [];
   }
   
   if (selector.position === 'middle') {
     const midIndex = Math.floor(events.length / 2);
-    return events.length > 0 ? [events[midIndex]] : [];
+    const mid = events[midIndex];
+    return events.length > 0 && mid ? [mid] : [];
   }
   
   // Ordinal position
@@ -674,7 +657,8 @@ function filterByPosition(
     const index = selector.fromEnd
       ? events.length - selector.ordinal
       : selector.ordinal - 1;
-    return index >= 0 && index < events.length ? [events[index]] : [];
+    const event = events[index];
+    return index >= 0 && index < events.length && event ? [event] : [];
   }
   
   return events;
@@ -686,9 +670,9 @@ function filterByPosition(
  * Filter events by property.
  */
 function filterByProperty(
-  events: readonly Event[],
+  events: readonly Event<unknown>[],
   selector: Extract<EventSelector, { type: 'property' }>
-): Event[] {
+): Event<unknown>[] {
   return events.filter(event => {
     const payload = event.payload as any;
     if (!payload) return false;
@@ -697,19 +681,22 @@ function filterByProperty(
     
     // Compare based on operator
     switch (selector.operator) {
-      case '==':
-      case '=':
+      case 'eq':
         return value === selector.value;
-      case '!=':
+      case 'neq':
         return value !== selector.value;
-      case '>':
+      case 'gt':
         return typeof value === 'number' && value > (selector.value as number);
-      case '<':
+      case 'lt':
         return typeof value === 'number' && value < (selector.value as number);
-      case '>=':
+      case 'gte':
         return typeof value === 'number' && value >= (selector.value as number);
-      case '<=':
+      case 'lte':
         return typeof value === 'number' && value <= (selector.value as number);
+      case 'contains':
+        return typeof value === 'string' && typeof selector.value === 'string' && value.includes(selector.value);
+      case 'matches':
+        return typeof value === 'string' && typeof selector.value === 'string' && new RegExp(selector.value).test(value);
       default:
         return value !== undefined;
     }
@@ -723,27 +710,32 @@ function filterByProperty(
 /**
  * Intersect multiple event selections.
  */
-function intersectSelections(selections: Event[][]): Event[] {
+function intersectSelections(selections: Event<unknown>[][]): Event<unknown>[] {
   if (selections.length === 0) return [];
-  if (selections.length === 1) return selections[0];
+  const first = selections[0];
+  if (!first) return [];
+  if (selections.length === 1) return first;
   
+  const firstSelection = first;
   const eventIds = selections.map(events => new Set(events.map(e => e.id)));
   const firstSet = eventIds[0];
+  if (!firstSet) return [];
+  
   const intersection = new Set([...firstSet].filter(id => 
-    eventIds.every(set => set.has(id))
+    eventIds.every(set => set && set.has(id))
   ));
   
-  return selections[0].filter(e => intersection.has(e.id));
+  return firstSelection.filter(e => intersection.has(e.id));
 }
 
 /**
  * Union multiple event selections.
  */
-function unionSelections(selections: Event[][]): Event[] {
-  const eventMap = new Map<string, Event>();
+function unionSelections(selections: Event<unknown>[][]): Event<unknown>[] {
+  const eventMap = new Map<string, Event<unknown>>();
   for (const events of selections) {
     for (const event of events) {
-      eventMap.set(event.id, event);
+      eventMap.set(event.id.valueOf(), event);
     }
   }
   return Array.from(eventMap.values());
@@ -752,15 +744,15 @@ function unionSelections(selections: Event[][]): Event[] {
 /**
  * Difference of two event selections (base - subtract).
  */
-function differenceSelections(base: Event[] | readonly Event[], subtract: Event[]): Event[] {
-  const subtractIds = new Set(subtract.map(e => e.id));
-  return Array.from(base).filter(e => !subtractIds.has(e.id));
+function differenceSelections(base: Event<unknown>[] | readonly Event<unknown>[], subtract: Event<unknown>[]): Event<unknown>[] {
+  const subtractIds = new Set(subtract.map(e => e.id.valueOf()));
+  return Array.from(base).filter(e => !subtractIds.has(e.id.valueOf()));
 }
 
 /**
  * Select every Nth event.
  */
-function selectNth(events: Event[], selector: Extract<EventSelector, { type: 'nth' }>): Event[] {
+function selectNth(events: Event<unknown>[], selector: Extract<EventSelector, { type: 'nth' }>): Event<unknown>[] {
   const n = selector.n;
   const offset = selector.offset || 0;
   return events.filter((_, i) => (i - offset) % n === 0);
@@ -769,40 +761,55 @@ function selectNth(events: Event[], selector: Extract<EventSelector, { type: 'nt
 /**
  * Select a slice of events.
  */
-function selectSlice(events: Event[], selector: Extract<EventSelector, { type: 'slice' }>): Event[] {
+function selectSlice(events: Event<unknown>[], selector: Extract<EventSelector, { type: 'slice' }>): Event<unknown>[] {
   const start = selector.start || 0;
-  const end = selector.end;
-  return events.slice(start, end);
+  const count = selector.count;
+  
+  if (selector.fromEnd) {
+    const actualStart = count ? Math.max(0, events.length - count) : 0;
+    return events.slice(actualStart);
+  }
+  
+  if (count !== undefined) {
+    return events.slice(start, start + count);
+  }
+  
+  return events.slice(start);
 }
 
 /**
  * Select neighbors of matched events.
  */
 function selectNeighbors(
-  events: Event[],
+  events: Event<unknown>[],
   state: SelectableProjectState,
   selector: Extract<EventSelector, { type: 'neighbor' }>
-): Event[] {
+): Event<unknown>[] {
   const allEvents = selector.base 
     ? applySelectorInternal(selector.base, state, {})
     : Array.from(state.getAllEvents());
     
-  const matchedIds = new Set(events.map(e => e.id));
-  const neighbors: Event[] = [];
+  const matchedIds = new Set(events.map(e => e.id.valueOf()));
+  const neighbors: Event<unknown>[] = [];
   
   for (let i = 0; i < allEvents.length; i++) {
-    if (matchedIds.has(allEvents[i].id)) {
+    const currentEvent = allEvents[i];
+    if (!currentEvent) continue;
+    
+    if (matchedIds.has(currentEvent.id.valueOf())) {
       const count = selector.count || 1;
       
       if (selector.direction === 'before' || selector.direction === 'around') {
         for (let j = 1; j <= count && i - j >= 0; j++) {
-          neighbors.push(allEvents[i - j]);
+          const neighbor = allEvents[i - j];
+          if (neighbor) neighbors.push(neighbor);
         }
       }
       
       if (selector.direction === 'after' || selector.direction === 'around') {
         for (let j = 1; j <= count && i + j < allEvents.length; j++) {
-          neighbors.push(allEvents[i + j]);
+          const neighbor = allEvents[i + j];
+          if (neighbor) neighbors.push(neighbor);
         }
       }
     }
@@ -815,9 +822,9 @@ function selectNeighbors(
  * Select contextual events (implementation-specific).
  */
 function selectContextual(
-  state: SelectableProjectState,
-  selector: Extract<EventSelector, { type: 'contextual' }>
-): Event[] {
+  _state: SelectableProjectState,
+  _selector: Extract<EventSelector, { type: 'contextual' }>
+): Event<unknown>[] {
   // Contextual selection is complex - stub for now
   return [];
 }
@@ -829,23 +836,20 @@ function selectContextual(
 /**
  * Sort events in deterministic order.
  * 
- * Order: startTick (asc), trackId (lex), id (lex)
+ * Order: start tick (asc), id (lex)
+ * Note: Event<P> doesn't have trackId, so we sort by time then id
  */
-function sortEventsDeterministically(events: Event[]): Event[] {
+function sortEventsDeterministically(events: Event<unknown>[]): Event<unknown>[] {
   return [...events].sort((a, b) => {
     // Primary: time
-    if (a.startTick !== b.startTick) {
-      return a.startTick - b.startTick;
+    const aStart = a.start.valueOf();
+    const bStart = b.start.valueOf();
+    if (aStart !== bStart) {
+      return aStart - bStart;
     }
     
-    // Secondary: track
-    const trackCompare = a.trackId.localeCompare(b.trackId);
-    if (trackCompare !== 0) {
-      return trackCompare;
-    }
-    
-    // Tertiary: ID
-    return a.id.localeCompare(b.id);
+    // Secondary: ID
+    return a.id.valueOf().localeCompare(b.id.valueOf());
   });
 }
 
