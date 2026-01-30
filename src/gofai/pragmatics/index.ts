@@ -11,3 +11,4 @@ export * from './contrastive-semantics';
 export * from './presupposition-triggers';
 export * from './implicature-model';
 export * from './user-preferences';
+export * from './deictic-resolution-tests';

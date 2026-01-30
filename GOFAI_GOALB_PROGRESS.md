@@ -4,26 +4,30 @@
 > Updated: 2026-01-30
 > Implementation of systematic changes from gofai_goalB.md
 
-## Session Summary 2026-01-30 (Latest Update - Part 7)
+## Session Summary 2026-01-30 (Latest Update - Part 8)
 
 **Major Accomplishments:**
-- ✅ Completed Steps 251-255 (Phase 5 Planning Infrastructure) - 2,290 LOC
-  - Step 251-252: CPL-Plan types and core musical edit opcodes (801 LOC in plan-types.ts)
-    - Defined 9 opcode categories with 50+ specific opcode types
-    - Structure, event, harmony, melody, rhythm, texture, production, routing opcodes
-    - Complete precondition/postcondition system
-    - Risk assessment and preview requirements
-  - Step 253: Lever mappings from perceptual axes to opcodes (979 LOC in lever-mappings.ts)
-    - 40+ lever definitions across 9 perceptual axes
-    - Context-aware lever selection (genre, section, density, capabilities)
-    - Lever registry with automatic filtering
-  - Step 254-255: Plan scoring and cost model (510 LOC in cost-model.ts)
-    - Cost hierarchy (melody > harmony > rhythm > production)
-    - Goal satisfaction scoring
-    - Constraint risk assessment
-    - Plan comparison and ranking with deterministic tie-breaking
-- ✅ **Phase 5 Planning now 10% complete (5 of 50 steps)**
-- ✅ **Total session code: 2,290 LOC**
+- ✅ Completed Steps 256-259 (Phase 5 Planning Core) - 1,720 LOC
+  - Step 256: Constraint satisfaction layer (600 LOC in constraint-satisfaction.ts)
+    - Post-plan diff checking for constraint violations
+    - Preserve, only-change, range, relation, structural checkers
+    - Detailed violation reports with counterexamples
+    - Constraint checker registry for extensibility
+  - Step 257: Plan generation via bounded search (550 LOC in plan-generation.ts)
+    - Beam search with depth limits and pruning
+    - Predictable offline runtime (<200ms target)
+    - Three search configurations (fast, default, thorough)
+    - Deterministic plan generation with stable ordering
+  - Steps 258-259: Least-change strategy and option sets (570 LOC in least-change-strategy.ts)
+    - Edit magnitude analysis (structural depth, reversibility, audibility)
+    - Magnitude preference system (minimal → rewrite)
+    - Distinct plan detection (30% difference thresholds)
+    - Option set generation with distinction explanations
+- ✅ **Phase 5 Planning now 18% complete (9 of 50 steps)**
+- ✅ **Total session code: 4,010 LOC (including Part 7)**
+
+Previous session (Part 7):
+- Steps 251-255: CPL-Plan types, lever mappings, cost model (2,290 LOC)
 
 Previous session (Part 6):
 - Step 007 (CPL Schema Versioning) - 1,021 LOC
@@ -933,7 +937,68 @@ checkEffect(effect, policy): EffectCheckResult
 
 ---
 
-### Remaining Steps (256-300)
+#### ✅ Steps 256-259 [Sem] — Constraint Satisfaction and Least-Change Planning
+**Status**: COMPLETE (2026-01-30 Part 8)
+
+**Implementation**:
+- Created `src/gofai/planning/constraint-satisfaction.ts` (600 LOC)
+- Created `src/gofai/planning/plan-generation.ts` (550 LOC)
+- Created `src/gofai/planning/least-change-strategy.ts` (570 LOC)
+
+**Step 256 - Constraint Satisfaction Layer**:
+- Post-plan diff checking for constraint violations
+- Five core constraint checkers:
+  - PreserveConstraint: Detect changes to protected elements
+  - OnlyChangeConstraint: Detect scope leaks
+  - RangeConstraint: Check value bounds
+  - RelationConstraint: Verify relationships maintained
+  - StructuralConstraint: Check section/track counts
+- Detailed violation reports with counterexamples
+- Hard vs soft constraint distinction (errors vs warnings)
+- Constraint checker registry for extension support
+- Safety: plans with hard constraint failures MUST NOT execute
+
+**Step 257 - Plan Generation via Bounded Search**:
+- Beam search algorithm with configurable limits
+- Three search configurations:
+  - Fast (depth=3, beam=5, 100 plans max)
+  - Default (depth=5, beam=10, 1000 plans max)
+  - Thorough (depth=8, beam=20, 5000 plans max)
+- Deterministic expansion and pruning
+- Early termination on satisfaction threshold
+- Cost-based pruning (2× best cost factor)
+- Predictable runtime (<200ms target for default config)
+
+**Step 258 - Least-Change Planning**:
+- Edit magnitude analysis framework:
+  - Event change ratio
+  - Structural depth (0=surface DSP, 10=complete restructure)
+  - Reversibility score (0=easy undo, 10=lossy)
+  - Audibility estimation (0=subtle, 10=dramatic)
+- Five magnitude preferences: minimal, small, moderate, large, rewrite
+- Default to minimal changes unless user requests otherwise
+- Plans sorted by magnitude for least-change preference
+
+**Step 259 - Option Sets**:
+- Distinct plan detection (30% difference thresholds)
+- Distinction criteria:
+  - Magnitude difference > 3.0 (30% of 10-point scale)
+  - Cost difference > 30%
+  - Category mix < 70% overlap
+  - Different scope targets
+- Option set generation with distinction reasons
+- Format options for user presentation
+
+**Key Functions**:
+- `validatePlanConstraints()`: Check all constraints
+- `generatePlans()`: Bounded beam search
+- `analyzeEditMagnitude()`: Compute edit size
+- `arePlansDistinct()`: Detect significant differences
+- `generateOptionSet()`: Select distinct plans
+
+---
+
+### Remaining Steps (260-300)
 
 Phase 5 is 10% complete (5 of 50 steps done). Next priorities:
 
@@ -963,27 +1028,27 @@ Phase 5 is 10% complete (5 of 50 steps done). Next priorities:
 ## Statistics
 
 ### Code Written (All Sessions)
-- **Total Lines of Code**: ~13,431 LOC (+2,290 this part)
-- **Session 2026-01-30 Part 7 Added**: 2,290 LOC (Planning infrastructure)
-  - plan-types.ts: 801 LOC (Steps 251-252)
-  - lever-mappings.ts: 979 LOC (Step 253)
-  - cost-model.ts: 510 LOC (Steps 254-255)
+- **Total Lines of Code**: ~15,151 LOC (+1,720 this part)
+- **Session 2026-01-30 Part 8 Added**: 1,720 LOC (Constraint satisfaction, plan generation, least-change)
+  - constraint-satisfaction.ts: 600 LOC (Step 256)
+  - plan-generation.ts: 550 LOC (Step 257)
+  - least-change-strategy.ts: 570 LOC (Steps 258-259)
 - **Session 2026-01-30 Parts 1-6**: ~11,141 LOC
   - Phase 0 infrastructure: ~7,400 LOC
   - Phase 1 vocabulary: ~3,741 LOC
 
 ### Files Created (All Sessions)
-- Infrastructure: 15 files (~9,690 LOC)
+- Infrastructure: 18 files (~11,410 LOC)
   - Testing framework: 2 files (build-matrix, success-metrics)
   - Core infrastructure: 10 files (Phase 0)
-  - Planning: 3 files (Phase 5)
+  - Planning: 6 files (Phase 5)
 - Vocabulary: 14 files (~3,741 LOC)
 - Documentation: 6 comprehensive docs
 
 ### Phases Complete
 - **Phase 0** (Charter & Invariants): ✅ 100% (19/19 steps)
 - **Phase 1** (Vocabulary): 🔄 68% complete (~13,573 LOC vocabulary)
-- **Phase 5** (Planning): 🔄 10% complete (5/50 steps)
+- **Phase 5** (Planning): 🔄 18% complete (9/50 steps)
 
 ### Types Defined
 - 120+ TypeScript interfaces and types

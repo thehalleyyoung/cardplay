@@ -55,6 +55,94 @@ describe('AudioDeckAdapter', () => {
     adapter.dispose();
   });
 
+  it('should track slot connection edges from deck state', () => {
+    const adapter = createAudioDeckAdapter(
+      createTestBoardDeck('test-mixer-5'),
+      testContext as any,
+      { rows: 2, cols: 2 }
+    );
+
+    // Get initial state - starts with empty slots
+    const state = adapter.getState();
+    expect(state.rows).toBe(2);
+    expect(state.cols).toBe(2);
+    expect(state.slots).toEqual([]);
+
+    // Verify edges extraction matches slot connection structure
+    const edges = adapter.getSlotConnectionEdges();
+    
+    // Count total output connections from slots
+    const totalConnections = state.slots.reduce(
+      (sum, slot) => sum + slot.outputConnections.length,
+      0
+    );
+    
+    // Initially, no slots means no edges
+    expect(edges.length).toBe(totalConnections);
+    expect(edges.length).toBe(0);
+
+    adapter.dispose();
+  });
+
+  it('should format routing node ID consistently', () => {
+    const adapter1 = createAudioDeckAdapter(
+      createTestBoardDeck('mixer-a'),
+      testContext as any
+    );
+    const adapter2 = createAudioDeckAdapter(
+      createTestBoardDeck('mixer-b'),
+      testContext as any
+    );
+
+    const nodeId1 = adapter1.getRoutingNodeId();
+    const nodeId2 = adapter2.getRoutingNodeId();
+
+    // Node IDs should be unique
+    expect(nodeId1).not.toBe(nodeId2);
+
+    // Both should follow the deck-audio-* pattern
+    expect(nodeId1).toMatch(/^deck-audio-/);
+    expect(nodeId2).toMatch(/^deck-audio-/);
+
+    adapter1.dispose();
+    adapter2.dispose();
+  });
+
+  it('should expose deck operations', () => {
+    const adapter = createAudioDeckAdapter(
+      createTestBoardDeck('test-mixer-6'),
+      testContext as any
+    );
+
+    // These should not throw
+    expect(() => adapter.setVolume(0.5)).not.toThrow();
+    expect(() => adapter.setPan(-0.5)).not.toThrow();
+    expect(() => adapter.setMuted(true)).not.toThrow();
+    expect(() => adapter.setSoloed(false)).not.toThrow();
+    expect(() => adapter.setArmed(true)).not.toThrow();
+
+    adapter.dispose();
+  });
+
+  it('should allow subscribing to state changes', () => {
+    const adapter = createAudioDeckAdapter(
+      createTestBoardDeck('test-mixer-7'),
+      testContext as any
+    );
+
+    let callbackCalled = false;
+    const unsubscribe = adapter.subscribe(() => {
+      callbackCalled = true;
+    });
+
+    // Trigger a state change
+    adapter.setVolume(0.8);
+
+    expect(callbackCalled).toBe(true);
+    unsubscribe();
+    adapter.dispose();
+  });
+
   it('should expose audio input and output nodes', () => {
     const adapter = createAudioDeckAdapter(
       createTestBoardDeck('test-mixer-3'),

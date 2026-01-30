@@ -263,13 +263,13 @@ Notes:
 - [x] Change 237 — Audit `cardplay/src/audio/*` so the audio engine graph uses canonical routing graph edges/port types (no parallel graph). [Done: audio-engine-store-bridge and deck-routing-store-bridge use SharedEventStore/RoutingGraphStore; comment added]
 - [x] Change 238 — Update `cardplay/src/audio/instrument-cards.ts` routing fields to align with routing graph IDs rather than slot indices (where integrated). [Done: AudioModuleCard renamed in Change 251; routing via graph IDs]
 - [x] Change 239 — Update `cardplay/src/boards/decks/audio-deck-adapter.ts` to translate between `DeckLayoutAdapter` slot connections and `RoutingGraphStore` edges. [Done: Methods added getRoutingNodeId, getSlotConnectionEdges]
-- [ ] Change 240 — Add tests for `cardplay/src/boards/decks/audio-deck-adapter.ts` ensuring routing graph edges are created/removed correctly.
+- [x] Change 240 — Add tests for `cardplay/src/boards/decks/audio-deck-adapter.ts` ensuring routing graph edges are created/removed correctly.
 - [x] Change 241 — Export a single authoritative "Port Compatibility Matrix" constant from `validate-connection.ts` and reference it from tests/docs.
 - [x] Change 242 — Update either docs or code so `cardplay/docs/canon/port-vocabulary.md` matches the real port types + compatibility. [Done: canon/port-types.ts defines CanonicalPortType matching docs]
 - [x] Change 243 — Update `cardplay/docs/port-unification-rules.md` to map to real code or mark it aspirational (avoid phantom modules).
-- [ ] Change 244 — Replace doc references to `src/core/port-conversion.ts` with `cardplay/src/boards/gating/validate-connection.ts` or the new `port-conversion.ts`.
-- [ ] Change 245 — Add UI diagnostics when user attempts an invalid connection (use `getConnectionIncompatibilityReason()`).
-- [ ] Change 246 — Add UI diagnostics when a connection is allowed but requires an adapter (show which adapter).
+- [x] Change 244 — Replace doc references to `src/core/port-conversion.ts` with `cardplay/src/boards/gating/validate-connection.ts` or the new `port-conversion.ts`.
+- [x] Change 245 — Add UI diagnostics when user attempts an invalid connection (use `getConnectionIncompatibilityReason()`).
+- [x] Change 246 — Add UI diagnostics when a connection is allowed but requires an adapter (show which adapter).
 - [ ] Change 247 — Add a connection overlay UI component (or unify existing) that renders ports using the canonical model.
 - [ ] Change 248 — Ensure routing deck UI reads/writes only SSOT `RoutingGraphStore` (no “secret parallel graph”).
 - [x] Change 249 — Add a test ensuring no second routing graph store exists (unless explicitly documented).

@@ -11,6 +11,8 @@ import type { RoutingNodeInfo, RoutingEdgeInfo } from '../../state/routing-graph
 import { getRoutingGraph } from '../../state/routing-graph';
 import { getUndoStack } from '../../state/undo-stack';
 import type { UndoAction } from '../../state/types';
+import { getConnectionDiagnostic } from '../../boards/gating/validate-connection';
+import type { PortType } from '../../cards/card';
 
 interface RoutingOverlayState {
   visible: boolean;
@@ -18,6 +20,7 @@ interface RoutingOverlayState {
   selectedNode: string | null;
   selectedConnection: string | null;
   draggingConnection: { fromNode: string; fromPort: string } | null;
+  diagnosticMessage: string | null;
 }
 
 /**
@@ -42,6 +45,7 @@ export class RoutingOverlay {
       selectedNode: null,
       selectedConnection: null,
       draggingConnection: null,
+      diagnosticMessage: null,
     };
 
     this.setupCanvas();
@@ -243,6 +247,11 @@ export class RoutingOverlay {
     return { x, y };
   }
 
+  /**
+   * Change 245-246: Create connection with validation and diagnostic feedback.
+   * Shows UI diagnostics when user attempts an invalid connection or when
+   * a connection requires an adapter.
+   */
   private createConnection(sourceId: string, targetId: string): void {
     const graph = getRoutingGraph();
     const state = graph.getState();
@@ -250,6 +259,25 @@ export class RoutingOverlay {
     const targetNode = state.nodes.get(targetId);
     
     if (!sourceNode || !targetNode) return;
+
+    // Get port types for validation (infer from node type or default to 'audio')
+    const sourcePortType: PortType = this.inferPortType(sourceNode);
+    const targetPortType: PortType = this.inferPortType(targetNode);
+
+    // Change 245: Validate connection and get diagnostic info
+    const diagnostic = getConnectionDiagnostic(sourcePortType, targetPortType);
+
+    // Show diagnostic message
+    if (!diagnostic.allowed) {
+      // Change 245: Show error message when connection is invalid
+      this.showDiagnostic(diagnostic.message, 'error');
+      return;
+    }
+
+    if (diagnostic.adapterRequired) {
+      // Change 246: Show adapter requirement info
+      this.showDiagnostic(diagnostic.message, 'info');
+    }
 
     // Create connection and track edge ID for undo
     let edgeId: string | undefined;
@@ -274,6 +302,95 @@ export class RoutingOverlay {
     edgeId = initialEdge.id;
     
     getUndoStack().push(action);
+
+    // Clear diagnostic after success
+    if (diagnostic.allowed) {
+      setTimeout(() => this.clearDiagnostic(), 2000);
+    }
+  }
+
+  /**
+   * Infer port type from node information.
+   * Uses heuristics based on node type to guess the primary port type.
+   */
+  private inferPortType(node: RoutingNodeInfo): PortType {
+    // Default based on node type - most nodes support audio
+    // For more accurate port typing, nodes should store port metadata
+    switch (node.type) {
+      case 'generator':
+      case 'instrument':
+        return 'midi'; // Instruments typically accept MIDI
+      case 'effect':
+      case 'mixer':
+      case 'output':
+      case 'input':
+      case 'send':
+      case 'return':
+        return 'audio';
+      case 'deck':
+      default:
+        return 'audio'; // Default to audio for generic decks
+    }
+  }
+
+  /**
+   * Change 245-246: Display diagnostic message in UI.
+   */
+  private showDiagnostic(message: string, type: 'error' | 'info' | 'success' = 'info'): void {
+    this.state.diagnosticMessage = message;
+    this.renderDiagnostic(type);
+    
+    // Auto-clear diagnostic after delay
+    if (type !== 'error') {
+      setTimeout(() => this.clearDiagnostic(), 3000);
+    }
+  }
+
+  /**
+   * Clear diagnostic message.
+   */
+  private clearDiagnostic(): void {
+    this.state.diagnosticMessage = null;
+    this.renderDiagnostic('info');
+  }
+
+  /**
+   * Render diagnostic message overlay.
+   */
+  private renderDiagnostic(type: 'error' | 'info' | 'success'): void {
+    const existingDiagnostic = this.container.querySelector('.routing-diagnostic');
+    if (existingDiagnostic) {
+      existingDiagnostic.remove();
+    }
+
+    if (!this.state.diagnosticMessage) return;
+
+    const colors = {
+      error: { bg: '#e74c3c', text: '#fff' },
+      info: { bg: '#3498db', text: '#fff' },
+      success: { bg: '#2ecc71', text: '#fff' },
+    };
+    
+    const color = colors[type];
+    const diagnostic = document.createElement('div');
+    diagnostic.className = 'routing-diagnostic';
+    diagnostic.style.cssText = `
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: ${color.bg};
+      color: ${color.text};
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 1002;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      max-width: 400px;
+      text-align: center;
+    `;
+    diagnostic.textContent = this.state.diagnosticMessage;
+    this.container.appendChild(diagnostic);
   }
 
   private drawTempConnection(from: {x: number, y: number}, to: {x: number, y: number}): void {
@@ -512,6 +629,13 @@ export class RoutingOverlay {
       this.cleanupFn();
     }
     window.removeEventListener('resize', this.handleResize.bind(this));
+    
+    // Clean up diagnostic message
+    const diagnostic = this.container.querySelector('.routing-diagnostic');
+    if (diagnostic) {
+      diagnostic.remove();
+    }
+    
     if (this.canvas.parentNode) {
       this.canvas.parentNode.removeChild(this.canvas);
     }
