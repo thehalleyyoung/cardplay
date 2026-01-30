@@ -557,15 +557,20 @@ Notes:
    - All 18 canon docs now have proper status headers
    - Generate script recognizes "Maintained" status
    - 18/18 implemented, 0 partial, 0 aspirational, 0 unknown ✅
-4. **All snapshot tests confirmed** (Changes 490-497)
+4. **All snapshot tests confirmed** (Changes 490-497 ✅)
+5. **Fixed SSOT validation:**
+   - Fixed validateSSOTConsistency field naming (streamId vs eventStreamId)
+   - Fixed test imports and field usage
+   - All 14 SSOT tests passing ✅
 
 ### Current Metrics:
 - ✅ **Canon tests:** 85/85 passing (100%)
+- ✅ **SSOT tests:** 14/14 passing (100%)
 - ✅ **Implementation status:** 18/18 tracked (100%)
 - ✅ **Symbol disambiguation:** 6/7 resolved (86%)
-- ✅ **Doc sync scripts:** All 6 operational and tested
+- ✅ **Doc sync scripts:** All 6 operational
 - ⚠️  **Docs needing ontology bridge sections:** 29 (intentional linting)
-- 🚧 **Full typecheck:** Type errors in gofai modules (not blocking canon work)
+- 🚧 **Full test suite:** Some failures in gofai/boards modules (not blocking canon work)
 
 ### Remaining Items:
 
