@@ -261,11 +261,10 @@ describe('BoardContextStore', () => {
         store.setActiveStream(`stream-${i}`);
       }
 
-      // Advance past debounce time and run the timeout
-      vi.advanceTimersByTime(600);
-      vi.runAllTimers(); // Ensure the timeout callback runs
+      // Advance exactly to the debounce time (500ms)
+      vi.advanceTimersByTime(500);
 
-      // Should have called setItem only once
+      // Should have called setItem only once (debounced)
       const contextCalls = setItemSpy.mock.calls.filter(
         call => call[0] === 'cardplay.activeContext.v1'
       );

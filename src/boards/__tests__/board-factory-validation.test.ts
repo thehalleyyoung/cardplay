@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { DECK_TYPES } from '../../canon';
-import { getFactoryRegistry } from '../decks/factory-registry';
+import { getDeckFactoryRegistry } from '../decks/factory-registry';
 
 // Import all builtin boards
 import { basicTrackerBoard } from '../builtins/basic-tracker-board';
@@ -91,12 +91,12 @@ describe('B134: Board Factory Validation', () => {
 
   it('all referenced deck types have registered factories', () => {
     const types = getAllReferencedDeckTypes();
-    const registry = getFactoryRegistry();
+    const registry = getDeckFactoryRegistry();
     
     const missingFactories: string[] = [];
     
     for (const type of types) {
-      const factory = registry.get(type);
+      const factory = registry.getFactory(type);
       if (!factory) {
         missingFactories.push(type);
       }
