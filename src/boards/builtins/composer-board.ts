@@ -157,7 +157,7 @@ export const composerBoard: Board = {
       cardLayout: 'stack',
       allowReordering: false,
       allowDragOut: false,
-      panelId: 'arranger-top'
+      panelId: 'arranger-strip'
     },
     // I009: Chord track (using harmony deck)
     {

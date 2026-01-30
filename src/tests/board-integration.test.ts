@@ -239,11 +239,12 @@ describe('E083: Deck State Persistence', () => {
   it('should persist deck state when closing a deck', () => {
     const stateStore = getBoardStateStore();
     const boardId = 'notation-manual';
+    const deckId = 'notation-main'; // DeckId, not DeckType
     
     // Create initial deck state
     const deckState = {
-      activeTabs: { 'notation-score': 'score-1' },
-      scrollPositions: { 'notation-score': { x: 100, y: 200 } },
+      activeTabs: { [deckId]: 'score-1' },
+      scrollPositions: { [deckId]: { x: 100, y: 200 } },
       focusedItems: {},
       filterState: {},
       searchState: {},
@@ -255,8 +256,8 @@ describe('E083: Deck State Persistence', () => {
     // Retrieve and verify
     const retrieved = stateStore.getDeckState(boardId);
     expect(retrieved).toBeDefined();
-    expect(retrieved?.activeTabs['notation-score']).toBe('score-1');
-    expect(retrieved?.scrollPositions['notation-score']).toEqual({ x: 100, y: 200 });
+    expect(retrieved?.activeTabs[deckId]).toBe('score-1');
+    expect(retrieved?.scrollPositions[deckId]).toEqual({ x: 100, y: 200 });
   });
 
   it('should persist deck state across board switches', () => {
@@ -264,9 +265,10 @@ describe('E083: Deck State Persistence', () => {
     
     // Switch to notation board and set state
     switchBoard('notation-manual', {});
+    const notationDeckId = 'notation-main'; // DeckId
     
     const deckState1 = {
-      activeTabs: { 'notation-score': 'tab-1' },
+      activeTabs: { [notationDeckId]: 'tab-1' },
       scrollPositions: {},
       focusedItems: {},
       filterState: {},
@@ -277,9 +279,10 @@ describe('E083: Deck State Persistence', () => {
     
     // Switch to tracker board and set different state
     switchBoard('basic-tracker', {});
+    const trackerDeckId = 'pattern-main'; // DeckId
     
     const deckState2 = {
-      activeTabs: { 'pattern-editor': 'pattern-1' },
+      activeTabs: { [trackerDeckId]: 'pattern-1' },
       scrollPositions: {},
       focusedItems: {},
       filterState: {},
@@ -293,17 +296,18 @@ describe('E083: Deck State Persistence', () => {
     
     // Original notation state should still be there
     const retrieved = stateStore.getDeckState('notation-manual');
-    expect(retrieved?.activeTabs['notation-score']).toBe('tab-1');
+    expect(retrieved?.activeTabs[notationDeckId]).toBe('tab-1');
   });
 
   it('should support resetting deck state for a board', () => {
     const stateStore = getBoardStateStore();
     const boardId = 'notation-manual';
+    const deckId = 'notation-main'; // DeckId
     
     // Set initial state
     const deckState = {
-      activeTabs: { 'notation-score': 'tab-1' },
-      scrollPositions: { 'notation-score': { x: 100, y: 200 } },
+      activeTabs: { [deckId]: 'tab-1' },
+      scrollPositions: { [deckId]: { x: 100, y: 200 } },
       focusedItems: {},
       filterState: {},
       searchState: {},
@@ -315,7 +319,7 @@ describe('E083: Deck State Persistence', () => {
     let retrieved = stateStore.getDeckState(boardId);
     expect(retrieved).toBeDefined();
     if (retrieved) {
-      expect(retrieved.activeTabs['notation-score']).toBe('tab-1');
+      expect(retrieved.activeTabs[deckId]).toBe('tab-1');
     }
     
     // Reset
@@ -326,7 +330,7 @@ describe('E083: Deck State Persistence', () => {
     // After reset, the state should either be undefined or have empty/default values
     if (retrieved && retrieved.activeTabs) {
       // If activeTabs exists, should not have the old value
-      expect(retrieved.activeTabs['notation-score']).toBeUndefined();
+      expect(retrieved.activeTabs[deckId]).toBeUndefined();
     }
     // The test is valid either way - undefined or empty state
   });
@@ -334,6 +338,7 @@ describe('E083: Deck State Persistence', () => {
   it('should persist layout state independently from deck state', () => {
     const stateStore = getBoardStateStore();
     const boardId = 'notation-manual';
+    const deckId = 'notation-main'; // DeckId
     
     // Set layout state
     const layoutState = {
@@ -348,7 +353,7 @@ describe('E083: Deck State Persistence', () => {
     
     // Set deck state
     const deckState = {
-      activeTabs: { 'notation-score': 'tab-1' },
+      activeTabs: { [deckId]: 'tab-1' },
       scrollPositions: {},
       focusedItems: {},
       filterState: {},
@@ -364,6 +369,6 @@ describe('E083: Deck State Persistence', () => {
     expect(retrievedLayout).toBeDefined();
     expect(retrievedDeck).toBeDefined();
     expect(retrievedLayout?.panels.length).toBe(3);
-    expect(retrievedDeck?.activeTabs['notation-score']).toBe('tab-1');
+    expect(retrievedDeck?.activeTabs[deckId]).toBe('tab-1');
   });
 });

@@ -23,6 +23,7 @@
  */
 
 import { getPrologAdapter, PrologAdapter } from '../engine/prolog-adapter';
+import { ontologyRegistry, type OntologyId } from '../theory/ontologies';
 
 // Import the Prolog source file as a string
 // Note: Vite/Rollup need ?raw suffix for raw imports
@@ -49,6 +50,12 @@ import musicSpecPl from './music-spec.pl?raw';
  * Whether the music theory KB has been loaded.
  */
 let loadedAdapters: WeakSet<PrologAdapter> = new WeakSet();
+
+/**
+ * Ontology-specific KB modules that have been loaded.
+ * Maps adapter → ontologyId → loaded status
+ */
+let loadedOntologyModules = new WeakMap<PrologAdapter, Set<OntologyId>>();
 
 /**
  * Load the music theory knowledge base into the Prolog engine.
@@ -94,6 +101,8 @@ export function isMusicTheoryLoaded(adapter: PrologAdapter = getPrologAdapter())
  */
 export function resetMusicTheoryLoader(): void {
   loadedAdapters = new WeakSet();
+  // Also reset ontology tracking
+  loadedOntologyModules = new WeakMap();
 }
 
 /**
@@ -121,4 +130,97 @@ export function getMusicTheorySource(): string {
     musicTheoryEastAsianPl,
     musicSpecPl,
   ].join('\n\n');
+}
+
+/**
+ * Load ontology-specific KB modules when an ontology is activated.
+ * Only loads modules for the specified ontology if not already loaded.
+ * 
+ * @param ontologyId - The ontology to load KB modules for
+ * @param adapter - The Prolog adapter (defaults to global instance)
+ * 
+ * Change 425: Load ontology-specific .pl modules only when ontology is active.
+ */
+export async function loadOntologyKB(
+  ontologyId: OntologyId,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<void> {
+  // Initialize tracking for this adapter if needed
+  if (!loadedOntologyModules.has(adapter)) {
+    loadedOntologyModules.set(adapter, new Set());
+  }
+  
+  const loadedForAdapter = loadedOntologyModules.get(adapter)!;
+  
+  // Skip if already loaded
+  if (loadedForAdapter.has(ontologyId)) {
+    return;
+  }
+  
+  // Get ontology definition
+  const ontology = ontologyRegistry.get(ontologyId);
+  if (!ontology) {
+    console.warn(`Ontology not found: ${ontologyId}`);
+    return;
+  }
+  
+  // Load each Prolog module listed in the ontology pack
+  if (ontology.pack.prologModules) {
+    for (const modulePath of ontology.pack.prologModules) {
+      try {
+        // In a real implementation, this would dynamically import the module
+        // For now, log that we would load it
+        console.log(`[Ontology KB] Would load: ${modulePath} for ontology ${ontologyId}`);
+        
+        // Example of how it would work with dynamic imports:
+        // const moduleSource = await import(`./ontologies/${modulePath}?raw`);
+        // await adapter.loadProgram(moduleSource.default, `ontology/${ontologyId}/${modulePath}`);
+      } catch (error) {
+        console.error(`Failed to load ontology KB module ${modulePath}:`, error);
+      }
+    }
+  }
+  
+  loadedForAdapter.add(ontologyId);
+}
+
+/**
+ * Unload ontology-specific KB modules.
+ * Used when switching away from an ontology.
+ * 
+ * Note: Most Prolog implementations don't support removing loaded modules.
+ * This is a placeholder for future implementations that support module isolation.
+ */
+export async function unloadOntologyKB(
+  ontologyId: OntologyId,
+  adapter: PrologAdapter = getPrologAdapter()
+): Promise<void> {
+  const loadedForAdapter = loadedOntologyModules.get(adapter);
+  if (loadedForAdapter) {
+    loadedForAdapter.delete(ontologyId);
+  }
+  
+  // In a full implementation, this would retract ontology-specific facts
+  console.log(`[Ontology KB] Would unload modules for ontology ${ontologyId}`);
+}
+
+/**
+ * Check if an ontology's KB modules are loaded.
+ */
+export function isOntologyLoaded(
+  ontologyId: OntologyId,
+  adapter: PrologAdapter = getPrologAdapter()
+): boolean {
+  const loadedForAdapter = loadedOntologyModules.get(adapter);
+  return loadedForAdapter?.has(ontologyId) ?? false;
+}
+
+/**
+ * Get all loaded ontology IDs for an adapter.
+ */
+export function getLoadedOntologies(
+  adapter: PrologAdapter = getPrologAdapter()
+): readonly OntologyId[] {
+  const loadedForAdapter = loadedOntologyModules.get(adapter);
+  return loadedForAdapter ? Array.from(loadedForAdapter) : [];
 }

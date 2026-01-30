@@ -310,7 +310,7 @@ describe('K004: Project Compatibility', () => {
       
       switchBoard('basic-tracker', {});
       boardStateStore.setDeckState('basic-tracker', {
-        'pattern-editor': {
+        'pattern-deck-main': {
           activeCards: ['tracker-1'],
           scrollPosition: { x: 100, y: 200 },
           zoom: 1.5,
@@ -319,7 +319,7 @@ describe('K004: Project Compatibility', () => {
       
       switchBoard('notation-manual', {});
       boardStateStore.setDeckState('notation-manual', {
-        'notation-score': {
+        'notation-deck-main': {
           activeCards: ['score-1'],
           scrollPosition: { x: 0, y: 0 },
           zoom: 1.0,
@@ -330,8 +330,8 @@ describe('K004: Project Compatibility', () => {
       const trackerDeck = boardStateStore.getDeckState('basic-tracker');
       const notationDeck = boardStateStore.getDeckState('notation-manual');
       
-      expect(trackerDeck?.['pattern-editor']?.zoom).toBe(1.5);
-      expect(notationDeck?.['notation-score']?.zoom).toBe(1.0);
+      expect(trackerDeck?.['pattern-deck-main']?.zoom).toBe(1.5);
+      expect(notationDeck?.['notation-deck-main']?.zoom).toBe(1.0);
     });
   });
 

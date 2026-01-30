@@ -107,8 +107,20 @@ export {
   type LazyCard,
   createLazyCard,
   loadLazyCard,
-  
-  // Analytics
+} from './card';
+
+// Card filtering by control level (Change 288)
+export {
+  categoryToKind,
+  getCardKind,
+  isCardAllowed,
+  filterCardsByLevel,
+  filterCardMetaByLevel,
+  getVisibleCards,
+} from './card-filtering';
+
+// Analytics
+export {
   type CardUsageStats,
   getCardUsageStats,
 } from './registry';

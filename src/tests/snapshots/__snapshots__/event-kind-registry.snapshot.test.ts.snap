@@ -1,0 +1,134 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Event Kind Registry Snapshots > should match builtin event kinds snapshot 1`] = `
+[
+  "marker",
+  "note",
+  "pitchBend",
+  "tempo",
+  undefined,
+  undefined,
+  undefined,
+]
+`;
+
+exports[`Event Kind Registry Snapshots > should match event kind metadata snapshot 1`] = `
+[
+  {
+    "constantName": "AUDIO",
+    "eventKind": "audio",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "AUTOMATION",
+    "eventKind": "automation",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "CONTROL",
+    "eventKind": "control",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "MARKER",
+    "eventKind": "marker",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "MIDI_CLIP",
+    "eventKind": "midiClip",
+    "hasCamelCase": true,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "NOTE",
+    "eventKind": "note",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "PATTERN_REF",
+    "eventKind": "patternRef",
+    "hasCamelCase": true,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "PITCH_BEND",
+    "eventKind": "pitchBend",
+    "hasCamelCase": true,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "PROGRAM",
+    "eventKind": "program",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "SIGNATURE",
+    "eventKind": "signature",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "TEMPO",
+    "eventKind": "tempo",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+  {
+    "constantName": "TRIGGER",
+    "eventKind": "trigger",
+    "hasCamelCase": false,
+    "hasUnderscore": false,
+    "isBuiltin": true,
+  },
+]
+`;
+
+exports[`Event Kind Registry Snapshots > should match extension event kind examples 1`] = `
+[
+  "my-pack:custom-event",
+  "drums:pattern-event",
+  "theory:constraint-change",
+]
+`;
+
+exports[`Event Kind Registry Snapshots > should match registered event kinds snapshot 1`] = `
+[
+  "audio",
+  "automation",
+  "control",
+  "marker",
+  "midiClip",
+  "note",
+  "patternRef",
+  "pitchBend",
+  "program",
+  "signature",
+  "tempo",
+  "trigger",
+]
+`;
+
+exports[`Event Kind Registry Snapshots > should validate no legacy event kind aliases 1`] = `
+[
+  "midiClip",
+  "patternRef",
+]
+`;

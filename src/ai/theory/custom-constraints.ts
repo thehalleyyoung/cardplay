@@ -1000,6 +1000,86 @@ export interface ConstraintPackData {
 }
 
 /**
+ * Built-in constraint types that cannot be re-registered.
+ * Custom constraints must use namespaced IDs to avoid collisions.
+ */
+const BUILTIN_CONSTRAINT_TYPES = new Set([
+  'key',
+  'tempo',
+  'meter',
+  'tonality-model',
+  'style',
+  'culture',
+  'schema',
+  'raga',
+  'tala',
+  'celtic-tune',
+  'chinese-mode',
+  'film-mood',
+  'film-device',
+  'phrase-density',
+  'contour',
+  'grouping',
+  'accent',
+  'gamaka-density',
+  'ornament-budget',
+  'harmonic-rhythm',
+  'cadence',
+  'trailer-build',
+  'leitmotif',
+  'drone',
+  'pattern-role',
+  'swing',
+  'heterophony',
+  'max-interval',
+  'arranger-style',
+  'scene-arc',
+  'lcc-gravity',
+  'lcc-parent-scale',
+  'orchestration-algorithm',
+  'timbre-matching',
+  'east-asian-tradition',
+  'chinese-regional',
+  'jazz-vocabulary-level',
+  'jazz-style-era',
+]);
+
+/**
+ * Checks if a constraint type is a builtin type.
+ */
+function isBuiltinConstraintType(type: string): boolean {
+  return BUILTIN_CONSTRAINT_TYPES.has(type);
+}
+
+/**
+ * Checks if a constraint type uses proper namespacing.
+ * Returns true if namespaced (e.g., 'my-pack:constraint'), false otherwise.
+ */
+function isNamespacedConstraintType(type: string): boolean {
+  return type.includes(':');
+}
+
+/**
+ * Validates a custom constraint type ID.
+ * Throws if the type collides with builtins or lacks proper namespacing.
+ */
+function validateConstraintTypeId(type: string): void {
+  if (isBuiltinConstraintType(type)) {
+    throw new Error(
+      `Constraint type '${type}' is a builtin type and cannot be registered as custom. ` +
+      `Use a namespaced ID like 'my-pack:${type}' instead.`
+    );
+  }
+  
+  if (!isNamespacedConstraintType(type)) {
+    throw new Error(
+      `Custom constraint type '${type}' must use a namespaced ID (e.g., 'my-pack:${type}'). ` +
+      `This prevents collisions with builtin types and other packs.`
+    );
+  }
+}
+
+/**
  * Registry for custom constraint definitions.
  * Singleton pattern for global access.
  */
@@ -1011,8 +1091,12 @@ class ConstraintRegistry {
   /**
    * Register a custom constraint definition.
    * C1003: Validates namespace prefix before registering.
+   * Change 367: Enforces namespaced IDs and prevents builtin collisions.
    */
   register<T extends CustomConstraint>(definition: CustomConstraintDefinition<T>): void {
+    // Validate the constraint type ID
+    validateConstraintTypeId(definition.type);
+    
     if (this.definitions.has(definition.type)) {
       console.warn(`Constraint type '${definition.type}' is being re-registered`);
     }
@@ -2498,3 +2582,63 @@ static_harmony_duration(medium, 8).
 static_harmony_duration(long, 16).
 `,
 };
+
+// ============================================================================
+// CHANGE 368: UNKNOWN CONSTRAINT HANDLING
+// ============================================================================
+
+/**
+ * Display information for rendering unknown constraints gracefully.
+ */
+export interface UnknownConstraintInfo {
+  /** The constraint type that was not found */
+  type: string;
+  /** Extracted namespace (if namespaced) */
+  namespace?: string;
+  /** Local name without namespace */
+  localName: string;
+  /** Whether this looks like a namespaced ID */
+  isNamespaced: boolean;
+  /** Suggested actions for resolving */
+  suggestions: string[];
+}
+
+/**
+ * Gets display information for an unknown constraint type.
+ * Used by UI to render constraints whose definitions are missing.
+ * 
+ * Change 368: Constraint registry lookup for graceful unknown rendering.
+ */
+export function getUnknownConstraintInfo(type: string): UnknownConstraintInfo {
+  const isNamespaced = type.includes(':');
+  const [namespace, ...rest] = type.split(':');
+  const localName = isNamespaced ? rest.join(':') : type;
+  
+  const suggestions: string[] = [];
+  
+  if (!isNamespaced) {
+    // Might be a typo of a builtin
+    if (type.toLowerCase() !== type) {
+      suggestions.push('Check capitalization (builtin types are lowercase)');
+    }
+    const similar = Array.from(BUILTIN_CONSTRAINT_TYPES).filter(
+      bt => bt.includes(type.toLowerCase()) || type.toLowerCase().includes(bt)
+    );
+    if (similar.length > 0) {
+      suggestions.push(`Similar builtin types: ${similar.join(', ')}`);
+    }
+    suggestions.push('Custom constraints require namespaced IDs (e.g., "pack:name")');
+  } else {
+    // Namespaced - likely missing pack
+    suggestions.push(`Install or enable the "${namespace}" pack`);
+    suggestions.push('Check that the pack is compatible with this CardPlay version');
+  }
+  
+  return {
+    type,
+    namespace: isNamespaced ? namespace : undefined,
+    localName,
+    isNamespaced,
+    suggestions,
+  };
+}

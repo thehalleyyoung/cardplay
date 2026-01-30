@@ -750,3 +750,285 @@ function formatRange(constraint: RangeConstraint): string {
   }
   return 'valid';
 }
+
+// =============================================================================
+// Factory Functions (for testing and convenience)
+// =============================================================================
+
+/**
+ * Create an axis change goal.
+ */
+export function createAxisChangeGoal(
+  axis: string,
+  direction: 'increase' | 'decrease' | 'change',
+  magnitude?: number | string,
+  options?: Partial<AxisChangeGoal>
+): AxisChangeGoal {
+  return {
+    type: 'axis_change',
+    axis: axis as AxisId,
+    direction: direction === 'change' ? 'increase' : direction,
+    amount: magnitude !== undefined ? ({ value: magnitude } as Amount) : undefined,
+    target: options?.target,
+    priority: options?.priority,
+  };
+}
+
+/**
+ * Create a preserve constraint.
+ */
+export function createPreserveConstraint(
+  aspect: string,
+  exactness: 'unchanged' | 'recognizable',
+  options?: Partial<PreserveConstraint>
+): PreserveConstraint {
+  return {
+    type: 'preserve',
+    aspects: [aspect as PreservableAspect],
+    exactness: exactness as 'exact' | 'recognizable',
+    target: options?.target as any,
+  };
+}
+
+/**
+ * Create a range constraint.
+ */
+export function createRangeConstraint(
+  targetName: string,
+  min?: number,
+  max?: number,
+  options?: Partial<RangeConstraint>
+): RangeConstraint {
+  return {
+    type: 'range',
+    property: targetName as EntityType,
+    min,
+    max,
+  };
+}
+
+/**
+ * Create a minimal cost preference.
+ */
+export function createMinimalCostPreference(
+  strength: number = 0.8,
+  options?: Partial<CostPreference>
+): CostPreference {
+  return {
+    type: 'cost',
+    category: 'total' as any,
+    preference: 'minimize',
+    strength: strengthToEnum(strength),
+  };
+}
+
+/**
+ * Create a naturalness preference.
+ */
+export function createNaturalnessPreference(
+  strength: number = 0.7,
+  options?: Partial<DefaultPreference>
+): DefaultPreference {
+  return {
+    type: 'default',
+    preference: 'naturalness' as any,
+    strength: strengthToEnum(strength),
+  };
+}
+
+function strengthToEnum(n: number): PreferenceStrength {
+  if (n >= 0.8) return 'strong';
+  if (n >= 0.5) return 'moderate';
+  return 'weak';
+}
+
+/**
+ * Builder for constructing user requests with goals, constraints, and preferences.
+ */
+export class IntentBuilder {
+  private goals: Goal[] = [];
+  private constraints: Constraint[] = [];
+  private preferences: Preference[] = [];
+  private scope?: Scope;
+
+  addGoal(goal: Goal): this {
+    this.goals.push(goal);
+    return this;
+  }
+
+  addConstraint(constraint: Constraint): this {
+    this.constraints.push(constraint);
+    return this;
+  }
+
+  addPreference(preference: Preference): this {
+    this.preferences.push(preference);
+    return this;
+  }
+
+  setScope(scope: Scope): this {
+    this.scope = scope;
+    return this;
+  }
+
+  setMetadata(_metadata: Record<string, unknown>): this {
+    // Metadata would be stored separately in real implementation
+    return this;
+  }
+
+  build(): UserRequest {
+    return {
+      goals: this.goals,
+      constraints: this.constraints,
+      preferences: this.preferences,
+      scope: this.scope,
+    };
+  }
+}
+
+/**
+ * Detect conflicting constraints.
+ */
+export function detectConflictingConstraints(
+  constraints: readonly Constraint[]
+): readonly ConstraintConflict[] {
+  const conflicts: ConstraintConflict[] = [];
+
+  for (let i = 0; i < constraints.length; i++) {
+    for (let j = i + 1; j < constraints.length; j++) {
+      const c1 = constraints[i];
+      const c2 = constraints[j];
+
+      if (constraintsConflict(c1, c2)) {
+        const id1 = (c1 as any).id || `c${i}`;
+        const id2 = (c2 as any).id || `c${j}`;
+        conflicts.push({
+          constraint1: id1,
+          constraint2: id2,
+          reason: `Cannot both ${formatConstraint(c1)} and ${formatConstraint(c2)}`,
+          severity: 'blocking' as any,
+        });
+      }
+    }
+  }
+
+  return conflicts;
+}
+
+export interface ConstraintConflict {
+  readonly constraint1: string;
+  readonly constraint2: string;
+  readonly reason: string;
+  readonly severity: string;
+}
+
+function constraintsConflict(c1: Constraint, c2: Constraint): boolean {
+  // Preserve + range on same target
+  if (c1.type === 'preserve' && c2.type === 'range') {
+    const p = c1 as PreserveConstraint;
+    const r = c2 as RangeConstraint;
+    // Simplified check
+    if (p.aspects[0] === (r.property as any)) {
+      return true;
+    }
+  }
+  if (c2.type === 'preserve' && c1.type === 'range') {
+    return constraintsConflict(c2, c1);
+  }
+  return false;
+}
+
+/**
+ * Check goal feasibility given constraints.
+ */
+export function checkGoalFeasibility(
+  goals: readonly Goal[],
+  constraints: readonly Constraint[]
+): FeasibilityResult {
+  const conflicts: GoalConstraintConflict[] = [];
+
+  for (const goal of goals) {
+    for (const constraint of constraints) {
+      if (goalConstraintConflict(goal, constraint)) {
+        const gid = (goal as any).id || formatGoal(goal);
+        const cid = (constraint as any).id || formatConstraint(constraint);
+        conflicts.push({
+          goal: gid,
+          constraint: cid,
+          reason: `Goal "${formatGoal(goal)}" conflicts with constraint "${formatConstraint(constraint)}"`,
+        });
+      }
+    }
+  }
+
+  return {
+    feasible: conflicts.length === 0,
+    conflicts,
+  };
+}
+
+export interface FeasibilityResult {
+  readonly feasible: boolean;
+  readonly conflicts: readonly GoalConstraintConflict[];
+}
+
+export interface GoalConstraintConflict {
+  readonly goal: string;
+  readonly constraint: string;
+  readonly reason: string;
+}
+
+function goalConstraintConflict(goal: Goal, constraint: Constraint): boolean {
+  if (goal.type === 'axis_change' && constraint.type === 'preserve') {
+    const g = goal as AxisChangeGoal;
+    const c = constraint as PreserveConstraint;
+
+    // Changing pitch conflicts with preserving melody
+    if (g.axis === ('pitch' as any) && c.aspects.includes('melody' as any)) {
+      return true;
+    }
+    // Changing timing conflicts with preserving rhythm
+    if (g.axis === ('timing' as any) && c.aspects.includes('rhythm' as any)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Rank goals by priority.
+ */
+export function rankGoals(goals: readonly Goal[]): readonly Goal[] {
+  return [...goals].sort((a, b) => {
+    const ap = getGoalPriorityValue(a.priority);
+    const bp = getGoalPriorityValue(b.priority);
+    return bp - ap;
+  });
+}
+
+/**
+ * Filter preferences by minimum strength.
+ */
+export function filterPreferences(
+  preferences: readonly Preference[],
+  minStrength: number = 0.5
+): readonly Preference[] {
+  return preferences.filter(p => getPreferenceStrengthValue(p.strength) >= minStrength);
+}
+
+/**
+ * Compute precedence hierarchy.
+ */
+export function computePrecedence(intent: UserRequest): PrecedenceInfo {
+  return {
+    mustSatisfy: intent.constraints,
+    shouldAchieve: rankGoals(intent.goals),
+    mayConsider: filterPreferences(intent.preferences),
+  };
+}
+
+export interface PrecedenceInfo {
+  readonly mustSatisfy: readonly Constraint[];
+  readonly shouldAchieve: readonly Goal[];
+  readonly mayConsider: readonly Preference[];
+}

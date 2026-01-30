@@ -10,6 +10,7 @@
 import type { Board, ControlLevel, BoardDifficulty, UserType } from './types';
 import { assertValidBoard } from './validate';
 import { getRecommendedBoardIds } from './recommendations';
+import { isNamespacedId } from '../canon/id-validation';
 
 // ============================================================================
 // BOARD REGISTRY
@@ -36,6 +37,8 @@ export interface BoardRegistryEvent {
 export class BoardRegistry {
   private boards: Map<string, Board> = new Map();
   private listeners: Set<BoardRegistryListener> = new Set();
+  // Change 428: Track builtin board IDs to enforce namespacing for extensions
+  private builtinBoardIds: Set<string> = new Set();
 
   /**
    * Subscribe to registry events (register/unregister).
@@ -62,15 +65,49 @@ export class BoardRegistry {
 
   /**
    * Registers a new board.
-   * @throws {Error} if board is invalid or ID already exists
+   * 
+   * Change 428: Implements extension points for board definitions.
+   * - Builtin boards use un-namespaced IDs (must be registered with isBuiltin=true)
+   * - Extension boards must use namespaced IDs (namespace:name format)
+   * 
+   * @param board - The board to register
+   * @param options - Registration options
+   * @throws {Error} if board is invalid, ID already exists, or namespacing rules violated
    */
-  register(board: Board): void {
+  register(board: Board, options: { isBuiltin?: boolean } = {}): void {
     // B033: Run validateBoard during registration
     assertValidBoard(board);
 
     // B032: Throw on duplicate ID
     if (this.boards.has(board.id)) {
       throw new Error(`Board with ID "${board.id}" is already registered`);
+    }
+    
+    // Change 428: Enforce namespacing rules
+    const isBuiltin = options.isBuiltin ?? false;
+    const hasNamespace = isNamespacedId(board.id);
+    
+    if (isBuiltin) {
+      // Builtin boards should NOT have namespace (but we allow it for flexibility)
+      if (hasNamespace) {
+        console.warn(`Builtin board '${board.id}' uses namespaced ID - this is unusual but allowed`);
+      }
+      this.builtinBoardIds.add(board.id);
+    } else {
+      // Extension boards MUST have namespace
+      if (!hasNamespace) {
+        throw new Error(
+          `Extension board '${board.id}' must use namespaced ID (e.g., 'your-pack:${board.id}'). ` +
+          `Only builtin boards can use un-namespaced IDs.`
+        );
+      }
+      
+      // Cannot override builtins
+      if (this.builtinBoardIds.has(board.id)) {
+        throw new Error(
+          `Cannot register extension board '${board.id}': conflicts with builtin board`
+        );
+      }
     }
 
     this.boards.set(board.id, board);
@@ -213,11 +250,20 @@ export class BoardRegistry {
   /**
    * Unregisters a board (for testing/dynamic registration).
    * L124: Fires unregister event so KB can be updated.
+   * Change 428: Prevents unregistering builtin boards unless forced.
    */
-  unregister(boardId: string): boolean {
+  unregister(boardId: string, options: { force?: boolean } = {}): boolean {
+    // Change 428: Protect builtin boards from accidental unregistration
+    if (this.builtinBoardIds.has(boardId) && !options.force) {
+      throw new Error(
+        `Cannot unregister builtin board '${boardId}' without force option`
+      );
+    }
+    
     const board = this.boards.get(boardId);
     const deleted = this.boards.delete(boardId);
     if (deleted && board) {
+      this.builtinBoardIds.delete(boardId);
       this.notify({ type: 'unregister', board });
     }
     return deleted;
@@ -225,10 +271,28 @@ export class BoardRegistry {
   
   /**
    * Clears all boards and listeners (for testing).
+   * Change 428: Also clears builtin tracking.
    */
   clear(): void {
     this.boards.clear();
     this.listeners.clear();
+    this.builtinBoardIds.clear();
+  }
+  
+  /**
+   * Gets the list of builtin board IDs.
+   * Change 428: Helper for extension validation.
+   */
+  getBuiltinBoardIds(): string[] {
+    return Array.from(this.builtinBoardIds);
+  }
+  
+  /**
+   * Checks if a board ID is a builtin.
+   * Change 428: Helper for extension validation.
+   */
+  isBuiltin(boardId: string): boolean {
+    return this.builtinBoardIds.has(boardId);
   }
 }
 

@@ -21,6 +21,7 @@ import type {
   TutorialStep,
   HelpArticle,
 } from './beginner';
+import { normalizeFeatureId, type FeatureId } from '../canon/feature-ids';
 
 // ============================================================================
 // USER PERSONAS (from cardplayui.md Section 8)
@@ -78,8 +79,8 @@ export interface UserPersona {
   readonly background: UserBackground;
   readonly primaryInterests: readonly UserInterest[];
   readonly preferredLayout: string;           // Layout preset ID
-  readonly enabledFeatures: readonly string[]; // Feature flags
-  readonly disabledFeatures: readonly string[];
+  readonly enabledFeatures: readonly FeatureId[]; // Feature flags (use normalizeFeatureId for legacy)
+  readonly disabledFeatures: readonly FeatureId[];
   readonly defaultView: 'simplified' | 'standard' | 'advanced';
   readonly tutorialSequence: readonly string[]; // Tutorial IDs
   readonly helpTopics: readonly string[];       // Prioritized help topics
@@ -87,7 +88,19 @@ export interface UserPersona {
 }
 
 /**
+ * Helper to normalize feature IDs in persona definitions
+ * @deprecated Use explicit FeatureId values from canon/feature-id
+ */
+function normalizeFeatures(features: readonly string[]): readonly FeatureId[] {
+  return features.map(normalizeFeatureId);
+}
+
+/**
  * Predefined user personas from cardplayui.md Section 8.
+ * 
+ * NOTE: Feature IDs in enabledFeatures/disabledFeatures are being migrated
+ * to use canonical FeatureId namespace (feature:*). Legacy bare strings are
+ * auto-normalized via normalizeFeatureId() for backward compatibility.
  */
 export const USER_PERSONAS: Record<string, UserPersona> = {
   // Complete beginner
@@ -99,8 +112,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'none',
     primaryInterests: ['songwriting', 'electronic'],
     preferredLayout: 'simplified-horizontal',
-    enabledFeatures: ['tutorials', 'tooltips', 'guided-workflow', 'big-buttons'],
-    disabledFeatures: ['advanced-routing', 'scripting', 'midi-learn'],
+    enabledFeatures: normalizeFeatures(['tutorials', 'tooltips', 'guided-workflow', 'big-buttons']),
+    disabledFeatures: normalizeFeatures(['advanced-routing', 'scripting', 'midi-learn']),
     defaultView: 'simplified',
     tutorialSequence: ['welcome', 'first-beat', 'add-melody', 'export-audio'],
     helpTopics: ['what-is-a-card', 'making-your-first-beat', 'playing-notes'],
@@ -116,8 +129,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'renoise',
     primaryInterests: ['electronic', 'sound-design'],
     preferredLayout: 'renoise-vertical',
-    enabledFeatures: ['hex-display', 'pattern-editor', 'tracker-shortcuts', 'sample-editor'],
-    disabledFeatures: [],
+    enabledFeatures: normalizeFeatures(['hex-display', 'pattern-editor', 'tracker-shortcuts', 'sample-editor']),
+    disabledFeatures: normalizeFeatures([]),
     defaultView: 'standard',
     tutorialSequence: ['tracker-migration', 'card-patterns', 'sample-workflow'],
     helpTopics: ['tracker-differences', 'pattern-vs-cards', 'effect-columns'],
@@ -133,8 +146,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'ableton',
     primaryInterests: ['electronic', 'dj'],
     preferredLayout: 'ableton-session',
-    enabledFeatures: ['session-view', 'clip-launcher', 'midi-mapping', 'tempo-sync'],
-    disabledFeatures: [],
+    enabledFeatures: normalizeFeatures(['session-view', 'clip-launcher', 'midi-mapping', 'tempo-sync']),
+    disabledFeatures: normalizeFeatures([]),
     defaultView: 'standard',
     tutorialSequence: ['ableton-migration', 'clip-to-card', 'live-setup'],
     helpTopics: ['session-vs-deck', 'clip-launching', 'midi-controllers'],
@@ -150,8 +163,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'cubase',
     primaryInterests: ['band', 'orchestral', 'songwriting'],
     preferredLayout: 'cubase-arrange',
-    enabledFeatures: ['timeline-view', 'track-lanes', 'automation', 'mixer'],
-    disabledFeatures: [],
+    enabledFeatures: normalizeFeatures(['timeline-view', 'track-lanes', 'automation', 'mixer']),
+    disabledFeatures: normalizeFeatures([]),
     defaultView: 'standard',
     tutorialSequence: ['cubase-migration', 'cards-as-tracks', 'arrangement-workflow'],
     helpTopics: ['timeline-arrangement', 'track-routing', 'automation-lanes'],
@@ -167,8 +180,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'dorico',
     primaryInterests: ['orchestral', 'education', 'songwriting'],
     preferredLayout: 'dorico-score',
-    enabledFeatures: ['notation-input', 'score-view', 'expression-maps', 'articulations'],
-    disabledFeatures: [],
+    enabledFeatures: normalizeFeatures(['notation-input', 'score-view', 'expression-maps', 'articulations']),
+    disabledFeatures: normalizeFeatures([]),
     defaultView: 'standard',
     tutorialSequence: ['notation-migration', 'midi-to-score', 'expression-setup'],
     helpTopics: ['note-input-methods', 'articulation-keyswitches', 'score-playback'],
@@ -184,8 +197,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'hardware',
     primaryInterests: ['sound-design', 'generative', 'electronic'],
     preferredLayout: 'modular-freeform',
-    enabledFeatures: ['modular-view', 'cv-routing', 'oscilloscope', 'parameter-lock'],
-    disabledFeatures: [],
+    enabledFeatures: normalizeFeatures(['modular-view', 'cv-routing', 'oscilloscope', 'parameter-lock']),
+    disabledFeatures: normalizeFeatures([]),
     defaultView: 'advanced',
     tutorialSequence: ['synth-cards', 'modulation-routing', 'preset-design'],
     helpTopics: ['synthesis-basics', 'modulation-matrix', 'wavetables'],
@@ -201,8 +214,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'coding',
     primaryInterests: ['generative', 'sound-design', 'game-audio'],
     preferredLayout: 'developer-split',
-    enabledFeatures: ['scripting', 'api-access', 'debug-view', 'custom-cards'],
-    disabledFeatures: [],
+    enabledFeatures: normalizeFeatures(['scripting', 'api-access', 'debug-view', 'custom-cards']),
+    disabledFeatures: normalizeFeatures([]),
     defaultView: 'advanced',
     tutorialSequence: ['api-overview', 'custom-card-creation', 'scripting-basics'],
     helpTopics: ['card-api', 'event-system', 'custom-processors'],
@@ -218,8 +231,8 @@ export const USER_PERSONAS: Record<string, UserPersona> = {
     background: 'coding',
     primaryInterests: ['game-audio', 'sound-design', 'generative'],
     preferredLayout: 'adaptive-audio',
-    enabledFeatures: ['state-machines', 'parameter-binding', 'randomization', 'export-banks'],
-    disabledFeatures: [],
+    enabledFeatures: normalizeFeatures(['state-machines', 'parameter-binding', 'randomization', 'export-banks']),
+    disabledFeatures: normalizeFeatures([]),
     defaultView: 'standard',
     tutorialSequence: ['game-audio-intro', 'adaptive-music', 'sound-banks'],
     helpTopics: ['adaptive-systems', 'parameter-layers', 'export-formats'],

@@ -388,7 +388,9 @@ export type EntityType =
   | 'texture'
   | 'rhythm'
   | 'harmony'
-  | 'melody';
+  | 'melody'
+  | 'marker'
+  | 'automation';
 
 /**
  * Selectional restrictions for a lexeme.

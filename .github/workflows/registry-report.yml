@@ -1,0 +1,36 @@
+name: Registry Report
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2am UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  registry-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Generate registry report
+      run: npm run registry:report > registry-report.txt || true
+      
+    - name: Upload registry report
+      uses: actions/upload-artifact@v4
+      with:
+        name: registry-report
+        path: registry-report.txt
+        retention-days: 30

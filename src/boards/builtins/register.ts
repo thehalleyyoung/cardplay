@@ -33,15 +33,17 @@ import { livePerformanceBoard } from './live-performance-board';
  * with all built-in board definitions. Can be called multiple times safely
  * (already-registered boards are skipped).
  *
+ * Change 428: Marks boards as builtin so they use un-namespaced IDs.
+ *
  * @throws {Error} If any board fails validation
  */
 export function registerBuiltinBoards(): void {
   const registry = getBoardRegistry();
 
-  // Helper to safely register (skip if already exists)
+  // Helper to safely register as builtin (skip if already exists)
   const safeRegister = (board: any) => {
     if (!registry.get(board.id)) {
-      registry.register(board);
+      registry.register(board, { isBuiltin: true });
     }
   };
 

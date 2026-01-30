@@ -147,3 +147,60 @@ export * from './event-level-references';
 
 // Typed targets for preserve/only-change constraints
 export * from './preservation-targets';
+
+// Domain noun vocabulary batch 16: Musical expression & articulation
+export {
+  EXPRESSION_ARTICULATION_LEXEMES,
+  default as EXPRESSION_ARTICULATION_BATCH,
+} from './domain-nouns-batch16-expression';
+
+// Domain noun vocabulary batch 17: Genres & musical styles
+export {
+  GENRE_STYLE_LEXEMES,
+  default as GENRE_STYLE_BATCH,
+} from './domain-nouns-batch17-genres';
+
+// Domain noun vocabulary batch 18: Audio production & mixing
+export {
+  PRODUCTION_MIXING_LEXEMES,
+  default as PRODUCTION_MIXING_BATCH,
+} from './domain-nouns-batch18-production';
+
+// Musical role lexeme classes (Step 121)
+export {
+  MUSICAL_ROLE_LEXEMES_BATCH1,
+  default as MUSICAL_ROLE_BATCH1,
+  getMusicalRoleBatch1Stats,
+} from './musical-roles-batch1';
+
+export {
+  MUSICAL_ROLE_LEXEMES_BATCH2,
+  default as MUSICAL_ROLE_BATCH2,
+  getMusicalRoleBatch2Stats,
+} from './musical-roles-batch2';
+
+export {
+  MUSICAL_ROLE_LEXEMES_BATCH3,
+  default as MUSICAL_ROLE_BATCH3,
+  getMusicalRoleBatch3Stats,
+} from './musical-roles-batch3';
+
+// Musical object lexeme classes (Step 122)
+export {
+  MUSICAL_OBJECT_LEXEMES_BATCH1,
+  default as MUSICAL_OBJECT_BATCH1,
+  getMusicalObjectBatch1Stats,
+} from './musical-objects-batch1';
+
+export {
+  MUSICAL_OBJECT_LEXEMES_BATCH2,
+  default as MUSICAL_OBJECT_BATCH2,
+  getMusicalObjectBatch2Stats,
+} from './musical-objects-batch2';
+
+// Production term lexeme classes (Step 123)
+export {
+  PRODUCTION_TERM_LEXEMES_BATCH1,
+  default as PRODUCTION_TERM_BATCH1,
+  getProductionTermBatch1Stats,
+} from './production-terms-batch1';

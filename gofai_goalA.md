@@ -67,32 +67,32 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 ## Phase 2 — Parsing Frontend: Tokenization, Morphology, and Grammar (Steps 101–150)
 
 - [x] Step 101 [NLP] — Implement a span-preserving tokenizer that retains original substrings for quoting, highlighting, and provenance.
-- [ ] Step 102 [NLP] — Implement a normalizer that canonicalizes whitespace, punctuation, unicode quotes, hyphenation, and common unit spellings.
-- [ ] Step 103 [NLP] — Implement morphological normalization (lemmatization-lite) for core verbs/adjectives (tighten/tighter/tightening).
-- [ ] Step 104 [NLP] — Add a robust number parser (words + digits) supporting “two”, “a couple”, “half”, and numeric ranges.
-- [ ] Step 105 [NLP] — Implement unit parsing (“96 BPM”, “+7 semitones”, “two bars”), returning typed units.
-- [ ] Step 106 [NLP][Infra] — Choose and implement a deterministic parsing engine (Earley/GLR + scoring, or PEG + diagnostics) and document tradeoffs.
-- [ ] Step 107 [NLP] — Add a parse forest representation to preserve ambiguity instead of losing it to early decisions.
-- [ ] Step 108 [NLP][Prag] — Implement a scoring model for parse selection that prefers explicit scopes and safer interpretations.
-- [ ] Step 109 [NLP] — Implement parse diagnostics (“why this parse won”) to support developer debugging and user-facing explanations.
-- [ ] Step 110 [NLP] — Implement incremental parsing hooks for “parse while typing” with caching keyed by token spans.
-- [ ] Step 111 [NLP][Sem] — Add a grammar for imperatives (“make”, “add”, “remove”, “keep”, “switch”) with typed verb frames.
-- [ ] Step 112 [NLP][Sem] — Add a grammar for comparatives and degree modifiers (“more”, “less”, “slightly”, “a lot”).
-- [ ] Step 113 [NLP][Sem] — Add a grammar for coordination (“X and Y”, “X but Y”, “X then Y”) preserving rhetorical structure cues.
-- [ ] Step 114 [NLP][Sem] — Add a grammar for negation and exclusion (“don’t”, “no”, “without”, “except”) with explicit scope.
-- [ ] Step 115 [NLP] — Add a grammar for time expressions (“for 8 bars”, “before the last chorus”, “in verse 2”) that builds typed ranges.
-- [ ] Step 116 [NLP][Prag] — Add a grammar for reference expressions (pronouns, demonstratives, “same as before”) that produce unresolved referents.
-- [ ] Step 117 [NLP][Sem] — Add a grammar for quantification (“all choruses”, “every other bar”, “each verse”) producing selection predicates.
-- [ ] Step 118 [NLP][Sem] — Add a grammar for modality and permission (“try”, “maybe”, “if possible”) producing soft constraints or alternative plans.
-- [ ] Step 119 [NLP][Sem] — Add a grammar for questions (“what chords are in the chorus?”, “why did you change that?”) mapping to inspect/explain acts.
-- [ ] Step 120 [NLP][Sem] — Add a grammar for explicit user-defined names (“the ‘glass pad’ track”) supporting quoted referents.
-- [ ] Step 121 [NLP][Sem] — Add lexeme classes for musical roles (melody, bassline, hook, accompaniment) with selectional restrictions.
-- [ ] Step 122 [NLP][Sem] — Add lexeme classes for musical objects (chords, voicings, rhythm, groove, density, register) with semantic mappings.
-- [ ] Step 123 [NLP][Sem] — Add lexeme classes for production terms (width, brightness, punch) that map either to arrangement levers or DSP levers.
-- [ ] Step 124 [NLP] — Add a grammar for “edit locality” (“just”, “only”, “at least”) to bias cost model and scope.
-- [ ] Step 125 [NLP][Sem] — Add a grammar for “preservation” (“keep the chords”, “don’t change the melody”) generating explicit CPL preserve constraints.
-- [ ] Step 126 [NLP] — Add a robust “unknown token” strategy that preserves unknown terms as candidate entity names rather than failing parsing.
-- [ ] Step 127 [NLP][Ext] — Add a mechanism for extensions to register additional lexemes and lexical variants into the parser at runtime.
+- [x] Step 102 [NLP] — Implement a normalizer that canonicalizes whitespace, punctuation, unicode quotes, hyphenation, and common unit spellings.
+- [x] Step 103 [NLP] — Implement morphological normalization (lemmatization-lite) for core verbs/adjectives (tighten/tighter/tightening).
+- [x] Step 104 [NLP] — Add a robust number parser (words + digits) supporting "two", "a couple", "half", and numeric ranges.
+- [x] Step 105 [NLP] — Implement unit parsing ("96 BPM", "+7 semitones", "two bars"), returning typed units.
+- [x] Step 106 [NLP][Infra] — Choose and implement a deterministic parsing engine (Earley/GLR + scoring, or PEG + diagnostics) and document tradeoffs.
+- [x] Step 107 [NLP] — Add a parse forest representation to preserve ambiguity instead of losing it to early decisions.
+- [x] Step 108 [NLP][Prag] — Implement a scoring model for parse selection that prefers explicit scopes and safer interpretations.
+- [x] Step 109 [NLP] — Implement parse diagnostics ("why this parse won") to support developer debugging and user-facing explanations.
+- [x] Step 110 [NLP] — Implement incremental parsing hooks for "parse while typing" with caching keyed by token spans.
+- [x] Step 111 [NLP][Sem] — Add a grammar for imperatives ("make", "add", "remove", "keep", "switch") with typed verb frames.
+- [x] Step 112 [NLP][Sem] — Add a grammar for comparatives and degree modifiers ("more", "less", "slightly", "a lot").
+- [x] Step 113 [NLP][Sem] — Add a grammar for coordination ("X and Y", "X but Y", "X then Y") preserving rhetorical structure cues.
+- [x] Step 114 [NLP][Sem] — Add a grammar for negation and exclusion ("don't", "no", "without", "except") with explicit scope.
+- [x] Step 115 [NLP] — Add a grammar for time expressions ("for 8 bars", "before the last chorus", "in verse 2") that builds typed ranges.
+- [x] Step 116 [NLP][Prag] — Add a grammar for reference expressions (pronouns, demonstratives, "same as before") that produce unresolved referents.
+- [x] Step 117 [NLP][Sem] — Add a grammar for quantification ("all choruses", "every other bar", "each verse") producing selection predicates.
+- [x] Step 118 [NLP][Sem] — Add a grammar for modality and permission ("try", "maybe", "if possible") producing soft constraints or alternative plans.
+- [x] Step 119 [NLP][Sem] — Add a grammar for questions ("what chords are in the chorus?", "why did you change that?") mapping to inspect/explain acts.
+- [x] Step 120 [NLP][Sem] — Add a grammar for explicit user-defined names ("the 'glass pad' track") supporting quoted referents.
+- [x] Step 121 [NLP][Sem] — Add lexeme classes for musical roles (melody, bassline, hook, accompaniment) with selectional restrictions.
+- [x] Step 122 [NLP][Sem] — Add lexeme classes for musical objects (chords, voicings, rhythm, groove, density, register) with semantic mappings.
+- [x] Step 123 [NLP][Sem] — Add lexeme classes for production terms (width, brightness, punch) that map either to arrangement levers or DSP levers.
+- [x] Step 124 [NLP] — Add a grammar for "edit locality" ("just", "only", "at least") to bias cost model and scope.
+- [x] Step 125 [NLP][Sem] — Add a grammar for "preservation" ("keep the chords", "don't change the melody") generating explicit CPL preserve constraints.
+- [x] Step 126 [NLP] — Add a robust "unknown token" strategy that preserves unknown terms as candidate entity names rather than failing parsing.
+- [x] Step 127 [NLP][Ext] — Add a mechanism for extensions to register additional lexemes and lexical variants into the parser at runtime.
 - [ ] Step 128 [NLP][Ext] — Add a mechanism for extensions to register new grammar rules with rule IDs, priorities, and required tests.
 - [ ] Step 129 [NLP][Infra] — Add a grammar regression harness that can snapshot parse forests and detect unintended ambiguity explosions.
 - [ ] Step 130 [NLP][HCI] — Add a user-facing “I didn’t understand” error formatter that pinpoints spans and suggests known terms.

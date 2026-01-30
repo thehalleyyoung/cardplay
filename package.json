@@ -36,8 +36,13 @@
     "canon:check-ports": "npx ts-node scripts/canon/check-port-vocabulary.ts",
     "canon:check-modules": "npx ts-node scripts/canon/check-module-map.ts",
     "canon:check-aliases": "npx ts-node scripts/canon/check-legacy-type-aliases.ts",
-    "docs:lint": "npm run canon:check && npm run canon:check-ports && npm run canon:check-modules && npm run canon:check-aliases",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run docs:lint && npm run build"
+    "canon:check-ontology-mixing": "npx tsx scripts/canon/check-ontology-mixing.ts",
+    "docs:lint": "npm run canon:check && npm run canon:check-ports && npm run canon:check-modules && npm run canon:check-aliases && npm run canon:check-ontology-mixing",
+    "registry:report": "npx tsx scripts/registry-report.ts",
+    "theme:lint": "npx tsx scripts/theme-visual-only-lint.ts",
+    "validate:card-ids": "npx tsx scripts/validate-card-ids.ts",
+    "check:deprecation": "npx tsx scripts/check-deprecation-budget.ts",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run docs:lint && npm run theme:lint && npm run validate:card-ids && npm run check:deprecation && npm run build"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

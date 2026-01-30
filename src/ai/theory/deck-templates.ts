@@ -84,6 +84,7 @@ export const THEORY_DECK_TEMPLATE: DeckTemplate = {
     'theory:tonality_model',
     'theory:meter_accent',
     'theory:grouping',
+    'theory:schema',
     'theory:constraint_pack',
   ],
   slots: [
@@ -302,6 +303,7 @@ export const GALANT_BOARD_TEMPLATE: DeckTemplate = {
   cardIds: [
     'schema:browser',
     'schema:to_chords',
+    'schema:to_bass',
     'schema:to_melody',
     'schema:variation',
     'schema:constraint',
@@ -335,7 +337,7 @@ export const FILM_BOARD_TEMPLATE: DeckTemplate = {
   styles: ['cinematic', 'trailer', 'underscore'],
   cardIds: [
     'theory:film_scoring',
-    'film:trailer_build',
+    'theory:trailer_build',
     'theory:leitmotif_library',
     'theory:leitmotif_matcher',
     'theory:tonality_model',
@@ -343,7 +345,7 @@ export const FILM_BOARD_TEMPLATE: DeckTemplate = {
   ],
   slots: [
     { position: 0, label: 'Film Scoring', cardId: 'theory:film_scoring', required: true },
-    { position: 1, label: 'Trailer Build', cardId: 'film:trailer_build', required: false,
+    { position: 1, label: 'Trailer Build', cardId: 'theory:trailer_build', required: false,
       alternatives: ['theory:constraint_pack'] },
     { position: 2, label: 'Leitmotif Library', cardId: 'theory:leitmotif_library', required: false },
     { position: 3, label: 'Leitmotif Matcher', cardId: 'theory:leitmotif_matcher', required: false },
@@ -472,9 +474,9 @@ export const LCC_BOARD_TEMPLATE: DeckTemplate = {
 // ============================================================================
 
 /**
- * All deck templates.
+ * Builtin deck templates (non-extensible).
  */
-export const DECK_TEMPLATES: readonly DeckTemplate[] = [
+const BUILTIN_TEMPLATES: readonly DeckTemplate[] = [
   THEORY_DECK_TEMPLATE,
   PHRASE_DECK_TEMPLATE,
   HARMONY_DECK_TEMPLATE,
@@ -492,16 +494,92 @@ export const DECK_TEMPLATES: readonly DeckTemplate[] = [
   LCC_BOARD_TEMPLATE,
 ];
 
+/**
+ * Extension template registry (Change 427).
+ * Allows packs to register additional DeckTemplate definitions with namespaced IDs.
+ */
+const extensionTemplates = new Map<string, DeckTemplate>();
+
+/**
+ * Register an extension deck template.
+ * 
+ * Change 427: Implements extension points for deck templates.
+ * 
+ * @param template - The deck template to register
+ * @returns Success or error
+ */
+export function registerDeckTemplate(template: DeckTemplate): { success: boolean; error?: string } {
+  // Validate template ID
+  const idValidation = validateTemplateId(template.id, false);
+  if (!idValidation.valid) {
+    return {
+      success: false,
+      error: idValidation.error,
+    };
+  }
+  
+  // Check for duplicates with builtins
+  if (BUILTIN_TEMPLATES.some(t => t.id === template.id)) {
+    return {
+      success: false,
+      error: `Template ID '${template.id}' conflicts with builtin template`,
+    };
+  }
+  
+  // Check for duplicate extension registrations
+  if (extensionTemplates.has(template.id)) {
+    return {
+      success: false,
+      error: `Template ID '${template.id}' is already registered`,
+    };
+  }
+  
+  // Validate card IDs
+  try {
+    validateTheoryCardIds(template.cardIds);
+  } catch (error) {
+    return {
+      success: false,
+      error: `Template '${template.id}' references invalid card IDs: ${error}`,
+    };
+  }
+  
+  // Register
+  extensionTemplates.set(template.id, template);
+  
+  return { success: true };
+}
+
+/**
+ * Unregister an extension deck template.
+ */
+export function unregisterDeckTemplate(templateId: string): boolean {
+  return extensionTemplates.delete(templateId);
+}
+
+/**
+ * All deck templates (builtins + extensions).
+ */
+export function getAllDeckTemplates(): DeckTemplate[] {
+  return [...BUILTIN_TEMPLATES, ...extensionTemplates.values()];
+}
+
+/**
+ * Legacy export for compatibility (dynamically includes extensions).
+ * @deprecated Use getAllDeckTemplates() instead for clarity.
+ */
+export const DECK_TEMPLATES: readonly DeckTemplate[] = BUILTIN_TEMPLATES;
+
 // ============================================================================
 // VALIDATION (Change 280)
 // ============================================================================
 
 /**
- * Validate all deck templates at module load time.
+ * Validate all builtin deck templates at module load time.
  * Ensures all cardIds reference registered theory cards.
  */
-function validateTemplates(): void {
-  for (const template of DECK_TEMPLATES) {
+function validateBuiltinTemplates(): void {
+  for (const template of BUILTIN_TEMPLATES) {
     try {
       validateTheoryCardIds(template.cardIds);
     } catch (error) {
@@ -514,8 +592,8 @@ function validateTemplates(): void {
   }
 }
 
-// Validate templates on module load
-validateTemplates();
+// Validate builtin templates on module load
+validateBuiltinTemplates();
 
 // ============================================================================
 // TEMPLATE LOOKUP
@@ -525,7 +603,12 @@ validateTemplates();
  * Lookup a deck template by ID.
  */
 export function getDeckTemplate(templateId: string): DeckTemplate | undefined {
-  return DECK_TEMPLATES.find(t => t.id === templateId);
+  // Check builtins first
+  const builtin = BUILTIN_TEMPLATES.find(t => t.id === templateId);
+  if (builtin) return builtin;
+  
+  // Check extensions
+  return extensionTemplates.get(templateId);
 }
 
 /**
@@ -534,7 +617,7 @@ export function getDeckTemplate(templateId: string): DeckTemplate | undefined {
 export function getTemplatesForBoard(
   boardType: 'arranger' | 'tracker' | 'notation' | 'phrase' | 'harmony'
 ): DeckTemplate[] {
-  return DECK_TEMPLATES
+  return getAllDeckTemplates()
     .filter(t => t.boardTypes.includes(boardType))
     .sort((a, b) => b.priority - a.priority);
 }
@@ -543,7 +626,7 @@ export function getTemplatesForBoard(
  * Get deck templates suitable for a given culture.
  */
 export function getTemplatesForCulture(culture: CultureTag): DeckTemplate[] {
-  return DECK_TEMPLATES
+  return getAllDeckTemplates()
     .filter(t => t.cultures.includes(culture))
     .sort((a, b) => b.priority - a.priority);
 }
@@ -552,7 +635,7 @@ export function getTemplatesForCulture(culture: CultureTag): DeckTemplate[] {
  * Get deck templates suitable for a given style.
  */
 export function getTemplatesForStyle(style: StyleTag): DeckTemplate[] {
-  return DECK_TEMPLATES
+  return getAllDeckTemplates()
     .filter(t => t.styles.includes(style))
     .sort((a, b) => b.priority - a.priority);
 }
@@ -565,7 +648,7 @@ export function recommendTemplate(
   spec: MusicSpec,
   boardType: 'arranger' | 'tracker' | 'notation' | 'phrase' | 'harmony'
 ): DeckTemplate | undefined {
-  const candidates = DECK_TEMPLATES
+  const candidates = getAllDeckTemplates()
     .filter(t => t.boardTypes.includes(boardType))
     .map(t => {
       let score = t.priority;
@@ -633,7 +716,7 @@ export function validateTemplateId(
 // ============================================================================
 
 /**
- * Generate Prolog facts for all deck templates.
+ * Generate Prolog facts for all deck templates (builtins + extensions).
  * These can be loaded into the Prolog KB for template recommendation queries.
  */
 export function generateTemplatePrologFacts(): string[] {
@@ -648,7 +731,8 @@ export function generateTemplatePrologFacts(): string[] {
     '',
   ];
 
-  for (const template of DECK_TEMPLATES) {
+  // Generate facts for all templates (builtins + extensions)
+  for (const template of getAllDeckTemplates()) {
     const id = template.id.replace('template:', '');
     facts.push(`deck_template(${id}, ${template.category}).`);
     facts.push(`template_priority(${id}, ${template.priority}).`);
