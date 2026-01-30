@@ -20,8 +20,6 @@
 
 import {
   type Lexeme,
-  type LexemeId,
-  type AxisId,
   createLexemeId,
   createAxisId,
 } from './types';
@@ -40,15 +38,14 @@ import {
  */
 const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adjective', 'legato'),
+    id: createLexemeId('adj', 'legato'),
     lemma: 'legato',
     variants: ['smooth', 'connected', 'flowing', 'seamless'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('articulation'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase',
     },
     description: 'Smooth, connected articulation with minimal gaps between notes',
     examples: [
@@ -59,15 +56,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'staccato'),
+    id: createLexemeId('adj', 'staccato'),
     lemma: 'staccato',
     variants: ['detached', 'separated', 'short', 'choppy'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('articulation'),
-      direction: 'negative',
-      magnitude: 'medium',
+      direction: 'decrease',
     },
     description: 'Short, detached articulation with clear separation between notes',
     examples: [
@@ -78,15 +74,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'marcato'),
+    id: createLexemeId('adj', 'marcato'),
     lemma: 'marcato',
     variants: ['marked', 'accented', 'emphasized'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('accent_strength'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase',
     },
     description: 'Marked, accented articulation with strong attack',
     examples: [
@@ -97,15 +92,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'tenuto'),
+    id: createLexemeId('adj', 'tenuto'),
     lemma: 'tenuto',
     variants: ['held', 'sustained', 'full-length'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('note_duration'),
-      direction: 'positive',
-      magnitude: 'small',
+      direction: 'increase',
     },
     description: 'Sustained articulation holding notes for full value',
     examples: [
@@ -116,15 +110,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'portato'),
+    id: createLexemeId('adj', 'portato'),
     lemma: 'portato',
-    variants: ['carried', 'semi-detached', 'portamento'],
-    category: 'adjective',
+    variants: ['carried', 'semi-detached'],
+    category: 'adj',
     semantics: {
-      type: 'axis_modifier',
-      axis: createAxisId('articulation'),
-      direction: 'neutral',
-      magnitude: 'small',
+      type: 'concept',
+      domain: 'articulation',
+      aspect: 'style',
     },
     description: 'Articulation between legato and staccato, slightly detached',
     examples: [
@@ -135,15 +128,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'portamento'),
+    id: createLexemeId('adj', 'portamento'),
     lemma: 'portamento',
     variants: ['sliding', 'gliding', 'glissando', 'slide'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('pitch_continuity'),
-      direction: 'positive',
-      magnitude: 'large',
+      direction: 'increase',
     },
     description: 'Sliding articulation with continuous pitch connection',
     examples: [
@@ -154,15 +146,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'spiccato'),
+    id: createLexemeId('adj', 'spiccato'),
     lemma: 'spiccato',
     variants: ['bouncing', 'bounced', 'ricochet'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'concept',
       domain: 'articulation',
       aspect: 'bowing',
-      technique: 'spiccato',
     },
     description: 'Bouncing bow articulation (string technique)',
     examples: [
@@ -173,15 +164,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'pizzicato'),
+    id: createLexemeId('adj', 'pizzicato'),
     lemma: 'pizzicato',
     variants: ['plucked', 'pizz'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'concept',
       domain: 'articulation',
       aspect: 'bowing',
-      technique: 'pizzicato',
     },
     description: 'Plucked articulation (string technique)',
     examples: [
@@ -207,15 +197,14 @@ const BASIC_ARTICULATION_LEXEMES: readonly Lexeme[] = [
  */
 const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adjective', 'hard_attack'),
+    id: createLexemeId('adj', 'hard_attack'),
     lemma: 'hard',
     variants: ['aggressive', 'forceful', 'strong attack', 'harsh attack'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('attack_strength'),
-      direction: 'positive',
-      magnitude: 'large',
+      direction: 'increase'
     },
     description: 'Hard, aggressive note attack with strong transient',
     examples: [
@@ -226,15 +215,14 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'soft_attack'),
+    id: createLexemeId('adj', 'soft_attack'),
     lemma: 'soft',
     variants: ['gentle', 'delicate', 'subtle attack', 'light attack'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('attack_strength'),
-      direction: 'negative',
-      magnitude: 'large',
+      direction: 'decrease'
     },
     description: 'Soft, gentle note attack with minimal transient',
     examples: [
@@ -245,15 +233,14 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'sharp_attack'),
+    id: createLexemeId('adj', 'sharp_attack'),
     lemma: 'sharp',
     variants: ['crisp', 'clear', 'defined', 'precise attack'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('attack_definition'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase'
     },
     description: 'Sharp, well-defined attack with clear onset',
     examples: [
@@ -264,15 +251,14 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'rounded_attack'),
+    id: createLexemeId('adj', 'rounded_attack'),
     lemma: 'rounded',
     variants: ['smooth', 'mellow attack', 'soft-edged'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('attack_definition'),
-      direction: 'negative',
-      magnitude: 'medium',
+      direction: 'decrease'
     },
     description: 'Rounded, softened attack with gradual onset',
     examples: [
@@ -283,15 +269,14 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'accented'),
+    id: createLexemeId('adj', 'accented'),
     lemma: 'accented',
     variants: ['emphasized', 'stressed', 'with accent'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('accent_strength'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase'
     },
     description: 'Accented articulation with emphasized attacks',
     examples: [
@@ -302,15 +287,14 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'sforzando'),
+    id: createLexemeId('adj', 'sforzando'),
     lemma: 'sforzando',
     variants: ['sfz', 'suddenly loud', 'forced', 'sudden accent'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('accent_strength'),
-      direction: 'positive',
-      magnitude: 'large',
+      direction: 'increase'
     },
     description: 'Sudden, strong accent (sforzando)',
     examples: [
@@ -321,15 +305,15 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'col_legno'),
+    id: createLexemeId('adj', 'col_legno'),
     lemma: 'col legno',
     variants: ['with the wood', 'wood of bow'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'concept',
       domain: 'articulation',
       aspect: 'bowing',
-      technique: 'col_legno',
+      
     },
     description: 'Col legno articulation (striking with wood of bow)',
     examples: [
@@ -340,15 +324,15 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'sul_ponticello'),
+    id: createLexemeId('adj', 'sul_ponticello'),
     lemma: 'sul ponticello',
     variants: ['near bridge', 'ponticello'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'concept',
       domain: 'articulation',
       aspect: 'bowing',
-      technique: 'sul_ponticello',
+      
     },
     description: 'Sul ponticello articulation (bowing near bridge)',
     examples: [
@@ -374,15 +358,14 @@ const ATTACK_CHARACTERISTIC_LEXEMES: readonly Lexeme[] = [
  */
 const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adjective', 'sustained'),
+    id: createLexemeId('adj', 'sustained'),
     lemma: 'sustained',
     variants: ['long', 'held', 'prolonged', 'continuing'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('sustain_length'),
-      direction: 'positive',
-      magnitude: 'large',
+      direction: 'increase'
     },
     description: 'Long, sustained decay with extended note duration',
     examples: [
@@ -393,15 +376,14 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'damped'),
+    id: createLexemeId('adj', 'damped'),
     lemma: 'damped',
     variants: ['muted', 'shortened', 'cut off', 'clipped'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('sustain_length'),
-      direction: 'negative',
-      magnitude: 'large',
+      direction: 'decrease'
     },
     description: 'Short, damped decay with quick note cutoff',
     examples: [
@@ -412,15 +394,14 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'ringing'),
+    id: createLexemeId('adj', 'ringing'),
     lemma: 'ringing',
     variants: ['resonant', 'echoing', 'reverberant'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('resonance'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase'
     },
     description: 'Ringing, resonant decay with extended overtones',
     examples: [
@@ -431,15 +412,14 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'dead'),
+    id: createLexemeId('adj', 'dead'),
     lemma: 'dead',
     variants: ['dry', 'non-resonant', 'immediate stop'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('resonance'),
-      direction: 'negative',
-      magnitude: 'large',
+      direction: 'decrease'
     },
     description: 'Dead, non-resonant decay with immediate stop',
     examples: [
@@ -450,15 +430,18 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'natural_release'),
+    id: createLexemeId('adj', 'natural_release'),
     lemma: 'natural',
     variants: ['organic release', 'gradual fade', 'dying away'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
-      type: 'axis_modifier',
-      axis: createAxisId('release_shape'),
-      direction: 'neutral',
-      magnitude: 'small',
+
+      type: 'concept',
+
+      domain: 'articulation',
+
+      aspect: 'release_shape',
+
     },
     description: 'Natural, gradual release with organic decay',
     examples: [
@@ -469,15 +452,14 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'abrupt_release'),
+    id: createLexemeId('adj', 'abrupt_release'),
     lemma: 'abrupt',
     variants: ['sudden stop', 'immediate cutoff', 'hard stop'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('release_shape'),
-      direction: 'negative',
-      magnitude: 'large',
+      direction: 'decrease'
     },
     description: 'Abrupt release with sudden note termination',
     examples: [
@@ -488,15 +470,14 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'crescendo_release'),
+    id: createLexemeId('adj', 'crescendo_release'),
     lemma: 'crescendo',
     variants: ['growing', 'swelling', 'building to end'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('dynamic_shape'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase'
     },
     description: 'Growing dynamic during note duration (crescendo)',
     examples: [
@@ -507,15 +488,14 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'diminuendo_release'),
+    id: createLexemeId('adj', 'diminuendo_release'),
     lemma: 'diminuendo',
     variants: ['fading', 'dying away', 'decrescendo'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('dynamic_shape'),
-      direction: 'negative',
-      magnitude: 'medium',
+      direction: 'decrease'
     },
     description: 'Fading dynamic during note duration (diminuendo)',
     examples: [
@@ -541,15 +521,14 @@ const DECAY_RELEASE_LEXEMES: readonly Lexeme[] = [
  */
 const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
   {
-    id: createLexemeId('adjective', 'arching'),
+    id: createLexemeId('adj', 'arching'),
     lemma: 'arching',
     variants: ['arched', 'curved', 'dome-shaped phrase'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('phrase_shape'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase'
     },
     description: 'Arching phrase shape with dynamic peak in middle',
     examples: [
@@ -560,15 +539,18 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'linear_phrase'),
+    id: createLexemeId('adj', 'linear_phrase'),
     lemma: 'linear',
     variants: ['flat', 'level', 'even phrase'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
-      type: 'axis_modifier',
-      axis: createAxisId('phrase_shape'),
-      direction: 'neutral',
-      magnitude: 'small',
+
+      type: 'concept',
+
+      domain: 'articulation',
+
+      aspect: 'phrase_shape',
+
     },
     description: 'Linear, even phrase shape with consistent dynamics',
     examples: [
@@ -579,15 +561,14 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'terraced'),
+    id: createLexemeId('adj', 'terraced'),
     lemma: 'terraced',
     variants: ['stepped', 'plateaued', 'level changes'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('phrase_shape'),
-      direction: 'negative',
-      magnitude: 'medium',
+      direction: 'decrease'
     },
     description: 'Terraced phrase shape with distinct dynamic levels',
     examples: [
@@ -598,15 +579,14 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'continuous'),
+    id: createLexemeId('adj', 'continuous'),
     lemma: 'continuous',
     variants: ['flowing', 'unbroken', 'seamless phrase'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('phrase_continuity'),
-      direction: 'positive',
-      magnitude: 'large',
+      direction: 'increase'
     },
     description: 'Continuous, flowing phrasing without breaks',
     examples: [
@@ -617,15 +597,14 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'segmented'),
+    id: createLexemeId('adj', 'segmented'),
     lemma: 'segmented',
     variants: ['broken up', 'separated', 'distinct phrases'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('phrase_continuity'),
-      direction: 'negative',
-      magnitude: 'large',
+      direction: 'decrease'
     },
     description: 'Segmented phrasing with clear phrase boundaries',
     examples: [
@@ -636,15 +615,14 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'breathing'),
+    id: createLexemeId('adj', 'breathing'),
     lemma: 'breathing',
     variants: ['breathy', 'vocal-like', 'with breath'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('phrase_breathing'),
-      direction: 'positive',
-      magnitude: 'medium',
+      direction: 'increase'
     },
     description: 'Phrasing with natural breathing pauses',
     examples: [
@@ -655,15 +633,14 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'long_lined'),
+    id: createLexemeId('adj', 'long_lined'),
     lemma: 'long-lined',
     variants: ['extended', 'long phrase', 'continuous line'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('phrase_length'),
-      direction: 'positive',
-      magnitude: 'large',
+      direction: 'increase'
     },
     description: 'Long-lined phrasing with extended phrase lengths',
     examples: [
@@ -674,15 +651,14 @@ const PHRASING_SHAPE_LEXEMES: readonly Lexeme[] = [
     ],
   },
   {
-    id: createLexemeId('adjective', 'short_phrased'),
+    id: createLexemeId('adj', 'short_phrased'),
     lemma: 'short-phrased',
     variants: ['brief', 'compact', 'concise phrases'],
-    category: 'adjective',
+    category: 'adj',
     semantics: {
       type: 'axis_modifier',
       axis: createAxisId('phrase_length'),
-      direction: 'negative',
-      magnitude: 'large',
+      direction: 'decrease'
     },
     description: 'Short, compact phrasing with brief phrase units',
     examples: [
@@ -716,7 +692,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'vibrato',
-      technique: 'vibrato',
+      
     },
     description: 'Vibrato technique with periodic pitch oscillation',
     examples: [
@@ -735,7 +711,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'ornament',
-      technique: 'trill',
+      
     },
     description: 'Trill ornament with rapid note alternation',
     examples: [
@@ -754,7 +730,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'ornament',
-      technique: 'grace_note',
+      
     },
     description: 'Grace note ornament before main note',
     examples: [
@@ -773,7 +749,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'pitch_inflection',
-      technique: 'bend',
+      
     },
     description: 'Pitch bend technique (common in blues and rock)',
     examples: [
@@ -792,7 +768,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'pitch_inflection',
-      technique: 'slide',
+      
     },
     description: 'Sliding pitch gesture between notes',
     examples: [
@@ -811,7 +787,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'technique',
-      technique: 'hammer_on',
+      
     },
     description: 'Hammer-on technique (guitar/bass)',
     examples: [
@@ -830,7 +806,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'technique',
-      technique: 'pull_off',
+      
     },
     description: 'Pull-off technique (guitar/bass)',
     examples: [
@@ -849,7 +825,7 @@ const PERFORMANCE_GESTURE_LEXEMES: readonly Lexeme[] = [
       type: 'concept',
       domain: 'articulation',
       aspect: 'technique',
-      technique: 'ghost_note',
+      
     },
     description: 'Ghost note technique (muted, percussive articulation)',
     examples: [

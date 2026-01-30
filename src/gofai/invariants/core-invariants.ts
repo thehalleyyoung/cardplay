@@ -160,27 +160,6 @@ builder.define({
   severity: 'critical',
 
   check(_ctx, operation) {
-    for (const ambiguity of operation.ambiguities) {
-      if (!ambiguity.resolved) {
-        // This is expected - we should be prompting the user
-        return ok();
-      }
-
-      // If resolved without multiple interpretations, something is wrong
-      if (ambiguity.interpretations.length <= 1 && ambiguity.resolved) {
-        return violation(
-          invariantId('ambiguity-prohibition'),
-          'critical',
-          `Ambiguity "${ambiguity.expression}" was marked resolved but has only ${ambiguity.interpretations.length} interpretation(s)`,
-          {
-            expected: 'At least 2 interpretations for an ambiguity, or explicit user resolution',
-            actual: `${ambiguity.interpretations.length} interpretation(s), marked as resolved`,
-            location: `operation.ambiguities[expression="${ambiguity.expression}"]`,
-          }
-        );
-      }
-    }
-
     // Check that all ambiguities are resolved before allowing mutation
     if (operation.effectType === 'mutate') {
       const unresolved = operation.ambiguities.filter((a) => !a.resolved);
@@ -194,6 +173,23 @@ builder.define({
             expected: 'All ambiguities resolved before mutation',
             actual: `${unresolved.length} unresolved: ${unresolved.map((a) => a.expression).join(', ')}`,
             location: 'operation.ambiguities',
+          }
+        );
+      }
+    }
+
+    // Check each ambiguity
+    for (const ambiguity of operation.ambiguities) {
+      // If resolved without multiple interpretations, something is wrong
+      if (ambiguity.interpretations.length <= 1 && ambiguity.resolved) {
+        return violation(
+          invariantId('ambiguity-prohibition'),
+          'critical',
+          `Ambiguity "${ambiguity.expression}" was marked resolved but has only ${ambiguity.interpretations.length} interpretation(s)`,
+          {
+            expected: 'At least 2 interpretations for an ambiguity, or explicit user resolution',
+            actual: `${ambiguity.interpretations.length} interpretation(s), marked as resolved`,
+            location: `operation.ambiguities[expression="${ambiguity.expression}"]`,
           }
         );
       }

@@ -23,7 +23,7 @@ import {
   type CPLOperation,
   type InvariantContext,
 } from '../core-invariants';
-import type { ProjectStateSnapshot } from '../constraint-verifiers';
+import type { ProjectStateSnapshot, LayerSnapshot } from '../constraint-verifiers';
 
 // =============================================================================
 // Test Utilities
@@ -65,23 +65,39 @@ function createTestContext(overrides: Partial<InvariantContext> = {}): Invariant
  */
 function createTestState(): ProjectStateSnapshot {
   return {
-    version: 1,
+    tempo: 120,
+    timeSignatureNumerator: 4,
+    timeSignatureDenominator: 4,
+    keySignature: 'C',
     sections: [
-      { id: 'section-chorus', name: 'Chorus', startBar: 0, endBar: 8 },
-      { id: 'section-verse', name: 'Verse', startBar: 8, endBar: 16 },
+      { id: 'section-chorus', name: 'Chorus', type: 'chorus', startTick: 0, endTick: 1920 },
+      { id: 'section-verse', name: 'Verse', type: 'verse', startTick: 1920, endTick: 3840 },
     ],
     layers: [
-      { id: 'layer-drums', name: 'Drums', trackIds: ['track-drums'] },
-      { id: 'layer-bass', name: 'Bass', trackIds: ['track-bass'] },
+      { 
+        id: 'layer-drums', 
+        name: 'Drums', 
+        role: 'drums',
+        notes: [
+          { id: 'note-drums-1', pitch: 36, velocity: 100, startTick: 0, durationTicks: 240, layerId: 'layer-drums' }
+        ],
+        muted: false,
+        volume: 0.8,
+        pan: 0
+      },
+      { 
+        id: 'layer-bass', 
+        name: 'Bass',
+        role: 'bass',
+        notes: [
+          { id: 'note-bass-1', pitch: 48, velocity: 80, startTick: 0, durationTicks: 480, layerId: 'layer-bass' }
+        ],
+        muted: false,
+        volume: 0.7,
+        pan: 0
+      },
     ],
-    events: [
-      { id: 'event-1', trackId: 'track-drums', bar: 0, beat: 0, pitch: 36 },
-      { id: 'event-2', trackId: 'track-bass', bar: 0, beat: 0, pitch: 48 },
-    ],
-    cards: [
-      { id: 'card-reverb', type: 'reverb', params: { mix: 0.3 } },
-      { id: 'card-eq', type: 'eq', params: { gain: 0 } },
-    ],
+    chords: [],
   };
 }
 
@@ -107,6 +123,7 @@ describe('Invariant 1: Constraint Executability', () => {
     const context = createTestContext();
 
     const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
     expect(violations).toHaveLength(0);
   });
@@ -120,6 +137,7 @@ describe('Invariant 1: Constraint Executability', () => {
     const context = createTestContext();
 
     const results = checkCoreInvariants(context, operation);
+    const violations = getViolations(results);
 
     expect(violations.length).toBeGreaterThan(0);
     const violation = violations.find(
@@ -327,7 +345,7 @@ describe('Invariant 3: Constraint Preservation', () => {
 
     const operation = createTestOperation({
       effectType: 'mutate',
-      constraints: [{ typeId: 'preserve_melody', params: { tolerance: 0 } }],
+      constraints: [{ typeId: 'preserve_melody', params: { target: 'layer-bass', tolerance: 0 } }],
       stateBefore,
       stateAfter,
       approved: true,
@@ -347,15 +365,20 @@ describe('Invariant 3: Constraint Preservation', () => {
   it('should fail when preservation constraint is violated', () => {
     const stateBefore = createTestState();
     const stateAfter = createTestState();
-    // Modify melody events
-    stateAfter.events = [
-      { id: 'event-1', trackId: 'track-drums', bar: 0, beat: 0, pitch: 36 },
-      { id: 'event-2', trackId: 'track-bass', bar: 0, beat: 0, pitch: 50 }, // Changed!
-    ];
+    // Modify melody events - change pitch of bass note
+    stateAfter.layers = [
+      stateAfter.layers[0], // drums unchanged
+      { 
+        ...stateAfter.layers[1],
+        notes: [
+          { id: 'note-bass-1', pitch: 50, velocity: 80, startTick: 0, durationTicks: 480, layerId: 'layer-bass' }
+        ]
+      }
+    ] as readonly LayerSnapshot[];
 
     const operation = createTestOperation({
       effectType: 'mutate',
-      constraints: [{ typeId: 'preserve_melody', params: { tolerance: 0 } }],
+      constraints: [{ typeId: 'preserve_melody', params: { target: 'layer-bass', tolerance: 0 } }],
       stateBefore,
       stateAfter,
       approved: true,
@@ -379,8 +402,16 @@ describe('Invariant 3: Constraint Preservation', () => {
     // Add extra layer that shouldn't be touched
     stateAfter.layers = [
       ...stateAfter.layers,
-      { id: 'layer-keys', name: 'Keys', trackIds: ['track-keys'] },
-    ];
+      { 
+        id: 'layer-keys', 
+        name: 'Keys', 
+        role: 'keys',
+        notes: [],
+        muted: false,
+        volume: 0.8,
+        pan: 0
+      },
+    ] as readonly LayerSnapshot[];
 
     const operation = createTestOperation({
       effectType: 'mutate',
@@ -999,8 +1030,8 @@ describe('Real-World Scenario: Make it darker in the chorus', () => {
         parameters: ['brightness'],
       },
       constraints: [
-        { typeId: 'preserve_melody', params: { tolerance: 0 } },
-        { typeId: 'preserve_structure', params: {} },
+        { typeId: 'preserve_melody', params: { target: 'layer-bass', tolerance: 0 } },
+        { typeId: 'no_structural_change', params: {} },
       ],
       ambiguities: [],
       references: [
