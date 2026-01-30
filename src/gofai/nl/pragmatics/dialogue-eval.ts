@@ -1558,3 +1558,1379 @@ export function createCustomAnaphoraTest(
 ): AnaphoraTestCase {
   return { id, name, anaphoraType, description, contextTurns, testUtterance, expectation, tags };
 }
+
+// ===================== STEP 238: PRESUPPOSITION HANDLING TESTS =====================
+
+// ---- 238 Types ----
+
+/** Type of presupposition trigger word. */
+export type PresuppositionTrigger =
+  | 'again'
+  | 'still'
+  | 'back'
+  | 'keep'
+  | 'continue'
+  | 'no-longer'
+  | 'already'
+  | 'stop'
+  | 'another'
+  | 'also'
+  | 'too'
+  | 'yet'
+  | 'anymore';
+
+/** Outcome of a presupposition test. */
+export type PresuppositionOutcome =
+  | 'presupposition-satisfied'
+  | 'presupposition-failed'
+  | 'presupposition-accommodated'
+  | 'presupposition-repaired'
+  | 'presupposition-ignored';
+
+/** What condition the presupposition requires. */
+export interface PresuppositionExpectation {
+  readonly trigger: PresuppositionTrigger;
+  readonly requiredCondition: string;
+  readonly conditionMet: boolean;
+  readonly expectedOutcome: PresuppositionOutcome;
+  readonly shouldClarify: boolean;
+  readonly accommodationPossible: boolean;
+  readonly description: string;
+}
+
+/** Accommodation expectation: system fills in missing presupposition. */
+export interface AccommodationExpectation {
+  readonly triggerWord: string;
+  readonly missingPresupposition: string;
+  readonly accommodatedAs: string;
+  readonly accommodationType: 'global' | 'local' | 'intermediate';
+  readonly confidenceAfter: number;
+  readonly riskLevel: 'safe' | 'risky' | 'dangerous';
+}
+
+/** A single presupposition test case. */
+export interface PresuppositionTestCase {
+  readonly id: string;
+  readonly name: string;
+  readonly trigger: PresuppositionTrigger;
+  readonly description: string;
+  readonly contextTurns: readonly string[];
+  readonly testUtterance: string;
+  readonly expectation: PresuppositionExpectation;
+  readonly accommodation: AccommodationExpectation | null;
+  readonly tags: readonly string[];
+}
+
+/** Result from running a presupposition test. */
+export interface PresuppositionTestResult {
+  readonly testId: string;
+  readonly outcome: PresuppositionOutcome;
+  readonly triggerDetected: boolean;
+  readonly conditionChecked: boolean;
+  readonly conditionResult: boolean;
+  readonly clarificationIssued: boolean;
+  readonly accommodationApplied: boolean;
+  readonly correct: boolean;
+  readonly errorDetail: string;
+}
+
+/** Suite of presupposition tests. */
+export interface PresuppositionTestSuite {
+  readonly name: string;
+  readonly tests: readonly PresuppositionTestCase[];
+  readonly version: string;
+}
+
+/** Coverage metrics for presupposition tests. */
+export interface PresuppositionCoverage {
+  readonly totalTests: number;
+  readonly byTrigger: ReadonlyMap<string, number>;
+  readonly byOutcome: ReadonlyMap<string, number>;
+  readonly overallAccuracy: number;
+  readonly accommodationRate: number;
+  readonly failureRate: number;
+}
+
+// ---- 238 Test Case Data ----
+
+function buildAgainPresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-again-01', name: '"again" with antecedent action', trigger: 'again',
+      description: '"again" succeeds when antecedent action exists.',
+      contextTurns: ['quantize the hi-hats'],
+      testUtterance: 'do that again',
+      expectation: {
+        trigger: 'again', requiredCondition: 'previous-action-exists',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Previous quantize action satisfies "again"',
+      },
+      accommodation: null,
+      tags: ['again', 'satisfied'],
+    },
+    {
+      id: 'pre-again-02', name: '"again" without antecedent', trigger: 'again',
+      description: '"again" fails when no prior action exists.',
+      contextTurns: [],
+      testUtterance: 'do that again',
+      expectation: {
+        trigger: 'again', requiredCondition: 'previous-action-exists',
+        conditionMet: false, expectedOutcome: 'presupposition-failed',
+        shouldClarify: true, accommodationPossible: false,
+        description: 'No prior action: "again" presupposition fails',
+      },
+      accommodation: null,
+      tags: ['again', 'failure'],
+    },
+    {
+      id: 'pre-again-03', name: '"again" after undo', trigger: 'again',
+      description: '"again" after an undo should re-apply the undone action.',
+      contextTurns: ['add reverb to the vocals', 'undo that'],
+      testUtterance: 'again',
+      expectation: {
+        trigger: 'again', requiredCondition: 'previous-action-exists',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: '"again" re-applies the undone reverb addition',
+      },
+      accommodation: null,
+      tags: ['again', 'undo-redo'],
+    },
+    {
+      id: 'pre-again-04', name: '"again" on different target', trigger: 'again',
+      description: '"again" with new target still presupposes prior action.',
+      contextTurns: ['compress the drums'],
+      testUtterance: 'again on the bass',
+      expectation: {
+        trigger: 'again', requiredCondition: 'previous-action-exists',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Prior compress action satisfies; retargets to bass',
+      },
+      accommodation: null,
+      tags: ['again', 'retarget'],
+    },
+  ];
+}
+
+function buildStillPresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-still-01', name: '"still" with persisting state', trigger: 'still',
+      description: '"still" succeeds when the state persists.',
+      contextTurns: ['set the tempo to 120', 'add some drums'],
+      testUtterance: 'is it still at 120?',
+      expectation: {
+        trigger: 'still', requiredCondition: 'tempo-is-120',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Tempo unchanged; "still" is satisfied',
+      },
+      accommodation: null,
+      tags: ['still', 'satisfied', 'persistence'],
+    },
+    {
+      id: 'pre-still-02', name: '"still" after state change', trigger: 'still',
+      description: '"still" fails when the state has changed.',
+      contextTurns: ['set the tempo to 120', 'change the tempo to 140'],
+      testUtterance: 'is it still at 120?',
+      expectation: {
+        trigger: 'still', requiredCondition: 'tempo-is-120',
+        conditionMet: false, expectedOutcome: 'presupposition-failed',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Tempo was changed; "still" presupposition fails',
+      },
+      accommodation: null,
+      tags: ['still', 'failure', 'state-change'],
+    },
+    {
+      id: 'pre-still-03', name: '"still" with muted track', trigger: 'still',
+      description: '"still muted" checks if the mute persists.',
+      contextTurns: ['mute the bass track'],
+      testUtterance: 'is it still muted?',
+      expectation: {
+        trigger: 'still', requiredCondition: 'bass-is-muted',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Bass remains muted; presupposition holds',
+      },
+      accommodation: null,
+      tags: ['still', 'satisfied', 'boolean-state'],
+    },
+  ];
+}
+
+function buildBackPresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-back-01', name: '"back" with previous state', trigger: 'back',
+      description: '"go back" succeeds when history exists.',
+      contextTurns: ['set the key to D major', 'change to E minor'],
+      testUtterance: 'go back to D major',
+      expectation: {
+        trigger: 'back', requiredCondition: 'previous-state-exists',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'D major exists in history; "back" succeeds',
+      },
+      accommodation: null,
+      tags: ['back', 'satisfied', 'history'],
+    },
+    {
+      id: 'pre-back-02', name: '"back" without history', trigger: 'back',
+      description: '"go back" fails at the start of session.',
+      contextTurns: [],
+      testUtterance: 'go back',
+      expectation: {
+        trigger: 'back', requiredCondition: 'previous-state-exists',
+        conditionMet: false, expectedOutcome: 'presupposition-failed',
+        shouldClarify: true, accommodationPossible: false,
+        description: 'No history; "back" presupposition fails',
+      },
+      accommodation: null,
+      tags: ['back', 'failure', 'no-history'],
+    },
+    {
+      id: 'pre-back-03', name: '"bring back" a deleted element', trigger: 'back',
+      description: '"bring back" presupposes something was removed.',
+      contextTurns: ['delete the bridge section'],
+      testUtterance: 'bring back the bridge',
+      expectation: {
+        trigger: 'back', requiredCondition: 'element-was-deleted',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Bridge was deleted; "bring back" succeeds',
+      },
+      accommodation: null,
+      tags: ['back', 'restore', 'deletion'],
+    },
+  ];
+}
+
+function buildKeepPresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-keep-01', name: '"keep" with current property', trigger: 'keep',
+      description: '"keep" succeeds when property currently exists.',
+      contextTurns: ['set the reverb to hall'],
+      testUtterance: 'keep the reverb',
+      expectation: {
+        trigger: 'keep', requiredCondition: 'property-currently-set',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Reverb is set; "keep" creates preservation constraint',
+      },
+      accommodation: null,
+      tags: ['keep', 'satisfied', 'preservation'],
+    },
+    {
+      id: 'pre-keep-02', name: '"keep" with unset property', trigger: 'keep',
+      description: '"keep" on unset property needs accommodation.',
+      contextTurns: [],
+      testUtterance: 'keep the reverb',
+      expectation: {
+        trigger: 'keep', requiredCondition: 'property-currently-set',
+        conditionMet: false, expectedOutcome: 'presupposition-accommodated',
+        shouldClarify: true, accommodationPossible: true,
+        description: 'No reverb set; accommodation needed',
+      },
+      accommodation: {
+        triggerWord: 'keep',
+        missingPresupposition: 'reverb is currently active',
+        accommodatedAs: 'assume default reverb and preserve it',
+        accommodationType: 'local',
+        confidenceAfter: 0.6,
+        riskLevel: 'risky',
+      },
+      tags: ['keep', 'accommodation'],
+    },
+    {
+      id: 'pre-keep-03', name: '"keep it like this"', trigger: 'keep',
+      description: '"keep it like this" preserves current full state.',
+      contextTurns: ['set tempo to 120', 'add reverb', 'brighten the mix'],
+      testUtterance: 'keep it like this',
+      expectation: {
+        trigger: 'keep', requiredCondition: 'current-state-defined',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Current state exists; creates snapshot constraint',
+      },
+      accommodation: null,
+      tags: ['keep', 'snapshot', 'full-state'],
+    },
+  ];
+}
+
+function buildContinuePresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-cont-01', name: '"continue" with ongoing process', trigger: 'continue',
+      description: '"continue" succeeds when a process is in progress.',
+      contextTurns: ['start extending the chorus', 'add 2 more bars'],
+      testUtterance: 'continue',
+      expectation: {
+        trigger: 'continue', requiredCondition: 'process-in-progress',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Extension is ongoing; "continue" adds more',
+      },
+      accommodation: null,
+      tags: ['continue', 'satisfied', 'process'],
+    },
+    {
+      id: 'pre-cont-02', name: '"continue" without active process', trigger: 'continue',
+      description: '"continue" fails when no process is active.',
+      contextTurns: ['set the tempo to 100'],
+      testUtterance: 'continue',
+      expectation: {
+        trigger: 'continue', requiredCondition: 'process-in-progress',
+        conditionMet: false, expectedOutcome: 'presupposition-failed',
+        shouldClarify: true, accommodationPossible: false,
+        description: 'No ongoing process; "continue" fails',
+      },
+      accommodation: null,
+      tags: ['continue', 'failure'],
+    },
+    {
+      id: 'pre-cont-03', name: '"keep going"', trigger: 'continue',
+      description: '"keep going" is a variant of continue.',
+      contextTurns: ['generate a bassline', 'extend it by 4 bars'],
+      testUtterance: 'keep going',
+      expectation: {
+        trigger: 'continue', requiredCondition: 'process-in-progress',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Extension process active; "keep going" continues',
+      },
+      accommodation: null,
+      tags: ['continue', 'variant', 'keep-going'],
+    },
+  ];
+}
+
+function buildNoLongerPresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-nolonger-01', name: '"no longer" with active state', trigger: 'no-longer',
+      description: '"no longer" succeeds when state is currently active.',
+      contextTurns: ['the drums are muted'],
+      testUtterance: 'they should no longer be muted',
+      expectation: {
+        trigger: 'no-longer', requiredCondition: 'state-currently-active',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Drums are muted; "no longer" negates it',
+      },
+      accommodation: null,
+      tags: ['no-longer', 'satisfied', 'negation'],
+    },
+    {
+      id: 'pre-nolonger-02', name: '"no longer" with inactive state', trigger: 'no-longer',
+      description: '"no longer" on already-inactive state is vacuous.',
+      contextTurns: ['unmute the drums'],
+      testUtterance: 'the drums should no longer be muted',
+      expectation: {
+        trigger: 'no-longer', requiredCondition: 'state-currently-active',
+        conditionMet: false, expectedOutcome: 'presupposition-failed',
+        shouldClarify: false, accommodationPossible: true,
+        description: 'Already unmuted; vacuous but accommodated',
+      },
+      accommodation: {
+        triggerWord: 'no longer',
+        missingPresupposition: 'drums are currently muted',
+        accommodatedAs: 'acknowledge already unmuted, no-op',
+        accommodationType: 'global',
+        confidenceAfter: 0.8,
+        riskLevel: 'safe',
+      },
+      tags: ['no-longer', 'vacuous'],
+    },
+  ];
+}
+
+function buildAlreadyPresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-already-01', name: '"already" with completed action', trigger: 'already',
+      description: '"already" checks if action was done.',
+      contextTurns: ['add reverb to the vocals'],
+      testUtterance: 'I already added reverb',
+      expectation: {
+        trigger: 'already', requiredCondition: 'action-completed',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Reverb was added; "already" is satisfied',
+      },
+      accommodation: null,
+      tags: ['already', 'satisfied'],
+    },
+    {
+      id: 'pre-already-02', name: '"already" with uncompleted action', trigger: 'already',
+      description: '"already" fails when action was not done.',
+      contextTurns: [],
+      testUtterance: 'I already set the tempo',
+      expectation: {
+        trigger: 'already', requiredCondition: 'action-completed',
+        conditionMet: false, expectedOutcome: 'presupposition-failed',
+        shouldClarify: true, accommodationPossible: true,
+        description: 'No tempo set; "already" presupposition fails',
+      },
+      accommodation: {
+        triggerWord: 'already',
+        missingPresupposition: 'tempo was previously set',
+        accommodatedAs: 'assume user set tempo outside session, ask for value',
+        accommodationType: 'global',
+        confidenceAfter: 0.5,
+        riskLevel: 'risky',
+      },
+      tags: ['already', 'failure', 'accommodation'],
+    },
+  ];
+}
+
+function buildStopPresupTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-stop-01', name: '"stop" with active process', trigger: 'stop',
+      description: '"stop" succeeds when something is playing/looping.',
+      contextTurns: ['play the track'],
+      testUtterance: 'stop',
+      expectation: {
+        trigger: 'stop', requiredCondition: 'process-active',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Playback active; "stop" halts it',
+      },
+      accommodation: null,
+      tags: ['stop', 'satisfied'],
+    },
+    {
+      id: 'pre-stop-02', name: '"stop" with nothing active', trigger: 'stop',
+      description: '"stop" fails when nothing is active.',
+      contextTurns: [],
+      testUtterance: 'stop',
+      expectation: {
+        trigger: 'stop', requiredCondition: 'process-active',
+        conditionMet: false, expectedOutcome: 'presupposition-failed',
+        shouldClarify: true, accommodationPossible: false,
+        description: 'Nothing active; "stop" has no target',
+      },
+      accommodation: null,
+      tags: ['stop', 'failure'],
+    },
+  ];
+}
+
+function buildAnotherAlsoTests(): readonly PresuppositionTestCase[] {
+  return [
+    {
+      id: 'pre-another-01', name: '"another" presupposes prior instance', trigger: 'another',
+      description: '"another" requires a prior instance of the same type.',
+      contextTurns: ['add a piano track'],
+      testUtterance: 'add another piano track',
+      expectation: {
+        trigger: 'another', requiredCondition: 'prior-instance-exists',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Piano track exists; "another" adds second one',
+      },
+      accommodation: null,
+      tags: ['another', 'satisfied'],
+    },
+    {
+      id: 'pre-another-02', name: '"another" without prior instance', trigger: 'another',
+      description: '"another" with no prior instance needs accommodation.',
+      contextTurns: [],
+      testUtterance: 'add another reverb',
+      expectation: {
+        trigger: 'another', requiredCondition: 'prior-instance-exists',
+        conditionMet: false, expectedOutcome: 'presupposition-accommodated',
+        shouldClarify: false, accommodationPossible: true,
+        description: 'No prior reverb; accommodate as "add a reverb"',
+      },
+      accommodation: {
+        triggerWord: 'another',
+        missingPresupposition: 'a reverb already exists',
+        accommodatedAs: 'interpret as "add a reverb"',
+        accommodationType: 'local',
+        confidenceAfter: 0.7,
+        riskLevel: 'safe',
+      },
+      tags: ['another', 'accommodation'],
+    },
+    {
+      id: 'pre-also-01', name: '"also" presupposes prior similar action', trigger: 'also',
+      description: '"also" requires a previous similar action.',
+      contextTurns: ['add reverb to the drums'],
+      testUtterance: 'also add delay',
+      expectation: {
+        trigger: 'also', requiredCondition: 'prior-similar-action',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Prior effect addition; "also" adds another effect',
+      },
+      accommodation: null,
+      tags: ['also', 'satisfied'],
+    },
+    {
+      id: 'pre-too-01', name: '"too" presupposes parallel action', trigger: 'too',
+      description: '"too" implies same action applies to another target.',
+      contextTurns: ['compress the vocals'],
+      testUtterance: 'compress the guitars too',
+      expectation: {
+        trigger: 'too', requiredCondition: 'parallel-action-exists',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Compression on vocals; "too" extends to guitars',
+      },
+      accommodation: null,
+      tags: ['too', 'satisfied', 'parallel'],
+    },
+    {
+      id: 'pre-yet-01', name: '"yet" presupposes expected action', trigger: 'yet',
+      description: '"not yet" presupposes an expected action.',
+      contextTurns: ['we need to mix the track'],
+      testUtterance: 'I haven\'t mastered it yet',
+      expectation: {
+        trigger: 'yet', requiredCondition: 'expected-action-pending',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Mastering expected as part of workflow; "yet" satisfied',
+      },
+      accommodation: null,
+      tags: ['yet', 'satisfied', 'workflow'],
+    },
+    {
+      id: 'pre-anymore-01', name: '"anymore" with changed state', trigger: 'anymore',
+      description: '"don\'t need X anymore" presupposes X was needed.',
+      contextTurns: ['the placeholder beat was useful during writing'],
+      testUtterance: 'I don\'t need the click track anymore',
+      expectation: {
+        trigger: 'anymore', requiredCondition: 'was-previously-needed',
+        conditionMet: true, expectedOutcome: 'presupposition-satisfied',
+        shouldClarify: false, accommodationPossible: false,
+        description: 'Click was needed; "anymore" signals removal',
+      },
+      accommodation: null,
+      tags: ['anymore', 'satisfied'],
+    },
+  ];
+}
+
+// ---- 238 Functions ----
+
+/** Returns all presupposition test cases. */
+export function getPresuppositionTests(): readonly PresuppositionTestCase[] {
+  return [
+    ...buildAgainPresupTests(),
+    ...buildStillPresupTests(),
+    ...buildBackPresupTests(),
+    ...buildKeepPresupTests(),
+    ...buildContinuePresupTests(),
+    ...buildNoLongerPresupTests(),
+    ...buildAlreadyPresupTests(),
+    ...buildStopPresupTests(),
+    ...buildAnotherAlsoTests(),
+  ];
+}
+
+/** Simulates running a presupposition test. */
+export function runPresuppositionTest(testCase: PresuppositionTestCase): PresuppositionTestResult {
+  const exp = testCase.expectation;
+  const conditionResult = exp.conditionMet;
+  const accommodationApplied = !conditionResult && exp.accommodationPossible && testCase.accommodation !== null;
+
+  let outcome: PresuppositionOutcome;
+  if (conditionResult) {
+    outcome = 'presupposition-satisfied';
+  } else if (accommodationApplied) {
+    outcome = 'presupposition-accommodated';
+  } else {
+    outcome = 'presupposition-failed';
+  }
+
+  const correct = outcome === exp.expectedOutcome;
+
+  return {
+    testId: testCase.id,
+    outcome,
+    triggerDetected: true,
+    conditionChecked: true,
+    conditionResult,
+    clarificationIssued: exp.shouldClarify && !conditionResult,
+    accommodationApplied,
+    correct,
+    errorDetail: correct ? '' : `Expected ${exp.expectedOutcome}, got ${outcome}`,
+  };
+}
+
+/** Validates a presupposition test result. */
+export function validatePresuppositionResult(
+  result: PresuppositionTestResult,
+  testCase: PresuppositionTestCase
+): readonly string[] {
+  const issues: string[] = [];
+  const exp = testCase.expectation;
+
+  if (!result.triggerDetected) {
+    issues.push(`Trigger "${exp.trigger}" not detected in "${testCase.testUtterance}"`);
+  }
+
+  if (result.outcome !== exp.expectedOutcome) {
+    issues.push(`Expected outcome "${exp.expectedOutcome}", got "${result.outcome}"`);
+  }
+
+  if (exp.shouldClarify && !result.clarificationIssued && !exp.conditionMet) {
+    issues.push(`Expected clarification for failed presupposition but none issued`);
+  }
+
+  if (exp.accommodationPossible && !exp.conditionMet && !result.accommodationApplied && testCase.accommodation !== null) {
+    issues.push(`Accommodation was possible but not applied`);
+  }
+
+  if (testCase.accommodation !== null && result.accommodationApplied) {
+    const acc = testCase.accommodation;
+    if (acc.riskLevel === 'dangerous') {
+      issues.push(`Dangerous accommodation applied without user confirmation`);
+    }
+  }
+
+  return issues;
+}
+
+/** Formats a presupposition report. */
+export function formatPresuppositionReport(results: readonly PresuppositionTestResult[]): string {
+  const lines: string[] = [];
+  lines.push('=== Presupposition Handling Report ===');
+  lines.push(`Total tests: ${results.length}`);
+
+  const correct = results.filter(r => r.correct).length;
+  const satisfied = results.filter(r => r.outcome === 'presupposition-satisfied').length;
+  const failed = results.filter(r => r.outcome === 'presupposition-failed').length;
+  const accommodated = results.filter(r => r.outcome === 'presupposition-accommodated').length;
+
+  lines.push(`Correct: ${correct}/${results.length} (${((correct / Math.max(results.length, 1)) * 100).toFixed(1)}%)`);
+  lines.push(`Satisfied: ${satisfied} | Failed: ${failed} | Accommodated: ${accommodated}`);
+  lines.push('');
+
+  for (const r of results) {
+    const icon = r.correct ? '[OK]' : '[!!]';
+    lines.push(`${icon} ${r.testId}: ${r.outcome}`);
+    if (r.clarificationIssued) lines.push(`     Clarification issued`);
+    if (r.accommodationApplied) lines.push(`     Accommodation applied`);
+    if (r.errorDetail) lines.push(`     Error: ${r.errorDetail}`);
+  }
+
+  return lines.join('\n');
+}
+
+/** Returns presupposition tests filtered by trigger word. */
+export function getPresuppositionTestsByTrigger(trigger: PresuppositionTrigger): readonly PresuppositionTestCase[] {
+  return getPresuppositionTests().filter(t => t.trigger === trigger);
+}
+
+/** Returns total count of presupposition tests. */
+export function countPresuppositionTests(): number {
+  return getPresuppositionTests().length;
+}
+
+/** Returns coverage metrics for presupposition tests. */
+export function getPresuppositionTestCoverage(results: readonly PresuppositionTestResult[]): PresuppositionCoverage {
+  const tests = getPresuppositionTests();
+  const byTrigger = new Map<string, number>();
+  const byOutcome = new Map<string, number>();
+
+  for (const test of tests) {
+    byTrigger.set(test.trigger, (byTrigger.get(test.trigger) ?? 0) + 1);
+  }
+
+  let correctCount = 0;
+  let accommodationCount = 0;
+  let failureCount = 0;
+
+  for (const r of results) {
+    byOutcome.set(r.outcome, (byOutcome.get(r.outcome) ?? 0) + 1);
+    if (r.correct) correctCount++;
+    if (r.accommodationApplied) accommodationCount++;
+    if (r.outcome === 'presupposition-failed') failureCount++;
+  }
+
+  const total = Math.max(results.length, 1);
+
+  return {
+    totalTests: tests.length,
+    byTrigger,
+    byOutcome,
+    overallAccuracy: correctCount / total,
+    accommodationRate: accommodationCount / total,
+    failureRate: failureCount / total,
+  };
+}
+
+// ===================== STEP 239: QUD BEHAVIOR TESTS =====================
+
+// ---- 239 Types ----
+
+/** Type of QUD (Question Under Discussion) test. */
+export type QUDTestType =
+  | 'single-resolution'
+  | 'no-new-ambiguity'
+  | 'stack-behavior'
+  | 'inheritance'
+  | 'optimal-selection'
+  | 'batch-efficiency'
+  | 'expiry'
+  | 'priority'
+  | 'cascading'
+  | 'nested';
+
+/** Status of a QUD after a clarification round. */
+export type QUDStatus =
+  | 'open'
+  | 'resolved'
+  | 'expired'
+  | 'superseded'
+  | 'deferred'
+  | 'partially-resolved';
+
+/** Measures how much ambiguity was reduced. */
+export interface AmbiguityReduction {
+  readonly candidatesBefore: number;
+  readonly candidatesAfter: number;
+  readonly reductionRatio: number;
+  readonly fullyResolved: boolean;
+  readonly newAmbiguitiesIntroduced: number;
+  readonly netReduction: number;
+}
+
+/** Expectation for a QUD test. */
+export interface QUDExpectation {
+  readonly qudType: QUDTestType;
+  readonly initialAmbiguity: number;
+  readonly expectedReduction: AmbiguityReduction;
+  readonly expectedQUDStatus: QUDStatus;
+  readonly stackDepthBefore: number;
+  readonly stackDepthAfter: number;
+  readonly contextPreserved: boolean;
+  readonly description: string;
+}
+
+/** A single QUD test case. */
+export interface QUDTestCase {
+  readonly id: string;
+  readonly name: string;
+  readonly qudType: QUDTestType;
+  readonly description: string;
+  readonly ambiguousUtterance: string;
+  readonly clarificationQuestion: string;
+  readonly userResponse: string;
+  readonly expectation: QUDExpectation;
+  readonly tags: readonly string[];
+}
+
+/** Result from running a QUD test. */
+export interface QUDTestResult {
+  readonly testId: string;
+  readonly qudType: QUDTestType;
+  readonly ambiguityReduction: AmbiguityReduction;
+  readonly qudStatus: QUDStatus;
+  readonly correct: boolean;
+  readonly noNewAmbiguities: boolean;
+  readonly contextPreserved: boolean;
+  readonly errorDetail: string;
+}
+
+/** Suite of QUD tests. */
+export interface QUDTestSuite {
+  readonly name: string;
+  readonly tests: readonly QUDTestCase[];
+  readonly version: string;
+}
+
+/** Coverage metrics for QUD tests. */
+export interface QUDCoverage {
+  readonly totalTests: number;
+  readonly byType: ReadonlyMap<string, number>;
+  readonly overallAccuracy: number;
+  readonly avgReductionRatio: number;
+  readonly newAmbiguityRate: number;
+}
+
+// ---- 239 Test Case Data ----
+
+function buildSingleResolutionQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-sr-01', name: 'Single clarification resolves ambiguity', qudType: 'single-resolution',
+      description: 'One question fully resolves a two-way ambiguity.',
+      ambiguousUtterance: 'boost the bass',
+      clarificationQuestion: 'Do you mean the bass instrument or the low frequency range?',
+      userResponse: 'the instrument',
+      expectation: {
+        qudType: 'single-resolution', initialAmbiguity: 2,
+        expectedReduction: {
+          candidatesBefore: 2, candidatesAfter: 1, reductionRatio: 0.5,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 1,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'Binary ambiguity fully resolved',
+      },
+      tags: ['single', 'binary', 'full-resolution'],
+    },
+    {
+      id: 'qud-sr-02', name: 'Three-way ambiguity needs one question', qudType: 'single-resolution',
+      description: 'One question resolves a three-way ambiguity.',
+      ambiguousUtterance: 'change the sound',
+      clarificationQuestion: 'Which sound: the synth lead, the pad, or the bass?',
+      userResponse: 'the pad',
+      expectation: {
+        qudType: 'single-resolution', initialAmbiguity: 3,
+        expectedReduction: {
+          candidatesBefore: 3, candidatesAfter: 1, reductionRatio: 0.333,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 2,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'Three-way resolved in one step',
+      },
+      tags: ['single', 'ternary'],
+    },
+    {
+      id: 'qud-sr-03', name: 'Partial resolution leaves one question', qudType: 'single-resolution',
+      description: 'Question resolves one ambiguity but leaves another.',
+      ambiguousUtterance: 'make the loud part softer',
+      clarificationQuestion: 'Which loud part: the verse drums or the chorus guitars?',
+      userResponse: 'the chorus guitars',
+      expectation: {
+        qudType: 'single-resolution', initialAmbiguity: 2,
+        expectedReduction: {
+          candidatesBefore: 2, candidatesAfter: 1, reductionRatio: 0.5,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 1,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'Target disambiguation complete',
+      },
+      tags: ['single', 'reference'],
+    },
+  ];
+}
+
+function buildNoNewAmbiguityQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-nna-01', name: 'Clarification does not add ambiguity', qudType: 'no-new-ambiguity',
+      description: 'System question uses unambiguous wording.',
+      ambiguousUtterance: 'adjust the level',
+      clarificationQuestion: 'Do you want to adjust the volume fader or the send level?',
+      userResponse: 'the volume fader',
+      expectation: {
+        qudType: 'no-new-ambiguity', initialAmbiguity: 2,
+        expectedReduction: {
+          candidatesBefore: 2, candidatesAfter: 1, reductionRatio: 0.5,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 1,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'Question wording is unambiguous',
+      },
+      tags: ['no-new', 'clean-wording'],
+    },
+    {
+      id: 'qud-nna-02', name: 'Options presented distinctly', qudType: 'no-new-ambiguity',
+      description: 'Each option in clarification is clearly distinct.',
+      ambiguousUtterance: 'add some color',
+      clarificationQuestion: 'Add color via: (A) saturation/warmth, (B) chorus/modulation, or (C) harmonic distortion?',
+      userResponse: 'A',
+      expectation: {
+        qudType: 'no-new-ambiguity', initialAmbiguity: 3,
+        expectedReduction: {
+          candidatesBefore: 3, candidatesAfter: 1, reductionRatio: 0.333,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 2,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'Labeled options prevent new ambiguity',
+      },
+      tags: ['no-new', 'labeled-options'],
+    },
+    {
+      id: 'qud-nna-03', name: 'Poorly worded question introduces ambiguity', qudType: 'no-new-ambiguity',
+      description: 'Detects when a clarification introduces new confusion.',
+      ambiguousUtterance: 'make it brighter',
+      clarificationQuestion: 'Brighter as in EQ or timbre?',
+      userResponse: 'timbre... wait, what do you mean?',
+      expectation: {
+        qudType: 'no-new-ambiguity', initialAmbiguity: 2,
+        expectedReduction: {
+          candidatesBefore: 2, candidatesAfter: 2, reductionRatio: 1.0,
+          fullyResolved: false, newAmbiguitiesIntroduced: 1, netReduction: -1,
+        },
+        expectedQUDStatus: 'open', stackDepthBefore: 1, stackDepthAfter: 2,
+        contextPreserved: true, description: 'EQ vs timbre distinction unclear to user',
+      },
+      tags: ['no-new', 'bad-question', 'regression'],
+    },
+  ];
+}
+
+function buildStackBehaviorQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-stack-01', name: 'Sub-question resolves parent QUD', qudType: 'stack-behavior',
+      description: 'Answering sub-question also resolves the parent.',
+      ambiguousUtterance: 'fix the timing',
+      clarificationQuestion: 'Which track has timing issues?',
+      userResponse: 'the hi-hat — it\'s too late',
+      expectation: {
+        qudType: 'stack-behavior', initialAmbiguity: 4,
+        expectedReduction: {
+          candidatesBefore: 4, candidatesAfter: 1, reductionRatio: 0.25,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 3,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 2, stackDepthAfter: 0,
+        contextPreserved: true, description: 'User answer resolves both track and issue',
+      },
+      tags: ['stack', 'cascading-resolution'],
+    },
+    {
+      id: 'qud-stack-02', name: 'Nested QUD preserves outer context', qudType: 'stack-behavior',
+      description: 'Inner QUD resolution does not lose outer context.',
+      ambiguousUtterance: 'copy the pattern and modify it',
+      clarificationQuestion: 'Which pattern should I copy?',
+      userResponse: 'the drum pattern from bar 8',
+      expectation: {
+        qudType: 'stack-behavior', initialAmbiguity: 3,
+        expectedReduction: {
+          candidatesBefore: 3, candidatesAfter: 1, reductionRatio: 0.333,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 2,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 2, stackDepthAfter: 1,
+        contextPreserved: true, description: '"modify it" QUD still open after copy resolved',
+      },
+      tags: ['stack', 'nested', 'context-preservation'],
+    },
+    {
+      id: 'qud-stack-03', name: 'QUD stack depth limited', qudType: 'stack-behavior',
+      description: 'System limits QUD stack to avoid cascading confusion.',
+      ambiguousUtterance: 'adjust everything to match',
+      clarificationQuestion: 'What should I adjust?',
+      userResponse: 'the levels... and make them warmer',
+      expectation: {
+        qudType: 'stack-behavior', initialAmbiguity: 5,
+        expectedReduction: {
+          candidatesBefore: 5, candidatesAfter: 2, reductionRatio: 0.4,
+          fullyResolved: false, newAmbiguitiesIntroduced: 1, netReduction: 2,
+        },
+        expectedQUDStatus: 'partially-resolved', stackDepthBefore: 1, stackDepthAfter: 2,
+        contextPreserved: true, description: 'User introduces new sub-question',
+      },
+      tags: ['stack', 'depth-limit'],
+    },
+  ];
+}
+
+function buildInheritanceQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-inh-01', name: 'Answer carries forward context', qudType: 'inheritance',
+      description: 'Resolved QUD context persists for subsequent turns.',
+      ambiguousUtterance: 'brighten the mix',
+      clarificationQuestion: 'Brighten via high-shelf EQ or exciter?',
+      userResponse: 'high-shelf EQ',
+      expectation: {
+        qudType: 'inheritance', initialAmbiguity: 2,
+        expectedReduction: {
+          candidatesBefore: 2, candidatesAfter: 1, reductionRatio: 0.5,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 1,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'EQ choice carries forward if user says "more" later',
+      },
+      tags: ['inheritance', 'carry-forward'],
+    },
+    {
+      id: 'qud-inh-02', name: 'Inherited context used in next utterance', qudType: 'inheritance',
+      description: 'Previous clarification resolution informs next command.',
+      ambiguousUtterance: 'compress the vocals',
+      clarificationQuestion: 'Light compression or heavy limiting?',
+      userResponse: 'light',
+      expectation: {
+        qudType: 'inheritance', initialAmbiguity: 2,
+        expectedReduction: {
+          candidatesBefore: 2, candidatesAfter: 1, reductionRatio: 0.5,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 1,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: '"more" after this should mean more light compression',
+      },
+      tags: ['inheritance', 'degree-context'],
+    },
+    {
+      id: 'qud-inh-03', name: 'Inherited context overridden by explicit mention', qudType: 'inheritance',
+      description: 'Explicit new specification overrides inherited context.',
+      ambiguousUtterance: 'add effects',
+      clarificationQuestion: 'What type of effect?',
+      userResponse: 'reverb',
+      expectation: {
+        qudType: 'inheritance', initialAmbiguity: 5,
+        expectedReduction: {
+          candidatesBefore: 5, candidatesAfter: 1, reductionRatio: 0.2,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 4,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'If user later says "add delay", reverb context overridden',
+      },
+      tags: ['inheritance', 'override'],
+    },
+  ];
+}
+
+function buildOptimalSelectionQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-opt-01', name: 'Binary question maximizes information gain', qudType: 'optimal-selection',
+      description: 'With 4 candidates, best question splits into 2+2.',
+      ambiguousUtterance: 'change the instrument',
+      clarificationQuestion: 'Is it a melodic instrument (piano/guitar) or a rhythmic one (drums/percussion)?',
+      userResponse: 'melodic',
+      expectation: {
+        qudType: 'optimal-selection', initialAmbiguity: 4,
+        expectedReduction: {
+          candidatesBefore: 4, candidatesAfter: 2, reductionRatio: 0.5,
+          fullyResolved: false, newAmbiguitiesIntroduced: 0, netReduction: 2,
+        },
+        expectedQUDStatus: 'partially-resolved', stackDepthBefore: 1, stackDepthAfter: 1,
+        contextPreserved: true, description: 'Optimal binary split reduces 4 to 2',
+      },
+      tags: ['optimal', 'binary-split', 'information-gain'],
+    },
+    {
+      id: 'qud-opt-02', name: 'Question targets highest-entropy dimension', qudType: 'optimal-selection',
+      description: 'System asks about the most ambiguous dimension first.',
+      ambiguousUtterance: 'make the verse louder and brighter',
+      clarificationQuestion: 'Which tracks in the verse should be affected?',
+      userResponse: 'all of them',
+      expectation: {
+        qudType: 'optimal-selection', initialAmbiguity: 3,
+        expectedReduction: {
+          candidatesBefore: 3, candidatesAfter: 1, reductionRatio: 0.333,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 2,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'Scope question is highest entropy',
+      },
+      tags: ['optimal', 'entropy', 'scope'],
+    },
+  ];
+}
+
+function buildBatchEfficiencyQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-batch-01', name: 'Batch question resolves multiple ambiguities', qudType: 'batch-efficiency',
+      description: 'Single compound question addresses two ambiguities at once.',
+      ambiguousUtterance: 'add effects to the track and mix it down',
+      clarificationQuestion: 'Which effects and which output format?',
+      userResponse: 'reverb and delay, export as WAV',
+      expectation: {
+        qudType: 'batch-efficiency', initialAmbiguity: 4,
+        expectedReduction: {
+          candidatesBefore: 4, candidatesAfter: 1, reductionRatio: 0.25,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 3,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 2, stackDepthAfter: 0,
+        contextPreserved: true, description: 'Two questions resolved in one turn',
+      },
+      tags: ['batch', 'efficiency', 'compound'],
+    },
+    {
+      id: 'qud-batch-02', name: 'Batch question not too overwhelming', qudType: 'batch-efficiency',
+      description: 'System limits batch to 2-3 questions max.',
+      ambiguousUtterance: 'set up the whole arrangement with instruments and effects',
+      clarificationQuestion: 'Let\'s start with the instruments. What genre and tempo?',
+      userResponse: 'jazz at 120 bpm',
+      expectation: {
+        qudType: 'batch-efficiency', initialAmbiguity: 8,
+        expectedReduction: {
+          candidatesBefore: 8, candidatesAfter: 4, reductionRatio: 0.5,
+          fullyResolved: false, newAmbiguitiesIntroduced: 0, netReduction: 4,
+        },
+        expectedQUDStatus: 'partially-resolved', stackDepthBefore: 4, stackDepthAfter: 2,
+        contextPreserved: true, description: 'System wisely batches only 2 questions',
+      },
+      tags: ['batch', 'limit', 'cognitive-load'],
+    },
+  ];
+}
+
+function buildExpiryQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-exp-01', name: 'Old QUD expires after topic shift', qudType: 'expiry',
+      description: 'QUD from 5 turns ago is no longer relevant.',
+      ambiguousUtterance: 'change the sound',
+      clarificationQuestion: 'Which sound?',
+      userResponse: 'never mind, let\'s work on the drums instead',
+      expectation: {
+        qudType: 'expiry', initialAmbiguity: 3,
+        expectedReduction: {
+          candidatesBefore: 3, candidatesAfter: 3, reductionRatio: 1.0,
+          fullyResolved: false, newAmbiguitiesIntroduced: 0, netReduction: 0,
+        },
+        expectedQUDStatus: 'expired', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: false, description: 'Topic shift renders QUD irrelevant',
+      },
+      tags: ['expiry', 'topic-shift'],
+    },
+    {
+      id: 'qud-exp-02', name: 'QUD superseded by new command', qudType: 'expiry',
+      description: 'New explicit command supersedes pending clarification.',
+      ambiguousUtterance: 'adjust the mix',
+      clarificationQuestion: 'What aspect of the mix?',
+      userResponse: 'actually, just set everything to -6 dB',
+      expectation: {
+        qudType: 'expiry', initialAmbiguity: 4,
+        expectedReduction: {
+          candidatesBefore: 4, candidatesAfter: 0, reductionRatio: 0,
+          fullyResolved: false, newAmbiguitiesIntroduced: 0, netReduction: 4,
+        },
+        expectedQUDStatus: 'superseded', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: false, description: 'Explicit command replaces ambiguous one',
+      },
+      tags: ['expiry', 'superseded'],
+    },
+    {
+      id: 'qud-exp-03', name: 'Deferred QUD revisited', qudType: 'expiry',
+      description: 'User defers a question and comes back to it.',
+      ambiguousUtterance: 'process the vocals',
+      clarificationQuestion: 'What processing?',
+      userResponse: 'I\'ll decide later',
+      expectation: {
+        qudType: 'expiry', initialAmbiguity: 4,
+        expectedReduction: {
+          candidatesBefore: 4, candidatesAfter: 4, reductionRatio: 1.0,
+          fullyResolved: false, newAmbiguitiesIntroduced: 0, netReduction: 0,
+        },
+        expectedQUDStatus: 'deferred', stackDepthBefore: 1, stackDepthAfter: 0,
+        contextPreserved: true, description: 'QUD deferred, can be revisited',
+      },
+      tags: ['expiry', 'deferred', 'revisit'],
+    },
+  ];
+}
+
+function buildPriorityQUDTests(): readonly QUDTestCase[] {
+  return [
+    {
+      id: 'qud-pri-01', name: 'Critical question asked first', qudType: 'priority',
+      description: 'When multiple QUDs exist, system asks the blocking one first.',
+      ambiguousUtterance: 'delete some tracks and rebalance',
+      clarificationQuestion: 'Which tracks should I delete? (This affects the rebalance.)',
+      userResponse: 'the extra guitar layers',
+      expectation: {
+        qudType: 'priority', initialAmbiguity: 3,
+        expectedReduction: {
+          candidatesBefore: 3, candidatesAfter: 1, reductionRatio: 0.333,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 2,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 2, stackDepthAfter: 1,
+        contextPreserved: true, description: 'Deletion QUD prioritized because it gates rebalance',
+      },
+      tags: ['priority', 'blocking', 'dependency'],
+    },
+    {
+      id: 'qud-pri-02', name: 'Non-blocking question deferred', qudType: 'priority',
+      description: 'System defers cosmetic questions to handle critical ones.',
+      ambiguousUtterance: 'save the project with a new name and export a mixdown',
+      clarificationQuestion: 'What filename should I use for the save?',
+      userResponse: 'my-song-v2',
+      expectation: {
+        qudType: 'priority', initialAmbiguity: 2,
+        expectedReduction: {
+          candidatesBefore: 2, candidatesAfter: 1, reductionRatio: 0.5,
+          fullyResolved: true, newAmbiguitiesIntroduced: 0, netReduction: 1,
+        },
+        expectedQUDStatus: 'resolved', stackDepthBefore: 2, stackDepthAfter: 1,
+        contextPreserved: true, description: 'Save name asked first; export format deferred',
+      },
+      tags: ['priority', 'deferred-cosmetic'],
+    },
+  ];
+}
+
+// ---- 239 Functions ----
+
+/** Returns all QUD test cases. */
+export function getQUDTests(): readonly QUDTestCase[] {
+  return [
+    ...buildSingleResolutionQUDTests(),
+    ...buildNoNewAmbiguityQUDTests(),
+    ...buildStackBehaviorQUDTests(),
+    ...buildInheritanceQUDTests(),
+    ...buildOptimalSelectionQUDTests(),
+    ...buildBatchEfficiencyQUDTests(),
+    ...buildExpiryQUDTests(),
+    ...buildPriorityQUDTests(),
+  ];
+}
+
+/** Simulates running a QUD test. */
+export function runQUDTest(testCase: QUDTestCase): QUDTestResult {
+  const exp = testCase.expectation;
+  const expectedRed = exp.expectedReduction;
+
+  const ambiguityReduction: AmbiguityReduction = {
+    candidatesBefore: expectedRed.candidatesBefore,
+    candidatesAfter: expectedRed.candidatesAfter,
+    reductionRatio: expectedRed.reductionRatio,
+    fullyResolved: expectedRed.fullyResolved,
+    newAmbiguitiesIntroduced: expectedRed.newAmbiguitiesIntroduced,
+    netReduction: expectedRed.netReduction,
+  };
+
+  const noNewAmb = expectedRed.newAmbiguitiesIntroduced === 0;
+  const correct = noNewAmb && exp.contextPreserved;
+
+  return {
+    testId: testCase.id,
+    qudType: testCase.qudType,
+    ambiguityReduction,
+    qudStatus: exp.expectedQUDStatus,
+    correct,
+    noNewAmbiguities: noNewAmb,
+    contextPreserved: exp.contextPreserved,
+    errorDetail: correct ? '' : 'QUD behavior did not meet expectations',
+  };
+}
+
+/** Validates a QUD test result against expectations. */
+export function validateQUDResult(result: QUDTestResult, testCase: QUDTestCase): readonly string[] {
+  const issues: string[] = [];
+  const exp = testCase.expectation;
+
+  if (result.qudStatus !== exp.expectedQUDStatus) {
+    issues.push(`Expected QUD status "${exp.expectedQUDStatus}", got "${result.qudStatus}"`);
+  }
+
+  if (!result.noNewAmbiguities && testCase.qudType === 'no-new-ambiguity') {
+    issues.push('Clarification introduced new ambiguities');
+  }
+
+  if (!result.contextPreserved && exp.contextPreserved) {
+    issues.push('Context was not preserved across clarification');
+  }
+
+  const red = result.ambiguityReduction;
+  const expRed = exp.expectedReduction;
+
+  if (red.fullyResolved !== expRed.fullyResolved) {
+    issues.push(`Expected fullyResolved=${expRed.fullyResolved}, got ${red.fullyResolved}`);
+  }
+
+  if (red.netReduction < expRed.netReduction) {
+    issues.push(`Net reduction ${red.netReduction} less than expected ${expRed.netReduction}`);
+  }
+
+  return issues;
+}
+
+/** Formats a QUD report. */
+export function formatQUDReport(results: readonly QUDTestResult[]): string {
+  const lines: string[] = [];
+  lines.push('=== QUD Behavior Report ===');
+  lines.push(`Total tests: ${results.length}`);
+
+  const correct = results.filter(r => r.correct).length;
+  const noNewAmb = results.filter(r => r.noNewAmbiguities).length;
+  lines.push(`Correct: ${correct}/${results.length}`);
+  lines.push(`No new ambiguities: ${noNewAmb}/${results.length}`);
+  lines.push('');
+
+  let totalReduction = 0;
+  for (const r of results) {
+    const icon = r.correct ? '[OK]' : '[!!]';
+    lines.push(`${icon} ${r.testId} (${r.qudType}): status=${r.qudStatus}, reduction=${r.ambiguityReduction.netReduction}`);
+    if (r.errorDetail) lines.push(`     ${r.errorDetail}`);
+    totalReduction += r.ambiguityReduction.reductionRatio;
+  }
+
+  const avgRed = results.length > 0 ? totalReduction / results.length : 0;
+  lines.push('');
+  lines.push(`Average reduction ratio: ${avgRed.toFixed(3)}`);
+
+  return lines.join('\n');
+}
+
+/** Returns QUD tests filtered by type. */
+export function getQUDTestsByType(qudType: QUDTestType): readonly QUDTestCase[] {
+  return getQUDTests().filter(t => t.qudType === qudType);
+}
+
+/** Returns total count of QUD tests. */
+export function countQUDTests(): number {
+  return getQUDTests().length;
+}
+
+/** Measures ambiguity reduction across a set of results. */
+export function measureAmbiguityReduction(results: readonly QUDTestResult[]): {
+  readonly avgReduction: number;
+  readonly maxReduction: number;
+  readonly minReduction: number;
+  readonly fullyResolvedCount: number;
+  readonly newAmbiguityCount: number;
+} {
+  if (results.length === 0) {
+    return { avgReduction: 0, maxReduction: 0, minReduction: 0, fullyResolvedCount: 0, newAmbiguityCount: 0 };
+  }
+
+  let totalReduction = 0;
+  let maxReduction = -Infinity;
+  let minReduction = Infinity;
+  let fullyResolvedCount = 0;
+  let newAmbiguityCount = 0;
+
+  for (const r of results) {
+    const net = r.ambiguityReduction.netReduction;
+    totalReduction += net;
+    if (net > maxReduction) maxReduction = net;
+    if (net < minReduction) minReduction = net;
+    if (r.ambiguityReduction.fullyResolved) fullyResolvedCount++;
+    if (r.ambiguityReduction.newAmbiguitiesIntroduced > 0) newAmbiguityCount++;
+  }
+
+  return {
+    avgReduction: totalReduction / results.length,
+    maxReduction,
+    minReduction,
+    fullyResolvedCount,
+    newAmbiguityCount,
+  };
+}
+
+/** Returns coverage metrics for QUD tests. */
+export function getQUDTestCoverage(results: readonly QUDTestResult[]): QUDCoverage {
+  const tests = getQUDTests();
+  const byType = new Map<string, number>();
+
+  for (const t of tests) {
+    byType.set(t.qudType, (byType.get(t.qudType) ?? 0) + 1);
+  }
+
+  let correctCount = 0;
+  let totalReduction = 0;
+  let newAmbCount = 0;
+
+  for (const r of results) {
+    if (r.correct) correctCount++;
+    totalReduction += r.ambiguityReduction.reductionRatio;
+    if (!r.noNewAmbiguities) newAmbCount++;
+  }
+
+  const total = Math.max(results.length, 1);
+
+  return {
+    totalTests: tests.length,
+    byType,
+    overallAccuracy: correctCount / total,
+    avgReductionRatio: totalReduction / total,
+    newAmbiguityRate: newAmbCount / total,
+  };
+}

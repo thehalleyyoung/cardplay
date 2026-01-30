@@ -486,7 +486,8 @@ export type LexemeSemantics =
   | { type: 'comparison'; frame: string; [key: string]: any }
   | { type: 'structural_operation'; frame: string; [key: string]: any }
   | { type: 'collaborative_proposal'; frame: string; [key: string]: any }
-  | { type: 'dialogue_response'; frame: string; [key: string]: any };
+  | { type: 'dialogue_response'; frame: string; [key: string]: any }
+  | { type: 'dialogue_process'; frame: string; maps_to: string; [key: string]: any };
 
 /**
  * Reference types for pronouns and demonstratives.
@@ -689,6 +690,18 @@ export interface LeverMapping {
 /**
  * A section type in the vocabulary.
  */
+/**
+ * Role category for sections.
+ */
+export type SectionRole =
+  | 'opening' // Intro, beginning
+  | 'exposition' // Verse, storytelling
+  | 'buildup' // Pre-chorus, tension
+  | 'climax' // Chorus, hook
+  | 'contrast' // Bridge, departure
+  | 'release' // Breakdown, respite
+  | 'closing'; // Outro, ending
+
 export interface SectionType {
   /** Stable identifier */
   readonly id: SectionTypeId;
@@ -698,6 +711,9 @@ export interface SectionType {
 
   /** Variant names and abbreviations */
   readonly variants: readonly string[];
+
+  /** Role category */
+  readonly role: SectionRole;
 
   /** Description */
   readonly description: string;

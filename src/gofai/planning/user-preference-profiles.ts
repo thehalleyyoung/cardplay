@@ -567,7 +567,7 @@ export function applyPreferencesToLeverWeights(
  * Scale a parameter change amount by user preferences.
  */
 export function scaleParameterByPreferences(
-  paramName: string,
+  _paramName: string,
   paramType: string,
   axis: AxisId,
   baseAmount: number,

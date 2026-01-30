@@ -6,9 +6,10 @@
  * @module @cardplay/boards/__tests__/board-factory-validation.test.ts
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { DECK_TYPES } from '../../canon';
 import { getDeckFactoryRegistry } from '../decks/factory-registry';
+import { registerBuiltinDeckFactories } from '../decks/factories';
 
 // Import all builtin boards
 import { basicTrackerBoard } from '../builtins/basic-tracker-board';
@@ -58,6 +59,11 @@ const ALL_BUILTIN_BOARDS: Board[] = [
 // ============================================================================
 
 describe('B134: Board Factory Validation', () => {
+  // Register all builtin deck factories before tests
+  beforeAll(() => {
+    registerBuiltinDeckFactories();
+  });
+
   /**
    * Collect all unique deck types from all builtin boards.
    */

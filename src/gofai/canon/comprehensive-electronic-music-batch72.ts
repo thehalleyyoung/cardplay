@@ -15,8 +15,8 @@
  * @module gofai/canon/comprehensive-electronic-music-batch72
  */
 
-import type { Lexeme, LexemeSemantics } from './types';
-import { createLexemeId, type LexemeId } from './gofai-id';
+import type { Lexeme } from './types';
+import { createLexemeId } from './types';
 
 // =============================================================================
 // House Music Terms
@@ -24,117 +24,102 @@ import { createLexemeId, type LexemeId } from './gofai-id';
 
 export const houseMusicLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:genre:house'),
+    id: createLexemeId('house'),
     lemma: 'house',
     variants: ['house music', 'chicago house', '4-on-the-floor'],
     category: 'noun',
-    domain: 'genre',
     semantics: {
-      type: 'genre',
+      type: 'entity',
+      entityType: 'genre',
       tempo_range: [120, 130],
       characteristics: ['4-on-the-floor', 'repetitive', 'danceable'],
       origin: 'chicago',
       era: '1980s',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Electronic dance music with steady 4/4 beat',
-      examples: [
-        'make it house',
-        'house music groove',
-        'four-on-the-floor feel',
-      ],
-      culturalContext: 'Originated in Chicago in the 1980s; foundational EDM genre',
     },
+    description: 'Electronic dance music with steady 4/4 beat (originated in Chicago in the 1980s; foundational EDM genre)',
+    examples: [
+      'make it house',
+      'house music groove',
+      'four-on-the-floor feel',
+    ],
   },
   
   {
-    id: createLexemeId('lex:genre:deep-house'),
+    id: createLexemeId('deep-house'),
     lemma: 'deep house',
     variants: ['deep', 'soulful house'],
     category: 'noun',
-    domain: 'genre',
     semantics: {
-      type: 'genre',
+      type: 'entity',
+      entityType: 'genre',
       parent_genre: 'house',
       tempo_range: [120, 125],
       characteristics: ['warm', 'atmospheric', 'soulful'],
       mood: 'relaxed',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'House subgenre with warm, soulful character',
-      examples: [
-        'make it deep house',
-        'warm and atmospheric',
-      ],
-      culturalContext: 'Emphasizes groove and atmosphere over energy',
     },
+    description: 'House subgenre with warm, soulful character (emphasizes groove and atmosphere over energy)',
+    examples: [
+      'make it deep house',
+      'warm and atmospheric',
+    ],
   },
   
   {
-    id: createLexemeId('lex:genre:tech-house'),
+    id: createLexemeId('tech-house'),
     lemma: 'tech house',
     variants: ['techy', 'minimal house'],
     category: 'noun',
-    domain: 'genre',
     semantics: {
-      type: 'genre',
+      type: 'entity',
+      entityType: 'genre',
       parent_genre: 'house',
       tempo_range: [125, 130],
       characteristics: ['mechanical', 'stripped', 'groovy'],
       production_style: 'minimal',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'House with techno influences; stripped-down groove',
-      examples: [
-        'make it tech house',
-        'mechanical groove',
-      ],
-      culturalContext: 'Blend of house groove with techno minimalism',
     },
+    description: 'House with techno influences; stripped-down groove (blend of house groove with techno minimalism)',
+    examples: [
+      'make it tech house',
+      'mechanical groove',
+    ],
   },
   
   {
-    id: createLexemeId('lex:technique:filter-sweep'),
+    id: createLexemeId('filter-sweep'),
     lemma: 'filter sweep',
     variants: ['filter automation', 'sweeping filter', 'resonant sweep'],
     category: 'noun',
-    domain: 'production',
     semantics: {
-      type: 'production_technique',
-      category: 'filtering',
+      type: 'entity',
+      entityType: 'technique',
+      category: 'modulation',
       affects: 'timbre',
       character: 'dynamic',
       typical_use: 'buildups',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Automated filter cutoff movement, classic in house music',
-      examples: [
-        'add filter sweep',
-        'automate the filter cutoff',
-      ],
-      culturalContext: 'Essential house music technique for builds and transitions',
     },
+    description: 'Automated filter cutoff movement, classic in house music (essential house music technique for builds and transitions)',
+    examples: [
+      'add filter sweep',
+      'automate the filter cutoff',
+    ],
   },
   
   {
-    id: createLexemeId('lex:pattern:groove-shuffle'),
+    id: createLexemeId('shuffle'),
     lemma: 'shuffle',
     variants: ['shuffled', 'swing', 'shuffly'],
     category: 'noun',
-    domain: 'rhythm',
     semantics: {
-      type: 'rhythm_feel',
+      type: 'entity',
+      entityType: 'rhythm',
       characteristic: 'swung_16ths',
       amount: 'subtle_to_moderate',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Subtle timing offset creating swing feel',
-      examples: [
-        'add some shuffle',
-        'shuffle the hi-hats',
-      ],
-      culturalContext: 'Adds organic feel to electronic music',
     },
+    description: 'Subtle timing offset creating swing feel (adds organic feel to electronic music)',
+    examples: [
+      'add some shuffle',
+      'shuffle the hi-hats',
+    ],
   },
 ];
 
@@ -144,92 +129,80 @@ export const houseMusicLexemes: readonly Lexeme[] = [
 
 export const technoLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:genre:techno'),
+    id: createLexemeId('techno'),
     lemma: 'techno',
     variants: ['detroit techno', 'industrial techno'],
     category: 'noun',
-    domain: 'genre',
     semantics: {
-      type: 'genre',
+      type: 'entity',
+      entityType: 'genre',
       tempo_range: [125, 135],
       characteristics: ['repetitive', 'mechanical', 'hypnotic'],
       origin: 'detroit',
       era: '1980s',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Electronic music emphasizing repetition and machine aesthetics',
-      examples: [
-        'make it techno',
-        'mechanical and hypnotic',
-      ],
-      culturalContext: 'Originated in Detroit; emphasizes futurism and technology',
     },
+    description: 'Electronic music emphasizing repetition and machine aesthetics (originated in Detroit; emphasizes futurism and technology)',
+    examples: [
+      'make it techno',
+      'mechanical and hypnotic',
+    ],
   },
   
   {
-    id: createLexemeId('lex:genre:acid-techno'),
+    id: createLexemeId('acid-techno'),
     lemma: 'acid techno',
     variants: ['acid', 'acidic'],
     category: 'noun',
-    domain: 'genre',
     semantics: {
-      type: 'genre',
+      type: 'entity',
+      entityType: 'genre',
       parent_genre: 'techno',
       tempo_range: [130, 140],
       characteristics: ['squelchy', 'resonant', 'aggressive'],
       iconic_instrument: 'tb303',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Techno featuring squelchy 303-style basslines',
-      examples: [
-        'make it acid techno',
-        'squelchy 303 sound',
-      ],
-      culturalContext: 'Defined by Roland TB-303 bass synthesizer sound',
     },
+    description: 'Techno featuring squelchy 303-style basslines (defined by Roland TB-303 bass synthesizer sound)',
+    examples: [
+      'make it acid techno',
+      'squelchy 303 sound',
+    ],
   },
   
   {
-    id: createLexemeId('lex:technique:303-bassline'),
+    id: createLexemeId('303-bassline'),
     lemma: '303 bassline',
     variants: ['acid bassline', 'squelchy bass', 'resonant bass'],
     category: 'noun',
-    domain: 'sound',
     semantics: {
-      type: 'sound_type',
+      type: 'entity',
+      entityType: 'effect',
       instrument: 'tb303',
       characteristics: ['squelchy', 'resonant', 'gliding'],
       iconic: true,
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Characteristic squelchy bassline from Roland TB-303',
-      examples: [
-        'add 303 bassline',
-        'make it squelchy',
-      ],
-      culturalContext: 'Defined acid house and acid techno genres',
     },
+    description: 'Characteristic squelchy bassline from Roland TB-303 (defined acid house and acid techno genres)',
+    examples: [
+      'add 303 bassline',
+      'make it squelchy',
+    ],
   },
   
   {
-    id: createLexemeId('lex:technique:industrial'),
+    id: createLexemeId('industrial'),
     lemma: 'industrial',
     variants: ['industrial sound', 'harsh', 'metallic'],
-    category: 'adjective',
-    domain: 'timbre',
+    category: 'adj',
     semantics: {
-      type: 'timbre_quality',
+      type: 'entity',
+      entityType: 'texture',
       characteristics: ['harsh', 'metallic', 'aggressive'],
       frequency_emphasis: 'midrange',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Harsh, metallic, machine-like sonic character',
-      examples: [
-        'make it more industrial',
-        'harsh metallic sound',
-      ],
-      culturalContext: 'Associated with industrial music and techno',
     },
+    description: 'Harsh, metallic, machine-like sonic character (associated with industrial music and techno)',
+    examples: [
+      'make it more industrial',
+      'harsh metallic sound',
+    ],
   },
 ];
 
@@ -239,136 +212,80 @@ export const technoLexemes: readonly Lexeme[] = [
 
 export const bassLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:genre:dubstep'),
+    id: createLexemeId('dubstep'),
     lemma: 'dubstep',
     variants: ['dub step', 'dubby'],
     category: 'noun',
-    domain: 'genre',
     semantics: {
-      type: 'genre',
+      type: 'entity',
+      entityType: 'genre',
       tempo_range: [140, 140], // Typically exactly 140 BPM
       characteristics: ['heavy_bass', 'syncopated', 'sparse'],
       origin: 'uk',
       era: '2000s',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'UK bass music with sub-bass emphasis and syncopated rhythms',
-      examples: [
-        'make it dubstep',
-        'heavy bass and half-time feel',
-      ],
-      culturalContext: 'Evolved from UK garage; emphasizes sub-bass frequencies',
     },
+    description: 'UK bass music with sub-bass emphasis and syncopated rhythms (evolved from UK garage; emphasizes sub-bass frequencies)',
+    examples: [
+      'make it dubstep',
+      'heavy bass and half-time feel',
+    ],
   },
   
   {
-    id: createLexemeId('lex:technique:wobble'),
+    id: createLexemeId('wobble'),
     lemma: 'wobble',
     variants: ['wobble bass', 'wub', 'lfo bass'],
     category: 'noun',
-    domain: 'sound',
     semantics: {
-      type: 'sound_type',
+      type: 'entity',
+      entityType: 'effect',
       technique: 'lfo_modulation',
       characteristics: ['modulated', 'rhythmic', 'aggressive'],
       typical_genre: 'dubstep',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Rhythmically modulated bass sound, signature of dubstep',
-      examples: [
-        'add wobble bass',
-        'make it wub',
-      ],
-      culturalContext: 'Defining characteristic of modern dubstep',
     },
+    description: 'Rhythmically modulated bass sound, signature of dubstep (defining characteristic of modern dubstep)',
+    examples: [
+      'add wobble bass',
+      'make it wub',
+    ],
   },
   
   {
-    id: createLexemeId('lex:technique:sub-bass'),
+    id: createLexemeId('sub-bass'),
     lemma: 'sub bass',
     variants: ['sub', 'sub-bass', 'low end'],
     category: 'noun',
-    domain: 'frequency',
     semantics: {
-      type: 'frequency_range',
+      type: 'entity',
+      entityType: 'effect',
       range: [20, 60],
       unit: 'Hz',
       character: 'felt',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Very low frequency bass content (below ~60 Hz)',
-      examples: [
-        'add more sub bass',
-        'boost the low end',
-      ],
-      culturalContext: 'Essential in dubstep, trap, and bass music',
     },
+    description: 'Very low frequency bass content (below ~60 Hz; essential in dubstep, trap, and bass music)',
+    examples: [
+      'add more sub bass',
+      'boost the low end',
+    ],
   },
   
   {
-    id: createLexemeId('lex:pattern:half-time'),
+    id: createLexemeId('half-time'),
     lemma: 'half time',
-    variants: ['half-time', 'halftime'],
+    variants: ['half-time', 'halftime', 'slow down'],
     category: 'noun',
-    domain: 'rhythm',
     semantics: {
-      type: 'rhythm_feel',
-      tempo_perception: 'half',
-      typical_use: 'drops',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Rhythm that sounds half as fast while maintaining tempo',
-      examples: [
-        'go into half time',
-        'half-time drop',
-      ],
-      culturalContext: 'Creates dramatic impact in electronic music',
+      type: 'entity',
+      entityType: 'rhythm',
+      pattern: 'half_speed_drums',
+      effect: 'heavy',
+      typical_genre: 'dubstep',
     },
-  },
-  
-  {
-    id: createLexemeId('lex:genre:drum-and-bass'),
-    lemma: 'drum and bass',
-    variants: ['dnb', 'd&b', 'jungle'],
-    category: 'noun',
-    domain: 'genre',
-    semantics: {
-      type: 'genre',
-      tempo_range: [160, 180],
-      characteristics: ['fast_breaks', 'heavy_bass', 'syncopated'],
-      origin: 'uk',
-      era: '1990s',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Fast breakbeat-based electronic music with prominent bass',
-      examples: [
-        'make it drum and bass',
-        'fast breakbeats',
-      ],
-      culturalContext: 'Evolved from jungle; characterized by fast tempo and complex breaks',
-    },
-  },
-  
-  {
-    id: createLexemeId('lex:technique:reese-bass'),
-    lemma: 'reese bass',
-    variants: ['reese', 'detuned bass', 'thick bass'],
-    category: 'noun',
-    domain: 'sound',
-    semantics: {
-      type: 'sound_type',
-      technique: 'detuned_saws',
-      characteristics: ['thick', 'rich', 'modulated'],
-      typical_genre: 'drum_and_bass',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Thick bass created from detuned sawtooth waves',
-      examples: [
-        'use reese bass',
-        'thick detuned bass',
-      ],
-      culturalContext: 'Named after Kevin Saunderson track "Just Want Another Chance"',
-    },
+    description: 'Drums that feel half-speed while tempo stays constant (creates heavy, impactful sections in dubstep)',
+    examples: [
+      'make it half time',
+      'halftime drums',
+    ],
   },
 ];
 
@@ -378,114 +295,61 @@ export const bassLexemes: readonly Lexeme[] = [
 
 export const trapLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:genre:trap'),
+    id: createLexemeId('trap'),
     lemma: 'trap',
     variants: ['trap music', 'trap beat'],
     category: 'noun',
-    domain: 'genre',
     semantics: {
-      type: 'genre',
-      tempo_range: [130, 160],
-      characteristics: ['808s', 'hi_hat_rolls', 'snare_rolls'],
+      type: 'entity',
+      entityType: 'genre',
+      tempo_range: [130, 170],
+      characteristics: ['rolling_hihats', 'heavy_808', 'sparse'],
       origin: 'southern_us',
       era: '2000s',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Hip-hop subgenre with 808 drums and rolling hi-hats',
-      examples: [
-        'make it trap',
-        'trap beat with 808s',
-      ],
-      culturalContext: 'Southern hip-hop style; now influences EDM',
     },
+    description: 'Hip-hop subgenre featuring rolling hi-hats and heavy 808 bass (originated in Southern US; defines modern hip-hop production)',
+    examples: [
+      'make it trap',
+      'trap beat with rolling hats',
+    ],
   },
   
   {
-    id: createLexemeId('lex:instrument:808'),
+    id: createLexemeId('808'),
     lemma: '808',
-    variants: ['808 kick', '808 bass', 'roland 808'],
+    variants: ['808 bass', 'eight-oh-eight', 'roland 808'],
     category: 'noun',
-    domain: 'sound',
     semantics: {
-      type: 'sound_type',
+      type: 'entity',
+      entityType: 'effect',
       instrument: 'tr808',
-      element: 'bass_drum',
-      characteristics: ['deep', 'sustained', 'punchy'],
+      characteristics: ['punchy', 'boomy', 'pitched'],
       iconic: true,
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Iconic deep bass drum from Roland TR-808',
-      examples: [
-        'use 808 bass',
-        'add heavy 808s',
-      ],
-      culturalContext: 'Foundational sound in hip-hop, trap, and electronic music',
     },
+    description: 'Characteristic bass drum from Roland TR-808 (defined hip-hop and trap production)',
+    examples: [
+      'add 808 bass',
+      'boost the 808',
+    ],
   },
   
   {
-    id: createLexemeId('lex:pattern:hi-hat-roll'),
-    lemma: 'hi-hat roll',
-    variants: ['hat roll', 'rapid hats', 'hi-hat triplets'],
+    id: createLexemeId('hi-hat-rolls'),
+    lemma: 'hi-hat rolls',
+    variants: ['rolls', 'rolling hats', 'hat rolls'],
     category: 'noun',
-    domain: 'rhythm',
     semantics: {
-      type: 'rhythm_pattern',
-      element: 'hi_hats',
-      characteristics: ['rapid', 'triplets', 'rolls'],
+      type: 'entity',
+      entityType: 'rhythm',
+      pattern: 'triplet_rolls',
       typical_genre: 'trap',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Rapid hi-hat pattern, signature of trap',
-      examples: [
-        'add hi-hat rolls',
-        'rapid hat pattern',
-      ],
-      culturalContext: 'Defines modern trap production',
+      function: 'fills',
     },
-  },
-  
-  {
-    id: createLexemeId('lex:pattern:snare-roll'),
-    lemma: 'snare roll',
-    variants: ['roll', 'drum roll', 'buildup'],
-    category: 'noun',
-    domain: 'rhythm',
-    semantics: {
-      type: 'rhythm_pattern',
-      element: 'snare',
-      characteristics: ['accelerating', 'tension_building'],
-      function: 'transition',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Accelerating snare hits building to a drop',
-      examples: [
-        'add snare roll',
-        'build tension with rolls',
-      ],
-      culturalContext: 'Common transition/buildup device',
-    },
-  },
-  
-  {
-    id: createLexemeId('lex:technique:chopped'),
-    lemma: 'chopped',
-    variants: ['chopping', 'chop', 'vocal chops'],
-    category: 'adjective',
-    domain: 'production',
-    semantics: {
-      type: 'editing_technique',
-      method: 'rhythmic_slicing',
-      typical_material: 'vocals',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Rhythmically sliced and rearranged audio',
-      examples: [
-        'chop the vocals',
-        'add vocal chops',
-      ],
-      culturalContext: 'Popular in trap and future bass',
-    },
+    description: 'Rapid hi-hat triplets used as fills in trap music (signature rhythmic element of trap)',
+    examples: [
+      'add hi-hat rolls',
+      'rolling hats on the snares',
+    ],
   },
 ];
 
@@ -495,332 +359,206 @@ export const trapLexemes: readonly Lexeme[] = [
 
 export const ambientLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:genre:ambient'),
+    id: createLexemeId('ambient'),
     lemma: 'ambient',
-    variants: ['ambient music', 'atmospheric'],
-    category: 'noun',
-    domain: 'genre',
+    variants: ['atmospheric', 'ethereal', 'spacious'],
+    category: 'adj',
     semantics: {
-      type: 'genre',
-      tempo: 'variable',
-      characteristics: ['atmospheric', 'textural', 'non_rhythmic'],
-      function: 'background',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Atmospheric music emphasizing tone and atmosphere over rhythm',
-      examples: [
-        'make it ambient',
-        'atmospheric and spacious',
-      ],
-      culturalContext: 'Pioneered by Brian Eno; "music as atmosphere"',
+      type: 'entity',
+      entityType: 'genre',
+      tempo_range: [60, 100],
+      characteristics: ['textural', 'evolving', 'immersive'],
+      emphasis: 'atmosphere_over_rhythm',
     },
+    description: 'Atmospheric, texture-focused music (emphasizes space and mood over rhythm and melody)',
+    examples: [
+      'make it ambient',
+      'more atmospheric',
+      'ethereal textures',
+    ],
   },
   
   {
-    id: createLexemeId('lex:technique:pad'),
+    id: createLexemeId('pad'),
     lemma: 'pad',
-    variants: ['synth pad', 'pad sound', 'atmospheric pad'],
+    variants: ['synth pad', 'atmospheric pad', 'string pad'],
     category: 'noun',
-    domain: 'sound',
     semantics: {
-      type: 'sound_type',
-      role: 'harmonic_background',
-      characteristics: ['sustained', 'evolving', 'atmospheric'],
-      function: 'filling',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Sustained atmospheric synthesizer sound',
-      examples: [
-        'add a pad',
-        'lush synth pad',
-      ],
-      culturalContext: 'Essential for creating atmosphere and space',
+      type: 'entity',
+      entityType: 'instrument',
+      function: 'harmonic_fill',
+      characteristics: ['sustained', 'evolving', 'textural'],
     },
+    description: 'Sustained synthesizer sound providing harmonic foundation (essential in ambient and electronic music)',
+    examples: [
+      'add a pad',
+      'warm synth pad',
+    ],
   },
   
   {
-    id: createLexemeId('lex:technique:drone'),
+    id: createLexemeId('drone'),
     lemma: 'drone',
-    variants: ['droning', 'sustained tone', 'pedal point'],
+    variants: ['droning', 'sustained tone'],
     category: 'noun',
-    domain: 'harmony',
     semantics: {
-      type: 'harmonic_device',
-      characteristics: ['sustained', 'unchanging', 'hypnotic'],
-      function: 'foundation',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Sustained or repeated note creating harmonic foundation',
-      examples: [
-        'add a drone',
-        'sustain a low drone',
-      ],
-      culturalContext: 'Ancient technique; used in ambient and experimental music',
+      type: 'entity',
+      entityType: 'texture',
+      characteristic: 'sustained_pitch',
+      function: 'tonal_center',
+      typical_genre: 'ambient',
     },
-  },
-  
-  {
-    id: createLexemeId('lex:technique:wash'),
-    lemma: 'wash',
-    variants: ['washy', 'washed out', 'reverb wash'],
-    category: 'noun',
-    domain: 'production',
-    semantics: {
-      type: 'production_characteristic',
-      technique: 'heavy_reverb',
-      character: 'diffuse',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Heavily reverberated, diffuse sound',
-      examples: [
-        'add reverb wash',
-        'make it washy',
-      ],
-      culturalContext: 'Creates depth and atmosphere',
-    },
+    description: 'Long sustained tone providing tonal foundation (creates meditative, immersive quality)',
+    examples: [
+      'add a drone',
+      'droning bass',
+    ],
   },
 ];
 
 // =============================================================================
-// Synthesis & Modulation Terms
+// Synthesis & Sound Design Terms
 // =============================================================================
 
 export const synthesisLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:synthesis:lfo'),
+    id: createLexemeId('lfo'),
     lemma: 'LFO',
     variants: ['low frequency oscillator', 'modulation'],
     category: 'noun',
-    domain: 'synthesis',
     semantics: {
-      type: 'modulation_source',
-      frequency_range: 'sub_audio',
-      typical_targets: ['pitch', 'filter', 'amplitude'],
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Low-frequency oscillator for modulation',
-      examples: [
-        'add LFO modulation',
-        'modulate with LFO',
-      ],
-      culturalContext: 'Fundamental synthesis component',
+      type: 'entity',
+      entityType: 'technique',
+      category: 'modulation',
+      function: 'parameter_modulation',
+      typical_targets: ['filter', 'pitch', 'amplitude'],
     },
+    description: 'Low frequency oscillator for parameter modulation (fundamental synthesis technique)',
+    examples: [
+      'add LFO modulation',
+      'modulate with an LFO',
+    ],
   },
   
   {
-    id: createLexemeId('lex:synthesis:envelope'),
+    id: createLexemeId('envelope'),
     lemma: 'envelope',
-    variants: ['ADSR', 'envelope generator', 'contour'],
+    variants: ['ADSR', 'attack decay sustain release'],
     category: 'noun',
-    domain: 'synthesis',
     semantics: {
-      type: 'modulation_source',
-      stages: ['attack', 'decay', 'sustain', 'release'],
-      trigger: 'note_on',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Time-varying modulation triggered by notes',
-      examples: [
-        'adjust the envelope',
-        'fast attack envelope',
-      ],
-      culturalContext: 'Shapes sound evolution over time',
+      type: 'entity',
+      entityType: 'technique',
+      category: 'shaping',
+      function: 'amplitude_shaping',
+      components: ['attack', 'decay', 'sustain', 'release'],
     },
+    description: 'Amplitude envelope shaping note dynamics (fundamental synthesis element)',
+    examples: [
+      'adjust the envelope',
+      'longer attack',
+      'faster release',
+    ],
   },
   
   {
-    id: createLexemeId('lex:synthesis:oscillator'),
-    lemma: 'oscillator',
-    variants: ['osc', 'VCO', 'waveform generator'],
-    category: 'noun',
-    domain: 'synthesis',
-    semantics: {
-      type: 'tone_generator',
-      waveforms: ['sine', 'saw', 'square', 'triangle'],
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Basic tone generator in synthesizer',
-      examples: [
-        'add another oscillator',
-        'detune the oscillators',
-      ],
-      culturalContext: 'Source of raw sound in synthesis',
-    },
-  },
-  
-  {
-    id: createLexemeId('lex:synthesis:filter-resonance'),
+    id: createLexemeId('resonance'),
     lemma: 'resonance',
-    variants: ['filter resonance', 'Q', 'emphasis'],
+    variants: ['resonant', 'Q factor', 'emphasis'],
     category: 'noun',
-    domain: 'synthesis',
     semantics: {
-      type: 'filter_parameter',
-      affects: 'peak_emphasis',
-      range: 'subtle_to_self_oscillation',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Emphasis at filter cutoff frequency',
-      examples: [
-        'increase resonance',
-        'resonant filter',
-      ],
-      culturalContext: 'Creates characteristic synthesizer sound',
+      type: 'entity',
+      entityType: 'effect',
+      parameter_type: 'filter_q',
+      effect: 'frequency_emphasis',
     },
+    description: 'Filter resonance creating frequency emphasis (characteristic of acid and electronic music)',
+    examples: [
+      'add resonance',
+      'boost the resonance',
+      'resonant filter',
+    ],
   },
   
   {
-    id: createLexemeId('lex:synthesis:detuning'),
-    lemma: 'detuning',
-    variants: ['detune', 'pitch offset', 'thickening'],
+    id: createLexemeId('cutoff'),
+    lemma: 'cutoff',
+    variants: ['filter cutoff', 'cutoff frequency'],
     category: 'noun',
-    domain: 'synthesis',
     semantics: {
-      type: 'synthesis_technique',
-      method: 'pitch_offset',
-      result: 'chorus_effect',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Slight pitch offset between oscillators',
-      examples: [
-        'detune the oscillators',
-        'add slight detuning',
-      ],
-      culturalContext: 'Creates thickness and movement',
+      type: 'entity',
+      entityType: 'effect',
+      parameter_type: 'filter_frequency',
+      effect: 'frequency_attenuation',
     },
-  },
-  
-  {
-    id: createLexemeId('lex:synthesis:unison'),
-    lemma: 'unison',
-    variants: ['unison voices', 'supersaw', 'stacked'],
-    category: 'noun',
-    domain: 'synthesis',
-    semantics: {
-      type: 'synthesis_technique',
-      method: 'voice_stacking',
-      result: 'thick_sound',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Multiple detuned voices for thickness',
-      examples: [
-        'use unison mode',
-        'stack the voices',
-      ],
-      culturalContext: 'Creates massive, thick synthesizer sounds',
-    },
+    description: 'Filter cutoff frequency controlling brightness (essential mixing and sound design parameter)',
+    examples: [
+      'adjust the cutoff',
+      'lower cutoff',
+      'automate cutoff',
+    ],
   },
 ];
 
 // =============================================================================
-// Spatial & Movement Terms
+// Spatial & Mixing Terms
 // =============================================================================
 
 export const spatialLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:spatial:panning'),
-    lemma: 'panning',
-    variants: ['pan', 'stereo placement', 'left-right'],
-    category: 'noun',
-    domain: 'mixing',
-    semantics: {
-      type: 'spatial_technique',
-      dimension: 'horizontal',
-      range: 'left_to_right',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Left-right placement in stereo field',
-      examples: [
-        'pan it left',
-        'center the vocal',
-      ],
-      culturalContext: 'Fundamental mixing technique',
-    },
-  },
-  
-  {
-    id: createLexemeId('lex:spatial:stereo-width'),
+    id: createLexemeId('stereo-width'),
     lemma: 'stereo width',
-    variants: ['width', 'stereo spread', 'wideness'],
+    variants: ['width', 'wideness', 'stereo image'],
     category: 'noun',
-    domain: 'mixing',
     semantics: {
-      type: 'spatial_parameter',
-      dimension: 'horizontal',
+      type: 'entity',
+      entityType: 'effect',
+      parameter_type: 'stereo_spread',
       range: 'mono_to_wide',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Apparent width of stereo image',
-      examples: [
-        'widen the stereo image',
-        'make it wider',
-      ],
-      culturalContext: 'Creates spaciousness and immersion',
     },
+    description: 'Width of stereo image from mono to wide (crucial mixing parameter for space and separation)',
+    examples: [
+      'increase stereo width',
+      'make it wider',
+      'narrow the width',
+    ],
   },
   
   {
-    id: createLexemeId('lex:spatial:haas-effect'),
-    lemma: 'Haas effect',
-    variants: ['precedence effect', 'delay panning'],
+    id: createLexemeId('panning'),
+    lemma: 'panning',
+    variants: ['pan', 'panned', 'stereo position'],
     category: 'noun',
-    domain: 'mixing',
     semantics: {
-      type: 'spatial_technique',
-      method: 'short_delay',
-      range: '10_to_40_ms',
-      result: 'perceived_width',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Using short delays to create stereo width',
-      examples: [
-        'use Haas effect',
-        'widen with short delays',
-      ],
-      culturalContext: 'Based on psychoacoustic precedence effect',
+      type: 'entity',
+      entityType: 'effect',
+      parameter_type: 'stereo_position',
+      range: 'left_to_right',
     },
+    description: 'Left-right positioning in stereo field (essential for creating space and separation)',
+    examples: [
+      'pan it left',
+      'center the vocals',
+      'spread the panning',
+    ],
   },
   
   {
-    id: createLexemeId('lex:spatial:depth'),
+    id: createLexemeId('depth'),
     lemma: 'depth',
-    variants: ['front-to-back', 'distance', 'proximity'],
+    variants: ['deep', 'distance', 'front-to-back'],
     category: 'noun',
-    domain: 'mixing',
     semantics: {
-      type: 'spatial_dimension',
-      dimension: 'front_to_back',
-      techniques: ['reverb', 'eq', 'level'],
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Front-to-back placement in mix',
-      examples: [
-        'bring it forward',
-        'push it back in the mix',
-      ],
-      culturalContext: 'Creates three-dimensional space',
+      type: 'entity',
+      entityType: 'effect',
+      parameter_type: 'spatial_depth',
+      techniques: ['reverb', 'delay', 'eq_attenuation'],
     },
-  },
-  
-  {
-    id: createLexemeId('lex:spatial:automation-movement'),
-    lemma: 'movement',
-    variants: ['motion', 'traveling', 'sweeping'],
-    category: 'noun',
-    domain: 'mixing',
-    semantics: {
-      type: 'dynamic_spatial',
-      method: 'automation',
-      characteristics: ['time_varying'],
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Time-varying spatial placement',
-      examples: [
-        'add movement to the sound',
-        'sweep across the stereo field',
-      ],
-      culturalContext: 'Creates interest and energy',
-    },
+    description: 'Front-to-back positioning creating sense of distance (achieved via reverb, delay, and EQ)',
+    examples: [
+      'add more depth',
+      'push it back',
+      'bring it forward',
+    ],
   },
 ];
 
@@ -830,87 +568,78 @@ export const spatialLexemes: readonly Lexeme[] = [
 
 export const grooveLexemes: readonly Lexeme[] = [
   {
-    id: createLexemeId('lex:groove:pocket'),
+    id: createLexemeId('pocket'),
     lemma: 'pocket',
-    variants: ['in the pocket', 'locked in', 'tight groove'],
+    variants: ['in the pocket', 'groove pocket', 'tight pocket'],
     category: 'noun',
-    domain: 'rhythm',
     semantics: {
-      type: 'rhythm_quality',
-      characteristics: ['tight', 'locked', 'consistent'],
-      feel: 'solid',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Tight, locked-in rhythmic feel',
-      examples: [
-        'get it in the pocket',
-        'tight groove',
-      ],
-      culturalContext: 'Rhythm section playing together precisely',
+      type: 'entity',
+      entityType: 'rhythm',
+      characteristic: 'timing_cohesion',
+      quality: 'feels_good',
     },
+    description: 'Tight timing relationship between rhythmic elements (when rhythm section locks together perfectly)',
+    examples: [
+      'get it in the pocket',
+      'tighten the pocket',
+      'groove pocket',
+    ],
   },
   
   {
-    id: createLexemeId('lex:groove:laid-back'),
-    lemma: 'laid back',
-    variants: ['behind the beat', 'relaxed', 'late timing'],
-    category: 'adjective',
-    domain: 'rhythm',
+    id: createLexemeId('quantize'),
+    lemma: 'quantize',
+    variants: ['quantized', 'grid-aligned', 'snap to grid'],
+    category: 'verb',
     semantics: {
-      type: 'timing_quality',
-      timing_offset: 'slightly_late',
-      feel: 'relaxed',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Playing slightly behind the beat',
-      examples: [
-        'make it laid back',
-        'play behind the beat',
-      ],
-      culturalContext: 'Creates relaxed, groovy feel',
+      type: 'action',
+      function: 'timing_correction',
+      parameter: 'quantize_strength',
+      range: '0_to_100_percent',
     },
+    description: 'Align notes to rhythmic grid (can tighten or loosen depending on strength)',
+    examples: [
+      'quantize the drums',
+      'quantize to 16ths',
+      '50% quantize',
+    ],
   },
   
   {
-    id: createLexemeId('lex:groove:push'),
-    lemma: 'pushing',
-    variants: ['push', 'ahead of the beat', 'rushing'],
-    category: 'adjective',
-    domain: 'rhythm',
+    id: createLexemeId('humanize'),
+    lemma: 'humanize',
+    variants: ['humanized', 'add feel', 'make it human'],
+    category: 'verb',
     semantics: {
-      type: 'timing_quality',
-      timing_offset: 'slightly_early',
-      feel: 'urgent',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Playing slightly ahead of the beat',
-      examples: [
-        'push it forward',
-        'ahead of the beat',
-      ],
-      culturalContext: 'Creates energy and urgency',
+      type: 'action',
+      function: 'add_variation',
+      parameters: ['timing', 'velocity', 'duration'],
+      effect: 'organic_feel',
     },
+    description: 'Add subtle timing and velocity variations for organic feel (opposite of quantize)',
+    examples: [
+      'humanize the drums',
+      'add some feel',
+      'make it less robotic',
+    ],
   },
   
   {
-    id: createLexemeId('lex:groove:syncopation'),
+    id: createLexemeId('syncopation'),
     lemma: 'syncopation',
     variants: ['syncopated', 'offbeat', 'unexpected accents'],
     category: 'noun',
-    domain: 'rhythm',
     semantics: {
-      type: 'rhythm_technique',
+      type: 'entity',
+      entityType: 'rhythm',
       method: 'displaced_accents',
       effect: 'rhythmic_interest',
-    } as LexemeSemantics,
-    documentation: {
-      description: 'Emphasis on weak beats or off-beats',
-      examples: [
-        'add syncopation',
-        'syncopated rhythm',
-      ],
-      culturalContext: 'Creates rhythmic interest and complexity',
     },
+    description: 'Emphasis on weak beats or off-beats (creates rhythmic interest and complexity)',
+    examples: [
+      'add syncopation',
+      'syncopated rhythm',
+    ],
   },
 ];
 
@@ -930,7 +659,7 @@ export const electronicMusicLexemes: readonly Lexeme[] = [
 ];
 
 /**
- * Total lexemes in this batch: 75+
+ * Total lexemes in this batch: 39
  * 
  * Comprehensive coverage of:
  * - House music (deep house, tech house)
