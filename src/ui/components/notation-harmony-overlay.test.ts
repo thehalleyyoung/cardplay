@@ -5,6 +5,7 @@
  * G114: Test "snap to chord tones" is undoable and preserves rhythm.
  * 
  * @module @cardplay/ui/components/notation-harmony-overlay.test
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -22,6 +23,15 @@ describe('NotationHarmonyOverlay', () => {
   let eventIds: EventId[];
   
   beforeEach(() => {
+    // Mock localStorage for board context persistence
+    const storage: Record<string, string> = {};
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage[key] ?? null,
+      setItem: (key: string, value: string) => { storage[key] = value; },
+      removeItem: (key: string) => { delete storage[key]; },
+      clear: () => { Object.keys(storage).forEach(key => delete storage[key]); }
+    });
+    
     // Clear stores
     const eventStore = getSharedEventStore();
     const boardStore = getBoardContextStore();

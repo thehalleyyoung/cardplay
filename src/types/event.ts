@@ -12,6 +12,9 @@ import { type EventKind, EventKinds } from './event-kind';
 import { type Trigger } from './trigger';
 import { type Lane, type Control } from './lane';
 
+// Re-export EventKinds for convenience
+export { EventKinds };
+
 // ============================================================================
 // TYPES
 // ============================================================================
