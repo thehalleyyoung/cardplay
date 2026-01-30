@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { UndoHistoryBrowser } from './undo-history-browser';
-import { UndoStack } from '../../state/undo-stack';
+import { getUndoStack, resetUndoStack, type UndoStack } from '../../state/undo-stack';
 
 describe('UndoHistoryBrowser', () => {
   let container: HTMLElement;
@@ -15,8 +15,8 @@ describe('UndoHistoryBrowser', () => {
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
-    undoStack = UndoStack.getInstance();
-    undoStack.clear();
+    resetUndoStack(); // Reset before getting fresh instance
+    undoStack = getUndoStack();
   });
 
   afterEach(() => {

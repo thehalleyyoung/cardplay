@@ -20,6 +20,31 @@ const localStorageMock = (() => {
 })();
 Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock, writable: true });
 
+// Mock matchMedia (not available in jsdom)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+// Mock Element.animate (Web Animations API not available in jsdom)
+Element.prototype.animate = vi.fn().mockImplementation(() => ({
+  finished: Promise.resolve(),
+  cancel: vi.fn(),
+  pause: vi.fn(),
+  play: vi.fn(),
+  onfinish: null,
+  oncancel: null,
+}));
+
 describe('BoardHost', () => {
   beforeEach(() => {
     injectBoardHostStyles();
@@ -57,9 +82,9 @@ describe('BoardHost', () => {
     const registry = getBoardRegistry();
     const store = getBoardStateStore();
     
-    // Register a test board
+    // Register a test board (using namespace for extension board)
     registry.register({
-      id: 'test-board',
+      id: 'test-pack:test-board',
       name: 'Test Board',
       description: 'A test board',
       category: 'Testing',
@@ -80,7 +105,7 @@ describe('BoardHost', () => {
     document.body.appendChild(host);
     
     // Set current board
-    store.setCurrentBoard('test-board');
+    store.setCurrentBoard('test-pack:test-board');
     
     // Wait for update
     await new Promise(resolve => setTimeout(resolve, 0));
@@ -111,7 +136,7 @@ describe('BoardHost', () => {
     const store = getBoardStateStore();
     
     registry.register({
-      id: 'assisted-board',
+      id: 'test-pack:assisted-board',
       name: 'Assisted Board',
       description: 'An assisted board',
       category: 'Testing',
@@ -131,7 +156,7 @@ describe('BoardHost', () => {
     const host = createBoardHost();
     document.body.appendChild(host);
     
-    store.setCurrentBoard('assisted-board');
+    store.setCurrentBoard('test-pack:assisted-board');
     await new Promise(resolve => setTimeout(resolve, 0));
     
     const badge = host.querySelector('.control-spectrum-badge__label');

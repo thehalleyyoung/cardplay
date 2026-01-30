@@ -138,8 +138,8 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 316 [Infra] — Implement automatic undo integration with CardPlay store: each `EditPackage` becomes one undo step (or a grouped transaction).
 - [x] Step 317 [Infra] — Implement redo integration; ensure redo re-validates constraints if the world changed since original apply.
 - [x] Step 318 [Type] — Implement “edit package addressability”: users can undo by package ID, by scope, or by turn index.
-- [ ] Step 319 [HCI] — Add UI for “undo preview”: show what will revert before actually undoing.
-- [ ] Step 320 [HCI] — Add UI for “reapply”: user can reapply a prior package to a new context if still valid.
+- [x] Step 319 [HCI] — Add UI for “undo preview”: show what will revert before actually undoing.
+- [x] Step 320 [HCI] — Add UI for “reapply”: user can reapply a prior package to a new context if still valid.
 - [x] Step 321 [Sem][Type] — Implement melody preservation checkers (exact pitch+onset equality; tolerances for “recognizable”).
 - [x] Step 322 [Sem][Type] — Implement harmony preservation checkers (chord skeleton equality; functional equivalence; extension invariance).
 - [x] Step 323 [Sem][Type] — Implement rhythm preservation checkers (grid-aligned onset sets; swing/humanize allowances).
@@ -148,34 +148,34 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 326 [Infra] — Implement diff rendering helpers: convert low-level diffs into human summary sentences (“Chorus: hats density +20%”).
 - [x] Step 327 [Infra] — Implement “reason traces”: for each diff item, link back to the plan opcode and the goal it served.
 - [x] Step 328 [Infra] — Implement “explanation generator”: produce before/after summaries and satisfy-constraint reports.
-- [ ] Step 329 [HCI] — Add UI for diff visualization: per-section timeline overlay + per-layer change list + filter by kind.
-- [ ] Step 330 [HCI] — Add UI for “what changed and why” that is readable by collaborators (exportable report).
+- [x] Step 329 [HCI] — Add UI for diff visualization: per-section timeline overlay + per-layer change list + filter by kind.
+- [x] Step 330 [HCI] — Add UI for “what changed and why” that is readable by collaborators (exportable report).
 - [x] Step 331 [Ext][Type] — Define how extension opcodes compile: extensions return proposed `EditPackage` fragments but core executor applies them.
 - [x] Step 332 [Ext][Type] — Enforce extension handler purity: forbid direct store mutation in extension code paths; require returning pure patch objects.
 - [x] Step 333 [Ext][Type] — Define “unknown opcode” runtime behavior: cannot execute; must display and ask for handler selection or decline.
 - [x] Step 334 [Type] — Implement “safe failure”: if execution fails mid-transaction, rollback and show a structured error with context and suggested fixes.
-- [ ] Step 335 [HCI] — Add UI for execution failures that shows exactly which precondition failed and offers remedial actions (“select a chorus first”).
+- [x] Step 335 [HCI] — Add UI for execution failures that shows exactly which precondition failed and offers remedial actions (“select a chorus first”).
 - [x] Step 336 [Eval] — Build execution golden tests: given plan + fixture, applying yields exact diff snapshots and passes constraint checks.
-- [ ] Step 337 [Eval] — Add undo/redo roundtrip tests: apply → undo → redo yields identical state and identical diffs.
-- [ ] Step 338 [Eval] — Add property tests: applying a plan then applying its inverse yields original state (where inverse defined).
-- [ ] Step 339 [Eval] — Add fuzz tests for selector safety: random scopes must not escape their bounds or mutate outside allowed ranges.
-- [ ] Step 340 [Eval] — Add performance tests for apply+diff: stay within latency budgets for typical edits.
+- [x] Step 337 [Eval] — Add undo/redo roundtrip tests: apply → undo → redo yields identical state and identical diffs.
+- [x] Step 338 [Eval] — Add property tests: applying a plan then applying its inverse yields original state (where inverse defined).
+- [x] Step 339 [Eval] — Add fuzz tests for selector safety: random scopes must not escape their bounds or mutate outside allowed ranges.
+- [x] Step 340 [Eval] — Add performance tests for apply+diff: stay within latency budgets for typical edits.
 - [x] Step 341 [Type] — Add a “transaction log” type that records each micro-step for debugging without exposing internal mutable state.
 - [x] Step 342 [Infra] — Add “preview apply” mode that applies to a cloned project state for visualization without affecting main undo stack.
-- [ ] Step 343 [HCI] — Add UI to toggle preview vs apply; preview should be the default when ambiguity/risks are high.
+- [x] Step 343 [HCI] — Add UI to toggle preview vs apply; preview should be the default when ambiguity/risks are high.
 - [x] Step 344 [Type] — Add a stable “edit signature hash” for deduplicating identical plans and for caching.
 - [x] Step 345 [Infra] — Add deterministic serialization of edit packages for shareability and audit.
-- [ ] Step 346 [Prag] — Integrate the dialogue state with applied edits: after apply, update salience and discourse referents to stabilize subsequent pronouns.
-- [ ] Step 347 [Prag] — Implement “undo affects discourse”: if user undoes an edit, update what “again” and “that change” refer to.
-- [ ] Step 348 [HCI] — Add UI affordances for referencing history (“undo the chorus lift change”) by clicking on a past turn.
-- [ ] Step 349 [Infra] — Add a bug-report export: include utterance, CPL, plan, diff, and provenance traces without including audio/IP data.
-- [ ] Step 350 [Infra] — Add a deterministic “replay runner” that can replay a conversation and applied edits from logs for regression debugging.
+- [x] Step 346 [Prag] — Integrate the dialogue state with applied edits: after apply, update salience and discourse referents to stabilize subsequent pronouns.
+- [x] Step 347 [Prag] — Implement “undo affects discourse”: if user undoes an edit, update what “again” and “that change” refer to.
+- [x] Step 348 [HCI] — Add UI affordances for referencing history (“undo the chorus lift change”) by clicking on a past turn.
+- [x] Step 349 [Infra] — Add a bug-report export: include utterance, CPL, plan, diff, and provenance traces without including audio/IP data.
+- [x] Step 350 [Infra] — Add a deterministic “replay runner” that can replay a conversation and applied edits from logs for regression debugging.
 ---
 
 ## Phase 8 — Infinite Extensibility: New Cards/Decks/Boards/Theories Plug In (Steps 401–450)
 
-- [ ] Step 401 [Ext][Type] — Define the GOFAI extension interface (register lexicon, bindings, planner hooks, Prolog modules) with strict namespacing rules.
-- [ ] Step 402 [Ext][Infra] — Implement an extension registry with register/unregister events and version negotiation.
+- [x] Step 401 [Ext][Type] — Define the GOFAI extension interface (register lexicon, bindings, planner hooks, Prolog modules) with strict namespacing rules.
+- [x] Step 402 [Ext][Infra] — Implement an extension registry with register/unregister events and version negotiation.
 - [ ] Step 403 [Ext][Infra] — Implement auto-discovery: when a CardPlay pack loads, attempt to load its optional GOFAI extension module.
 - [ ] Step 404 [Ext][Type] — Define an extension trust model (trusted/untrusted) affecting whether execution hooks are enabled by default.
 - [ ] Step 405 [Ext][HCI] — Add UI for enabling/disabling extension execution capabilities with clear local-only security messaging.

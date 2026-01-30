@@ -41,6 +41,7 @@ describe('DeckContainer', () => {
       type: 'pattern-editor',
       title: 'Test Deck',
       element: mockElement,
+      render: vi.fn(() => mockElement),
       destroy: vi.fn(),
     };
 

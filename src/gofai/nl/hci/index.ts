@@ -18,3 +18,9 @@ export * from './clarification-defaults';
 
 // Grammar authorship workflow (Step 150)
 export * from './grammar-authorship-workflow';
+
+// GOFAI deck core: deck layout, scope viz, entity chips, apply gating, quick actions (Steps 351–355)
+export * from './gofai-deck-core';
+
+// GOFAI deck interaction: clarification modal, frequency toggle, strict mode, keyboard, accessibility (Steps 356–360)
+export * from './gofai-deck-interaction';
