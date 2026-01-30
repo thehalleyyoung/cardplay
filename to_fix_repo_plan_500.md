@@ -516,9 +516,9 @@ Notes:
 - [ ] Change 475 — Migrate all code to use canonical event kind naming and then remove legacy event kind aliases.
 - [ ] Change 476 — Migrate all code to use canonical PPQ conversions and then remove local conversion helpers.
 - [ ] Change 477 — After migrations, delete deprecated fields on `Event<P>` (`type`, `tick`, `startTick`, `durationTick`) or move them behind an explicit `LegacyEvent` type.
-- [ ] Change 478 — After migrations, delete deprecated fields on other core records (if any) and keep only canonical schema.
-- [ ] Change 479 — Ensure all “Status: implemented” docs are actually implemented; downgrade status where needed.
-- [ ] Change 480 — Regenerate/update `to_fix.md` gap catalogue after refactors so it reflects reality (no stale claims).
+- [x] Change 478 — After migrations, delete deprecated fields on other core records (if any) and keep only canonical schema.
+- [x] Change 479 — Ensure all “Status: implemented” docs are actually implemented; downgrade status where needed.
+- [x] Change 480 — Regenerate/update `to_fix.md` gap catalogue after refactors so it reflects reality (no stale claims).
 - [ ] Change 481 — Add `cardplay/scripts/update-to-fix-gaps.ts` helper that pulls mismatches from tests/lints and writes back to `to_fix.md` Part B.
 - [ ] Change 482 — Add `cardplay/scripts/update-legacy-aliases-doc.ts` helper syncing `cardplay/docs/canon/legacy-type-aliases.md` with code.
 - [ ] Change 483 — Add `cardplay/scripts/update-module-map.ts` helper syncing `cardplay/docs/canon/module-map.md` with the current code tree.

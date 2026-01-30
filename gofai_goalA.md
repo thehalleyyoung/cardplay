@@ -103,7 +103,7 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 135 [Sem] — Implement degree semantics for vague adjectives ("warmer", "darker") as axis changes with candidate interpretations.
 - [x] Step 136 [Sem] — Implement event semantics for actions ("add", "remove", "change") to uniformly represent edit events and their arguments.
 - [x] Step 137 [Sem] — Implement generalized quantifier semantics for "all/some/most" when needed for selectors ("all choruses").
-- [ ] Step 138 [Sem] — Implement a representation for scope ambiguity (MRS-style) when quantifiers, negation, and “only” interact.
+- [x] Step 138 [Sem] — Implement a representation for scope ambiguity (MRS-style) when quantifiers, negation, and "only" interact.
 - [ ] Step 139 [Prag] — Implement a “pragmatic bias” layer that pushes ambiguous parses into clarification rather than unsafe execution.
 - [ ] Step 140 [Infra] — Add developer tooling to visualize parse forest + semantic composition for a given utterance.
 - [ ] Step 141 [Eval] — Add golden tests for 100 core utterances ensuring stable tokenization and parse outputs.

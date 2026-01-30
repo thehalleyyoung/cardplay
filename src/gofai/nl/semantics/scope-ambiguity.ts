@@ -473,7 +473,7 @@ function buildScopedLogicalForm(
   const bodyParts: string[] = [];
   for (const ep of body) {
     const args = [...ep.arguments.entries()]
-      .map(([name, arg]) => {
+      .map(([_name, arg]) => {
         if (arg.kind === 'variable') return arg.variable.id;
         if (arg.kind === 'constant') return `"${arg.value}"`;
         return arg.handle.id;
