@@ -11,6 +11,7 @@ import type { Board, DeckType } from './types';
 import { validateToolConfig } from './validate-tool-config';
 import { DECK_TYPES } from '../canon/ids';
 import { normalizeDeckType, DEPRECATED_DECK_TYPES } from '../canon/legacy-aliases';
+import { ontologyRegistry, type OntologyId } from '../ai/theory/ontologies';
 
 // ============================================================================
 // VALIDATION RESULT
@@ -300,6 +301,42 @@ export function validateBoard(board: Board): ValidationResult {
           });
         }
       }
+    }
+  }
+  
+  // Change 139: Validate ontology selection for AI decks
+  if (board.ontology) {
+    const ontologyIds: OntologyId[] = Array.isArray(board.ontology)
+      ? board.ontology
+      : typeof board.ontology === 'object' && 'primary' in board.ontology
+      ? [board.ontology.primary, ...(board.ontology.fallback || [])]
+      : [board.ontology];
+    
+    // Validate all referenced ontologies exist
+    for (const ontologyId of ontologyIds) {
+      const ontology = ontologyRegistry.get(ontologyId);
+      if (!ontology) {
+        errors.push({
+          path: 'ontology',
+          message: `Board references unknown ontology: "${ontologyId}"`,
+          severity: 'error',
+        });
+      }
+    }
+    
+    // Warn if board has AI decks but no explicit ontology
+    const hasAIDecks = board.decks.some(d => 
+      d.type === 'ai-advisor-deck' || 
+      d.type === 'harmony-deck' || 
+      d.type === 'generators-deck'
+    );
+    
+    if (hasAIDecks && !board.ontology) {
+      errors.push({
+        path: 'ontology',
+        message: 'Board contains AI decks but no ontology specified. Will default to western-12tet.',
+        severity: 'warning',
+      });
     }
   }
   

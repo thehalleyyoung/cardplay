@@ -13,6 +13,8 @@
  * @module @cardplay/ui/components/card-component
  */
 
+import { validateConnection } from '../../boards/gating/validate-connection';
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -837,7 +839,7 @@ export class UICardComponent {
   
   /**
    * Change 208: Port hover now checks canonical compatibility when a drag
-   * is in progress, highlighting only compatible targets.
+   * is in progress, highlighting only compatible targets using validateConnection().
    */
   private onPortHover(portId: string, isHovering: boolean): void {
     const port = this.ports.get(portId);
@@ -851,8 +853,12 @@ export class UICardComponent {
         const sourceSpec = this.resolvePortSpec(this.activeDragSourcePort);
         const targetSpec = this.resolvePortSpec(port);
         if (sourceSpec && targetSpec) {
-          const compatible = sourceSpec.type === targetSpec.type
-            && sourceSpec.direction !== targetSpec.direction;
+          // Must have opposite directions (output -> input)
+          const oppositeDirection = sourceSpec.direction !== targetSpec.direction;
+          // Check type compatibility using canonical validation
+          const validation = validateConnection(sourceSpec.type, targetSpec.type);
+          const compatible = oppositeDirection && validation.allowed;
+          
           el.classList.toggle('card-port-compatible', compatible);
           el.classList.toggle('card-port-incompatible', !compatible);
         }

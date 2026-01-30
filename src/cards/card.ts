@@ -290,7 +290,11 @@ export function createSignature(
 // ============================================================================
 
 /**
- * Card category for grouping.
+ * Card category for grouping core cards.
+ * 
+ * This is the canonical category type for Card<A, B> composition cards.
+ * For UI categories, see CardSurfaceCategory.
+ * For audio module categories, see AudioModuleCategory.
  */
 export type CardCategory =
   | 'generators'
@@ -301,6 +305,12 @@ export type CardCategory =
   | 'analysis'
   | 'utilities'
   | 'custom';
+
+/**
+ * CoreCardCategory alias for CardCategory for clarity in mixed contexts.
+ * @see Change 261
+ */
+export type CoreCardCategory = CardCategory;
 
 /**
  * Card metadata.
@@ -496,6 +506,16 @@ export interface Card<A, B> {
   /** Initial state (if stateful) */
   readonly initialState?: CardState<unknown>;
 }
+
+/**
+ * CoreCard alias for Card<A, B> for clarity in mixed contexts.
+ * Use this when you need to disambiguate from UI cards or audio module cards.
+ * 
+ * @template A - Input type
+ * @template B - Output type
+ * @see Change 262
+ */
+export type CoreCard<A, B> = Card<A, B>;
 
 // ============================================================================
 // CARD FACTORIES

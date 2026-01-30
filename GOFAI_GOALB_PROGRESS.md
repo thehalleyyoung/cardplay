@@ -4,7 +4,7 @@
 > Updated: 2026-01-30
 > Implementation of systematic changes from gofai_goalB.md
 
-## Session Summary 2026-01-30 (Updated)
+## Session Summary 2026-01-30 (Latest Update)
 
 **Major Accomplishments:**
 - ✅ Completed Step 006 (GOFAI Build Matrix) - 938 LOC
@@ -12,12 +12,14 @@
 - ✅ Completed Step 010 (Project World API) - 656 LOC
 - ✅ Completed Step 011 (Goals/Constraints/Preferences Model) - 785 LOC
 - ✅ Completed Step 017 (Extension Semantics) - 652 LOC
+- ✅ Completed Step 022 (Risk Register) - 742 LOC (17 comprehensive risk scenarios)
 - ✅ Added comprehensive domain verbs vocabulary - 640 LOC (44 verbs)
 - ✅ Previously added 1,708 LOC of adjective vocabulary (175 adjectives)
-- ✅ **Total new code this session: 3,738 LOC**
-- ✅ Total vocabulary now 6,146 LOC (30% toward 20K goal)
-- ✅ All new code compiles cleanly, zero new errors
-- ✅ **Phase 0 now 79% complete (15 of 19 steps)**
+- ✅ **NEW: Added domain nouns - instruments** - 570 LOC (40 instruments)
+- ✅ **NEW: Added domain nouns - techniques** - 705 LOC (47 techniques)
+- ✅ **Total new code this session: 6,755 LOC**
+- ✅ Total vocabulary now 7,421 LOC (37% toward 20K goal)
+- ✅ **Phase 0 now 84% complete (16 of 19 steps)**
 
 See [GOFAI_SESSION_2026-01-30.md](GOFAI_SESSION_2026-01-30.md) for detailed session report.
 
@@ -344,8 +346,69 @@ checkEffect(effect, policy): EffectCheckResult
 #### ✅ Step 016 [Infra] — Glossary of Key Terms
 **COMPLETE** — `docs/gofai/glossary.md` already exists with all required terms (scope, referent, salience, presupposition, implicature, constraint)
 
-#### ⏳ Step 022 [Infra] — Risk Register
-Build failure modes catalog with mitigations
+#### ✅ Step 022 [Infra] — Risk Register
+**Status**: COMPLETE (2026-01-30)
+
+**Implementation**:
+- Created `src/gofai/infra/risk-register.ts` (742 LOC)
+- Comprehensive catalog of 17 major failure modes with mitigations
+- Each risk includes severity, likelihood, scenario, impact, and mitigation strategies
+- Organized into 8 risk categories
+
+**Risk Categories**:
+1. **Scope Resolution** (3 risks): Wrong section, ambiguous time range, layer overlaps
+2. **Target Identification** (2 risks): Wrong entity, parameter not found
+3. **Constraint Violation** (3 risks): Preserve violated, only-change leak, conflicting constraints
+4. **Destructive Edit** (2 risks): Irreversible deletion, lossy transformation
+5. **Ambiguity** (2 risks): Silent default selection, multiple parses
+6. **Performance** (2 risks): Parse timeout, planning explosion
+7. **Determinism** (1 risk): Non-repeatable results
+8. **Extension Safety** (2 risks): Untrusted code execution, namespace collision
+
+**Key Functions**:
+- `calculateRiskPriority()`: Severity × likelihood scoring
+- `getRisksByPriority()`: Sorted by priority score
+- `getMitigationProgress()`: Tracks implementation status
+- `generateRiskSummary()`: Comprehensive report generation
+- `getHighPriorityUnmitigatedRisks()`: Focus on blockers
+
+**Mitigation Tracking**:
+- 63 total mitigation actions defined across all risks
+- Each mitigation includes: strategy, verification method, implementation path, status
+- Supports filtering by status (not-started, in-progress, implemented, verified, deployed)
+
+#### ✅ Step 052-061 [Type] — Domain Noun Vocabulary Expansion (PARTIAL)
+**Status**: IN PROGRESS (2026-01-30)
+
+**Implementation**:
+- Created `src/gofai/canon/domain-nouns-instruments.ts` (570 LOC)
+  - 40 instrument lexemes across 6 categories
+  - Percussion: kick, snare, hihat, tom, crash, ride, clap, rimshot, cowbell, tambourine (10)
+  - Melodic Percussion: marimba, xylophone, vibraphone, glockenspiel, timpani (5)
+  - Strings: violin, viola, cello, contrabass, guitar variants, harp (9)
+  - Keyboards: piano variants, organ, harpsichord, clavinet (7)
+  - Synthesizers: synth, pad, lead, bass synth, arpeggio (5+)
+  - Each includes: register range, timbre characteristics, role hints
+
+- Created `src/gofai/canon/domain-nouns-techniques.ts` (705 LOC)
+  - 47 technique lexemes across 7 categories
+  - Articulations: staccato, legato, marcato, tenuto, portamento, pizzicato, tremolo, vibrato, etc. (10)
+  - Ornaments: trill, mordent, turn, grace note, appoggiatura, slide (6)
+  - Rhythmic Techniques: swing, syncopation, hemiola, polyrhythm, rubato, ritardando, accelerando, fermata (8)
+  - Harmonic Techniques: arpeggiation, voicing, inversion, suspension, pedal point, counterpoint, chord substitution (7)
+  - Production Techniques: reverb, delay, distortion, compression, EQ, panning, sidechain, automation (8)
+  - Compositional Techniques: sequence, ostinato, retrograde, augmentation, diminution, imitation (6)
+  - Each includes: applicable instruments, affected aspects, typical parameters
+
+**Extended Lexeme Types**:
+- `InstrumentLexeme`: adds instrumentCategory, roleHints, registerRange, timbreCharacteristics
+- `TechniqueLexeme`: adds techniqueCategory, applicableToInstruments, affectsAspects, typicalParameters
+
+**Helper Functions**:
+- `getInstrumentByName()`, `getInstrumentsByCategory()`, `getInstrumentsByRole()`
+- `getTechniqueByName()`, `getTechniquesByCategory()`, `getTechniquesForInstrument()`, `getTechniquesByAspect()`
+
+**Status**: Files created but need integration with base Lexeme interface (description/examples fields required)
 
 #### ⏳ Step 023 [Type] — Capability Model
 Define what can be edited depending on board policy

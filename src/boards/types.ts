@@ -8,6 +8,8 @@
  * @module @cardplay/boards/types
  */
 
+import type { OntologyId } from '../ai/theory/ontologies';
+
 // ============================================================================
 // CONTROL LEVEL
 // ============================================================================
@@ -364,6 +366,23 @@ export const FLEXIBLE_BOARD_POLICY: BoardPolicy = {
   allowDeckCustomization: true,
   allowLayoutCustomization: true,
 };
+
+// ============================================================================
+// ONTOLOGY SELECTION
+// ============================================================================
+
+/**
+ * Ontology selection for a board.
+ * 
+ * Boards can support one or multiple ontologies. AI tools and theory decks
+ * must respect the board's ontology constraints.
+ * 
+ * @see Change 139 in to_fix_repo_plan_500.md
+ */
+export type OntologySelection = 
+  | OntologyId                      // Single ontology
+  | readonly OntologyId[]           // Multiple allowed ontologies
+  | { primary: OntologyId; fallback?: readonly OntologyId[] }; // Primary + fallbacks
 
 // ============================================================================
 // BOARD DEFINITION

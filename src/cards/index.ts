@@ -28,6 +28,7 @@ export {
   
   // Meta
   type CardCategory,
+  type CoreCardCategory, // Change 261 alias
   type CardMeta,
   createCardMeta,
   
@@ -45,6 +46,7 @@ export {
   // Card
   type CardResult,
   type Card,
+  type CoreCard, // Change 262 alias
   type CreateCardOptions,
   createCard,
   pureCard,
