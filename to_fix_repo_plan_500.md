@@ -547,27 +547,24 @@ Notes:
 
 **Completion:** 494/500 changes (98.8%)
 
-### Just Completed (Session 3):
-- Fixed ESM import in check-ontology-mixing.ts (using fs.readdirSync instead of glob)
-- Ontology mixing check now working correctly (29 docs need bridge sections - intentional linting)
-- All snapshot tests confirmed in place (Changes 490-497 ✅)
-- Fixed CardState name collision: CardSurfaceStateEnum (enum) vs CardSurfaceState (interface)
-- Added CardStack alias to clarify card composition vs UI layout stacks
-- Updated legacy-type-aliases.ts to reflect current disambiguation status
+### Session 3 Achievements:
+1. **Fixed ontology mixing lint** - ESM import issue resolved, 29 docs properly flagged
+2. **Resolved symbol disambiguation:**
+   - CardState: Split into CardSurfaceStateEnum + CardSurfaceState interface
+   - Stack: Added CardStack alias for clarity
+   - Updated legacy-type-aliases check to track current state
+3. **Complete implementation status tracking:**
+   - All 18 canon docs now have proper status headers
+   - Generate script recognizes "Maintained" status
+   - 18/18 implemented, 0 partial, 0 aspirational, 0 unknown ✅
+4. **All snapshot tests confirmed** (Changes 490-497)
 
-### Current Status:
-- ✅ **Canon tests:** All passing (85/85 tests)
-- ✅ **Docs lint:** All scripts operational
-  - Ontology mixing check: 29 docs flagged (intentional - need bridge sections)
-  - Module map check: ✅ passing
-  - Port vocabulary check: ✅ passing
-  - Legacy aliases check: 6/7 symbols properly aliased
-- ✅ **Symbol disambiguation:** Major progress
-  - Card → CoreCard + AudioModuleCard (with aliases)
-  - CardState → CardSurfaceStateEnum + AudioModuleState (resolved)
-  - Stack → Stack (cards) + UIStackComponent (ui) + CardStack alias
-  - Track → ArrangementTrack + FreezeTrackModel (with aliases)
-  - PortType → Multiple contexts with proper namespacing
+### Current Metrics:
+- ✅ **Canon tests:** 85/85 passing (100%)
+- ✅ **Implementation status:** 18/18 tracked (100%)
+- ✅ **Symbol disambiguation:** 6/7 resolved (86%)
+- ✅ **Doc sync scripts:** All 6 operational and tested
+- ⚠️  **Docs needing ontology bridge sections:** 29 (intentional linting)
 - 🚧 **Full typecheck:** Type errors in gofai modules (not blocking canon work)
 
 ### Remaining Items:

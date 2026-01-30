@@ -1,0 +1,2165 @@
+/**
+ * GOFAI CPL AST Three-Layer Architecture
+ *
+ * Defines the complete CPL (Compositional Predicate Logic) AST family as three
+ * distinct compilation layers:
+ *
+ * 1. **CPL-Intent** — High-level user intent (goals, constraints, preferences).
+ *    Output of semantic composition + pragmatic resolution. May contain holes.
+ *
+ * 2. **CPL-Plan** — Executable plan (sequences of opcodes with cost/risk).
+ *    Output of the planner. No holes allowed — must be fully resolved.
+ *
+ * 3. **CPL-Host** — Host-action bindings (concrete host adapter operations).
+ *    Output of the host-action compiler. Maps opcodes to specific adapter calls
+ *    with resolved parameter types, resource locks, and undo strategies.
+ *
+ * Each layer has:
+ * - Versioned JSON encoding via VersionEnvelope<T>
+ * - Schema version tracking (SemanticVersion)
+ * - A JSON schema constant
+ * - Type guards for runtime discrimination
+ * - Serialization/deserialization functions
+ * - Validation functions
+ * - Conversion/lowering interfaces between layers
+ *
+ * The compilation pipeline flows:
+ *   NL → parse → semantics → CPL-Intent → planner → CPL-Plan → host-compiler → CPL-Host → execute
+ *
+ * @module gofai/canon/cpl-ast-layers
+ */
+
+import type {
+  SemanticVersion,
+  VersionEnvelope,
+  SerializationOptions,
+  DeserializationOptions,
+  SerializationResult,
+  DeserializationResult,
+} from './versioning';
+
+import {
+  GOFAI_SCHEMA_VERSIONS,
+  GOFAI_SCHEMA_IDS,
+  createVersionEnvelope,
+  validateVersionEnvelope,
+  serializeWithVersion,
+  deserializeWithVersion,
+  formatSemanticVersion,
+} from './versioning';
+
+import type {
+  CPLNode,
+  CPLNodeType,
+  Provenance,
+  CPLIntent,
+  CPLPlan,
+  CPLOpcode,
+  CPLGoal,
+  CPLConstraint,
+  CPLPreference,
+  CPLScope,
+  CPLHole,
+  CPLAmount,
+  CPLExtensionNode,
+} from './cpl-types';
+
+import {
+  isCPLNode,
+  isCPLIntent,
+  isCPLPlan,
+} from './cpl-types';
+
+
+// =============================================================================
+// Layer 3: CPL-Host — Host-Action Bindings
+// =============================================================================
+
+/**
+ * CPL-Host node type discriminator (extends CPLNodeType).
+ */
+export type CPLHostNodeType =
+  | 'host-action-bundle'
+  | 'host-action'
+  | 'resource-lock'
+  | 'undo-entry'
+  | 'host-parameter'
+  | 'host-callback'
+  | 'host-assertion';
+
+/**
+ * Complete host-action bundle: the output of the host-action compiler.
+ *
+ * This is the final IR before execution. It contains concrete adapter calls,
+ * resolved parameter values, resource lock requirements, and undo strategies.
+ */
+export interface CPLHostActionBundle extends CPLNode {
+  readonly type: 'host-action-bundle';
+
+  /** Source plan ID (provenance link to CPL-Plan) */
+  readonly sourcePlanId: string;
+
+  /** Source intent ID (provenance link to CPL-Intent) */
+  readonly sourceIntentId: string;
+
+  /** Ordered list of host actions to execute */
+  readonly actions: readonly CPLHostAction[];
+
+  /** Resource locks that must be acquired before execution */
+  readonly locks: readonly CPLResourceLock[];
+
+  /** Undo strategy for the entire bundle */
+  readonly undoStrategy: UndoStrategy;
+
+  /** Pre-conditions that must hold before execution */
+  readonly preconditions: readonly CPLHostAssertion[];
+
+  /** Post-conditions that should hold after execution */
+  readonly postconditions: readonly CPLHostAssertion[];
+
+  /** Estimated execution cost (ms) */
+  readonly estimatedDurationMs: number;
+
+  /** Whether this bundle requires user confirmation before execution */
+  readonly requiresConfirmation: boolean;
+
+  /** Schema version */
+  readonly schemaVersion: SemanticVersion;
+}
+
+/**
+ * A single host-adapter action.
+ *
+ * Maps a CPL opcode to a concrete adapter method with resolved parameter types.
+ */
+export interface CPLHostAction extends CPLNode {
+  readonly type: 'host-action';
+
+  /** Source opcode ID (provenance link to CPL-Plan opcode) */
+  readonly sourceOpcodeId: string;
+
+  /** Host adapter namespace (e.g., "cardplay:core", "cardplay:dsp") */
+  readonly adapterNamespace: string;
+
+  /** Adapter method name */
+  readonly method: string;
+
+  /** Resolved parameters (fully typed) */
+  readonly parameters: readonly CPLHostParameter[];
+
+  /** Resource locks needed for this specific action */
+  readonly locks: readonly string[]; // Lock IDs
+
+  /** Undo entry for this specific action */
+  readonly undo: CPLUndoEntry;
+
+  /** Expected side effects */
+  readonly sideEffects: readonly HostSideEffect[];
+
+  /** Execution order constraints */
+  readonly dependsOn: readonly string[]; // Host action IDs
+
+  /** Timeout for this action (ms) */
+  readonly timeoutMs: number;
+
+  /** Risk level (inherited from opcode, may be upgraded by host compiler) */
+  readonly risk: 'low' | 'medium' | 'high' | 'critical';
+
+  /** Whether this action is idempotent */
+  readonly idempotent: boolean;
+
+  /** Whether this action is destructive */
+  readonly destructive: boolean;
+
+  /** Callbacks for progress reporting */
+  readonly callbacks: readonly CPLHostCallback[];
+}
+
+/**
+ * A resolved host parameter.
+ *
+ * All parameters are fully typed and validated by the host compiler.
+ */
+export interface CPLHostParameter extends CPLNode {
+  readonly type: 'host-parameter';
+
+  /** Parameter name (adapter-specific) */
+  readonly name: string;
+
+  /** Resolved value */
+  readonly value: HostParameterValue;
+
+  /** Parameter type tag */
+  readonly valueType: HostParameterType;
+
+  /** Original CPL amount (if derived from one) */
+  readonly sourceAmount?: CPLAmount;
+
+  /** Validation constraints */
+  readonly constraints: readonly HostParameterConstraint[];
+}
+
+/**
+ * Host parameter value types.
+ */
+export type HostParameterType =
+  | 'int'
+  | 'float'
+  | 'string'
+  | 'bool'
+  | 'enum'
+  | 'entity-id'
+  | 'time-ticks'
+  | 'time-seconds'
+  | 'frequency-hz'
+  | 'amplitude-db'
+  | 'midi-note'
+  | 'midi-velocity'
+  | 'midi-cc'
+  | 'normalized' // 0..1 float
+  | 'percentage'
+  | 'semitones'
+  | 'cents'
+  | 'bpm'
+  | 'ratio'
+  | 'buffer-id'
+  | 'file-path'
+  | 'color'
+  | 'json-blob';
+
+/**
+ * Union of possible host parameter values.
+ */
+export type HostParameterValue =
+  | number
+  | string
+  | boolean
+  | readonly number[]
+  | readonly string[]
+  | Record<string, unknown>;
+
+/**
+ * Validation constraint on a host parameter.
+ */
+export interface HostParameterConstraint {
+  readonly kind: 'min' | 'max' | 'enum-values' | 'regex' | 'entity-exists' | 'non-empty';
+  readonly value: unknown;
+  readonly message: string;
+}
+
+/**
+ * Side effect descriptor for a host action.
+ */
+export interface HostSideEffect {
+  readonly kind:
+    | 'state-mutation'
+    | 'file-write'
+    | 'audio-output'
+    | 'midi-output'
+    | 'ui-update'
+    | 'network-call'
+    | 'resource-allocation'
+    | 'resource-release';
+
+  /** Human-readable description */
+  readonly description: string;
+
+  /** Affected resource IDs */
+  readonly affectedResources: readonly string[];
+
+  /** Whether this side effect is reversible */
+  readonly reversible: boolean;
+}
+
+/**
+ * Resource lock specification.
+ *
+ * Before executing a host-action bundle, all required locks must be acquired.
+ * This prevents concurrent edits from conflicting.
+ */
+export interface CPLResourceLock extends CPLNode {
+  readonly type: 'resource-lock';
+
+  /** Resource identifier */
+  readonly resourceId: string;
+
+  /** Resource type */
+  readonly resourceType:
+    | 'track'
+    | 'section'
+    | 'mixer-channel'
+    | 'plugin-instance'
+    | 'transport'
+    | 'project-metadata'
+    | 'undo-stack'
+    | 'file-handle';
+
+  /** Lock mode */
+  readonly mode: 'shared' | 'exclusive';
+
+  /** Lock timeout (ms) */
+  readonly timeoutMs: number;
+
+  /** Lock priority (higher = acquired first in case of deadlock prevention) */
+  readonly priority: number;
+
+  /** Whether to fail or wait if lock is unavailable */
+  readonly onConflict: 'fail' | 'wait' | 'queue';
+
+  /** Human-readable reason for the lock */
+  readonly reason: string;
+}
+
+/**
+ * Undo entry for a host action.
+ *
+ * Each host action must specify how to reverse its effect.
+ */
+export interface CPLUndoEntry extends CPLNode {
+  readonly type: 'undo-entry';
+
+  /** Undo strategy type */
+  readonly strategy: 'inverse-action' | 'snapshot-restore' | 'diff-patch' | 'not-undoable';
+
+  /** Inverse action (if strategy is 'inverse-action') */
+  readonly inverseMethod?: string;
+
+  /** Inverse parameters (if strategy is 'inverse-action') */
+  readonly inverseParameters?: readonly CPLHostParameter[];
+
+  /** Snapshot key (if strategy is 'snapshot-restore') */
+  readonly snapshotKey?: string;
+
+  /** Diff specification (if strategy is 'diff-patch') */
+  readonly diffSpec?: Record<string, unknown>;
+
+  /** Why undo is not possible (if strategy is 'not-undoable') */
+  readonly notUndoableReason?: string;
+
+  /** Estimated undo cost (ms) */
+  readonly estimatedUndoCostMs: number;
+}
+
+/**
+ * Undo strategy for an entire bundle.
+ */
+export interface UndoStrategy {
+  /** Overall strategy */
+  readonly kind: 'action-by-action' | 'atomic-snapshot' | 'transaction-rollback' | 'partial-undo';
+
+  /** Description of the undo strategy */
+  readonly description: string;
+
+  /** Can this entire bundle be undone atomically? */
+  readonly atomicUndo: boolean;
+
+  /** Undo group label for the host's undo stack */
+  readonly undoGroupLabel: string;
+
+  /** Estimated total undo cost (ms) */
+  readonly estimatedTotalUndoCostMs: number;
+}
+
+/**
+ * Host callback specification.
+ *
+ * Used for progress reporting, cancellation, and error handling during execution.
+ */
+export interface CPLHostCallback extends CPLNode {
+  readonly type: 'host-callback';
+
+  /** Callback type */
+  readonly callbackType:
+    | 'on-progress'
+    | 'on-complete'
+    | 'on-error'
+    | 'on-cancel'
+    | 'on-preview'
+    | 'on-confirm';
+
+  /** Callback identifier (for registration) */
+  readonly callbackId: string;
+
+  /** Whether this callback is required (vs optional) */
+  readonly required: boolean;
+}
+
+/**
+ * Host assertion (pre/post-condition).
+ *
+ * These are conditions that must hold before or after host action execution.
+ */
+export interface CPLHostAssertion extends CPLNode {
+  readonly type: 'host-assertion';
+
+  /** Assertion kind */
+  readonly assertionKind:
+    | 'entity-exists'
+    | 'entity-type'
+    | 'value-in-range'
+    | 'resource-available'
+    | 'transport-state'
+    | 'plugin-loaded'
+    | 'no-pending-edits'
+    | 'custom';
+
+  /** Subject of the assertion */
+  readonly subject: string;
+
+  /** Expected value/state */
+  readonly expected: unknown;
+
+  /** What to do if assertion fails */
+  readonly onFailure: 'abort' | 'warn' | 'skip-action' | 'retry';
+
+  /** Human-readable message */
+  readonly message: string;
+}
+
+
+// =============================================================================
+// Unified CPL Document
+// =============================================================================
+
+/**
+ * CPL compilation layer discriminator.
+ */
+export type CPLLayer = 'intent' | 'plan' | 'host';
+
+/**
+ * CPL compilation stage metadata.
+ *
+ * Tracks the complete compilation path from NL to host actions.
+ */
+export interface CPLCompilationMetadata {
+  /** Original utterance text */
+  readonly utterance: string;
+
+  /** Compilation timestamp (ISO 8601) */
+  readonly timestamp: string;
+
+  /** Compilation pipeline version */
+  readonly pipelineVersion: SemanticVersion;
+
+  /** Stage-specific metadata */
+  readonly stages: CPLStageMetadata[];
+
+  /** Total compilation time (ms) */
+  readonly totalCompilationMs: number;
+
+  /** Compiler fingerprint */
+  readonly compilerFingerprint: string;
+}
+
+/**
+ * Metadata for a single compilation stage.
+ */
+export interface CPLStageMetadata {
+  /** Stage name */
+  readonly stage:
+    | 'tokenize'
+    | 'parse'
+    | 'semantic-compose'
+    | 'pragmatic-resolve'
+    | 'typecheck-intent'
+    | 'plan'
+    | 'typecheck-plan'
+    | 'host-compile'
+    | 'typecheck-host';
+
+  /** Duration of this stage (ms) */
+  readonly durationMs: number;
+
+  /** Number of alternatives considered (e.g., parse trees, plans) */
+  readonly alternativesConsidered: number;
+
+  /** Warnings produced at this stage */
+  readonly warnings: readonly string[];
+
+  /** Was any ambiguity resolved at this stage? */
+  readonly ambiguityResolved: boolean;
+
+  /** Version of the component that ran this stage */
+  readonly componentVersion: SemanticVersion;
+}
+
+/**
+ * A complete CPL document: the full compilation result from utterance to host actions.
+ *
+ * This is the canonical serialization format for a complete compilation.
+ * It contains all three layers plus provenance metadata.
+ */
+export interface CPLDocument {
+  /** Document kind discriminator */
+  readonly kind: 'cpl-document';
+
+  /** Unique document ID */
+  readonly id: string;
+
+  /** Layer 1: CPL-Intent (always present) */
+  readonly intent: CPLIntent;
+
+  /** Layer 2: CPL-Plan (present if planning succeeded) */
+  readonly plan?: CPLPlan;
+
+  /** Layer 3: CPL-Host (present if host compilation succeeded) */
+  readonly host?: CPLHostActionBundle;
+
+  /** Which layer is the "current" / most-advanced compilation stage */
+  readonly currentLayer: CPLLayer;
+
+  /** Whether the document is fully compiled (all 3 layers present, no holes) */
+  readonly fullyCompiled: boolean;
+
+  /** Unresolved holes (from any layer) */
+  readonly unresolvedHoles: readonly CPLHole[];
+
+  /** Compilation metadata */
+  readonly compilation: CPLCompilationMetadata;
+
+  /** Schema versions for each layer */
+  readonly schemaVersions: CPLDocumentVersions;
+}
+
+/**
+ * Schema versions for all layers in a CPL document.
+ */
+export interface CPLDocumentVersions {
+  readonly intent: SemanticVersion;
+  readonly plan: SemanticVersion;
+  readonly host: SemanticVersion;
+  readonly document: SemanticVersion;
+}
+
+/**
+ * Current schema versions for CPL document format.
+ */
+export const CPL_DOCUMENT_VERSIONS: CPLDocumentVersions = {
+  intent: GOFAI_SCHEMA_VERSIONS.CPL_INTENT,
+  plan: GOFAI_SCHEMA_VERSIONS.CPL_PLAN,
+  host: GOFAI_SCHEMA_VERSIONS.CPL_HOST,
+  document: { major: 1, minor: 0, patch: 0 },
+};
+
+
+// =============================================================================
+// Layer Transition Types
+// =============================================================================
+
+/**
+ * Result of lowering CPL-Intent to CPL-Plan.
+ *
+ * The planner produces this when converting intent to an executable plan.
+ */
+export interface IntentToPlanResult {
+  /** The resulting plan */
+  readonly plan: CPLPlan;
+
+  /** Goals that were fully satisfied */
+  readonly satisfiedGoals: readonly string[];
+
+  /** Goals that could not be satisfied */
+  readonly unsatisfiedGoals: readonly string[];
+
+  /** Constraints that were respected */
+  readonly respectedConstraints: readonly string[];
+
+  /** Constraints that were violated (with reasons) */
+  readonly violatedConstraints: readonly {
+    readonly constraintId: string;
+    readonly reason: string;
+    readonly severity: 'warning' | 'error';
+  }[];
+
+  /** Preferences that influenced planning */
+  readonly appliedPreferences: readonly string[];
+
+  /** Planning alternatives that were considered */
+  readonly alternativesConsidered: number;
+
+  /** Planning duration (ms) */
+  readonly planningDurationMs: number;
+
+  /** Warnings */
+  readonly warnings: readonly string[];
+}
+
+/**
+ * Result of lowering CPL-Plan to CPL-Host.
+ *
+ * The host compiler produces this when converting a plan to host-action bindings.
+ */
+export interface PlanToHostResult {
+  /** The resulting host-action bundle */
+  readonly bundle: CPLHostActionBundle;
+
+  /** Opcodes that were successfully compiled */
+  readonly compiledOpcodes: readonly string[];
+
+  /** Opcodes that could not be compiled (with reasons) */
+  readonly failedOpcodes: readonly {
+    readonly opcodeId: string;
+    readonly reason: string;
+    readonly fallback?: string;
+  }[];
+
+  /** Host adapter capabilities that were required */
+  readonly requiredCapabilities: readonly string[];
+
+  /** Host adapter capabilities that were missing */
+  readonly missingCapabilities: readonly string[];
+
+  /** Compilation duration (ms) */
+  readonly compilationDurationMs: number;
+
+  /** Warnings */
+  readonly warnings: readonly string[];
+}
+
+/**
+ * Result of attempting a full three-layer compilation.
+ */
+export interface FullCompilationResult {
+  /** The CPL document (may be partial) */
+  readonly document: CPLDocument;
+
+  /** Intent-to-plan result (if planning was attempted) */
+  readonly intentToPlan?: IntentToPlanResult;
+
+  /** Plan-to-host result (if host compilation was attempted) */
+  readonly planToHost?: PlanToHostResult;
+
+  /** Whether compilation completed all three layers */
+  readonly fullyCompiled: boolean;
+
+  /** Which layer the compilation stopped at */
+  readonly stoppedAt: CPLLayer;
+
+  /** Why compilation stopped (if not fully compiled) */
+  readonly stopReason?: string;
+
+  /** All warnings from all stages */
+  readonly allWarnings: readonly string[];
+}
+
+
+// =============================================================================
+// JSON Schemas for CPL-Host
+// =============================================================================
+
+/**
+ * JSON Schema for CPL-Host action bundle.
+ */
+export const CPL_HOST_JSON_SCHEMA = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  $id: 'https://cardplay.app/schemas/gofai/cpl-host.json',
+  title: 'CPL-Host',
+  description: 'GOFAI Music+ Host-Action Bundle Representation',
+  type: 'object',
+  required: [
+    'type',
+    'id',
+    'sourcePlanId',
+    'sourceIntentId',
+    'actions',
+    'locks',
+    'undoStrategy',
+    'preconditions',
+    'postconditions',
+    'estimatedDurationMs',
+    'requiresConfirmation',
+    'schemaVersion',
+  ],
+  properties: {
+    type: { const: 'host-action-bundle' },
+    id: { type: 'string' },
+    sourcePlanId: { type: 'string' },
+    sourceIntentId: { type: 'string' },
+    actions: {
+      type: 'array',
+      items: { $ref: '#/definitions/CPLHostAction' },
+    },
+    locks: {
+      type: 'array',
+      items: { $ref: '#/definitions/CPLResourceLock' },
+    },
+    undoStrategy: { $ref: '#/definitions/UndoStrategy' },
+    preconditions: {
+      type: 'array',
+      items: { $ref: '#/definitions/CPLHostAssertion' },
+    },
+    postconditions: {
+      type: 'array',
+      items: { $ref: '#/definitions/CPLHostAssertion' },
+    },
+    estimatedDurationMs: { type: 'number', minimum: 0 },
+    requiresConfirmation: { type: 'boolean' },
+    schemaVersion: { $ref: '#/definitions/SemanticVersion' },
+    provenance: { $ref: '#/definitions/Provenance' },
+  },
+  definitions: {
+    SemanticVersion: {
+      type: 'object',
+      required: ['major', 'minor', 'patch'],
+      properties: {
+        major: { type: 'integer', minimum: 0 },
+        minor: { type: 'integer', minimum: 0 },
+        patch: { type: 'integer', minimum: 0 },
+      },
+    },
+    Provenance: {
+      type: 'object',
+      properties: {
+        span: { type: 'array', items: { type: 'integer' }, minItems: 2, maxItems: 2 },
+        lexemeId: { type: 'string' },
+        ruleId: { type: 'string' },
+        frameId: { type: 'string' },
+        namespace: { type: 'string' },
+        origin: { type: 'string' },
+      },
+    },
+    CPLHostAction: {
+      type: 'object',
+      required: [
+        'type', 'id', 'sourceOpcodeId', 'adapterNamespace', 'method',
+        'parameters', 'locks', 'undo', 'sideEffects', 'dependsOn',
+        'timeoutMs', 'risk', 'idempotent', 'destructive', 'callbacks',
+      ],
+      properties: {
+        type: { const: 'host-action' },
+        id: { type: 'string' },
+        sourceOpcodeId: { type: 'string' },
+        adapterNamespace: { type: 'string' },
+        method: { type: 'string' },
+        parameters: {
+          type: 'array',
+          items: { $ref: '#/definitions/CPLHostParameter' },
+        },
+        locks: { type: 'array', items: { type: 'string' } },
+        undo: { $ref: '#/definitions/CPLUndoEntry' },
+        sideEffects: {
+          type: 'array',
+          items: { $ref: '#/definitions/HostSideEffect' },
+        },
+        dependsOn: { type: 'array', items: { type: 'string' } },
+        timeoutMs: { type: 'number', minimum: 0 },
+        risk: { enum: ['low', 'medium', 'high', 'critical'] },
+        idempotent: { type: 'boolean' },
+        destructive: { type: 'boolean' },
+        callbacks: {
+          type: 'array',
+          items: { $ref: '#/definitions/CPLHostCallback' },
+        },
+        provenance: { $ref: '#/definitions/Provenance' },
+      },
+    },
+    CPLHostParameter: {
+      type: 'object',
+      required: ['type', 'id', 'name', 'value', 'valueType', 'constraints'],
+      properties: {
+        type: { const: 'host-parameter' },
+        id: { type: 'string' },
+        name: { type: 'string' },
+        value: {},
+        valueType: {
+          enum: [
+            'int', 'float', 'string', 'bool', 'enum', 'entity-id',
+            'time-ticks', 'time-seconds', 'frequency-hz', 'amplitude-db',
+            'midi-note', 'midi-velocity', 'midi-cc', 'normalized',
+            'percentage', 'semitones', 'cents', 'bpm', 'ratio',
+            'buffer-id', 'file-path', 'color', 'json-blob',
+          ],
+        },
+        constraints: {
+          type: 'array',
+          items: { $ref: '#/definitions/HostParameterConstraint' },
+        },
+        provenance: { $ref: '#/definitions/Provenance' },
+      },
+    },
+    CPLResourceLock: {
+      type: 'object',
+      required: [
+        'type', 'id', 'resourceId', 'resourceType', 'mode',
+        'timeoutMs', 'priority', 'onConflict', 'reason',
+      ],
+      properties: {
+        type: { const: 'resource-lock' },
+        id: { type: 'string' },
+        resourceId: { type: 'string' },
+        resourceType: {
+          enum: [
+            'track', 'section', 'mixer-channel', 'plugin-instance',
+            'transport', 'project-metadata', 'undo-stack', 'file-handle',
+          ],
+        },
+        mode: { enum: ['shared', 'exclusive'] },
+        timeoutMs: { type: 'number', minimum: 0 },
+        priority: { type: 'integer' },
+        onConflict: { enum: ['fail', 'wait', 'queue'] },
+        reason: { type: 'string' },
+        provenance: { $ref: '#/definitions/Provenance' },
+      },
+    },
+    CPLUndoEntry: {
+      type: 'object',
+      required: ['type', 'id', 'strategy', 'estimatedUndoCostMs'],
+      properties: {
+        type: { const: 'undo-entry' },
+        id: { type: 'string' },
+        strategy: { enum: ['inverse-action', 'snapshot-restore', 'diff-patch', 'not-undoable'] },
+        inverseMethod: { type: 'string' },
+        inverseParameters: {
+          type: 'array',
+          items: { $ref: '#/definitions/CPLHostParameter' },
+        },
+        snapshotKey: { type: 'string' },
+        diffSpec: { type: 'object' },
+        notUndoableReason: { type: 'string' },
+        estimatedUndoCostMs: { type: 'number', minimum: 0 },
+        provenance: { $ref: '#/definitions/Provenance' },
+      },
+    },
+    UndoStrategy: {
+      type: 'object',
+      required: ['kind', 'description', 'atomicUndo', 'undoGroupLabel', 'estimatedTotalUndoCostMs'],
+      properties: {
+        kind: { enum: ['action-by-action', 'atomic-snapshot', 'transaction-rollback', 'partial-undo'] },
+        description: { type: 'string' },
+        atomicUndo: { type: 'boolean' },
+        undoGroupLabel: { type: 'string' },
+        estimatedTotalUndoCostMs: { type: 'number', minimum: 0 },
+      },
+    },
+    HostSideEffect: {
+      type: 'object',
+      required: ['kind', 'description', 'affectedResources', 'reversible'],
+      properties: {
+        kind: {
+          enum: [
+            'state-mutation', 'file-write', 'audio-output', 'midi-output',
+            'ui-update', 'network-call', 'resource-allocation', 'resource-release',
+          ],
+        },
+        description: { type: 'string' },
+        affectedResources: { type: 'array', items: { type: 'string' } },
+        reversible: { type: 'boolean' },
+      },
+    },
+    CPLHostCallback: {
+      type: 'object',
+      required: ['type', 'id', 'callbackType', 'callbackId', 'required'],
+      properties: {
+        type: { const: 'host-callback' },
+        id: { type: 'string' },
+        callbackType: {
+          enum: ['on-progress', 'on-complete', 'on-error', 'on-cancel', 'on-preview', 'on-confirm'],
+        },
+        callbackId: { type: 'string' },
+        required: { type: 'boolean' },
+        provenance: { $ref: '#/definitions/Provenance' },
+      },
+    },
+    CPLHostAssertion: {
+      type: 'object',
+      required: ['type', 'id', 'assertionKind', 'subject', 'expected', 'onFailure', 'message'],
+      properties: {
+        type: { const: 'host-assertion' },
+        id: { type: 'string' },
+        assertionKind: {
+          enum: [
+            'entity-exists', 'entity-type', 'value-in-range', 'resource-available',
+            'transport-state', 'plugin-loaded', 'no-pending-edits', 'custom',
+          ],
+        },
+        subject: { type: 'string' },
+        expected: {},
+        onFailure: { enum: ['abort', 'warn', 'skip-action', 'retry'] },
+        message: { type: 'string' },
+        provenance: { $ref: '#/definitions/Provenance' },
+      },
+    },
+    HostParameterConstraint: {
+      type: 'object',
+      required: ['kind', 'value', 'message'],
+      properties: {
+        kind: { enum: ['min', 'max', 'enum-values', 'regex', 'entity-exists', 'non-empty'] },
+        value: {},
+        message: { type: 'string' },
+      },
+    },
+  },
+} as const;
+
+/**
+ * JSON Schema for CPL-Document (unified three-layer).
+ */
+export const CPL_DOCUMENT_JSON_SCHEMA = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  $id: 'https://cardplay.app/schemas/gofai/cpl-document.json',
+  title: 'CPL-Document',
+  description: 'GOFAI Music+ Complete CPL Document (all three layers)',
+  type: 'object',
+  required: [
+    'kind',
+    'id',
+    'intent',
+    'currentLayer',
+    'fullyCompiled',
+    'unresolvedHoles',
+    'compilation',
+    'schemaVersions',
+  ],
+  properties: {
+    kind: { const: 'cpl-document' },
+    id: { type: 'string' },
+    intent: { $ref: 'cpl-intent.json' },
+    plan: { $ref: 'cpl-plan.json' },
+    host: { $ref: 'cpl-host.json' },
+    currentLayer: { enum: ['intent', 'plan', 'host'] },
+    fullyCompiled: { type: 'boolean' },
+    unresolvedHoles: { type: 'array' },
+    compilation: { $ref: '#/definitions/CPLCompilationMetadata' },
+    schemaVersions: { $ref: '#/definitions/CPLDocumentVersions' },
+  },
+  definitions: {
+    CPLCompilationMetadata: {
+      type: 'object',
+      required: [
+        'utterance', 'timestamp', 'pipelineVersion', 'stages',
+        'totalCompilationMs', 'compilerFingerprint',
+      ],
+      properties: {
+        utterance: { type: 'string' },
+        timestamp: { type: 'string', format: 'date-time' },
+        pipelineVersion: {
+          type: 'object',
+          required: ['major', 'minor', 'patch'],
+          properties: {
+            major: { type: 'integer', minimum: 0 },
+            minor: { type: 'integer', minimum: 0 },
+            patch: { type: 'integer', minimum: 0 },
+          },
+        },
+        stages: {
+          type: 'array',
+          items: { $ref: '#/definitions/CPLStageMetadata' },
+        },
+        totalCompilationMs: { type: 'number', minimum: 0 },
+        compilerFingerprint: { type: 'string' },
+      },
+    },
+    CPLStageMetadata: {
+      type: 'object',
+      required: [
+        'stage', 'durationMs', 'alternativesConsidered',
+        'warnings', 'ambiguityResolved', 'componentVersion',
+      ],
+      properties: {
+        stage: {
+          enum: [
+            'tokenize', 'parse', 'semantic-compose', 'pragmatic-resolve',
+            'typecheck-intent', 'plan', 'typecheck-plan', 'host-compile', 'typecheck-host',
+          ],
+        },
+        durationMs: { type: 'number', minimum: 0 },
+        alternativesConsidered: { type: 'integer', minimum: 0 },
+        warnings: { type: 'array', items: { type: 'string' } },
+        ambiguityResolved: { type: 'boolean' },
+        componentVersion: {
+          type: 'object',
+          required: ['major', 'minor', 'patch'],
+          properties: {
+            major: { type: 'integer', minimum: 0 },
+            minor: { type: 'integer', minimum: 0 },
+            patch: { type: 'integer', minimum: 0 },
+          },
+        },
+      },
+    },
+    CPLDocumentVersions: {
+      type: 'object',
+      required: ['intent', 'plan', 'host', 'document'],
+      properties: {
+        intent: {
+          type: 'object',
+          required: ['major', 'minor', 'patch'],
+          properties: {
+            major: { type: 'integer', minimum: 0 },
+            minor: { type: 'integer', minimum: 0 },
+            patch: { type: 'integer', minimum: 0 },
+          },
+        },
+        plan: {
+          type: 'object',
+          required: ['major', 'minor', 'patch'],
+          properties: {
+            major: { type: 'integer', minimum: 0 },
+            minor: { type: 'integer', minimum: 0 },
+            patch: { type: 'integer', minimum: 0 },
+          },
+        },
+        host: {
+          type: 'object',
+          required: ['major', 'minor', 'patch'],
+          properties: {
+            major: { type: 'integer', minimum: 0 },
+            minor: { type: 'integer', minimum: 0 },
+            patch: { type: 'integer', minimum: 0 },
+          },
+        },
+        document: {
+          type: 'object',
+          required: ['major', 'minor', 'patch'],
+          properties: {
+            major: { type: 'integer', minimum: 0 },
+            minor: { type: 'integer', minimum: 0 },
+            patch: { type: 'integer', minimum: 0 },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
+
+// =============================================================================
+// Type Guards
+// =============================================================================
+
+/**
+ * Type guard for CPL-Host action bundle.
+ */
+export function isCPLHostActionBundle(value: unknown): value is CPLHostActionBundle {
+  return (
+    isCPLNode(value) &&
+    value.type === 'host-action-bundle' &&
+    'actions' in value &&
+    'locks' in value &&
+    'undoStrategy' in value
+  );
+}
+
+/**
+ * Type guard for CPL-Host action.
+ */
+export function isCPLHostAction(value: unknown): value is CPLHostAction {
+  return (
+    isCPLNode(value) &&
+    value.type === 'host-action' &&
+    'adapterNamespace' in value &&
+    'method' in value
+  );
+}
+
+/**
+ * Type guard for CPL-Host parameter.
+ */
+export function isCPLHostParameter(value: unknown): value is CPLHostParameter {
+  return (
+    isCPLNode(value) &&
+    value.type === 'host-parameter' &&
+    'name' in value &&
+    'valueType' in value
+  );
+}
+
+/**
+ * Type guard for CPL resource lock.
+ */
+export function isCPLResourceLock(value: unknown): value is CPLResourceLock {
+  return (
+    isCPLNode(value) &&
+    value.type === 'resource-lock' &&
+    'resourceId' in value &&
+    'mode' in value
+  );
+}
+
+/**
+ * Type guard for CPL undo entry.
+ */
+export function isCPLUndoEntry(value: unknown): value is CPLUndoEntry {
+  return (
+    isCPLNode(value) &&
+    value.type === 'undo-entry' &&
+    'strategy' in value
+  );
+}
+
+/**
+ * Type guard for CPL host assertion.
+ */
+export function isCPLHostAssertion(value: unknown): value is CPLHostAssertion {
+  return (
+    isCPLNode(value) &&
+    value.type === 'host-assertion' &&
+    'assertionKind' in value
+  );
+}
+
+/**
+ * Type guard for CPL document.
+ */
+export function isCPLDocument(value: unknown): value is CPLDocument {
+  if (typeof value !== 'object' || value === null) return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    obj.kind === 'cpl-document' &&
+    typeof obj.id === 'string' &&
+    isCPLIntent(obj.intent)
+  );
+}
+
+
+// =============================================================================
+// Versioned Serialization for All Three Layers
+// =============================================================================
+
+/**
+ * Serialize a CPL-Intent with versioned envelope.
+ */
+export function serializeCPLIntent(
+  intent: CPLIntent,
+  options?: SerializationOptions
+): SerializationResult {
+  return serializeWithVersion(
+    GOFAI_SCHEMA_IDS.CPL_INTENT,
+    GOFAI_SCHEMA_VERSIONS.CPL_INTENT,
+    intent,
+    options
+  );
+}
+
+/**
+ * Deserialize a CPL-Intent from versioned envelope.
+ */
+export function deserializeCPLIntent(
+  json: string,
+  options?: DeserializationOptions
+): DeserializationResult<CPLIntent> {
+  return deserializeWithVersion<CPLIntent>(
+    GOFAI_SCHEMA_IDS.CPL_INTENT,
+    json,
+    GOFAI_SCHEMA_VERSIONS.CPL_INTENT,
+    options
+  );
+}
+
+/**
+ * Serialize a CPL-Plan with versioned envelope.
+ */
+export function serializeCPLPlan(
+  plan: CPLPlan,
+  options?: SerializationOptions
+): SerializationResult {
+  return serializeWithVersion(
+    GOFAI_SCHEMA_IDS.CPL_PLAN,
+    GOFAI_SCHEMA_VERSIONS.CPL_PLAN,
+    plan,
+    options
+  );
+}
+
+/**
+ * Deserialize a CPL-Plan from versioned envelope.
+ */
+export function deserializeCPLPlan(
+  json: string,
+  options?: DeserializationOptions
+): DeserializationResult<CPLPlan> {
+  return deserializeWithVersion<CPLPlan>(
+    GOFAI_SCHEMA_IDS.CPL_PLAN,
+    json,
+    GOFAI_SCHEMA_VERSIONS.CPL_PLAN,
+    options
+  );
+}
+
+/**
+ * Serialize a CPL-Host action bundle with versioned envelope.
+ */
+export function serializeCPLHost(
+  bundle: CPLHostActionBundle,
+  options?: SerializationOptions
+): SerializationResult {
+  return serializeWithVersion(
+    GOFAI_SCHEMA_IDS.CPL_HOST,
+    GOFAI_SCHEMA_VERSIONS.CPL_HOST,
+    bundle,
+    options
+  );
+}
+
+/**
+ * Deserialize a CPL-Host action bundle from versioned envelope.
+ */
+export function deserializeCPLHost(
+  json: string,
+  options?: DeserializationOptions
+): DeserializationResult<CPLHostActionBundle> {
+  return deserializeWithVersion<CPLHostActionBundle>(
+    GOFAI_SCHEMA_IDS.CPL_HOST,
+    json,
+    GOFAI_SCHEMA_VERSIONS.CPL_HOST,
+    options
+  );
+}
+
+/** CPL Document schema ID */
+const CPL_DOCUMENT_SCHEMA_ID = 'gofai:schema:cpl-document';
+
+/**
+ * Serialize a complete CPL document with versioned envelope.
+ */
+export function serializeCPLDocument(
+  document: CPLDocument,
+  options?: SerializationOptions
+): SerializationResult {
+  return serializeWithVersion(
+    CPL_DOCUMENT_SCHEMA_ID,
+    CPL_DOCUMENT_VERSIONS.document,
+    document,
+    options
+  );
+}
+
+/**
+ * Deserialize a complete CPL document from versioned envelope.
+ */
+export function deserializeCPLDocument(
+  json: string,
+  options?: DeserializationOptions
+): DeserializationResult<CPLDocument> {
+  return deserializeWithVersion<CPLDocument>(
+    CPL_DOCUMENT_SCHEMA_ID,
+    json,
+    CPL_DOCUMENT_VERSIONS.document,
+    options
+  );
+}
+
+
+// =============================================================================
+// Validation Functions
+// =============================================================================
+
+/**
+ * Validation severity levels.
+ */
+export type CPLValidationSeverity = 'error' | 'warning' | 'info';
+
+/**
+ * A single validation issue.
+ */
+export interface CPLValidationIssue {
+  readonly severity: CPLValidationSeverity;
+  readonly code: string;
+  readonly message: string;
+  readonly path: string;
+  readonly nodeId?: string;
+}
+
+/**
+ * Validation result for a CPL layer or document.
+ */
+export interface CPLValidationResult {
+  readonly valid: boolean;
+  readonly issues: readonly CPLValidationIssue[];
+  readonly layer: CPLLayer | 'document';
+}
+
+/**
+ * Validate a CPL-Intent.
+ */
+export function validateCPLIntent(intent: CPLIntent): CPLValidationResult {
+  const issues: CPLValidationIssue[] = [];
+
+  // Required field checks
+  if (!intent.id) {
+    issues.push({
+      severity: 'error',
+      code: 'INTENT_MISSING_ID',
+      message: 'CPL-Intent must have an id',
+      path: 'intent.id',
+    });
+  }
+
+  if (intent.type !== 'intent') {
+    issues.push({
+      severity: 'error',
+      code: 'INTENT_WRONG_TYPE',
+      message: `CPL-Intent type must be 'intent', got '${intent.type}'`,
+      path: 'intent.type',
+    });
+  }
+
+  if (!intent.goals || intent.goals.length === 0) {
+    issues.push({
+      severity: 'warning',
+      code: 'INTENT_NO_GOALS',
+      message: 'CPL-Intent has no goals',
+      path: 'intent.goals',
+    });
+  }
+
+  // Validate goals
+  for (let i = 0; i < intent.goals.length; i++) {
+    const goal = intent.goals[i]!;
+    if (!goal.id) {
+      issues.push({
+        severity: 'error',
+        code: 'GOAL_MISSING_ID',
+        message: `Goal at index ${i} is missing an id`,
+        path: `intent.goals[${i}].id`,
+        nodeId: goal.id,
+      });
+    }
+    if (!goal.variant) {
+      issues.push({
+        severity: 'error',
+        code: 'GOAL_MISSING_VARIANT',
+        message: `Goal '${goal.id}' is missing a variant`,
+        path: `intent.goals[${i}].variant`,
+        nodeId: goal.id,
+      });
+    }
+  }
+
+  // Validate constraints
+  for (let i = 0; i < intent.constraints.length; i++) {
+    const constraint = intent.constraints[i]!;
+    if (!constraint.id) {
+      issues.push({
+        severity: 'error',
+        code: 'CONSTRAINT_MISSING_ID',
+        message: `Constraint at index ${i} is missing an id`,
+        path: `intent.constraints[${i}].id`,
+      });
+    }
+    if (!constraint.description) {
+      issues.push({
+        severity: 'warning',
+        code: 'CONSTRAINT_MISSING_DESCRIPTION',
+        message: `Constraint '${constraint.id}' has no description`,
+        path: `intent.constraints[${i}].description`,
+        nodeId: constraint.id,
+      });
+    }
+  }
+
+  // Check schema version
+  if (!intent.schemaVersion) {
+    issues.push({
+      severity: 'error',
+      code: 'INTENT_MISSING_VERSION',
+      message: 'CPL-Intent must have a schemaVersion',
+      path: 'intent.schemaVersion',
+    });
+  }
+
+  // Validate holes (if present)
+  if (intent.holes) {
+    for (let i = 0; i < intent.holes.length; i++) {
+      const hole = intent.holes[i]!;
+      if (!hole.question) {
+        issues.push({
+          severity: 'error',
+          code: 'HOLE_MISSING_QUESTION',
+          message: `Hole '${hole.id}' has no clarification question`,
+          path: `intent.holes[${i}].question`,
+          nodeId: hole.id,
+        });
+      }
+    }
+  }
+
+  return {
+    valid: issues.every(i => i.severity !== 'error'),
+    issues,
+    layer: 'intent',
+  };
+}
+
+/**
+ * Validate a CPL-Plan.
+ */
+export function validateCPLPlan(plan: CPLPlan): CPLValidationResult {
+  const issues: CPLValidationIssue[] = [];
+
+  if (!plan.id) {
+    issues.push({
+      severity: 'error',
+      code: 'PLAN_MISSING_ID',
+      message: 'CPL-Plan must have an id',
+      path: 'plan.id',
+    });
+  }
+
+  if (plan.type !== 'plan') {
+    issues.push({
+      severity: 'error',
+      code: 'PLAN_WRONG_TYPE',
+      message: `CPL-Plan type must be 'plan', got '${plan.type}'`,
+      path: 'plan.type',
+    });
+  }
+
+  if (!plan.opcodes || plan.opcodes.length === 0) {
+    issues.push({
+      severity: 'warning',
+      code: 'PLAN_NO_OPCODES',
+      message: 'CPL-Plan has no opcodes (empty plan)',
+      path: 'plan.opcodes',
+    });
+  }
+
+  // Validate opcodes
+  for (let i = 0; i < plan.opcodes.length; i++) {
+    const opcode = plan.opcodes[i]!;
+    if (!opcode.opcodeId) {
+      issues.push({
+        severity: 'error',
+        code: 'OPCODE_MISSING_ID',
+        message: `Opcode at index ${i} is missing an opcodeId`,
+        path: `plan.opcodes[${i}].opcodeId`,
+        nodeId: opcode.id,
+      });
+    }
+    if (opcode.destructive && !opcode.requiresPreview) {
+      issues.push({
+        severity: 'warning',
+        code: 'OPCODE_DESTRUCTIVE_NO_PREVIEW',
+        message: `Destructive opcode '${opcode.opcodeId}' does not require preview`,
+        path: `plan.opcodes[${i}].requiresPreview`,
+        nodeId: opcode.id,
+      });
+    }
+  }
+
+  // Validate cost/satisfaction
+  if (plan.cost < 0) {
+    issues.push({
+      severity: 'error',
+      code: 'PLAN_NEGATIVE_COST',
+      message: 'CPL-Plan cost must be non-negative',
+      path: 'plan.cost',
+    });
+  }
+
+  if (plan.satisfaction < 0 || plan.satisfaction > 1) {
+    issues.push({
+      severity: 'error',
+      code: 'PLAN_SATISFACTION_OUT_OF_RANGE',
+      message: 'CPL-Plan satisfaction must be between 0 and 1',
+      path: 'plan.satisfaction',
+    });
+  }
+
+  // Validate goal/constraint references
+  if (!plan.satisfiesGoals || plan.satisfiesGoals.length === 0) {
+    issues.push({
+      severity: 'warning',
+      code: 'PLAN_NO_SATISFIED_GOALS',
+      message: 'CPL-Plan does not reference any satisfied goals',
+      path: 'plan.satisfiesGoals',
+    });
+  }
+
+  return {
+    valid: issues.every(i => i.severity !== 'error'),
+    issues,
+    layer: 'plan',
+  };
+}
+
+/**
+ * Validate a CPL-Host action bundle.
+ */
+export function validateCPLHost(bundle: CPLHostActionBundle): CPLValidationResult {
+  const issues: CPLValidationIssue[] = [];
+
+  if (!bundle.id) {
+    issues.push({
+      severity: 'error',
+      code: 'HOST_MISSING_ID',
+      message: 'CPL-Host bundle must have an id',
+      path: 'host.id',
+    });
+  }
+
+  if (!bundle.sourcePlanId) {
+    issues.push({
+      severity: 'error',
+      code: 'HOST_MISSING_SOURCE_PLAN',
+      message: 'CPL-Host bundle must reference a source plan',
+      path: 'host.sourcePlanId',
+    });
+  }
+
+  if (!bundle.sourceIntentId) {
+    issues.push({
+      severity: 'error',
+      code: 'HOST_MISSING_SOURCE_INTENT',
+      message: 'CPL-Host bundle must reference a source intent',
+      path: 'host.sourceIntentId',
+    });
+  }
+
+  // Validate actions
+  const actionIds = new Set<string>();
+  for (let i = 0; i < bundle.actions.length; i++) {
+    const action = bundle.actions[i]!;
+
+    // Check unique IDs
+    if (actionIds.has(action.id)) {
+      issues.push({
+        severity: 'error',
+        code: 'HOST_DUPLICATE_ACTION_ID',
+        message: `Duplicate action ID: '${action.id}'`,
+        path: `host.actions[${i}].id`,
+        nodeId: action.id,
+      });
+    }
+    actionIds.add(action.id);
+
+    // Validate adapter namespace
+    if (!action.adapterNamespace.includes(':')) {
+      issues.push({
+        severity: 'warning',
+        code: 'HOST_ACTION_NAMESPACE_FORMAT',
+        message: `Action '${action.id}' adapter namespace should be namespaced (e.g., 'cardplay:core')`,
+        path: `host.actions[${i}].adapterNamespace`,
+        nodeId: action.id,
+      });
+    }
+
+    // Validate dependencies reference existing actions
+    for (const dep of action.dependsOn) {
+      if (!actionIds.has(dep) && !bundle.actions.some(a => a.id === dep)) {
+        issues.push({
+          severity: 'warning',
+          code: 'HOST_ACTION_UNKNOWN_DEPENDENCY',
+          message: `Action '${action.id}' depends on unknown action '${dep}'`,
+          path: `host.actions[${i}].dependsOn`,
+          nodeId: action.id,
+        });
+      }
+    }
+
+    // Validate undo entry
+    if (action.destructive && action.undo.strategy === 'not-undoable' && !action.undo.notUndoableReason) {
+      issues.push({
+        severity: 'warning',
+        code: 'HOST_DESTRUCTIVE_NO_UNDO_REASON',
+        message: `Destructive action '${action.id}' is not undoable without a reason`,
+        path: `host.actions[${i}].undo.notUndoableReason`,
+        nodeId: action.id,
+      });
+    }
+
+    // Validate parameters
+    for (let j = 0; j < action.parameters.length; j++) {
+      const param = action.parameters[j]!;
+      if (!param.name) {
+        issues.push({
+          severity: 'error',
+          code: 'HOST_PARAM_MISSING_NAME',
+          message: `Parameter at index ${j} of action '${action.id}' is missing a name`,
+          path: `host.actions[${i}].parameters[${j}].name`,
+          nodeId: action.id,
+        });
+      }
+    }
+  }
+
+  // Validate lock references
+  const lockIds = new Set(bundle.locks.map(l => l.id));
+  for (let i = 0; i < bundle.actions.length; i++) {
+    const action = bundle.actions[i]!;
+    for (const lockRef of action.locks) {
+      if (!lockIds.has(lockRef)) {
+        issues.push({
+          severity: 'error',
+          code: 'HOST_ACTION_UNKNOWN_LOCK',
+          message: `Action '${action.id}' references unknown lock '${lockRef}'`,
+          path: `host.actions[${i}].locks`,
+          nodeId: action.id,
+        });
+      }
+    }
+  }
+
+  // Check for circular dependencies
+  const circularCheck = detectCircularDependencies(bundle.actions);
+  if (circularCheck.length > 0) {
+    for (const cycle of circularCheck) {
+      issues.push({
+        severity: 'error',
+        code: 'HOST_CIRCULAR_DEPENDENCY',
+        message: `Circular dependency detected: ${cycle.join(' → ')}`,
+        path: 'host.actions',
+      });
+    }
+  }
+
+  // Validate confirmation requirement
+  const hasDestructive = bundle.actions.some(a => a.destructive);
+  const hasHighRisk = bundle.actions.some(a => a.risk === 'high' || a.risk === 'critical');
+  if ((hasDestructive || hasHighRisk) && !bundle.requiresConfirmation) {
+    issues.push({
+      severity: 'warning',
+      code: 'HOST_DESTRUCTIVE_NO_CONFIRMATION',
+      message: 'Bundle contains destructive or high-risk actions but does not require confirmation',
+      path: 'host.requiresConfirmation',
+    });
+  }
+
+  return {
+    valid: issues.every(i => i.severity !== 'error'),
+    issues,
+    layer: 'host',
+  };
+}
+
+/**
+ * Validate a complete CPL document.
+ */
+export function validateCPLDocument(doc: CPLDocument): CPLValidationResult {
+  const issues: CPLValidationIssue[] = [];
+
+  // Validate document-level fields
+  if (!doc.id) {
+    issues.push({
+      severity: 'error',
+      code: 'DOC_MISSING_ID',
+      message: 'CPL document must have an id',
+      path: 'document.id',
+    });
+  }
+
+  // Validate intent (always present)
+  const intentResult = validateCPLIntent(doc.intent);
+  issues.push(...intentResult.issues.map(i => ({
+    ...i,
+    path: `document.${i.path}`,
+  })));
+
+  // Validate plan (if present)
+  if (doc.plan) {
+    const planResult = validateCPLPlan(doc.plan);
+    issues.push(...planResult.issues.map(i => ({
+      ...i,
+      path: `document.${i.path}`,
+    })));
+
+    // Cross-layer: plan should reference intent goals
+    for (const goalId of doc.plan.satisfiesGoals) {
+      const goalExists = doc.intent.goals.some(g => g.id === goalId);
+      if (!goalExists) {
+        issues.push({
+          severity: 'error',
+          code: 'DOC_PLAN_UNKNOWN_GOAL',
+          message: `Plan references unknown goal '${goalId}'`,
+          path: 'document.plan.satisfiesGoals',
+        });
+      }
+    }
+
+    // Cross-layer: plan should reference intent constraints
+    for (const constraintId of doc.plan.respectsConstraints) {
+      const constraintExists = doc.intent.constraints.some(c => c.id === constraintId);
+      if (!constraintExists) {
+        issues.push({
+          severity: 'warning',
+          code: 'DOC_PLAN_UNKNOWN_CONSTRAINT',
+          message: `Plan references unknown constraint '${constraintId}'`,
+          path: 'document.plan.respectsConstraints',
+        });
+      }
+    }
+  }
+
+  // Validate host (if present)
+  if (doc.host) {
+    const hostResult = validateCPLHost(doc.host);
+    issues.push(...hostResult.issues.map(i => ({
+      ...i,
+      path: `document.${i.path}`,
+    })));
+
+    // Cross-layer: host should reference plan
+    if (doc.plan && doc.host.sourcePlanId !== doc.plan.id) {
+      issues.push({
+        severity: 'error',
+        code: 'DOC_HOST_PLAN_MISMATCH',
+        message: `Host bundle references plan '${doc.host.sourcePlanId}' but document plan is '${doc.plan.id}'`,
+        path: 'document.host.sourcePlanId',
+      });
+    }
+
+    // Cross-layer: host should reference intent
+    if (doc.host.sourceIntentId !== doc.intent.id) {
+      issues.push({
+        severity: 'error',
+        code: 'DOC_HOST_INTENT_MISMATCH',
+        message: `Host bundle references intent '${doc.host.sourceIntentId}' but document intent is '${doc.intent.id}'`,
+        path: 'document.host.sourceIntentId',
+      });
+    }
+  }
+
+  // Validate layer consistency
+  if (doc.fullyCompiled && (!doc.plan || !doc.host)) {
+    issues.push({
+      severity: 'error',
+      code: 'DOC_FULLY_COMPILED_INCOMPLETE',
+      message: 'Document claims to be fully compiled but is missing plan or host layers',
+      path: 'document.fullyCompiled',
+    });
+  }
+
+  if (doc.currentLayer === 'host' && !doc.host) {
+    issues.push({
+      severity: 'error',
+      code: 'DOC_CURRENT_LAYER_MISSING',
+      message: "Document says current layer is 'host' but host layer is missing",
+      path: 'document.currentLayer',
+    });
+  }
+
+  if (doc.currentLayer === 'plan' && !doc.plan) {
+    issues.push({
+      severity: 'error',
+      code: 'DOC_CURRENT_LAYER_MISSING',
+      message: "Document says current layer is 'plan' but plan layer is missing",
+      path: 'document.currentLayer',
+    });
+  }
+
+  return {
+    valid: issues.every(i => i.severity !== 'error'),
+    issues,
+    layer: 'document',
+  };
+}
+
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
+
+/**
+ * Detect circular dependencies among host actions.
+ *
+ * Returns arrays of action IDs forming cycles.
+ */
+function detectCircularDependencies(
+  actions: readonly CPLHostAction[]
+): readonly (readonly string[])[] {
+  const cycles: string[][] = [];
+  const visited = new Set<string>();
+  const inStack = new Set<string>();
+  const actionMap = new Map(actions.map(a => [a.id, a]));
+
+  function dfs(nodeId: string, path: string[]): void {
+    if (inStack.has(nodeId)) {
+      // Found a cycle — extract it
+      const cycleStart = path.indexOf(nodeId);
+      if (cycleStart >= 0) {
+        cycles.push([...path.slice(cycleStart), nodeId]);
+      }
+      return;
+    }
+
+    if (visited.has(nodeId)) return;
+
+    visited.add(nodeId);
+    inStack.add(nodeId);
+    path.push(nodeId);
+
+    const action = actionMap.get(nodeId);
+    if (action) {
+      for (const dep of action.dependsOn) {
+        dfs(dep, path);
+      }
+    }
+
+    path.pop();
+    inStack.delete(nodeId);
+  }
+
+  for (const action of actions) {
+    dfs(action.id, []);
+  }
+
+  return cycles;
+}
+
+/**
+ * Compute topological order of host actions (for execution scheduling).
+ *
+ * Returns null if there are circular dependencies.
+ */
+export function computeExecutionOrder(
+  actions: readonly CPLHostAction[]
+): readonly CPLHostAction[] | null {
+  const cycles = detectCircularDependencies(actions);
+  if (cycles.length > 0) return null;
+
+  const result: CPLHostAction[] = [];
+  const visited = new Set<string>();
+  const actionMap = new Map(actions.map(a => [a.id, a]));
+
+  function visit(actionId: string): void {
+    if (visited.has(actionId)) return;
+    visited.add(actionId);
+
+    const action = actionMap.get(actionId);
+    if (!action) return;
+
+    for (const dep of action.dependsOn) {
+      visit(dep);
+    }
+
+    result.push(action);
+  }
+
+  for (const action of actions) {
+    visit(action.id);
+  }
+
+  return result;
+}
+
+/**
+ * Compute the total estimated duration of a host-action bundle,
+ * accounting for parallelizable actions.
+ */
+export function estimateBundleDuration(bundle: CPLHostActionBundle): number {
+  const order = computeExecutionOrder(bundle.actions);
+  if (!order) return bundle.estimatedDurationMs; // Fall back to stored estimate
+
+  // Build a simple critical-path calculation
+  const finishTimes = new Map<string, number>();
+
+  for (const action of order) {
+    let earliestStart = 0;
+    for (const dep of action.dependsOn) {
+      const depFinish = finishTimes.get(dep) ?? 0;
+      earliestStart = Math.max(earliestStart, depFinish);
+    }
+    finishTimes.set(action.id, earliestStart + action.timeoutMs);
+  }
+
+  let maxFinish = 0;
+  for (const finish of finishTimes.values()) {
+    maxFinish = Math.max(maxFinish, finish);
+  }
+
+  return maxFinish;
+}
+
+/**
+ * Extract all resource locks from a host-action bundle (deduplicated).
+ */
+export function extractAllLocks(bundle: CPLHostActionBundle): readonly CPLResourceLock[] {
+  return bundle.locks;
+}
+
+/**
+ * Check if a host-action bundle has any non-undoable actions.
+ */
+export function hasNonUndoableActions(bundle: CPLHostActionBundle): boolean {
+  return bundle.actions.some(a => a.undo.strategy === 'not-undoable');
+}
+
+/**
+ * Get the maximum risk level across all actions in a bundle.
+ */
+export function getMaxRiskLevel(
+  bundle: CPLHostActionBundle
+): 'low' | 'medium' | 'high' | 'critical' {
+  const riskOrder = ['low', 'medium', 'high', 'critical'] as const;
+  let maxIndex = 0;
+
+  for (const action of bundle.actions) {
+    const index = riskOrder.indexOf(action.risk);
+    if (index > maxIndex) maxIndex = index;
+  }
+
+  return riskOrder[maxIndex]!;
+}
+
+/**
+ * Pretty-print a CPL-Host action bundle for debugging.
+ */
+export function prettyPrintCPLHost(bundle: CPLHostActionBundle, indent = 0): string {
+  const sp = ' '.repeat(indent);
+  const lines: string[] = [];
+
+  lines.push(`${sp}CPL-Host Bundle #${bundle.id}`);
+  lines.push(`${sp}  Source: intent=${bundle.sourceIntentId}, plan=${bundle.sourcePlanId}`);
+  lines.push(`${sp}  Actions: ${bundle.actions.length}`);
+  lines.push(`${sp}  Locks: ${bundle.locks.length}`);
+  lines.push(`${sp}  Undo: ${bundle.undoStrategy.kind} (atomic=${bundle.undoStrategy.atomicUndo})`);
+  lines.push(`${sp}  Est. Duration: ${bundle.estimatedDurationMs}ms`);
+  lines.push(`${sp}  Requires Confirmation: ${bundle.requiresConfirmation}`);
+  lines.push(`${sp}  Max Risk: ${getMaxRiskLevel(bundle)}`);
+
+  if (bundle.actions.length > 0) {
+    lines.push(`${sp}  --- Actions ---`);
+    for (const action of bundle.actions) {
+      lines.push(`${sp}    [${action.risk}] ${action.adapterNamespace}.${action.method}`);
+      lines.push(`${sp}      id: ${action.id}`);
+      lines.push(`${sp}      params: ${action.parameters.length}`);
+      lines.push(`${sp}      deps: [${action.dependsOn.join(', ')}]`);
+      lines.push(`${sp}      undo: ${action.undo.strategy}`);
+      lines.push(`${sp}      destructive: ${action.destructive}, idempotent: ${action.idempotent}`);
+    }
+  }
+
+  if (bundle.locks.length > 0) {
+    lines.push(`${sp}  --- Locks ---`);
+    for (const lock of bundle.locks) {
+      lines.push(`${sp}    [${lock.mode}] ${lock.resourceType}:${lock.resourceId} (${lock.reason})`);
+    }
+  }
+
+  if (bundle.preconditions.length > 0) {
+    lines.push(`${sp}  --- Preconditions ---`);
+    for (const pre of bundle.preconditions) {
+      lines.push(`${sp}    [${pre.assertionKind}] ${pre.message} (on-fail: ${pre.onFailure})`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Pretty-print a CPL document summary for debugging.
+ */
+export function prettyPrintCPLDocument(doc: CPLDocument, indent = 0): string {
+  const sp = ' '.repeat(indent);
+  const lines: string[] = [];
+
+  lines.push(`${sp}CPL Document #${doc.id}`);
+  lines.push(`${sp}  Current Layer: ${doc.currentLayer}`);
+  lines.push(`${sp}  Fully Compiled: ${doc.fullyCompiled}`);
+  lines.push(`${sp}  Unresolved Holes: ${doc.unresolvedHoles.length}`);
+  lines.push(`${sp}  Utterance: "${doc.compilation.utterance}"`);
+  lines.push(`${sp}  Compiled in: ${doc.compilation.totalCompilationMs}ms`);
+
+  lines.push(`${sp}  --- Schema Versions ---`);
+  lines.push(`${sp}    Intent: ${formatSemanticVersion(doc.schemaVersions.intent)}`);
+  lines.push(`${sp}    Plan:   ${formatSemanticVersion(doc.schemaVersions.plan)}`);
+  lines.push(`${sp}    Host:   ${formatSemanticVersion(doc.schemaVersions.host)}`);
+  lines.push(`${sp}    Doc:    ${formatSemanticVersion(doc.schemaVersions.document)}`);
+
+  lines.push(`${sp}  --- Intent ---`);
+  lines.push(`${sp}    Goals: ${doc.intent.goals.length}`);
+  lines.push(`${sp}    Constraints: ${doc.intent.constraints.length}`);
+  lines.push(`${sp}    Preferences: ${doc.intent.preferences.length}`);
+
+  if (doc.plan) {
+    lines.push(`${sp}  --- Plan ---`);
+    lines.push(`${sp}    Opcodes: ${doc.plan.opcodes.length}`);
+    lines.push(`${sp}    Cost: ${doc.plan.cost}`);
+    lines.push(`${sp}    Satisfaction: ${doc.plan.satisfaction}`);
+  } else {
+    lines.push(`${sp}  --- Plan: (not yet compiled) ---`);
+  }
+
+  if (doc.host) {
+    lines.push(`${sp}  --- Host ---`);
+    lines.push(`${sp}    Actions: ${doc.host.actions.length}`);
+    lines.push(`${sp}    Locks: ${doc.host.locks.length}`);
+    lines.push(`${sp}    Est. Duration: ${doc.host.estimatedDurationMs}ms`);
+  } else {
+    lines.push(`${sp}  --- Host: (not yet compiled) ---`);
+  }
+
+  if (doc.compilation.stages.length > 0) {
+    lines.push(`${sp}  --- Compilation Stages ---`);
+    for (const stage of doc.compilation.stages) {
+      const ambig = stage.ambiguityResolved ? ' [ambiguity resolved]' : '';
+      const warns = stage.warnings.length > 0 ? ` (${stage.warnings.length} warnings)` : '';
+      lines.push(`${sp}    ${stage.stage}: ${stage.durationMs}ms, ${stage.alternativesConsidered} alts${ambig}${warns}`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Create an intent-only CPL document (first compilation stage).
+ */
+export function createIntentDocument(
+  id: string,
+  intent: CPLIntent,
+  utterance: string,
+  stages: CPLStageMetadata[],
+  compilerFingerprint: string
+): CPLDocument {
+  const totalMs = stages.reduce((sum, s) => sum + s.durationMs, 0);
+
+  return {
+    kind: 'cpl-document',
+    id,
+    intent,
+    currentLayer: 'intent',
+    fullyCompiled: false,
+    unresolvedHoles: intent.holes ?? [],
+    compilation: {
+      utterance,
+      timestamp: new Date().toISOString(),
+      pipelineVersion: GOFAI_SCHEMA_VERSIONS.CPL_INTENT,
+      stages,
+      totalCompilationMs: totalMs,
+      compilerFingerprint,
+    },
+    schemaVersions: CPL_DOCUMENT_VERSIONS,
+  };
+}
+
+/**
+ * Advance a CPL document from intent to plan.
+ */
+export function advanceDocumentToPlan(
+  doc: CPLDocument,
+  result: IntentToPlanResult,
+  stage: CPLStageMetadata
+): CPLDocument {
+  const stages = [...doc.compilation.stages, stage];
+  const totalMs = stages.reduce((sum, s) => sum + s.durationMs, 0);
+
+  return {
+    ...doc,
+    plan: result.plan,
+    currentLayer: 'plan',
+    compilation: {
+      ...doc.compilation,
+      stages,
+      totalCompilationMs: totalMs,
+    },
+  };
+}
+
+/**
+ * Advance a CPL document from plan to host.
+ */
+export function advanceDocumentToHost(
+  doc: CPLDocument,
+  result: PlanToHostResult,
+  stage: CPLStageMetadata
+): CPLDocument {
+  const stages = [...doc.compilation.stages, stage];
+  const totalMs = stages.reduce((sum, s) => sum + s.durationMs, 0);
+
+  return {
+    ...doc,
+    host: result.bundle,
+    currentLayer: 'host',
+    fullyCompiled: doc.unresolvedHoles.length === 0,
+    compilation: {
+      ...doc.compilation,
+      stages,
+      totalCompilationMs: totalMs,
+    },
+  };
+}
+
+
+// =============================================================================
+// Layer Summary Statistics
+// =============================================================================
+
+/**
+ * Summary statistics for a CPL document.
+ */
+export interface CPLDocumentStats {
+  readonly documentId: string;
+  readonly currentLayer: CPLLayer;
+  readonly fullyCompiled: boolean;
+
+  readonly intent: {
+    readonly goalCount: number;
+    readonly constraintCount: number;
+    readonly preferenceCount: number;
+    readonly holeCount: number;
+    readonly criticalHoleCount: number;
+  };
+
+  readonly plan?: {
+    readonly opcodeCount: number;
+    readonly totalCost: number;
+    readonly satisfaction: number;
+    readonly destructiveOpcodeCount: number;
+    readonly highRiskOpcodeCount: number;
+  };
+
+  readonly host?: {
+    readonly actionCount: number;
+    readonly lockCount: number;
+    readonly estimatedDurationMs: number;
+    readonly destructiveActionCount: number;
+    readonly nonUndoableActionCount: number;
+    readonly maxRisk: string;
+    readonly totalSideEffects: number;
+  };
+
+  readonly compilation: {
+    readonly stageCount: number;
+    readonly totalMs: number;
+    readonly utteranceLength: number;
+  };
+}
+
+/**
+ * Compute summary statistics for a CPL document.
+ */
+export function computeDocumentStats(doc: CPLDocument): CPLDocumentStats {
+  const stats: CPLDocumentStats = {
+    documentId: doc.id,
+    currentLayer: doc.currentLayer,
+    fullyCompiled: doc.fullyCompiled,
+
+    intent: {
+      goalCount: doc.intent.goals.length,
+      constraintCount: doc.intent.constraints.length,
+      preferenceCount: doc.intent.preferences.length,
+      holeCount: doc.unresolvedHoles.length,
+      criticalHoleCount: doc.unresolvedHoles.filter(h => h.priority === 'critical').length,
+    },
+
+    compilation: {
+      stageCount: doc.compilation.stages.length,
+      totalMs: doc.compilation.totalCompilationMs,
+      utteranceLength: doc.compilation.utterance.length,
+    },
+  };
+
+  if (doc.plan) {
+    (stats as Record<string, unknown>).plan = {
+      opcodeCount: doc.plan.opcodes.length,
+      totalCost: doc.plan.cost,
+      satisfaction: doc.plan.satisfaction,
+      destructiveOpcodeCount: doc.plan.opcodes.filter(o => o.destructive).length,
+      highRiskOpcodeCount: doc.plan.opcodes.filter(o => o.risk === 'high').length,
+    };
+  }
+
+  if (doc.host) {
+    (stats as Record<string, unknown>).host = {
+      actionCount: doc.host.actions.length,
+      lockCount: doc.host.locks.length,
+      estimatedDurationMs: doc.host.estimatedDurationMs,
+      destructiveActionCount: doc.host.actions.filter(a => a.destructive).length,
+      nonUndoableActionCount: doc.host.actions.filter(a => a.undo.strategy === 'not-undoable').length,
+      maxRisk: getMaxRiskLevel(doc.host),
+      totalSideEffects: doc.host.actions.reduce((sum, a) => sum + a.sideEffects.length, 0),
+    };
+  }
+
+  return stats;
+}

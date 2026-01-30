@@ -152,11 +152,11 @@ export function validateSSOTConsistency(): string[] {
   
   // Check that all clip event streams exist
   for (const clip of stores.clips.getAllClips()) {
-    if (clip.eventStreamId) {
-      const stream = stores.events.getStream(clip.eventStreamId);
+    if (clip.streamId) {
+      const stream = stores.events.getStream(clip.streamId);
       if (!stream) {
         errors.push(
-          `Clip ${clip.id} references non-existent event stream ${clip.eventStreamId}`
+          `Clip ${clip.id} references non-existent event stream ${clip.streamId}`
         );
       }
     }

@@ -11,20 +11,21 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import type { EventStreamId } from './types';
 import {
   getSharedEventStore,
   resetSharedEventStore,
-} from '../event-store';
+} from './event-store';
 import {
   getClipRegistry,
   resetClipRegistry,
-} from '../clip-registry';
+} from './clip-registry';
 import {
   getSSOTStores,
   resetProject,
   onProjectReset,
   validateSSOTConsistency,
-} from '../ssot';
+} from './ssot';
 
 describe('SharedEventStore singleton', () => {
   beforeEach(() => {
@@ -196,7 +197,7 @@ describe('SSOT consistency validation', () => {
       name: 'test-clip',
       startTick: 0,
       durationTicks: 480,
-      eventStreamId: stream.id,
+      streamId: stream.id,
     });
     
     const errors = validateSSOTConsistency();
@@ -212,7 +213,7 @@ describe('SSOT consistency validation', () => {
       name: 'orphan-clip',
       startTick: 0,
       durationTicks: 480,
-      eventStreamId: 'non-existent-stream-id' as any,
+      streamId: 'non-existent-stream-id' as EventStreamId,
     });
     
     const errors = validateSSOTConsistency();

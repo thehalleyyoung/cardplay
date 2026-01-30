@@ -258,3 +258,6 @@ export {
   SPATIAL_EFFECTS_NOUNS,
   CREATIVE_PROCESSORS_NOUNS,
 } from './domain-nouns-production-effects-batch40';
+
+// CPL AST three-layer architecture (CPL-Intent, CPL-Plan, CPL-Host)
+export * from './cpl-ast-layers';
