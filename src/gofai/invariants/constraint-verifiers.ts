@@ -508,6 +508,20 @@ export function verifyOnlyChange(
     }
   }
 
+  // Check for new layers that weren't in the allowed list
+  for (const layerAfter of after.layers) {
+    if (allowedSet.has(layerAfter.id)) continue;
+    
+    const layerBefore = before.layers.find((l) => l.id === layerAfter.id);
+    
+    if (!layerBefore) {
+      return constraintViolated(
+        `Layer ${layerAfter.id} was added but is not in allowed list`,
+        { layerId: layerAfter.id, allowed: allowedLayerIds }
+      );
+    }
+  }
+
   return constraintSatisfied();
 }
 

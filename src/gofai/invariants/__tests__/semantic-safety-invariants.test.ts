@@ -90,7 +90,9 @@ function createTestState(): ProjectStateSnapshot {
         name: 'Bass',
         role: 'bass',
         notes: [
-          { id: 'note-bass-1', pitch: 48, velocity: 80, startTick: 0, durationTicks: 480, layerId: 'layer-bass' }
+          { id: 'note-bass-1', pitch: 48, velocity: 80, startTick: 0, durationTicks: 480, layerId: 'layer-bass' },
+          { id: 'note-bass-2', pitch: 52, velocity: 80, startTick: 480, durationTicks: 480, layerId: 'layer-bass' },
+          { id: 'note-bass-3', pitch: 55, velocity: 80, startTick: 960, durationTicks: 480, layerId: 'layer-bass' }
         ],
         muted: false,
         volume: 0.7,
@@ -350,6 +352,11 @@ describe('Invariant 3: Constraint Preservation', () => {
       stateAfter,
       approved: true,
       undoToken: 'undo-001',
+      scope: {
+        sections: [],
+        layers: ['layer-bass'],
+        parameters: [],
+      },
     });
     const context = createTestContext();
 
@@ -365,13 +372,15 @@ describe('Invariant 3: Constraint Preservation', () => {
   it('should fail when preservation constraint is violated', () => {
     const stateBefore = createTestState();
     const stateAfter = createTestState();
-    // Modify melody events - change pitch of bass note
+    // Modify melody events - change pitch of second bass note
     stateAfter.layers = [
       stateAfter.layers[0], // drums unchanged
       { 
         ...stateAfter.layers[1],
         notes: [
-          { id: 'note-bass-1', pitch: 50, velocity: 80, startTick: 0, durationTicks: 480, layerId: 'layer-bass' }
+          { id: 'note-bass-1', pitch: 48, velocity: 80, startTick: 0, durationTicks: 480, layerId: 'layer-bass' },
+          { id: 'note-bass-2', pitch: 54, velocity: 80, startTick: 480, durationTicks: 480, layerId: 'layer-bass' }, // Changed from 52 to 54
+          { id: 'note-bass-3', pitch: 55, velocity: 80, startTick: 960, durationTicks: 480, layerId: 'layer-bass' }
         ]
       }
     ] as readonly LayerSnapshot[];
@@ -383,6 +392,11 @@ describe('Invariant 3: Constraint Preservation', () => {
       stateAfter,
       approved: true,
       undoToken: 'undo-001',
+      scope: {
+        sections: ['section-verse'],
+        layers: ['layer-bass'],
+        parameters: [],
+      },
     });
     const context = createTestContext();
 
@@ -416,12 +430,17 @@ describe('Invariant 3: Constraint Preservation', () => {
     const operation = createTestOperation({
       effectType: 'mutate',
       constraints: [
-        { typeId: 'only_change', params: { allowed: ['layer-drums'] } },
+        { typeId: 'only_change', params: { layers: ['layer-drums'] } },
       ],
       stateBefore,
       stateAfter,
       approved: true,
       undoToken: 'undo-001',
+      scope: {
+        sections: [],
+        layers: ['layer-drums'],
+        parameters: [],
+      },
     });
     const context = createTestContext();
 
