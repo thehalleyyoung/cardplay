@@ -829,3 +829,656 @@ export class MockProjectWorld implements ProjectWorldAPI {
     }
   }
 }
+
+// =============================================================================
+// Advanced Query Helpers
+// =============================================================================
+
+/**
+ * Helper functions for common project world queries.
+ */
+export class ProjectWorldHelpers {
+  constructor(private readonly world: ProjectWorldAPI) {}
+  
+  /**
+   * Get all section names matching a pattern.
+   */
+  getSectionNamesMatching(pattern: RegExp): readonly string[] {
+    return this.world.getSectionNames().filter(name => pattern.test(name));
+  }
+  
+  /**
+   * Get all verse sections.
+   */
+  getVerseSections(): readonly SectionMarker[] {
+    return this.world.getSectionMarkers().filter(
+      s => s.type === 'verse' || /verse/i.test(s.name)
+    );
+  }
+  
+  /**
+   * Get all chorus sections.
+   */
+  getChorusSections(): readonly SectionMarker[] {
+    return this.world.getSectionMarkers().filter(
+      s => s.type === 'chorus' || /chorus/i.test(s.name)
+    );
+  }
+  
+  /**
+   * Get bridge sections.
+   */
+  getBridgeSections(): readonly SectionMarker[] {
+    return this.world.getSectionMarkers().filter(
+      s => s.type === 'bridge' || /bridge/i.test(s.name)
+    );
+  }
+  
+  /**
+   * Get intro/outro sections.
+   */
+  getIntroOutroSections(): readonly SectionMarker[] {
+    return this.world.getSectionMarkers().filter(
+      s => /^(intro|outro)/i.test(s.name)
+    );
+  }
+  
+  /**
+   * Get section duration in ticks.
+   */
+  getSectionDuration(section: SectionMarker): number {
+    if (section.endTicks !== undefined) {
+      return section.endTicks - section.startTicks;
+    }
+    // Last section - use project duration
+    const duration = this.world.getDuration();
+    return Math.max(0, duration - section.startTicks);
+  }
+  
+  /**
+   * Get section duration in bars.
+   */
+  getSectionDurationBars(section: SectionMarker): number {
+    const durationTicks = this.getSectionDuration(section);
+    const ticksPerBar = this.getTicksPerBar();
+    return durationTicks / ticksPerBar;
+  }
+  
+  /**
+   * Get ticks per bar based on time signature.
+   */
+  getTicksPerBar(): number {
+    const ts = this.world.getTimeSignature();
+    // Assuming 960 ticks per quarter note (common MIDI resolution)
+    return 960 * (4 / ts.denominator) * ts.numerator;
+  }
+  
+  /**
+   * Convert bar/beat to ticks.
+   */
+  barBeatToTicks(bar: number, beat: number = 0): number {
+    const ticksPerBar = this.getTicksPerBar();
+    const ts = this.world.getTimeSignature();
+    const ticksPerBeat = ticksPerBar / ts.numerator;
+    return bar * ticksPerBar + beat * ticksPerBeat;
+  }
+  
+  /**
+   * Convert ticks to bar/beat.
+   */
+  ticksToBarBeat(ticks: number): { bar: number; beat: number; tick: number } {
+    const ticksPerBar = this.getTicksPerBar();
+    const ts = this.world.getTimeSignature();
+    const ticksPerBeat = ticksPerBar / ts.numerator;
+    
+    const bar = Math.floor(ticks / ticksPerBar);
+    const remainingTicks = ticks % ticksPerBar;
+    const beat = Math.floor(remainingTicks / ticksPerBeat);
+    const tick = Math.floor(remainingTicks % ticksPerBeat);
+    
+    return { bar, beat, tick };
+  }
+  
+  /**
+   * Get all melodic tracks (tracks likely to contain melody).
+   */
+  getMelodicTracks(): readonly Track[] {
+    const melodicRoles = ['melody', 'lead', 'vocal', 'synth-lead'];
+    return this.world.getTracks().filter(
+      t => melodicRoles.some(role => t.role === role || t.tags.includes(role))
+    );
+  }
+  
+  /**
+   * Get all harmonic tracks (tracks providing harmony).
+   */
+  getHarmonicTracks(): readonly Track[] {
+    const harmonicRoles = ['pad', 'keys', 'piano', 'guitar', 'strings'];
+    return this.world.getTracks().filter(
+      t => harmonicRoles.some(role => t.role === role || t.tags.includes(role))
+    );
+  }
+  
+  /**
+   * Get all rhythmic tracks (drums, percussion).
+   */
+  getRhythmicTracks(): readonly Track[] {
+    const rhythmicRoles = ['drums', 'percussion', 'perc', 'hats', 'kick', 'snare'];
+    return this.world.getTracks().filter(
+      t => rhythmicRoles.some(role => t.role === role || t.tags.includes(role))
+    );
+  }
+  
+  /**
+   * Get bass tracks.
+   */
+  getBassTracks(): readonly Track[] {
+    return this.world.getTracksByRole('bass');
+  }
+  
+  /**
+   * Check if selection spans multiple sections.
+   */
+  selectionSpansMultipleSections(): boolean {
+    const selection = this.world.getSelection();
+    if (!selection) return false;
+    
+    const sections = this.world.getSectionMarkers();
+    let sectionCount = 0;
+    
+    for (const section of sections) {
+      const sectionEnd = section.endTicks ?? this.world.getDuration();
+      // Check if section overlaps with selection
+      if (selection.startTicks < sectionEnd && selection.endTicks > section.startTicks) {
+        sectionCount++;
+      }
+    }
+    
+    return sectionCount > 1;
+  }
+  
+  /**
+   * Get sections overlapping with selection.
+   */
+  getSelectedSections(): readonly SectionMarker[] {
+    const selection = this.world.getSelection();
+    if (!selection) return [];
+    
+    const sections = this.world.getSectionMarkers();
+    return sections.filter(section => {
+      const sectionEnd = section.endTicks ?? this.world.getDuration();
+      return selection.startTicks < sectionEnd && selection.endTicks > section.startTicks;
+    });
+  }
+  
+  /**
+   * Get tracks in selection.
+   */
+  getSelectedTracks(): readonly Track[] {
+    const selection = this.world.getSelection();
+    if (!selection || !selection.trackIds) {
+      return this.world.getTracks();
+    }
+    
+    return selection.trackIds
+      .map(id => this.world.getTrackById(id))
+      .filter((t): t is Track => t !== undefined);
+  }
+  
+  /**
+   * Get event count in selection.
+   */
+  getEventCountInSelection(): number {
+    const selection = this.world.getSelection();
+    if (!selection) return 0;
+    
+    const events = this.world.getEventsInRange(
+      selection.startTicks,
+      selection.endTicks,
+      selection.trackIds
+    );
+    return events.length;
+  }
+  
+  /**
+   * Get average event density (events per bar) in selection.
+   */
+  getEventDensityInSelection(): number {
+    const eventCount = this.getEventCountInSelection();
+    const selection = this.world.getSelection();
+    if (!selection) return 0;
+    
+    const durationTicks = selection.endTicks - selection.startTicks;
+    const ticksPerBar = this.getTicksPerBar();
+    const bars = durationTicks / ticksPerBar;
+    
+    return bars > 0 ? eventCount / bars : 0;
+  }
+  
+  /**
+   * Check if any tracks are muted.
+   */
+  hasAnyMutedTracks(): boolean {
+    return this.world.getTracks().some(t => t.muted);
+  }
+  
+  /**
+   * Check if any tracks are soloed.
+   */
+  hasAnySoloedTracks(): boolean {
+    return this.world.getTracks().some(t => t.soloed);
+  }
+  
+  /**
+   * Get audible tracks (not muted, or soloed when others are soloed).
+   */
+  getAudibleTracks(): readonly Track[] {
+    const tracks = this.world.getTracks();
+    const anySoloed = tracks.some(t => t.soloed);
+    
+    if (anySoloed) {
+      // Only soloed tracks are audible
+      return tracks.filter(t => t.soloed);
+    }
+    
+    // All non-muted tracks are audible
+    return tracks.filter(t => !t.muted);
+  }
+  
+  /**
+   * Get project duration in bars.
+   */
+  getDurationBars(): number {
+    const durationTicks = this.world.getDuration();
+    const ticksPerBar = this.getTicksPerBar();
+    return durationTicks / ticksPerBar;
+  }
+  
+  /**
+   * Get project duration in seconds (approximate).
+   */
+  getDurationSeconds(): number {
+    const durationTicks = this.world.getDuration();
+    const tempo = this.world.getTempo();
+    // 960 ticks per quarter note, tempo in BPM
+    const secondsPerTick = 60 / (tempo * 960);
+    return durationTicks * secondsPerTick;
+  }
+  
+  /**
+   * Get tempo changes (if supported).
+   * For now returns constant tempo.
+   */
+  getTempoChanges(): readonly TempoChange[] {
+    return [
+      {
+        positionTicks: 0,
+        bpm: this.world.getTempo(),
+      },
+    ];
+  }
+  
+  /**
+   * Get time signature changes (if supported).
+   * For now returns constant time signature.
+   */
+  getTimeSignatureChanges(): readonly TimeSignatureChange[] {
+    return [
+      {
+        positionTicks: 0,
+        timeSignature: this.world.getTimeSignature(),
+      },
+    ];
+  }
+  
+  /**
+   * Format position as bar:beat:tick string.
+   */
+  formatPosition(ticks: number): string {
+    const { bar, beat, tick } = this.ticksToBarBeat(ticks);
+    return `${bar + 1}:${beat + 1}:${tick}`;
+  }
+  
+  /**
+   * Get events grouped by track.
+   */
+  getEventsByTrack(
+    startTicks?: number,
+    endTicks?: number
+  ): ReadonlyMap<TrackId, readonly Event<unknown>[]> {
+    const tracks = this.world.getTracks();
+    const map = new Map<TrackId, Event<unknown>[]>();
+    
+    for (const track of tracks) {
+      const events = this.world.getEventsOnTrack(
+        track.id,
+        startTicks,
+        endTicks
+      );
+      map.set(track.id, events);
+    }
+    
+    return map;
+  }
+  
+  /**
+   * Get note events in a range.
+   */
+  getNoteEventsInRange(
+    startTicks?: number,
+    endTicks?: number,
+    trackIds?: readonly TrackId[]
+  ): readonly Event<unknown>[] {
+    const events = this.world.getEventsInRange(startTicks, endTicks, trackIds);
+    // Filter to note events (assuming kind === 'note')
+    return events.filter(e => (e as any).kind === 'note');
+  }
+  
+  /**
+   * Get unique pitches in a range.
+   */
+  getUniquePitches(
+    startTicks?: number,
+    endTicks?: number,
+    trackIds?: readonly TrackId[]
+  ): readonly number[] {
+    const noteEvents = this.getNoteEventsInRange(startTicks, endTicks, trackIds);
+    const pitches = new Set<number>();
+    
+    for (const event of noteEvents) {
+      const payload = (event as any).payload;
+      if (payload && typeof payload.midi === 'number') {
+        pitches.add(payload.midi);
+      }
+    }
+    
+    return Array.from(pitches).sort((a, b) => a - b);
+  }
+  
+  /**
+   * Get pitch range in a region.
+   */
+  getPitchRange(
+    startTicks?: number,
+    endTicks?: number,
+    trackIds?: readonly TrackId[]
+  ): { min: number; max: number } | undefined {
+    const pitches = this.getUniquePitches(startTicks, endTicks, trackIds);
+    if (pitches.length === 0) return undefined;
+    
+    return {
+      min: pitches[0]!,
+      max: pitches[pitches.length - 1]!,
+    };
+  }
+  
+  /**
+   * Check if a track has events.
+   */
+  trackHasEvents(trackId: TrackId): boolean {
+    return this.world.getEventsOnTrack(trackId).length > 0;
+  }
+  
+  /**
+   * Get empty tracks.
+   */
+  getEmptyTracks(): readonly Track[] {
+    return this.world.getTracks().filter(t => !this.trackHasEvents(t.id));
+  }
+  
+  /**
+   * Get non-empty tracks.
+   */
+  getNonEmptyTracks(): readonly Track[] {
+    return this.world.getTracks().filter(t => this.trackHasEvents(t.id));
+  }
+  
+  /**
+   * Get card instances on a track.
+   */
+  getCardInstancesOnTrack(trackId: TrackId): readonly CardInstance[] {
+    return this.world.getCardsOnTrack(trackId);
+  }
+  
+  /**
+   * Find card instances by type.
+   */
+  findCardsByType(cardType: string): readonly CardInstance[] {
+    return this.world.getCardInstances().filter(c => c.cardType === cardType);
+  }
+  
+  /**
+   * Find card instances with a specific parameter.
+   */
+  findCardsWithParam(paramName: string): readonly CardInstance[] {
+    return this.world.getCardInstances().filter(c => paramName in c.params);
+  }
+  
+  /**
+   * Check if board supports a feature.
+   */
+  supportsFeature(feature: string): boolean {
+    return this.world.hasCapability(feature);
+  }
+  
+  /**
+   * Get all tracks with a specific tag.
+   */
+  getTracksWithTag(tag: string): readonly Track[] {
+    return this.world.getTracksByTag(tag);
+  }
+  
+  /**
+   * Get summary of project structure.
+   */
+  getStructureSummary(): ProjectStructureSummary {
+    const sections = this.world.getSectionMarkers();
+    const tracks = this.world.getTracks();
+    const cards = this.world.getCardInstances();
+    const duration = this.world.getDuration();
+    
+    return {
+      sectionCount: sections.length,
+      trackCount: tracks.length,
+      cardCount: cards.length,
+      duration: {
+        ticks: duration,
+        bars: this.getDurationBars(),
+        seconds: this.getDurationSeconds(),
+      },
+      tempo: this.world.getTempo(),
+      timeSignature: this.world.getTimeSignature(),
+      key: this.world.getKey(),
+      hasSelection: this.world.getSelection() !== undefined,
+      capabilities: this.world.getBoardCapabilities(),
+    };
+  }
+}
+
+/**
+ * Tempo change event.
+ */
+export interface TempoChange {
+  readonly positionTicks: number;
+  readonly bpm: number;
+}
+
+/**
+ * Time signature change event.
+ */
+export interface TimeSignatureChange {
+  readonly positionTicks: number;
+  readonly timeSignature: TimeSignature;
+}
+
+/**
+ * Project structure summary.
+ */
+export interface ProjectStructureSummary {
+  readonly sectionCount: number;
+  readonly trackCount: number;
+  readonly cardCount: number;
+  readonly duration: {
+    readonly ticks: number;
+    readonly bars: number;
+    readonly seconds: number;
+  };
+  readonly tempo: number;
+  readonly timeSignature: TimeSignature;
+  readonly key: string | undefined;
+  readonly hasSelection: boolean;
+  readonly capabilities: BoardCapabilities;
+}
+
+// =============================================================================
+// Project World Validation
+// =============================================================================
+
+/**
+ * Validation rules for project world state.
+ */
+export class ProjectWorldValidator {
+  constructor(private readonly world: ProjectWorldAPI) {}
+  
+  /**
+   * Validate that all sections are properly ordered and non-overlapping.
+   */
+  validateSections(): readonly string[] {
+    const errors: string[] = [];
+    const sections = this.world.getSectionMarkers();
+    
+    for (let i = 0; i < sections.length - 1; i++) {
+      const current = sections[i]!;
+      const next = sections[i + 1]!;
+      
+      if (current.endTicks !== undefined && current.endTicks > next.startTicks) {
+        errors.push(
+          `Section "${current.name}" (ends at ${current.endTicks}) overlaps with "${next.name}" (starts at ${next.startTicks})`
+        );
+      }
+      
+      if (current.startTicks >= next.startTicks) {
+        errors.push(
+          `Sections out of order: "${current.name}" at ${current.startTicks} should be before "${next.name}" at ${next.startTicks}`
+        );
+      }
+    }
+    
+    return errors;
+  }
+  
+  /**
+   * Validate that all track IDs are unique.
+   */
+  validateTrackIds(): readonly string[] {
+    const errors: string[] = [];
+    const tracks = this.world.getTracks();
+    const ids = new Set<TrackId>();
+    
+    for (const track of tracks) {
+      if (ids.has(track.id)) {
+        errors.push(`Duplicate track ID: ${track.id}`);
+      }
+      ids.add(track.id);
+    }
+    
+    return errors;
+  }
+  
+  /**
+   * Validate that all card IDs are unique.
+   */
+  validateCardIds(): readonly string[] {
+    const errors: string[] = [];
+    const cards = this.world.getCardInstances();
+    const ids = new Set<CardId>();
+    
+    for (const card of cards) {
+      if (ids.has(card.id)) {
+        errors.push(`Duplicate card ID: ${card.id}`);
+      }
+      ids.add(card.id);
+    }
+    
+    return errors;
+  }
+  
+  /**
+   * Validate that all events are within valid time bounds.
+   */
+  validateEventTiming(): readonly string[] {
+    const errors: string[] = [];
+    const duration = this.world.getDuration();
+    const events = this.world.getEventsInRange();
+    
+    for (const event of events) {
+      if ((event as any).onset < 0) {
+        errors.push(`Event has negative onset: ${(event as any).onset}`);
+      }
+      if ((event as any).onset > duration) {
+        errors.push(
+          `Event onset ${(event as any).onset} exceeds project duration ${duration}`
+        );
+      }
+    }
+    
+    return errors;
+  }
+  
+  /**
+   * Validate complete project world.
+   */
+  validateAll(): ValidationReport {
+    return {
+      sectionErrors: this.validateSections(),
+      trackErrors: this.validateTrackIds(),
+      cardErrors: this.validateCardIds(),
+      eventErrors: this.validateEventTiming(),
+    };
+  }
+  
+  /**
+   * Check if project world is valid.
+   */
+  isValid(): boolean {
+    const report = this.validateAll();
+    return (
+      report.sectionErrors.length === 0 &&
+      report.trackErrors.length === 0 &&
+      report.cardErrors.length === 0 &&
+      report.eventErrors.length === 0
+    );
+  }
+}
+
+/**
+ * Validation report for project world.
+ */
+export interface ValidationReport {
+  readonly sectionErrors: readonly string[];
+  readonly trackErrors: readonly string[];
+  readonly cardErrors: readonly string[];
+  readonly eventErrors: readonly string[];
+}
+
+// =============================================================================
+// Export convenience functions
+// =============================================================================
+
+/**
+ * Create helpers for a project world.
+ */
+export function createProjectWorldHelpers(
+  world: ProjectWorldAPI
+): ProjectWorldHelpers {
+  return new ProjectWorldHelpers(world);
+}
+
+/**
+ * Create validator for a project world.
+ */
+export function createProjectWorldValidator(
+  world: ProjectWorldAPI
+): ProjectWorldValidator {
+  return new ProjectWorldValidator(world);
+}

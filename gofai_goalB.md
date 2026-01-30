@@ -11,10 +11,10 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 002 [Type] — Define “semantic safety invariants” (e.g., preserve constraints are executable checks; no silent ambiguity resolution) and treat them as first-class testable requirements.
 - [x] Step 003 [Infra] — Decide and document the compilation pipeline stages (normalize → parse → semantics → pragmatics → typecheck → plan → execute → diff/explain).
 - [x] Step 004 [Type] — Introduce a vocabulary policy: builtin meaning IDs un-namespaced; extension meaning IDs must be `namespace:*` (mirrors CardPlayId rules).
-- [ ] Step 006 [Infra] — Create a “GOFAI build matrix” mapping features to required tests (unit, golden NL→CPL, paraphrase invariance, safety diffs, UX interaction tests).
-- [ ] Step 007 [Type] — Define a stable “CPL schema versioning” strategy compatible with CardPlay canon serialization/versioning conventions.
+- [x] Step 006 [Infra] — Create a “GOFAI build matrix” mapping features to required tests (unit, golden NL→CPL, paraphrase invariance, safety diffs, UX interaction tests).
+- [x] Step 007 [Type] — Define a stable “CPL schema versioning” strategy compatible with CardPlay canon serialization/versioning conventions.
 - [x] Step 008 [Type] — Define an effect taxonomy for compiler outputs: `inspect` vs `propose` vs `mutate`, to forbid silent mutation in manual boards.
-- [ ] Step 010 [Infra] — Identify the minimal “project world API” needed by GOFAI (section markers, tracks/layers, card registry, selected range, undo stack).
+- [x] Step 010 [Infra] — Identify the minimal “project world API” needed by GOFAI (section markers, tracks/layers, card registry, selected range, undo stack).
 - [x] Step 011 [Type] — Specify the difference between **goals**, **constraints**, and **preferences** (hard vs soft), with a stable typed model.
 - [x] Step 016 [Infra] — Add a glossary of key terms (scope, referent, salience, presupposition, implicature, constraint) and require it in docs review.
 - [ ] Step 017 [Type] — Decide how “unknown-but-declared” extension semantics are represented (opaque namespaced nodes with schemas).

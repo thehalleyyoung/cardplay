@@ -758,3 +758,660 @@ export function createVersionedCPL(
     createdAt: Date.now(),
   };
 }
+
+// =============================================================================
+// CardPlay Canon Integration
+// =============================================================================
+
+/**
+ * Integration with CardPlay's canon serialization system.
+ * 
+ * CardPlay uses a canon-based versioning approach for all serializable data.
+ * CPL versioning must align with these conventions while maintaining its own
+ * evolution path.
+ */
+
+/**
+ * CardPlay-compatible version metadata for CPL.
+ */
+export interface CPLCanonMetadata {
+  /** Schema name (always 'gofai-cpl') */
+  readonly schema: 'gofai-cpl';
+  
+  /** Schema version */
+  readonly version: SchemaVersionString;
+  
+  /** Checksum of the schema definition */
+  readonly checksum?: string;
+  
+  /** When this version was introduced */
+  readonly introducedAt?: string;
+  
+  /** URL to schema documentation */
+  readonly docsUrl?: string;
+  
+  /** Compatibility notes */
+  readonly compatibilityNotes?: readonly string[];
+}
+
+/**
+ * Current CPL canon metadata.
+ */
+export const CURRENT_CPL_CANON_METADATA: CPLCanonMetadata = {
+  schema: 'gofai-cpl',
+  version: formatVersion(CURRENT_CPL_SCHEMA_VERSION),
+  introducedAt: '2026-01-30',
+  docsUrl: 'docs/gofai/cpl-schema.md',
+  compatibilityNotes: [
+    'Initial stable CPL schema',
+    'Compatible with CardPlay v1.0+',
+    'Supports extension namespaces',
+  ],
+};
+
+/**
+ * Serialize CPL with CardPlay-compatible metadata.
+ */
+export function serializeCPLWithMetadata(cpl: CPLIntent): SerializedCPL {
+  return {
+    $schema: CURRENT_CPL_CANON_METADATA,
+    data: cpl,
+    serializedAt: new Date().toISOString(),
+    serializer: 'gofai-compiler',
+  };
+}
+
+/**
+ * Serialized CPL with full metadata.
+ */
+export interface SerializedCPL {
+  /** Schema metadata */
+  readonly $schema: CPLCanonMetadata;
+  
+  /** The actual CPL data */
+  readonly data: CPLIntent;
+  
+  /** Serialization timestamp */
+  readonly serializedAt: string;
+  
+  /** Serializer identifier */
+  readonly serializer: string;
+  
+  /** Compression method (if applicable) */
+  readonly compression?: 'none' | 'gzip' | 'brotli';
+  
+  /** Size metrics */
+  readonly sizeBytes?: number;
+}
+
+/**
+ * Deserialize CPL and validate schema version.
+ */
+export function deserializeCPL(
+  serialized: SerializedCPL
+): DeserializationResult {
+  const schemaVersion = parseVersion(serialized.$schema.version);
+  if (!schemaVersion) {
+    return {
+      ok: false,
+      error: `Invalid schema version: ${serialized.$schema.version}`,
+    };
+  }
+  
+  if (serialized.$schema.schema !== 'gofai-cpl') {
+    return {
+      ok: false,
+      error: `Wrong schema type: expected 'gofai-cpl', got '${serialized.$schema.schema}'`,
+    };
+  }
+  
+  if (!isSupported(schemaVersion)) {
+    return {
+      ok: false,
+      error: `Unsupported schema version: ${formatVersion(schemaVersion)}`,
+      needsMigration: true,
+      migrationPath: findMigrationPath(schemaVersion, CURRENT_CPL_SCHEMA_VERSION),
+    };
+  }
+  
+  return {
+    ok: true,
+    cpl: serialized.data,
+    version: schemaVersion,
+  };
+}
+
+/**
+ * Result of deserialization.
+ */
+export type DeserializationResult =
+  | {
+      readonly ok: true;
+      readonly cpl: CPLIntent;
+      readonly version: SchemaVersion;
+      readonly warnings?: readonly string[];
+    }
+  | {
+      readonly ok: false;
+      readonly error: string;
+      readonly needsMigration?: boolean;
+      readonly migrationPath?: readonly SchemaMigration[];
+    };
+
+// =============================================================================
+// Schema Changelog
+// =============================================================================
+
+/**
+ * A changelog entry for a schema version.
+ */
+export interface ChangelogEntry {
+  /** Version this changelog entry is for */
+  readonly version: SchemaVersion;
+  
+  /** Release date */
+  readonly date: string;
+  
+  /** Type of change */
+  readonly changeType: 'major' | 'minor' | 'patch';
+  
+  /** Breaking changes (if major) */
+  readonly breaking?: readonly string[];
+  
+  /** New features (if minor) */
+  readonly features?: readonly string[];
+  
+  /** Bug fixes (if patch) */
+  readonly fixes?: readonly string[];
+  
+  /** Migration notes */
+  readonly migrationNotes?: readonly string[];
+  
+  /** Contributors */
+  readonly contributors?: readonly string[];
+}
+
+/**
+ * Complete schema changelog.
+ */
+export const SCHEMA_CHANGELOG: readonly ChangelogEntry[] = [
+  {
+    version: { major: 1, minor: 0, patch: 0 },
+    date: '2026-01-30',
+    changeType: 'major',
+    features: [
+      'Initial stable CPL-Intent schema',
+      'Support for goals, constraints, and scope',
+      'Perceptual axes with direction and amount',
+      'Constraint types: preserve, only-change, forbid',
+      'Extension namespace support',
+      'Provenance tracking',
+    ],
+    migrationNotes: [
+      'First stable release - no migration needed',
+      'Pre-1.0 schemas are not supported',
+    ],
+    contributors: ['gofai-team'],
+  },
+  // Future entries will be added here as the schema evolves
+];
+
+/**
+ * Get changelog entries since a given version.
+ */
+export function getChangelogSince(
+  sinceVersion: SchemaVersion
+): readonly ChangelogEntry[] {
+  return SCHEMA_CHANGELOG.filter(
+    entry => compareVersions(entry.version, sinceVersion) > 0
+  ).sort((a, b) => compareVersions(a.version, b.version));
+}
+
+/**
+ * Format changelog as human-readable text.
+ */
+export function formatChangelog(
+  entries: readonly ChangelogEntry[] = SCHEMA_CHANGELOG
+): string {
+  const lines: string[] = ['# CPL Schema Changelog', ''];
+  
+  for (const entry of entries) {
+    const version = formatVersion(entry.version);
+    const typeLabel = entry.changeType.toUpperCase();
+    lines.push(`## ${version} (${entry.date}) [${typeLabel}]`);
+    lines.push('');
+    
+    if (entry.breaking && entry.breaking.length > 0) {
+      lines.push('### ⚠️ Breaking Changes');
+      for (const breaking of entry.breaking) {
+        lines.push(`- ${breaking}`);
+      }
+      lines.push('');
+    }
+    
+    if (entry.features && entry.features.length > 0) {
+      lines.push('### ✨ Features');
+      for (const feature of entry.features) {
+        lines.push(`- ${feature}`);
+      }
+      lines.push('');
+    }
+    
+    if (entry.fixes && entry.fixes.length > 0) {
+      lines.push('### 🐛 Bug Fixes');
+      for (const fix of entry.fixes) {
+        lines.push(`- ${fix}`);
+      }
+      lines.push('');
+    }
+    
+    if (entry.migrationNotes && entry.migrationNotes.length > 0) {
+      lines.push('### 📝 Migration Notes');
+      for (const note of entry.migrationNotes) {
+        lines.push(`- ${note}`);
+      }
+      lines.push('');
+    }
+    
+    if (entry.contributors && entry.contributors.length > 0) {
+      lines.push(`**Contributors:** ${entry.contributors.join(', ')}`);
+      lines.push('');
+    }
+  }
+  
+  return lines.join('\n');
+}
+
+// =============================================================================
+// Schema Deprecation
+// =============================================================================
+
+/**
+ * A deprecated feature or field in the schema.
+ */
+export interface DeprecatedFeature {
+  /** What is deprecated */
+  readonly feature: string;
+  
+  /** When it was deprecated */
+  readonly deprecatedIn: SchemaVersion;
+  
+  /** When it will be removed (if scheduled) */
+  readonly removedIn?: SchemaVersion;
+  
+  /** Reason for deprecation */
+  readonly reason: string;
+  
+  /** Recommended replacement */
+  readonly replacement?: string;
+  
+  /** Migration guide URL */
+  readonly migrationGuide?: string;
+}
+
+/**
+ * Registry of deprecated features.
+ */
+export const DEPRECATED_FEATURES: readonly DeprecatedFeature[] = [
+  // Future deprecations will be added here
+  // Example:
+  // {
+  //   feature: 'CPLIntent.legacyScope',
+  //   deprecatedIn: { major: 1, minor: 1, patch: 0 },
+  //   removedIn: { major: 2, minor: 0, patch: 0 },
+  //   reason: 'Replaced by more flexible scope system',
+  //   replacement: 'Use CPLIntent.scope with ScopeDescriptor',
+  //   migrationGuide: 'docs/migrations/scope-migration.md',
+  // },
+];
+
+/**
+ * Check if a feature is deprecated.
+ */
+export function isDeprecated(
+  feature: string,
+  inVersion: SchemaVersion = CURRENT_CPL_SCHEMA_VERSION
+): DeprecatedFeature | undefined {
+  return DEPRECATED_FEATURES.find(
+    dep =>
+      dep.feature === feature &&
+      compareVersions(inVersion, dep.deprecatedIn) >= 0 &&
+      (!dep.removedIn || compareVersions(inVersion, dep.removedIn) < 0)
+  );
+}
+
+/**
+ * Get all features deprecated in a version.
+ */
+export function getDeprecatedFeatures(
+  version: SchemaVersion = CURRENT_CPL_SCHEMA_VERSION
+): readonly DeprecatedFeature[] {
+  return DEPRECATED_FEATURES.filter(
+    dep => compareVersions(version, dep.deprecatedIn) >= 0 &&
+           (!dep.removedIn || compareVersions(version, dep.removedIn) < 0)
+  );
+}
+
+// =============================================================================
+// Forward Compatibility
+// =============================================================================
+
+/**
+ * Forward compatibility policy.
+ * 
+ * When a newer compiler reads old CPL, it should:
+ * 1. Recognize and preserve unknown optional fields
+ * 2. Apply sensible defaults for missing required fields
+ * 3. Warn if semantics have changed
+ */
+
+/**
+ * Options for handling unknown fields.
+ */
+export type UnknownFieldPolicy =
+  | 'preserve'  // Keep unknown fields in output
+  | 'discard'   // Remove unknown fields
+  | 'error';    // Fail on unknown fields
+
+/**
+ * Forward compatibility options.
+ */
+export interface ForwardCompatOptions {
+  /** How to handle unknown fields */
+  readonly unknownFields: UnknownFieldPolicy;
+  
+  /** Whether to emit warnings for deprecated features */
+  readonly warnDeprecated: boolean;
+  
+  /** Whether to auto-migrate if possible */
+  readonly autoMigrate: boolean;
+  
+  /** Maximum version to accept without explicit migration */
+  readonly maxAutoMigrateVersion?: SchemaVersion;
+}
+
+/**
+ * Default forward compatibility options.
+ */
+export const DEFAULT_FORWARD_COMPAT_OPTIONS: ForwardCompatOptions = {
+  unknownFields: 'preserve',
+  warnDeprecated: true,
+  autoMigrate: true,
+};
+
+/**
+ * Load CPL with forward compatibility handling.
+ */
+export function loadCPLWithForwardCompat(
+  versionedCpl: VersionedCPL,
+  options: ForwardCompatOptions = DEFAULT_FORWARD_COMPAT_OPTIONS
+): LoadResult {
+  const version = parseVersion(versionedCpl.version);
+  if (!version) {
+    return {
+      ok: false,
+      error: `Invalid version: ${versionedCpl.version}`,
+    };
+  }
+  
+  const comparison = compareVersions(version, CURRENT_CPL_SCHEMA_VERSION);
+  
+  if (comparison === 0) {
+    // Same version - no compatibility handling needed
+    return { ok: true, cpl: versionedCpl.cpl };
+  }
+  
+  if (comparison < 0) {
+    // Older version - may need migration
+    if (options.autoMigrate) {
+      const result = migrateToCurrent(versionedCpl);
+      if (!result.ok) {
+        return { ok: false, error: 'Migration failed' };
+      }
+      return {
+        ok: true,
+        cpl: result.cpl,
+        warnings: result.warnings,
+        migrated: true,
+      };
+    }
+    
+    if (!isSupported(version)) {
+      return {
+        ok: false,
+        error: `Version ${formatVersion(version)} is not supported`,
+      };
+    }
+    
+    return { ok: true, cpl: versionedCpl.cpl };
+  }
+  
+  // Newer version - this shouldn't happen unless time-traveling
+  return {
+    ok: false,
+    error: `CPL version ${formatVersion(version)} is newer than current ${formatVersion(CURRENT_CPL_SCHEMA_VERSION)}. Update the compiler.`,
+  };
+}
+
+/**
+ * Result of loading CPL with forward compatibility.
+ */
+export type LoadResult =
+  | {
+      readonly ok: true;
+      readonly cpl: CPLIntent;
+      readonly warnings?: readonly string[];
+      readonly migrated?: boolean;
+    }
+  | {
+      readonly ok: false;
+      readonly error: string;
+    };
+
+// =============================================================================
+// Version Compatibility Matrix
+// =============================================================================
+
+/**
+ * A compatibility matrix entry.
+ */
+export interface CompatibilityMatrixEntry {
+  /** Compiler version */
+  readonly compilerVersion: string;
+  
+  /** CPL schema version produced */
+  readonly produces: SchemaVersion;
+  
+  /** CPL schema versions that can be read */
+  readonly reads: readonly SchemaVersion[];
+  
+  /** Notes */
+  readonly notes?: string;
+}
+
+/**
+ * Compatibility matrix for different compiler versions.
+ */
+export const COMPATIBILITY_MATRIX: readonly CompatibilityMatrixEntry[] = [
+  {
+    compilerVersion: '1.0.0',
+    produces: { major: 1, minor: 0, patch: 0 },
+    reads: [{ major: 1, minor: 0, patch: 0 }],
+    notes: 'Initial release',
+  },
+  // Future versions will be added here
+];
+
+/**
+ * Check if two compiler versions can interoperate.
+ */
+export function canCompilersInteroperate(
+  version1: string,
+  version2: string
+): boolean {
+  const entry1 = COMPATIBILITY_MATRIX.find(e => e.compilerVersion === version1);
+  const entry2 = COMPATIBILITY_MATRIX.find(e => e.compilerVersion === version2);
+  
+  if (!entry1 || !entry2) return false;
+  
+  // Check if version1 can read what version2 produces
+  const canRead1to2 = entry1.reads.some(
+    v => isCompatible(v, entry2.produces)
+  );
+  
+  // Check if version2 can read what version1 produces
+  const canRead2to1 = entry2.reads.some(
+    v => isCompatible(v, entry1.produces)
+  );
+  
+  return canRead1to2 && canRead2to1;
+}
+
+// =============================================================================
+// Schema Validation
+// =============================================================================
+
+/**
+ * Comprehensive schema validation result.
+ */
+export interface SchemaValidationResult {
+  /** Whether the schema is valid */
+  readonly valid: boolean;
+  
+  /** Validation errors (critical) */
+  readonly errors?: readonly string[];
+  
+  /** Validation warnings (non-blocking) */
+  readonly warnings?: readonly string[];
+  
+  /** Deprecated features used */
+  readonly deprecated?: readonly DeprecatedFeature[];
+  
+  /** Unknown fields found */
+  readonly unknownFields?: readonly string[];
+}
+
+/**
+ * Validate a CPL against the schema with comprehensive checks.
+ */
+export function validateCPLSchema(
+  cpl: unknown,
+  version: SchemaVersion = CURRENT_CPL_SCHEMA_VERSION
+): SchemaValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const deprecated: DeprecatedFeature[] = [];
+  const unknownFields: string[] = [];
+  
+  // Basic structure validation
+  if (typeof cpl !== 'object' || cpl === null) {
+    errors.push('CPL must be an object');
+    return { valid: false, errors };
+  }
+  
+  const obj = cpl as Record<string, unknown>;
+  
+  // Check required fields
+  const requiredFields = ['type', 'goals', 'scope', 'constraints'];
+  for (const field of requiredFields) {
+    if (!(field in obj)) {
+      errors.push(`Missing required field: ${field}`);
+    }
+  }
+  
+  // Check for deprecated features
+  for (const field of Object.keys(obj)) {
+    const deprecation = isDeprecated(field, version);
+    if (deprecation) {
+      deprecated.push(deprecation);
+      warnings.push(
+        `Field '${field}' is deprecated: ${deprecation.reason}` +
+        (deprecation.replacement ? `. Use '${deprecation.replacement}' instead.` : '')
+      );
+    }
+  }
+  
+  // Check for unknown fields (fields not in the schema)
+  const knownFields = new Set([
+    'type',
+    'goals',
+    'scope',
+    'constraints',
+    'preferences',
+    'metadata',
+    'provenance',
+  ]);
+  
+  for (const field of Object.keys(obj)) {
+    if (!knownFields.has(field)) {
+      unknownFields.push(field);
+      warnings.push(`Unknown field: ${field} (will be preserved)`);
+    }
+  }
+  
+  const result: SchemaValidationResult = {
+    valid: errors.length === 0,
+    ...(errors.length > 0 ? { errors: errors as readonly string[] } : {}),
+    ...(warnings.length > 0 ? { warnings: warnings as readonly string[] } : {}),
+    ...(deprecated.length > 0 ? { deprecated: deprecated as readonly DeprecatedFeature[] } : {}),
+    ...(unknownFields.length > 0 ? { unknownFields: unknownFields as readonly string[] } : {}),
+  };
+  
+  return result;
+}
+
+// =============================================================================
+// Export all versioning utilities
+// =============================================================================
+
+/**
+ * Complete versioning API surface.
+ */
+export const CPLVersioning = {
+  // Core version operations
+  parseVersion,
+  formatVersion,
+  compareVersions,
+  isCompatible,
+  isSupported,
+  
+  // Migration
+  findMigrationPath,
+  applyMigrationPath,
+  migrateToCurrent,
+  
+  // Serialization
+  serializeCPLWithMetadata,
+  deserializeCPL,
+  
+  // Validation
+  validateVersionedCPL,
+  validateCPLSchema,
+  
+  // Changelog
+  getChangelogSince,
+  formatChangelog,
+  
+  // Deprecation
+  isDeprecated,
+  getDeprecatedFeatures,
+  
+  // Forward compatibility
+  loadCPLWithForwardCompat,
+  canCompilersInteroperate,
+  
+  // Replay
+  canReplayEdit,
+  
+  // Testing
+  createVersionedCPL,
+  assertVersionEquals,
+  assertVersionSupported,
+  
+  // Information
+  getVersioningSummary,
+  
+  // Constants
+  CURRENT_VERSION: CURRENT_CPL_SCHEMA_VERSION,
+  MINIMUM_SUPPORTED_VERSION: MINIMUM_SUPPORTED_CPL_VERSION,
+} as const;

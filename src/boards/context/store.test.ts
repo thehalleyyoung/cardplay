@@ -251,18 +251,19 @@ describe('BoardContextStore', () => {
     });
 
     it('should save only once after burst of updates', () => {
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      
       // Clear any pending saves from beforeEach
       vi.runAllTimers();
+      setItemSpy.mockClear(); // Clear calls from initialization
       
-      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
-
       for (let i = 0; i < 10; i++) {
         store.setActiveStream(`stream-${i}`);
       }
 
       vi.advanceTimersByTime(600);
 
-      // Should have called setItem only once (plus any initial calls)
+      // Should have called setItem only once
       const contextCalls = setItemSpy.mock.calls.filter(
         call => call[0] === 'cardplay.activeContext.v1'
       );

@@ -184,11 +184,11 @@ This file is a bipartite split of `500_gofai_goal.md` so two workstreams can ite
 - [x] Step 208 [Prag] — Implement QUD stack tracking: interpret utterances relative to the current question under discussion to decide what "it" refers to.
 - [x] Step 209 [Prag] — Implement clarification generation as QUD refinement: questions should reduce candidate set cardinality maximally.
 - [x] Step 210 [Prag] — Implement "accept defaults" and "override" dialogue moves ("yes", "no, I meant harmony") as edits to holes.
-- [ ] Step 211 [Prag] — Implement ellipsis resolution (“same but bigger”) by referencing the last plan step or last edit package as antecedent.
-- [ ] Step 212 [Prag] — Implement modal subordination-like behavior for “if possible” (store conditional intent and prefer satisfying it).
-- [ ] Step 213 [Prag] — Implement a “common ground” model: track what has been mutually established (selected chorus = Chorus 2) to stabilize references.
-- [ ] Step 214 [Prag] — Implement discourse relations (SDRT) for “but/so/then/also” to shape plan ordering and constraint emphasis.
-- [ ] Step 215 [Prag] — Implement repair moves: user can say “no, not that chorus” and the system rebinds referent without losing other meaning.
+- [x] Step 211 [Prag] — Implement ellipsis resolution ("same but bigger") by referencing the last plan step or last edit package as antecedent.
+- [x] Step 212 [Prag] — Implement modal subordination-like behavior for "if possible" (store conditional intent and prefer satisfying it).
+- [x] Step 213 [Prag] — Implement a "common ground" model: track what has been mutually established (selected chorus = Chorus 2) to stabilize references.
+- [x] Step 214 [Prag] — Implement discourse relations (SDRT) for "but/so/then/also" to shape plan ordering and constraint emphasis.
+- [x] Step 215 [Prag] — Implement repair moves: user can say "no, not that chorus" and the system rebinds referent without losing other meaning.
 - [ ] Step 216 [Prag] — Implement temporal deixis: interpret “earlier/later” relative to (a) song form or (b) bar microtiming as an explicit ambiguity.
 - [ ] Step 217 [Prag] — Implement scale of granularity: interpret “earlier” as section-level vs beat-level depending on context (default to safer clarification).
 - [ ] Step 218 [Prag] — Implement “topic continuity”: if user is working on chorus, “make it wider” inherits chorus scope unless contradicted.

@@ -9,3 +9,6 @@ export * from './dialogue-state';
 
 // Presupposition, implicature, QUD, clarification, accept/override (Steps 206–210)
 export * from './presupposition-qud';
+
+// Discourse context: ellipsis, modals, common ground, SDRT, repair (Steps 211–215)
+export * from './discourse-context';

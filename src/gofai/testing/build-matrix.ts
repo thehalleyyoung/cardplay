@@ -936,3 +936,720 @@ export function generateTestPlanSummary(): string {
   
   return lines.join('\n');
 }
+
+// =============================================================================
+// Additional Test Specification Types
+// =============================================================================
+
+/**
+ * Golden test corpus entry
+ */
+export interface GoldenTestCase {
+  readonly id: string;
+  readonly category: string;
+  readonly input: string;
+  readonly expectedCPL: unknown;
+  readonly constraints?: readonly string[];
+  readonly priority: TestPriority;
+  readonly description: string;
+}
+
+/**
+ * Paraphrase test set
+ */
+export interface ParaphraseTestSet {
+  readonly id: string;
+  readonly baseUtterance: string;
+  readonly paraphrases: readonly string[];
+  readonly expectedSemanticEquivalence: boolean;
+  readonly allowedCPLVariation: 'none' | 'hole-filling' | 'order-only';
+  readonly description: string;
+}
+
+/**
+ * Safety diff test case
+ */
+export interface SafetyDiffTestCase {
+  readonly id: string;
+  readonly utterance: string;
+  readonly projectFixture: string;
+  readonly constraints: readonly string[];
+  readonly expectedViolations: readonly string[];
+  readonly shouldBlock: boolean;
+  readonly description: string;
+}
+
+/**
+ * Performance benchmark specification
+ */
+export interface PerformanceBenchmark {
+  readonly id: string;
+  readonly operation: string;
+  readonly maxLatencyMs: number;
+  readonly maxMemoryMb: number;
+  readonly targetOperationsPerSecond?: number;
+  readonly description: string;
+}
+
+/**
+ * UX interaction test specification
+ */
+export interface UXInteractionTest {
+  readonly id: string;
+  readonly userFlow: readonly string[];
+  readonly expectedStates: readonly string[];
+  readonly errorConditions: readonly string[];
+  readonly description: string;
+}
+
+// =============================================================================
+// Golden Test Corpus
+// =============================================================================
+
+/**
+ * Core golden test cases for NL→CPL mapping
+ */
+export const GOLDEN_TEST_CORPUS: readonly GoldenTestCase[] = [
+  // Basic imperatives
+  {
+    id: 'golden:imperative:make-darker',
+    category: 'imperative',
+    input: 'make it darker',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'brightness', direction: 'decrease', amount: { type: 'default' } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Simple adjective command',
+  },
+  {
+    id: 'golden:imperative:make-brighter-more',
+    category: 'imperative',
+    input: 'make it much brighter',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'brightness', direction: 'increase', amount: { type: 'large' } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Intensified adjective command',
+  },
+  {
+    id: 'golden:imperative:add-reverb',
+    category: 'imperative',
+    input: 'add reverb',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ verb: 'add', object: { type: 'effect', name: 'reverb' } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Add command with object',
+  },
+  
+  // Coordination
+  {
+    id: 'golden:coordination:and-two-axes',
+    category: 'coordination',
+    input: 'make it darker and tighter',
+    expectedCPL: {
+      type: 'intent',
+      goals: [
+        { axis: 'brightness', direction: 'decrease', amount: { type: 'default' } },
+        { axis: 'tightness', direction: 'increase', amount: { type: 'default' } },
+      ],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Coordinated adjectives',
+  },
+  {
+    id: 'golden:coordination:and-three-axes',
+    category: 'coordination',
+    input: 'make it darker, tighter, and more energetic',
+    expectedCPL: {
+      type: 'intent',
+      goals: [
+        { axis: 'brightness', direction: 'decrease', amount: { type: 'default' } },
+        { axis: 'tightness', direction: 'increase', amount: { type: 'default' } },
+        { axis: 'energy', direction: 'increase', amount: { type: 'default' } },
+      ],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'high',
+    description: 'Three-way coordination',
+  },
+  
+  // Scopes
+  {
+    id: 'golden:scope:in-chorus',
+    category: 'scope',
+    input: 'make it darker in the chorus',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'brightness', direction: 'decrease', amount: { type: 'default' } }],
+      scope: { type: 'section', section: 'chorus' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Scope to section',
+  },
+  {
+    id: 'golden:scope:for-two-bars',
+    category: 'scope',
+    input: 'make it darker for two bars',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'brightness', direction: 'decrease', amount: { type: 'default' } }],
+      scope: { type: 'duration', duration: { bars: 2 } },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Scope to duration',
+  },
+  {
+    id: 'golden:scope:on-drums',
+    category: 'scope',
+    input: 'make it darker on the drums',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'brightness', direction: 'decrease', amount: { type: 'default' } }],
+      scope: { type: 'layer', layer: 'drums' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Scope to layer',
+  },
+  
+  // Constraints
+  {
+    id: 'golden:constraint:keep-melody',
+    category: 'constraint',
+    input: 'make it darker but keep the melody',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'brightness', direction: 'decrease', amount: { type: 'default' } }],
+      scope: { type: 'default' },
+      constraints: [{ type: 'preserve', target: 'melody', level: 'recognizable' }],
+    },
+    priority: 'critical',
+    description: 'Preservation constraint',
+  },
+  {
+    id: 'golden:constraint:only-drums',
+    category: 'constraint',
+    input: 'make it darker but only change the drums',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'brightness', direction: 'decrease', amount: { type: 'default' } }],
+      scope: { type: 'default' },
+      constraints: [{ type: 'only-change', target: 'drums' }],
+    },
+    priority: 'critical',
+    description: 'Only-change constraint',
+  },
+  {
+    id: 'golden:constraint:dont-add-tracks',
+    category: 'constraint',
+    input: 'make it wider but don\'t add any new tracks',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'width', direction: 'increase', amount: { type: 'default' } }],
+      scope: { type: 'default' },
+      constraints: [{ type: 'forbid', action: 'add-track' }],
+    },
+    priority: 'high',
+    description: 'Prohibition constraint',
+  },
+  
+  // Comparatives
+  {
+    id: 'golden:comparative:more-reverb',
+    category: 'comparative',
+    input: 'add more reverb',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ verb: 'increase', parameter: 'reverb', amount: { type: 'default' } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'high',
+    description: 'Comparative amount',
+  },
+  {
+    id: 'golden:comparative:less-busy',
+    category: 'comparative',
+    input: 'make it less busy',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'busyness', direction: 'decrease', amount: { type: 'default' } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Comparative with less',
+  },
+  {
+    id: 'golden:comparative:much-wider',
+    category: 'comparative',
+    input: 'make it much wider',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ axis: 'width', direction: 'increase', amount: { type: 'large' } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'critical',
+    description: 'Intensified comparative',
+  },
+  
+  // Structure operations
+  {
+    id: 'golden:structure:duplicate-chorus',
+    category: 'structure',
+    input: 'duplicate the chorus',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ verb: 'duplicate', target: { type: 'section', section: 'chorus' } }],
+      scope: { type: 'section', section: 'chorus' },
+      constraints: [],
+    },
+    priority: 'high',
+    description: 'Duplicate section',
+  },
+  {
+    id: 'golden:structure:insert-break',
+    category: 'structure',
+    input: 'add a break before the chorus',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ verb: 'insert', object: 'break', position: { before: 'chorus' } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'high',
+    description: 'Insert structural element',
+  },
+  
+  // Numeric parameters
+  {
+    id: 'golden:numeric:quantize-50',
+    category: 'numeric',
+    input: 'quantize to 50%',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ verb: 'quantize', amount: { type: 'percentage', value: 50 } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'high',
+    description: 'Explicit percentage',
+  },
+  {
+    id: 'golden:numeric:tempo-120',
+    category: 'numeric',
+    input: 'set tempo to 120 bpm',
+    expectedCPL: {
+      type: 'intent',
+      goals: [{ verb: 'set', parameter: 'tempo', value: { bpm: 120 } }],
+      scope: { type: 'default' },
+      constraints: [],
+    },
+    priority: 'high',
+    description: 'Explicit BPM',
+  },
+];
+
+// =============================================================================
+// Paraphrase Test Sets
+// =============================================================================
+
+/**
+ * Paraphrase invariance test sets
+ */
+export const PARAPHRASE_TEST_SETS: readonly ParaphraseTestSet[] = [
+  {
+    id: 'paraphrase:make-darker',
+    baseUtterance: 'make it darker',
+    paraphrases: [
+      'darken it',
+      'make this darker',
+      'darker',
+      'reduce brightness',
+      'less bright',
+    ],
+    expectedSemanticEquivalence: true,
+    allowedCPLVariation: 'none',
+    description: 'All should map to brightness decrease',
+  },
+  {
+    id: 'paraphrase:add-reverb',
+    baseUtterance: 'add reverb',
+    paraphrases: [
+      'add some reverb',
+      'put reverb on it',
+      'apply reverb',
+      'add a reverb effect',
+    ],
+    expectedSemanticEquivalence: true,
+    allowedCPLVariation: 'none',
+    description: 'Different ways to add reverb',
+  },
+  {
+    id: 'paraphrase:in-chorus',
+    baseUtterance: 'make it darker in the chorus',
+    paraphrases: [
+      'darken the chorus',
+      'in the chorus make it darker',
+      'for the chorus, make it darker',
+      'during the chorus, darker',
+    ],
+    expectedSemanticEquivalence: true,
+    allowedCPLVariation: 'order-only',
+    description: 'Scope phrase ordering',
+  },
+  {
+    id: 'paraphrase:coordination',
+    baseUtterance: 'make it darker and tighter',
+    paraphrases: [
+      'make it tighter and darker',
+      'darken it and tighten it',
+      'darker and tighter',
+    ],
+    expectedSemanticEquivalence: true,
+    allowedCPLVariation: 'order-only',
+    description: 'Coordination order invariance',
+  },
+];
+
+// =============================================================================
+// Safety Diff Test Cases
+// =============================================================================
+
+/**
+ * Safety diff test cases ensuring constraints are enforced
+ */
+export const SAFETY_DIFF_TESTS: readonly SafetyDiffTestCase[] = [
+  {
+    id: 'safety:preserve-melody-exact',
+    utterance: 'make it darker but keep the melody exact',
+    projectFixture: 'fixtures/chorus-with-melody.json',
+    constraints: ['preserve melody exact'],
+    expectedViolations: [],
+    shouldBlock: true,
+    description: 'No melody notes should change pitch or timing',
+  },
+  {
+    id: 'safety:only-drums',
+    utterance: 'make it tighter but only change the drums',
+    projectFixture: 'fixtures/full-arrangement.json',
+    constraints: ['only-change drums'],
+    expectedViolations: [],
+    shouldBlock: true,
+    description: 'Only drum events should be modified',
+  },
+  {
+    id: 'safety:no-new-tracks',
+    utterance: 'make it wider but don\'t add tracks',
+    projectFixture: 'fixtures/minimal-project.json',
+    constraints: ['forbid add-track'],
+    expectedViolations: [],
+    shouldBlock: true,
+    description: 'Track count must remain constant',
+  },
+  {
+    id: 'safety:scope-bounds',
+    utterance: 'make the chorus darker',
+    projectFixture: 'fixtures/verse-chorus-bridge.json',
+    constraints: [],
+    expectedViolations: [],
+    shouldBlock: false,
+    description: 'Edits must not escape chorus scope',
+  },
+];
+
+// =============================================================================
+// Performance Benchmarks
+// =============================================================================
+
+/**
+ * Performance benchmarks for critical operations
+ */
+export const PERFORMANCE_BENCHMARKS: readonly PerformanceBenchmark[] = [
+  {
+    id: 'perf:tokenize',
+    operation: 'Tokenize 100-word utterance',
+    maxLatencyMs: 10,
+    maxMemoryMb: 1,
+    targetOperationsPerSecond: 1000,
+    description: 'Tokenization should be near-instantaneous',
+  },
+  {
+    id: 'perf:parse-simple',
+    operation: 'Parse simple imperative',
+    maxLatencyMs: 50,
+    maxMemoryMb: 5,
+    targetOperationsPerSecond: 100,
+    description: 'Simple parses complete within typing latency budget',
+  },
+  {
+    id: 'perf:parse-complex',
+    operation: 'Parse complex coordinated sentence',
+    maxLatencyMs: 200,
+    maxMemoryMb: 20,
+    targetOperationsPerSecond: 20,
+    description: 'Complex parses complete within acceptable latency',
+  },
+  {
+    id: 'perf:plan-simple',
+    operation: 'Generate plan for single-axis goal',
+    maxLatencyMs: 100,
+    maxMemoryMb: 10,
+    targetOperationsPerSecond: 50,
+    description: 'Simple planning is interactive',
+  },
+  {
+    id: 'perf:plan-complex',
+    operation: 'Generate plan for multi-objective goal',
+    maxLatencyMs: 500,
+    maxMemoryMb: 50,
+    targetOperationsPerSecond: 10,
+    description: 'Complex planning completes within preview latency budget',
+  },
+  {
+    id: 'perf:apply-plan',
+    operation: 'Apply plan with 10 opcodes',
+    maxLatencyMs: 200,
+    maxMemoryMb: 20,
+    targetOperationsPerSecond: 20,
+    description: 'Plan application is responsive',
+  },
+  {
+    id: 'perf:diff-generation',
+    operation: 'Generate diff for applied plan',
+    maxLatencyMs: 50,
+    maxMemoryMb: 5,
+    targetOperationsPerSecond: 100,
+    description: 'Diff generation is instantaneous',
+  },
+  {
+    id: 'perf:constraint-check',
+    operation: 'Check 5 constraints against diff',
+    maxLatencyMs: 100,
+    maxMemoryMb: 10,
+    targetOperationsPerSecond: 50,
+    description: 'Constraint verification is fast',
+  },
+  {
+    id: 'perf:full-pipeline',
+    operation: 'NL→CPL→Plan→Apply→Diff end-to-end',
+    maxLatencyMs: 1000,
+    maxMemoryMb: 100,
+    targetOperationsPerSecond: 5,
+    description: 'Full pipeline completes within interaction budget',
+  },
+];
+
+// =============================================================================
+// UX Interaction Tests
+// =============================================================================
+
+/**
+ * UX interaction test specifications
+ */
+export const UX_INTERACTION_TESTS: readonly UXInteractionTest[] = [
+  {
+    id: 'ux:basic-command-flow',
+    userFlow: [
+      'User opens GOFAI deck',
+      'User types "make it darker"',
+      'System shows CPL preview',
+      'User clicks "Apply"',
+      'System shows diff',
+      'User clicks "Undo"',
+    ],
+    expectedStates: [
+      'Deck visible with empty input',
+      'CPL panel shows parsed intent',
+      'Plan panel shows candidate operations',
+      'Diff panel shows changes',
+      'Project reverted to original state',
+    ],
+    errorConditions: [],
+    description: 'Happy path: simple command',
+  },
+  {
+    id: 'ux:clarification-flow',
+    userFlow: [
+      'User types "make it darker"',
+      'System asks: "Which section?"',
+      'User selects "Chorus"',
+      'System shows plan',
+      'User clicks "Apply"',
+    ],
+    expectedStates: [
+      'Clarification modal appears',
+      'Options list section names',
+      'Selection updates CPL',
+      'Plan regenerated with scope',
+      'Changes applied successfully',
+    ],
+    errorConditions: [],
+    description: 'Clarification question flow',
+  },
+  {
+    id: 'ux:constraint-violation',
+    userFlow: [
+      'User types "make it wider but keep melody exact"',
+      'System generates plan',
+      'Plan would violate melody constraint',
+      'User sees violation warning',
+      'User cancels or modifies',
+    ],
+    expectedStates: [
+      'CPL shows constraint',
+      'Plan marked as risky',
+      'Violation details visible',
+      'Apply button disabled',
+    ],
+    errorConditions: ['Constraint violation detected'],
+    description: 'Constraint violation handling',
+  },
+  {
+    id: 'ux:ambiguity-resolution',
+    userFlow: [
+      'User types "make that darker"',
+      'System detects ambiguous "that"',
+      'System highlights candidates',
+      'User selects referent',
+      'System completes intent',
+    ],
+    expectedStates: [
+      'Reference marked as ambiguous',
+      'Candidate list shown',
+      'Selection resolves reference',
+      'CPL updated with resolved target',
+    ],
+    errorConditions: [],
+    description: 'Reference ambiguity resolution',
+  },
+  {
+    id: 'ux:multi-turn-dialogue',
+    userFlow: [
+      'User: "make it darker"',
+      'System applies',
+      'User: "now do it again"',
+      'System recognizes repetition',
+      'System applies same plan',
+    ],
+    expectedStates: [
+      'First plan applied',
+      '"Again" resolves to previous plan',
+      'Same operations applied',
+      'Diff shows cumulative changes',
+    ],
+    errorConditions: [],
+    description: 'Multi-turn dialogue with anaphora',
+  },
+];
+
+// =============================================================================
+// Matrix Validation
+// =============================================================================
+
+/**
+ * Validate that the build matrix is internally consistent
+ */
+export function validateBuildMatrix(): readonly string[] {
+  const errors: string[] = [];
+  
+  // Check for duplicate feature IDs
+  const ids = new Set<string>();
+  for (const feature of BUILD_MATRIX.features) {
+    if (ids.has(feature.id)) {
+      errors.push(`Duplicate feature ID: ${feature.id}`);
+    }
+    ids.add(feature.id);
+  }
+  
+  // Check that all dependencies exist
+  for (const feature of BUILD_MATRIX.features) {
+    for (const dep of feature.dependencies) {
+      if (!BUILD_MATRIX.features.some(f => f.id === dep)) {
+        errors.push(`Feature ${feature.id} depends on non-existent ${dep}`);
+      }
+    }
+  }
+  
+  // Check for circular dependencies
+  try {
+    getDependencyOrder();
+  } catch (e) {
+    if (e instanceof Error) {
+      errors.push(`Circular dependency: ${e.message}`);
+    }
+  }
+  
+  // Check that all required tests have descriptions
+  for (const feature of BUILD_MATRIX.features) {
+    for (const req of feature.requiredTests) {
+      if (!req.description || req.description.trim().length === 0) {
+        errors.push(`Feature ${feature.id}, test ${req.type} missing description`);
+      }
+    }
+  }
+  
+  // Check that critical tests have minimum coverage >= 90%
+  for (const feature of BUILD_MATRIX.features) {
+    for (const req of feature.requiredTests) {
+      if (req.priority === 'critical' && req.minimumCoverage < 90) {
+        errors.push(`Feature ${feature.id}, critical test ${req.type} has coverage < 90%`);
+      }
+    }
+  }
+  
+  return errors;
+}
+
+/**
+ * Generate test scaffolding code for a feature
+ */
+export function generateTestScaffolding(featureId: string): string {
+  const feature = BUILD_MATRIX.features.find(f => f.id === featureId);
+  if (!feature) {
+    throw new Error(`Feature not found: ${featureId}`);
+  }
+  
+  const lines = [
+    `/**`,
+    ` * Test suite for ${feature.name}`,
+    ` * ${feature.description}`,
+    ` *`,
+    ` * Feature ID: ${feature.id}`,
+    ` * Implementation: ${feature.implementationPath}`,
+    ` */`,
+    ``,
+    `import { describe, test, expect } from 'vitest';`,
+    ``,
+  ];
+  
+  for (const req of feature.requiredTests) {
+    lines.push(`describe('${feature.name} - ${req.type}', () => {`);
+    lines.push(`  test('${req.description}', () => {`);
+    lines.push(`    // TODO: Implement ${req.type} test`);
+    lines.push(`    // Priority: ${req.priority}`);
+    lines.push(`    // Minimum coverage: ${req.minimumCoverage}%`);
+    lines.push(`    expect(true).toBe(false); // Replace with actual test`);
+    lines.push(`  });`);
+    lines.push(`});`);
+    lines.push(``);
+  }
+  
+  return lines.join('\n');
+}

@@ -527,7 +527,7 @@ describe('C041: Mode Similarity Metric', () => {
     expect(result).not.toBeNull();
     // They share 4 notes (C, D, F, G when both rooted on same tonic)
     expect(result!.sharedDegrees).toBe(4);
-    expect(result!.relationship).toBe('relative');
+    expect(result!.relationship).toBe('interchange'); // 4 shared = interchange (3-4 range)
   });
 
   test('Ionian and Lydian have high similarity (differ by one note)', () => {
